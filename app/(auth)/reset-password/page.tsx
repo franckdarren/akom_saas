@@ -1,18 +1,29 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { resetPassword } from '@/lib/actions/auth'
+import { resetPassword, signOut } from '@/lib/actions/auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
 export default function ResetPasswordPage() {
     const router = useRouter()
+    const searchParams = useSearchParams()
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [success, setSuccess] = useState(false)
+
+    // Vérifier si on a un code de récupération dans l'URL
+    const hasRecoveryCode = searchParams.get('code') !== null
+
+    useEffect(() => {
+        // Si pas de code de récupération, c'est que l'user essaie d'accéder directement
+        if (!hasRecoveryCode) {
+            router.push('/forgot-password')
+        }
+    }, [hasRecoveryCode, router])
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault()
@@ -27,15 +38,12 @@ export default function ResetPasswordPage() {
 
         if (result.success) {
             setSuccess(true)
-            // Rediriger vers le login après 2 secondes
-            setTimeout(() => {
-                router.push('/login')
-            }, 2000)
+            // Déconnecter l'utilisateur pour forcer une nouvelle connexion
+            await signOut()
         } else {
             setError(result.error || result.message)
+            setLoading(false)
         }
-
-        setLoading(false)
     }
 
     if (success) {
@@ -50,12 +58,12 @@ export default function ResetPasswordPage() {
                 <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 mb-6">
                     <p className="text-sm text-green-800 dark:text-green-200">
                         Votre mot de passe a été mis à jour avec succès.
-                        Redirection vers la page de connexion...
+                        Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.
                     </p>
                 </div>
 
                 <Link href="/login">
-                    <Button variant="outline" className="w-full">
+                    <Button className="w-full">
                         Se connecter maintenant
                     </Button>
                 </Link>
@@ -117,14 +125,11 @@ export default function ResetPasswordPage() {
                 </Button>
             </form>
 
-            {/* Back to Login */}
+            {/* Info message */}
             <div className="mt-6 text-center">
-                <Link
-                    href="/login"
-                    className="text-sm text-blue-600 hover:text-blue-500"
-                >
-                    ← Retour à la connexion
-                </Link>
+                <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                    Veuillez réinitialiser votre mot de passe pour continuer
+                </p>
             </div>
         </div>
     )

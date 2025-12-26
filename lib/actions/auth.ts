@@ -196,6 +196,7 @@ export async function resetPassword(
         }
     }
 
+    // NE PAS rediriger ici - on laisse le composant gérer ça
     return {
         success: true,
         message: 'Mot de passe mis à jour avec succès',
