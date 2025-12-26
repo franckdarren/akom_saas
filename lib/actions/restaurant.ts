@@ -1,0 +1,294 @@
+'use server'
+
+import { createClient } from '@/lib/supabase/server'
+import prisma from '@/lib/prisma'
+import type { UserRole, RestaurantWithRole } from '@/types/auth'
+
+// ============================================================
+// RÉCUPÉRER LES RESTAURANTS D'UN UTILISATEUR
+// ============================================================
+
+export async function getUserRestaurants(): Promise<RestaurantWithRole[]> {
+    const supabase = await createClient()
+
+    // Récupérer l'utilisateur connecté
+    const {
+        data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+        return []
+    }
+
+    // Récupérer les restaurants avec les rôles
+    const restaurantUsers = await prisma.restaurantUser.findMany({
+        where: {
+            userId: user.id,
+        },
+        include: {
+            restaurant: {
+                select: {
+                    id: true,
+                    name: true,
+                    slug: true,
+                    isActive: true,
+                },
+            },
+        },
+    })
+
+    return restaurantUsers.map((ru) => ({
+        id: ru.restaurant.id,
+        name: ru.restaurant.name,
+        slug: ru.restaurant.slug,
+        role: ru.role as UserRole,
+        isActive: ru.restaurant.isActive,
+    }))
+}
+
+// ============================================================
+// RÉCUPÉRER LE RÔLE D'UN UTILISATEUR DANS UN RESTAURANT
+// ============================================================
+
+export async function getUserRoleInRestaurant(
+    restaurantId: string
+): Promise<UserRole | null> {
+    const supabase = await createClient()
+
+    const {
+        data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+        return null
+    }
+
+    const restaurantUser = await prisma.restaurantUser.findUnique({
+        where: {
+            userId_restaurantId: {
+                userId: user.id,
+                restaurantId: restaurantId,
+            },
+        },
+        select: {
+            role: true,
+        },
+    })
+
+    return restaurantUser ? (restaurantUser.role as UserRole) : null
+}
+
+// ============================================================
+// VÉRIFIER SI UN UTILISATEUR A ACCÈS À UN RESTAURANT
+// ============================================================
+
+export async function hasAccessToRestaurant(
+    restaurantId: string
+): Promise<boolean> {
+    const role = await getUserRoleInRestaurant(restaurantId)
+    return role !== null
+}
+
+// ============================================================
+// CRÉER UN RESTAURANT (et assigner l'utilisateur comme admin)
+// ============================================================
+
+export async function createRestaurant(data: {
+    name: string
+    slug: string
+    phone?: string
+    address?: string
+}) {
+    const supabase = await createClient()
+
+    const {
+        data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+        throw new Error('Non authentifié')
+    }
+
+    // Vérifier que le slug est unique
+    const existingRestaurant = await prisma.restaurant.findUnique({
+        where: { slug: data.slug },
+    })
+
+    if (existingRestaurant) {
+        throw new Error('Ce slug est déjà utilisé')
+    }
+
+    // Créer le restaurant et assigner l'utilisateur comme admin
+    const restaurant = await prisma.restaurant.create({
+        data: {
+            name: data.name,
+            slug: data.slug,
+            phone: data.phone,
+            address: data.address,
+            users: {
+                create: {
+                    userId: user.id,
+                    role: 'admin', // Créateur = admin
+                },
+            },
+        },
+        include: {
+            users: true,
+        },
+    })
+
+    return restaurant
+}
+
+// ============================================================
+// INVITER UN UTILISATEUR DANS UN RESTAURANT
+// ============================================================
+
+export async function inviteUserToRestaurant(
+    restaurantId: string,
+    email: string,
+    role: UserRole
+) {
+    const supabase = await createClient()
+
+    const {
+        data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+        throw new Error('Non authentifié')
+    }
+
+    // Vérifier que l'utilisateur actuel est admin du restaurant
+    const currentUserRole = await getUserRoleInRestaurant(restaurantId)
+
+    if (currentUserRole !== 'admin') {
+        throw new Error('Seuls les admins peuvent inviter des utilisateurs')
+    }
+
+    // Récupérer l'utilisateur à inviter par email
+    const { data: invitedUser } = await supabase
+        .from('auth.users')
+        .select('id')
+        .eq('email', email)
+        .single()
+
+    if (!invitedUser) {
+        throw new Error('Utilisateur non trouvé')
+    }
+
+    // Vérifier qu'il n'est pas déjà membre
+    const existingMembership = await prisma.restaurantUser.findUnique({
+        where: {
+            userId_restaurantId: {
+                userId: invitedUser.id,
+                restaurantId: restaurantId,
+            },
+        },
+    })
+
+    if (existingMembership) {
+        throw new Error('Cet utilisateur est déjà membre du restaurant')
+    }
+
+    // Ajouter l'utilisateur au restaurant
+    const restaurantUser = await prisma.restaurantUser.create({
+        data: {
+            userId: invitedUser.id,
+            restaurantId: restaurantId,
+            role: role,
+        },
+    })
+
+    return restaurantUser
+}
+
+// ============================================================
+// CHANGER LE RÔLE D'UN UTILISATEUR
+// ============================================================
+
+export async function changeUserRole(
+    restaurantId: string,
+    targetUserId: string,
+    newRole: UserRole
+) {
+    const supabase = await createClient()
+
+    const {
+        data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+        throw new Error('Non authentifié')
+    }
+
+    // Vérifier que l'utilisateur actuel est admin
+    const currentUserRole = await getUserRoleInRestaurant(restaurantId)
+
+    if (currentUserRole !== 'admin') {
+        throw new Error('Seuls les admins peuvent changer les rôles')
+    }
+
+    // Empêcher de changer son propre rôle
+    if (user.id === targetUserId) {
+        throw new Error('Vous ne pouvez pas changer votre propre rôle')
+    }
+
+    // Mettre à jour le rôle
+    const restaurantUser = await prisma.restaurantUser.update({
+        where: {
+            userId_restaurantId: {
+                userId: targetUserId,
+                restaurantId: restaurantId,
+            },
+        },
+        data: {
+            role: newRole,
+        },
+    })
+
+    return restaurantUser
+}
+
+// ============================================================
+// RETIRER UN UTILISATEUR D'UN RESTAURANT
+// ============================================================
+
+export async function removeUserFromRestaurant(
+    restaurantId: string,
+    targetUserId: string
+) {
+    const supabase = await createClient()
+
+    const {
+        data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+        throw new Error('Non authentifié')
+    }
+
+    // Vérifier que l'utilisateur actuel est admin
+    const currentUserRole = await getUserRoleInRestaurant(restaurantId)
+
+    if (currentUserRole !== 'admin') {
+        throw new Error('Seuls les admins peuvent retirer des utilisateurs')
+    }
+
+    // Empêcher de se retirer soi-même
+    if (user.id === targetUserId) {
+        throw new Error('Vous ne pouvez pas vous retirer vous-même')
+    }
+
+    // Supprimer l'utilisateur
+    await prisma.restaurantUser.delete({
+        where: {
+            userId_restaurantId: {
+                userId: targetUserId,
+                restaurantId: restaurantId,
+            },
+        },
+    })
+
+    return { success: true }
+}

@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { signOut } from '@/lib/actions/auth'
 import { Button } from '@/components/ui/button'
+import { RestaurantSelector } from '@/components/dashboard/RestaurantSelector'
 
 export default async function DashboardPage() {
     const supabase = await createClient()
@@ -23,9 +24,12 @@ export default async function DashboardPage() {
             <header className="bg-white dark:bg-zinc-800 border-b border-zinc-200 dark:border-zinc-700">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-16">
-                        <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">
-                            Akôm Dashboard
-                        </h1>
+                        <div className="flex items-center gap-6">
+                            <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">
+                                Akôm Dashboard
+                            </h1>
+                            <RestaurantSelector />
+                        </div>
 
                         <div className="flex items-center gap-4">
                             <div className="text-sm text-zinc-600 dark:text-zinc-400">
@@ -48,8 +52,8 @@ export default async function DashboardPage() {
                         Bienvenue sur votre tableau de bord
                     </h2>
                     <p className="text-zinc-600 dark:text-zinc-400">
-                        Vous êtes maintenant connecté avec succès. Cette page est protégée
-                        et accessible uniquement aux utilisateurs authentifiés.
+                        Sélectionnez un restaurant ci-dessus pour commencer. Votre rôle
+                        détermine les fonctionnalités auxquelles vous avez accès.
                     </p>
 
                     <div className="mt-6 p-4 bg-zinc-100 dark:bg-zinc-700 rounded-lg">
@@ -82,9 +86,9 @@ export default async function DashboardPage() {
                         </dl>
                     </div>
 
-                    <div className="mt-6">
+                    <div className="mt-6 flex gap-3">
                         <Link href="/update-password">
-                            <Button variant="outline" className="w-full">
+                            <Button variant="outline">
                                 Modifier mon mot de passe
                             </Button>
                         </Link>
