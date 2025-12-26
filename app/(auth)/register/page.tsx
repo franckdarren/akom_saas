@@ -7,6 +7,8 @@ import { signUp } from '@/lib/actions/auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Loader2 } from "lucide-react"
+
 
 export default function RegisterPage() {
     const router = useRouter()
@@ -46,7 +48,7 @@ export default function RegisterPage() {
             <form onSubmit={handleSubmit} className="space-y-4">
                 {/* Email */}
                 <div>
-                    <Label htmlFor="email">Email</Label>
+                    <Label htmlFor="email" className='pb-1'>Email</Label>
                     <Input
                         id="email"
                         name="email"
@@ -59,7 +61,7 @@ export default function RegisterPage() {
 
                 {/* Password */}
                 <div>
-                    <Label htmlFor="password">Mot de passe</Label>
+                    <Label htmlFor="password" className='pb-1'>Mot de passe</Label>
                     <Input
                         id="password"
                         name="password"
@@ -75,7 +77,7 @@ export default function RegisterPage() {
 
                 {/* Confirm Password */}
                 <div>
-                    <Label htmlFor="confirmPassword">Confirmer le mot de passe</Label>
+                    <Label htmlFor="confirmPassword" className='pb-1'>Confirmer le mot de passe</Label>
                     <Input
                         id="confirmPassword"
                         name="confirmPassword"
@@ -98,7 +100,9 @@ export default function RegisterPage() {
                     type="submit"
                     className="w-full"
                     disabled={loading}
-                >
+                > {loading && (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                )}
                     {loading ? 'Création...' : 'Créer mon compte'}
                 </Button>
             </form>

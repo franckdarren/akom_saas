@@ -7,6 +7,8 @@ import { resetPassword, signOut, getUser } from '@/lib/actions/auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Loader2 } from "lucide-react"
+
 
 export default function ResetPasswordPage() {
     const router = useRouter()
@@ -15,7 +17,7 @@ export default function ResetPasswordPage() {
     const [error, setError] = useState<string | null>(null)
     const [success, setSuccess] = useState(false)
 
-    // ✅ Vérifier la session SUPABASE (PAS l’URL)
+    // Vérifier la session SUPABASE (PAS l’URL)
     useEffect(() => {
         async function checkSession() {
             const user = await getUser()
@@ -96,7 +98,7 @@ export default function ResetPasswordPage() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                    <Label htmlFor="password">Nouveau mot de passe</Label>
+                    <Label htmlFor="password" className='pb-1'>Nouveau mot de passe</Label>
                     <Input
                         id="password"
                         name="password"
@@ -107,7 +109,7 @@ export default function ResetPasswordPage() {
                 </div>
 
                 <div>
-                    <Label htmlFor="confirmPassword">
+                    <Label htmlFor="confirmPassword" className='pb-1'>
                         Confirmer le mot de passe
                     </Label>
                     <Input
@@ -124,6 +126,9 @@ export default function ResetPasswordPage() {
                 )}
 
                 <Button type="submit" className="w-full" disabled={loading}>
+                    {loading && (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                    )}
                     {loading ? 'Mise à jour…' : 'Réinitialiser le mot de passe'}
                 </Button>
             </form>

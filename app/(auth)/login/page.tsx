@@ -7,6 +7,8 @@ import { signIn } from '@/lib/actions/auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Loader2 } from "lucide-react"
+
 
 export default function LoginPage() {
     const router = useRouter()
@@ -45,7 +47,7 @@ export default function LoginPage() {
             <form onSubmit={handleSubmit} className="space-y-4">
                 {/* Email */}
                 <div>
-                    <Label htmlFor="email">Email</Label>
+                    <Label htmlFor="email" className='pb-1'>Email</Label>
                     <Input
                         id="email"
                         name="email"
@@ -59,7 +61,7 @@ export default function LoginPage() {
                 {/* Password */}
                 <div>
                     <div className="flex items-center justify-between">
-                        <Label htmlFor="password">Mot de passe</Label>
+                        <Label htmlFor="password" className='pb-1'>Mot de passe</Label>
                         <Link
                             href="/forgot-password"
                             className="text-sm text-blue-600 hover:text-blue-500"
@@ -89,7 +91,9 @@ export default function LoginPage() {
                     type="submit"
                     className="w-full"
                     disabled={loading}
-                >
+                > {loading && (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                )}
                     {loading ? 'Connexion...' : 'Se connecter'}
                 </Button>
             </form>

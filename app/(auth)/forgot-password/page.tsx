@@ -6,6 +6,8 @@ import { forgotPassword } from '@/lib/actions/auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Loader2 } from "lucide-react"
+
 
 export default function ForgotPasswordPage() {
     const [loading, setLoading] = useState(false)
@@ -71,7 +73,7 @@ export default function ForgotPasswordPage() {
             <form onSubmit={handleSubmit} className="space-y-4">
                 {/* Email */}
                 <div>
-                    <Label htmlFor="email">Email</Label>
+                    <Label htmlFor="email" className='pb-1'>Email</Label>
                     <Input
                         id="email"
                         name="email"
@@ -94,7 +96,9 @@ export default function ForgotPasswordPage() {
                     type="submit"
                     className="w-full"
                     disabled={loading}
-                >
+                > {loading && (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                )}
                     {loading ? 'Envoi...' : 'Envoyer le lien'}
                 </Button>
             </form>
