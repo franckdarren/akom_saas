@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Loader2 } from "lucide-react"
+import { translateAuthError } from '@/lib/translate/auth-error-messages'
 
 
 export default function LoginPage() {
@@ -27,7 +28,7 @@ export default function LoginPage() {
         const result = await signIn({ email, password })
 
         if (!result.success) {
-            setError(result.error || result.message)
+            setError(translateAuthError(result.error || result.message))
             setLoading(false)
         }
         // La redirection est gérée par la Server Action
