@@ -64,7 +64,7 @@ const menuConfig: Record<UserRole, Array<{
             title: "Général",
             items: [
                 { title: "Tableau de bord", href: "/dashboard", icon: LayoutDashboard },
-                { title: "Restaurants", href: "/dashboard/restaurants", icon: Building2 },
+                // { title: "Restaurants", href: "/dashboard/restaurants", icon: Building2 }, // CE N'EST PAS DANS LE MVP
             ],
         },
         {
@@ -181,7 +181,7 @@ export function AppSidebar({ user, role, restaurantName, onSignOut }: AppSidebar
             </SidebarContent>
 
             <SidebarFooter className="border-t bg-background/50">
-                <SidebarMenu>                    
+                <SidebarMenu>
 
                     {/* Logout */}
                     <SidebarMenuItem>
