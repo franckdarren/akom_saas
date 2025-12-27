@@ -180,28 +180,43 @@ export function AppSidebar({ user, role, restaurantName, onSignOut }: AppSidebar
                 ))}
             </SidebarContent>
 
-            <SidebarFooter className="border-t">
+            <SidebarFooter className="border-t bg-background/50">
                 <SidebarMenu>
+                    {/* User profile */}
                     <SidebarMenuItem>
-                        <div className="flex items-center gap-3 px-2 py-3">
-                            <Avatar className="h-8 w-8">
-                                <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+                        <div className="flex items-center gap-3 px-3 py-3 rounded-md hover:bg-muted transition-colors">
+                            <Avatar className="h-9 w-9">
+                                <AvatarFallback className="bg-primary text-primary-foreground text-xs font-semibold">
                                     {initials}
                                 </AvatarFallback>
                             </Avatar>
+
                             <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium truncate">{user.email}</p>
-                                <Badge variant={roleBadge.variant} className="mt-1">
-                                    {roleBadge.label}
-                                </Badge>
+                                <p className="text-sm font-medium leading-tight truncate">
+                                    {user.email}
+                                </p>
+                                <div className="mt-1">
+                                    <Badge
+                                        variant={roleBadge.variant}
+                                        className="px-2 py-0.5 text-xs font-medium"
+                                    >
+                                        {roleBadge.label}
+                                    </Badge>
+                                </div>
                             </div>
                         </div>
                     </SidebarMenuItem>
-                    <Separator />
+
+                    <Separator className="my-1" />
+
+                    {/* Logout */}
                     <SidebarMenuItem>
-                        <SidebarMenuButton onClick={onSignOut}>
+                        <SidebarMenuButton
+                            onClick={onSignOut}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors"
+                        >
                             <LogOut className="h-4 w-4" />
-                            <span>Déconnexion</span>
+                            <span className="font-medium">Déconnexion</span>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                 </SidebarMenu>
