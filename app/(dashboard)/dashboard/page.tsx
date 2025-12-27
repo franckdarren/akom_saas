@@ -13,6 +13,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import prisma from "@/lib/prisma"
 import { formatPrice } from "@/lib/utils/format"
+import { useDashboard } from '@/components/providers/dashboard-provider'
 
 export default async function DashboardPage() {
     const supabase = await createClient()
@@ -109,17 +110,23 @@ export default async function DashboardPage() {
             <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
                 <SidebarTrigger className="-ml-1" />
                 <Separator orientation="vertical" className="mr-2 h-4" />
-                <Breadcrumb>
-                    <BreadcrumbList>
-                        <BreadcrumbItem>
-                            <BreadcrumbPage>Tableau de bord</BreadcrumbPage>
-                        </BreadcrumbItem>
-                    </BreadcrumbList>
-                </Breadcrumb>
-            </header>
+                <div className="flex justify-between w-full">
+                    <h1 className="text-sm font-medium my-auto">Tableau de bord</h1>
+                    <div className="border-black text-right leading-tight text-sm">
+                        {
+                            userRole === "admin" && <p className="truncate font-medium">Administrateur</p>
+                        }
+                        {
+                            userRole === "kitchen" && <p className="truncate font-medium">Cuisine</p>
+                        }
+                        <p className="text-muted-foreground truncate text-xs">{user.email}</p>
+                    </div>
+                </div>
+
+            </header >
 
             {/* Contenu */}
-            <div className="flex flex-1 flex-col gap-4 p-4">
+            < div className="flex flex-1 flex-col gap-4 p-4" >
                 <div className="grid auto-rows-min gap-4 md:grid-cols-3">
                     {userRole === "admin" && (
                         <>

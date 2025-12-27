@@ -142,10 +142,10 @@ export function AppSidebar({ user, role, restaurantName, onSignOut }: AppSidebar
                         <ChefHat className="h-5 w-5" />
                     </div>
                     <div className="flex flex-col">
-                        <span className="font-semibold text-lg">Akôm</span>
-                        {restaurantName && (
+                        <span className="font-semibold text-lg">{restaurantName}</span>
+                        {/* {restaurantName && (
                             <span className="text-xs text-muted-foreground">{restaurantName}</span>
-                        )}
+                        )} */}
                     </div>
                 </Link>
             </SidebarHeader>
@@ -181,33 +181,7 @@ export function AppSidebar({ user, role, restaurantName, onSignOut }: AppSidebar
             </SidebarContent>
 
             <SidebarFooter className="border-t bg-background/50">
-                <SidebarMenu>
-                    {/* User profile */}
-                    <SidebarMenuItem>
-                        <div className="flex items-center gap-3 px-3 py-3 rounded-md hover:bg-muted transition-colors">
-                            <Avatar className="h-9 w-9">
-                                <AvatarFallback className="bg-primary text-primary-foreground text-xs font-semibold">
-                                    {initials}
-                                </AvatarFallback>
-                            </Avatar>
-
-                            <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium leading-tight truncate">
-                                    {user.email}
-                                </p>
-                                <div className="mt-1">
-                                    <Badge
-                                        variant={roleBadge.variant}
-                                        className="px-2 py-0.5 text-xs font-medium"
-                                    >
-                                        {roleBadge.label}
-                                    </Badge>
-                                </div>
-                            </div>
-                        </div>
-                    </SidebarMenuItem>
-
-                    <Separator className="my-1" />
+                <SidebarMenu>                    
 
                     {/* Logout */}
                     <SidebarMenuItem>
@@ -222,7 +196,6 @@ export function AppSidebar({ user, role, restaurantName, onSignOut }: AppSidebar
                 </SidebarMenu>
             </SidebarFooter>
 
-            <SidebarRail />
         </Sidebar>
     )
 }
