@@ -36,6 +36,15 @@ export function EditCategoryDialog({
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
+    // Réinitialiser l'état quand le dialog se ferme
+    function handleOpenChange(newOpen: boolean) {
+        setOpen(newOpen)
+        if (!newOpen) {
+            setIsLoading(false)
+            setError(null)
+        }
+    }
+
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault()
         setIsLoading(true)
@@ -59,7 +68,7 @@ export function EditCategoryDialog({
     }
 
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogTrigger asChild>{children}</DialogTrigger>
             <DialogContent>
                 <DialogHeader>
