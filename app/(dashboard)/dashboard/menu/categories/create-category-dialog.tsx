@@ -24,6 +24,16 @@ export function CreateCategoryDialog({ children }: { children: React.ReactNode }
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
+    // Réinitialiser l'état quand le dialog se ferme
+    function handleOpenChange(newOpen: boolean) {
+        setOpen(newOpen)
+        if (!newOpen) {
+            // Dialog fermé → reset tout
+            setIsLoading(false)
+            setError(null)
+        }
+    }
+
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault()
         setIsLoading(true)
@@ -42,7 +52,6 @@ export function CreateCategoryDialog({ children }: { children: React.ReactNode }
             setIsLoading(false)
         } else {
             setOpen(false)
-            setIsLoading(false)
             router.refresh()
                 // Reset form
                 ; (e.target as HTMLFormElement).reset()
@@ -50,7 +59,7 @@ export function CreateCategoryDialog({ children }: { children: React.ReactNode }
     }
 
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogTrigger asChild>{children}</DialogTrigger>
             <DialogContent>
                 <DialogHeader>
