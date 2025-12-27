@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import prisma from '@/lib/prisma'
 import {
     loginSchema,
     registerSchema,
@@ -291,18 +292,58 @@ export async function getUser() {
 // VÉRIFIER SI L'UTILISATEUR EST SUPERADMIN
 // ============================================================
 
-export async function isSuperAdmin(): Promise<boolean> {
+// export async function isSuperAdmin(): Promise<boolean> {
+//     const supabase = await createClient()
+
+//     const {
+//         data: { user },
+//     } = await supabase.auth.getUser()
+
+//     if (!user || !user.email) {
+//         return false
+//     }
+
+//     // Vérifier si l'email est dans la liste des SuperAdmins
+//     const { isSuperAdminEmail } = await import('@/lib/utils/permissions')
+//     return isSuperAdminEmail(user.email)
+// }
+
+
+// ============================================================
+// RECUPERER LE ROLE DE L'UTILISATEUR
+// ============================================================
+
+export async function getUserRole(): Promise<"admin" | "kitchen" | "superadmin"> {
     const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
 
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user || !user.email) {
-        return false
+    if (!user) {
+        throw new Error("Not authenticated")
     }
 
-    // Vérifier si l'email est dans la liste des SuperAdmins
-    const { isSuperAdminEmail } = await import('@/lib/utils/permissions')
-    return isSuperAdminEmail(user.email)
+    // Vérifier si SuperAdmin
+    const isSuperAdminUser = await isSuperAdmin()
+    if (isSuperAdminUser) {
+        return "superadmin"
+    }
+
+    // Récupérer le rôle dans restaurant_users
+    const restaurantUser = await prisma.restaurantUser.findFirst({
+        where: { userId: user.id },
+        select: { role: true },
+    })
+
+    return restaurantUser?.role || "kitchen"
+}
+
+export async function isSuperAdmin(): Promise<boolean> {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) return false
+
+    // Liste des emails SuperAdmin (à mettre dans .env en production)
+    const superAdmins = process.env.SUPER_ADMIN_EMAILS?.split(',') || []
+
+    return superAdmins.includes(user.email || '')
 }
