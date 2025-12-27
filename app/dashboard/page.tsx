@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { signOut } from '@/lib/actions/auth'
+import { signOut, isSuperAdmin } from '@/lib/actions/auth'
 import { Button } from '@/components/ui/button'
 import { RestaurantSelector } from '@/components/dashboard/RestaurantSelector'
 
@@ -18,6 +18,9 @@ export default async function DashboardPage() {
         redirect('/login')
     }
 
+    // Vérifier si SuperAdmin
+    const isSuper = await isSuperAdmin()
+
     return (
         <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
             {/* Header */}
@@ -32,6 +35,15 @@ export default async function DashboardPage() {
                         </div>
 
                         <div className="flex items-center gap-4">
+                            {/* Badge SuperAdmin */}
+                            {isSuper && (
+                                <Link href="/superadmin">
+                                    <span className="px-3 py-1 bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 text-sm font-medium rounded-full cursor-pointer hover:bg-purple-200 dark:hover:bg-purple-800 transition-colors">
+                                        🚀 Super Admin
+                                    </span>
+                                </Link>
+                            )}
+
                             <div className="text-sm text-zinc-600 dark:text-zinc-400">
                                 {user.email}
                             </div>
@@ -52,8 +64,9 @@ export default async function DashboardPage() {
                         Bienvenue sur votre tableau de bord
                     </h2>
                     <p className="text-zinc-600 dark:text-zinc-400">
-                        Sélectionnez un restaurant ci-dessus pour commencer. Votre rôle
-                        détermine les fonctionnalités auxquelles vous avez accès.
+                        {isSuper
+                            ? "Vous êtes SuperAdmin - Vous avez accès à tous les restaurants de la plateforme."
+                            : "Sélectionnez un restaurant ci-dessus pour commencer. Votre rôle détermine les fonctionnalités auxquelles vous avez accès."}
                     </p>
 
                     <div className="mt-6 p-4 bg-zinc-100 dark:bg-zinc-700 rounded-lg">
@@ -77,6 +90,14 @@ export default async function DashboardPage() {
                             </div>
                             <div>
                                 <dt className="text-zinc-600 dark:text-zinc-400 inline">
+                                    Rôle:
+                                </dt>{' '}
+                                <dd className="text-zinc-900 dark:text-zinc-50 inline">
+                                    {isSuper ? '🚀 Super Admin' : 'Utilisateur'}
+                                </dd>
+                            </div>
+                            <div>
+                                <dt className="text-zinc-600 dark:text-zinc-400 inline">
                                     Créé le:
                                 </dt>{' '}
                                 <dd className="text-zinc-900 dark:text-zinc-50 inline">
@@ -92,6 +113,13 @@ export default async function DashboardPage() {
                                 Modifier mon mot de passe
                             </Button>
                         </Link>
+                        {isSuper && (
+                            <Link href="/superadmin">
+                                <Button className="bg-purple-600 hover:bg-purple-700 text-white">
+                                    Accéder au Dashboard SuperAdmin
+                                </Button>
+                            </Link>
+                        )}
                     </div>
                 </div>
             </main>

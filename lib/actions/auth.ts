@@ -274,7 +274,7 @@ export async function updatePassword(
 }
 
 // ============================================================
-// RÉCUPÉRER L'UTILISATEUR CONNECTÉ
+// RÉCUPÉRER L'UTILISATEUR CONNECTÉ (avec vérification SuperAdmin)
 // ============================================================
 
 export async function getUser() {
@@ -285,4 +285,24 @@ export async function getUser() {
     } = await supabase.auth.getUser()
 
     return user
+}
+
+// ============================================================
+// VÉRIFIER SI L'UTILISATEUR EST SUPERADMIN
+// ============================================================
+
+export async function isSuperAdmin(): Promise<boolean> {
+    const supabase = await createClient()
+
+    const {
+        data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user || !user.email) {
+        return false
+    }
+
+    // Vérifier si l'email est dans la liste des SuperAdmins
+    const { isSuperAdminEmail } = await import('@/lib/utils/permissions')
+    return isSuperAdminEmail(user.email)
 }

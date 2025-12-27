@@ -2,10 +2,12 @@ import type { User } from '@supabase/supabase-js'
 
 // Rôles utilisateur
 export type UserRole = 'admin' | 'kitchen'
+export type SystemRole = 'superadmin' | UserRole
 
 // Utilisateur avec ses restaurants
 export interface UserWithRestaurants extends User {
     restaurants?: RestaurantWithRole[]
+    isSuperAdmin?: boolean
 }
 
 // Restaurant avec le rôle de l'utilisateur
@@ -26,6 +28,13 @@ export interface RestaurantContext {
 
 // Permissions par rôle
 export const PERMISSIONS = {
+    superadmin: [
+        'view_all_restaurants',
+        'view_platform_stats',
+        'manage_all_restaurants',
+        'view_all_orders',
+        'access_support_tools',
+    ] as const,
     admin: [
         'manage_restaurant',
         'manage_menu',
@@ -35,11 +44,17 @@ export const PERMISSIONS = {
         'view_stats',
         'manage_users',
         'manage_payments',
-    ],
+    ] as const,
     kitchen: [
-        'manage_orders', // Uniquement les commandes
-        'view_menu',     // Consulter le menu (lecture seule)
-    ],
-} as const
+        'manage_orders',
+        'view_menu',
+    ] as const,
+}
 
-export type Permission = typeof PERMISSIONS[UserRole][number]
+// Type pour les permissions individuelles
+export type SuperAdminPermission = typeof PERMISSIONS.superadmin[number]
+export type AdminPermission = typeof PERMISSIONS.admin[number]
+export type KitchenPermission = typeof PERMISSIONS.kitchen[number]
+
+// Union de toutes les permissions possibles
+export type Permission = SuperAdminPermission | AdminPermission | KitchenPermission

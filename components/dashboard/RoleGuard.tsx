@@ -2,11 +2,11 @@
 
 import { ReactNode } from 'react'
 import { useRestaurant } from '@/lib/hooks/use-restaurant'
-import type { UserRole } from '@/types/auth'
+import type { SystemRole } from '@/types/auth'
 
 interface RoleGuardProps {
     children: ReactNode
-    allowedRoles: UserRole[]
+    allowedRoles: SystemRole[]
     fallback?: ReactNode
 }
 
@@ -19,6 +19,11 @@ export function RoleGuard({ children, allowedRoles, fallback }: RoleGuardProps) 
                 <div className="text-zinc-600 dark:text-zinc-400">Chargement...</div>
             </div>
         )
+    }
+
+    // SuperAdmin a toujours accès
+    if (currentRole === 'superadmin') {
+        return <>{children}</>
     }
 
     if (!currentRole || !allowedRoles.includes(currentRole)) {
