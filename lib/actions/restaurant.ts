@@ -3,6 +3,63 @@
 import { createClient } from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
 import type { UserRole, RestaurantWithRole } from '@/types/auth'
+import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
+import { generateUniqueSlug } from '@/lib/utils/slug'
+
+
+interface CreateRestaurantData {
+    name: string
+    phone?: string
+    address?: string
+}
+
+// ============================================================
+// CREER UN RESTAURANT 
+// ============================================================
+
+export async function createRestaurant(data: CreateRestaurantData) {
+    const supabase = await createClient()
+    const {
+        data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+        return { error: 'Non authentifié' }
+    }
+
+    if (!data.name || data.name.trim().length === 0) {
+        return { error: 'Le nom du restaurant est obligatoire' }
+    }
+
+    // PAS DE try/catch AUTOUR DE redirect
+    const slug = await generateUniqueSlug(data.name)
+
+    await prisma.$transaction(async (tx) => {
+        const restaurant = await tx.restaurant.create({
+            data: {
+                name: data.name.trim(),
+                slug,
+                phone: data.phone?.trim() || null,
+                address: data.address?.trim() || null,
+                isActive: true,
+            },
+        })
+
+        await tx.restaurantUser.create({
+            data: {
+                userId: user.id,
+                restaurantId: restaurant.id,
+                role: 'admin',
+            },
+        })
+    })
+
+    revalidatePath('/dashboard')
+    redirect('/dashboard') // ✅ Laisse Next gérer
+}
+
+
 
 // ============================================================
 // RÉCUPÉRER LES RESTAURANTS D'UN UTILISATEUR
@@ -87,57 +144,6 @@ export async function hasAccessToRestaurant(
 ): Promise<boolean> {
     const role = await getUserRoleInRestaurant(restaurantId)
     return role !== null
-}
-
-// ============================================================
-// CRÉER UN RESTAURANT (et assigner l'utilisateur comme admin)
-// ============================================================
-
-export async function createRestaurant(data: {
-    name: string
-    slug: string
-    phone?: string
-    address?: string
-}) {
-    const supabase = await createClient()
-
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) {
-        throw new Error('Non authentifié')
-    }
-
-    // Vérifier que le slug est unique
-    const existingRestaurant = await prisma.restaurant.findUnique({
-        where: { slug: data.slug },
-    })
-
-    if (existingRestaurant) {
-        throw new Error('Ce slug est déjà utilisé')
-    }
-
-    // Créer le restaurant et assigner l'utilisateur comme admin
-    const restaurant = await prisma.restaurant.create({
-        data: {
-            name: data.name,
-            slug: data.slug,
-            phone: data.phone,
-            address: data.address,
-            users: {
-                create: {
-                    userId: user.id,
-                    role: 'admin', // Créateur = admin
-                },
-            },
-        },
-        include: {
-            users: true,
-        },
-    })
-
-    return restaurant
 }
 
 // ============================================================

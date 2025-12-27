@@ -51,7 +51,9 @@ export async function middleware(request: NextRequest) {
     // Routes réservées aux utilisateurs connectés
     const protectedRoutes = [
         '/dashboard',
+        '/superadmin',
         '/update-password',
+        '/onboarding', // Ajout de l'onboarding
     ]
 
     const isPublicRoute = publicRoutes.some((route) =>
@@ -84,6 +86,10 @@ export async function middleware(request: NextRequest) {
         url.pathname = '/login'
         return NextResponse.redirect(url)
     }
+
+    // ✅ Note importante : La vérification "a-t-il un restaurant ?"
+    // est faite côté serveur dans les layouts (dashboard/layout.tsx)
+    // car on ne peut pas faire de requête Prisma dans le middleware
 
     return supabaseResponse
 }

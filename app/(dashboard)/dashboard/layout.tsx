@@ -22,6 +22,16 @@ export default async function DashboardLayout({
         redirect("/login")
     }
 
+    // Vérifier si l'utilisateur a au moins un restaurant
+    const hasRestaurant = await prisma.restaurantUser.findFirst({
+        where: { userId: user.id },
+    })
+
+    // Si pas de restaurant, rediriger vers l'onboarding
+    if (!hasRestaurant) {
+        redirect("/onboarding")
+    }
+
     // Récupérer le rôle de l'utilisateur
     const userRole = await getUserRole()
 
