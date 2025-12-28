@@ -52,3 +52,13 @@ export const PaymentTiming = {
 } as const
 
 export type PaymentTiming = (typeof PaymentTiming)[keyof typeof PaymentTiming]
+
+
+export const StockMovementType = {
+  manual_in: 'manual_in',
+  manual_out: 'manual_out',
+  adjustment: 'adjustment',
+  order_out: 'order_out'
+} as const
+
+export type StockMovementType = (typeof StockMovementType)[keyof typeof StockMovementType]

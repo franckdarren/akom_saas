@@ -7,6 +7,10 @@ datasource db {
   provider = "postgresql"
 }
 
+// ============================================================
+// ENUMS
+// ============================================================
+
 enum UserRole {
   admin
   kitchen
@@ -47,6 +51,15 @@ enum PaymentTiming {
   @@map("payment_timing")
 }
 
+enum StockMovementType {
+  manual_in
+  manual_out
+  adjustment
+  order_out
+
+  @@map("stock_movement_type")
+}
+
 // ============================================================
 // MODELS
 // ============================================================
@@ -63,13 +76,14 @@ model Restaurant {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  users      RestaurantUser[]
-  tables     Table[]
-  categories Category[]
-  products   Product[]
-  stocks     Stock[]
-  orders     Order[]
-  payments   Payment[]
+  users          RestaurantUser[]
+  tables         Table[]
+  categories     Category[]
+  products       Product[]
+  stocks         Stock[]
+  orders         Order[]
+  payments       Payment[]
+  stockMovements StockMovement[]
 
   @@map("restaurants")
 }
@@ -136,10 +150,11 @@ model Product {
   updatedAt    DateTime @updatedAt @map("updated_at")
 
   // Relations
-  restaurant Restaurant  @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
-  category   Category?   @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  stock      Stock?
-  orderItems OrderItem[]
+  restaurant     Restaurant      @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  category       Category?       @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  stock          Stock?
+  orderItems     OrderItem[]
+  stockMovements StockMovement[]
 
   @@index([restaurantId, categoryId])
   @@index([restaurantId, isAvailable])
@@ -176,10 +191,11 @@ model Order {
   updatedAt    DateTime    @updatedAt @map("updated_at")
 
   // Relations
-  restaurant Restaurant  @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
-  table      Table?      @relation(fields: [tableId], references: [id], onDelete: SetNull)
-  orderItems OrderItem[]
-  payments   Payment[]
+  restaurant     Restaurant      @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  table          Table?          @relation(fields: [tableId], references: [id], onDelete: SetNull)
+  orderItems     OrderItem[]
+  payments       Payment[]
+  stockMovements StockMovement[]
 
   @@unique([restaurantId, orderNumber])
   @@index([restaurantId, status])
@@ -223,4 +239,27 @@ model Payment {
 
   @@index([orderId])
   @@map("payments")
+}
+
+model StockMovement {
+  id           String            @id @default(uuid()) @db.Uuid
+  restaurantId String            @map("restaurant_id") @db.Uuid
+  productId    String            @map("product_id") @db.Uuid
+  userId       String            @map("user_id") @db.Uuid
+  type         StockMovementType
+  quantity     Int
+  previousQty  Int               @map("previous_qty")
+  newQty       Int               @map("new_qty")
+  reason       String?
+  orderId      String?           @map("order_id") @db.Uuid
+  createdAt    DateTime          @default(now()) @map("created_at")
+
+  // Relations
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  product    Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  order      Order?     @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  @@index([restaurantId, productId])
+  @@index([restaurantId, createdAt(sort: Desc)])
+  @@map("stock_movements")
 }
