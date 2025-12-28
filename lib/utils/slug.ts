@@ -42,3 +42,11 @@ async function slugExists(slug: string): Promise<boolean> {
     })
     return count > 0
 }
+
+/**
+ * Formate un nombre pour l'affichage (espaces tous les 3 chiffres)
+ * 1000 → "1 000"
+ */
+export function formatNumber(num: number): string {
+    return new Intl.NumberFormat('fr-FR').format(num)
+}

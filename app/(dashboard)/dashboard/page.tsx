@@ -13,7 +13,6 @@ import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import prisma from "@/lib/prisma"
 import { formatPrice } from "@/lib/utils/format"
-import { useDashboard } from '@/components/providers/dashboard-provider'
 
 export default async function DashboardPage() {
     const supabase = await createClient()
