@@ -75,7 +75,7 @@ export function ProductsList({ products }: { products: Product[] }) {
                                 src={product.imageUrl}
                                 alt={product.name}
                                 fill
-                                className="object-cover"
+                                className="object-contain"
                             />
                         ) : (
                             <div className="flex h-full items-center justify-center">
@@ -95,7 +95,7 @@ export function ProductsList({ products }: { products: Product[] }) {
                                     </p>
                                 )}
                             </div>
-                            <Badge variant={product.isAvailable ? 'default' : 'secondary'}>
+                            <Badge variant={product.isAvailable ? 'default' : 'destructive'}>
                                 {product.isAvailable ? 'Disponible' : 'Indisponible'}
                             </Badge>
                         </div>
@@ -139,7 +139,7 @@ export function ProductsList({ products }: { products: Product[] }) {
                             </Link>
 
                             <Button
-                                variant="outline"
+                                variant="default"
                                 size="sm"
                                 onClick={() => handleToggleAvailability(product.id)}
                                 disabled={loading === product.id}
@@ -148,7 +148,7 @@ export function ProductsList({ products }: { products: Product[] }) {
                             </Button>
 
                             <Button
-                                variant="outline"
+                                variant="destructive"
                                 size="sm"
                                 onClick={() => handleDelete(product.id, product.name)}
                                 disabled={loading === product.id}

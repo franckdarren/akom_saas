@@ -75,6 +75,7 @@ export function QuickCreateProductDialog({
                 // Reset form
                 ; (e.target as HTMLFormElement).reset()
             setSelectedCategory('')
+            setIsLoading(false)
         }
     }
 

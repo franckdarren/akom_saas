@@ -63,6 +63,7 @@ export function EditCategoryDialog({
             setIsLoading(false)
         } else {
             setOpen(false)
+            setIsLoading(false)
             router.refresh()
         }
     }

@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/select'
 import { Loader2 } from 'lucide-react'
 import { createProduct, updateProduct } from '@/lib/actions/product'
+import { ImageUploader } from '@/components/image-uploader'
 
 type Category = {
     id: string
@@ -44,6 +45,9 @@ export function ProductForm({ categories, product }: ProductFormProps) {
     const [selectedCategory, setSelectedCategory] = useState<string>(
         product?.categoryId || ''
     )
+    const [imageUrl, setImageUrl] = useState<string | null>(
+        product?.imageUrl || null
+    )
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault()
@@ -56,7 +60,7 @@ export function ProductForm({ categories, product }: ProductFormProps) {
             description: formData.get('description') as string,
             price: parseInt(formData.get('price') as string),
             categoryId: selectedCategory || undefined,
-            imageUrl: formData.get('imageUrl') as string,
+            imageUrl: imageUrl || undefined, // ← Utilise l'URL de l'image uploadée
         }
 
         const result = product
@@ -69,6 +73,8 @@ export function ProductForm({ categories, product }: ProductFormProps) {
         } else {
             router.push('/dashboard/menu/products')
             router.refresh()
+            setIsLoading(false)
+
         }
     }
 
@@ -146,18 +152,12 @@ export function ProductForm({ categories, product }: ProductFormProps) {
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="imageUrl">URL de l'image (optionnel)</Label>
-                        <Input
-                            id="imageUrl"
-                            name="imageUrl"
-                            type="url"
-                            placeholder="https://exemple.com/image.jpg"
-                            defaultValue={product?.imageUrl || ''}
+                        <ImageUploader
+                            value={imageUrl}
+                            onUploadComplete={(url) => setImageUrl(url)}
+                            onRemove={() => setImageUrl(null)}
                             disabled={isLoading}
                         />
-                        <p className="text-xs text-muted-foreground">
-                            Collez l'URL d'une image en ligne. Support de l'upload direct à venir.
-                        </p>
                     </div>
 
                     {error && (

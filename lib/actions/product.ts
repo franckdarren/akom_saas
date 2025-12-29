@@ -47,7 +47,7 @@ export async function createProduct(data: ProductData) {
 
         // Créer le produit ET son stock dans une transaction
         const product = await prisma.$transaction(async (tx) => {
-            // Créer le produit
+            // Créer le produit (INDISPONIBLE par défaut)
             const newProduct = await tx.product.create({
                 data: {
                     restaurantId,
@@ -56,7 +56,7 @@ export async function createProduct(data: ProductData) {
                     price: Math.floor(data.price), // S'assurer que c'est un entier
                     categoryId: data.categoryId || null,
                     imageUrl: data.imageUrl || null,
-                    isAvailable: true,
+                    isAvailable: false, // ← INDISPONIBLE jusqu'à ce qu'il y ait du stock
                 },
             })
 

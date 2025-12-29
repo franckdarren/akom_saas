@@ -87,7 +87,7 @@ export function CategoriesList({ categories }: { categories: Category[] }) {
 
     return (
         <>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
                 {categories.map((category) => (
                     <Card key={category.id}>
                         <CardHeader>
@@ -147,7 +147,7 @@ export function CategoriesList({ categories }: { categories: Category[] }) {
                                     </Button>
 
                                     <Button
-                                        variant="outline"
+                                        variant="destructive"
                                         size="sm"
                                         onClick={() =>
                                             handleDelete(

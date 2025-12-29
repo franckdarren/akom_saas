@@ -55,6 +55,7 @@ export function CreateCategoryDialog({ children }: { children: React.ReactNode }
             router.refresh()
                 // Reset form
                 ; (e.target as HTMLFormElement).reset()
+            setIsLoading(false)
         }
     }
 
