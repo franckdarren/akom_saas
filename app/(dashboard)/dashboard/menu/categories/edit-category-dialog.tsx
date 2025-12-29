@@ -17,6 +17,8 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Loader2 } from 'lucide-react'
 import { updateCategory } from '@/lib/actions/category'
+import { toast } from "sonner"
+
 
 type Category = {
     id: string
@@ -64,6 +66,7 @@ export function EditCategoryDialog({
         } else {
             setOpen(false)
             setIsLoading(false)
+            toast.success("La catégorie a été mise à jour.")
             router.refresh()
         }
     }

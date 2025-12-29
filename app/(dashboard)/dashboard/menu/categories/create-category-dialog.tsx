@@ -17,6 +17,8 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Loader2 } from 'lucide-react'
 import { createCategory } from '@/lib/actions/category'
+import { toast } from "sonner"
+
 
 export function CreateCategoryDialog({ children }: { children: React.ReactNode }) {
     const router = useRouter()
@@ -50,12 +52,15 @@ export function CreateCategoryDialog({ children }: { children: React.ReactNode }
         if (result.error) {
             setError(result.error)
             setIsLoading(false)
+            toast.error("Une erreur est survenue lors de la création de la catégorie.")
         } else {
             setOpen(false)
             router.refresh()
                 // Reset form
                 ; (e.target as HTMLFormElement).reset()
             setIsLoading(false)
+            toast.success("La catégorie a été créée avec succès.")
+
         }
     }
 

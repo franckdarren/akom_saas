@@ -25,6 +25,7 @@ import {
 import { Edit, Trash2, Power } from 'lucide-react'
 import { toggleCategoryStatus, deleteCategory } from '@/lib/actions/category'
 import { EditCategoryDialog } from './edit-category-dialog'
+import { toast } from "sonner"
 
 type Category = {
     id: string
@@ -50,6 +51,7 @@ export function CategoriesList({ categories }: { categories: Category[] }) {
         await toggleCategoryStatus(id)
         setLoading(null)
         router.refresh()
+        toast.success("Le statut a été mis à jour.")
     }
 
     function handleDelete(id: string, name: string) {
@@ -68,6 +70,7 @@ export function CategoriesList({ categories }: { categories: Category[] }) {
             alert(result.error)
         } else {
             router.refresh()
+            toast.success("La catégorie a été supprimée avec succès.")
         }
     }
 
