@@ -1,62 +1,62 @@
 import { PERMISSIONS, type SystemRole, type Permission } from '@/types/auth'
 
-/**
+/*************************************************************
  * Liste des emails SuperAdmin (TOI)
- */
+ ************************************************************/
 export const SUPERADMIN_EMAILS = [
-    'kikondanze@gmail.com',
+    '',
 ]
 
-/**
+/************************************************************
  * Vérifie si un email est SuperAdmin
- */
+ ************************************************************/
 export function isSuperAdminEmail(email: string): boolean {
     return SUPERADMIN_EMAILS.includes(email.toLowerCase())
 }
 
-/**
+/*************************************************************
  * Vérifie si un rôle a une permission spécifique
- */
+ ************************************************************/
 export function hasPermission(role: SystemRole, permission: Permission): boolean {
     const permissions = PERMISSIONS[role]
     if (!permissions) return false
     return (permissions as readonly string[]).includes(permission)
 }
 
-/**
+/*************************************************************
  * Vérifie si un utilisateur est admin (ou superadmin)
- */
+ ************************************************************/
 export function isAdmin(role: SystemRole | null): boolean {
     if (!role) return false
     return role === 'admin' || role === 'superadmin'
 }
 
-/**
+/*************************************************************
  * Vérifie si un utilisateur est kitchen
- */
+ ************************************************************/
 export function isKitchen(role: SystemRole | null): boolean {
     if (!role) return false
     return role === 'kitchen'
 }
 
-/**
+/*************************************************************
  * Vérifie si un utilisateur est superadmin
- */
+ ************************************************************/
 export function isSuperAdmin(role: SystemRole | null): boolean {
     if (!role) return false
     return role === 'superadmin'
 }
 
-/**
+/*************************************************************
  * Retourne toutes les permissions d'un rôle
- */
+ ************************************************************/
 export function getRolePermissions(role: SystemRole): readonly Permission[] {
     return (PERMISSIONS[role] || []) as readonly Permission[]
 }
 
-/**
+/*************************************************************
  * Vérifie si un rôle peut accéder à une route
- */
+ ************************************************************/
 export function canAccessRoute(role: SystemRole | null, path: string): boolean {
     if (!role) return false
 
@@ -100,9 +100,9 @@ export function canAccessRoute(role: SystemRole | null, path: string): boolean {
     return false
 }
 
-/**
+/*************************************************************
  * Badge de rôle (pour affichage UI)
- */
+ ************************************************************/
 export function getRoleBadge(role: SystemRole): {
     label: string
     color: string

@@ -1,3 +1,7 @@
+// ============================================================
+// Formatage des montants
+// ============================================================
+
 export function formatPrice(amount: number): string {
     return new Intl.NumberFormat('fr-FR', {
         style: 'currency',
@@ -7,6 +11,11 @@ export function formatPrice(amount: number): string {
     }).format(amount)
 }
 
+
+// ============================================================
+// Formatage de la date
+// ============================================================
+
 export function formatDate(date: Date): string {
     return new Intl.DateTimeFormat('fr-FR', {
         dateStyle: 'medium',
@@ -14,10 +23,12 @@ export function formatDate(date: Date): string {
     }).format(date)
 }
 
-/**
- * Formate un nombre pour l'affichage (espaces tous les 3 chiffres)
- * 1000 → "1 000"
- */
+
+// ============================================================
+// Formate un nombre pour l'affichage (espaces tous les 3 chiffres)
+// 1000 → "1 000"
+// ============================================================
+
 export function formatNumber(num: number): string {
     return new Intl.NumberFormat('fr-FR').format(num)
 }

@@ -69,6 +69,7 @@ export async function signUp(data: RegisterInput): Promise<ActionResult> {
     redirect('/dashboard')
 }
 
+
 // ============================================================
 // CONNEXION
 // ============================================================
@@ -105,6 +106,7 @@ export async function signIn(data: LoginInput): Promise<ActionResult> {
     redirect('/dashboard')
 }
 
+
 // ============================================================
 // DÉCONNEXION
 // ============================================================
@@ -117,6 +119,7 @@ export async function signOut(): Promise<void> {
     revalidatePath('/', 'layout')
     redirect('/login')
 }
+
 
 // ============================================================
 // MOT DE PASSE OUBLIÉ
@@ -158,6 +161,7 @@ export async function forgotPassword(
         message: 'Email de réinitialisation envoyé',
     }
 }
+
 
 // ============================================================
 // RÉINITIALISER LE MOT DE PASSE
@@ -203,6 +207,7 @@ export async function resetPassword(
         message: 'Mot de passe mis à jour avec succès',
     }
 }
+
 
 // ============================================================
 // METTRE À JOUR LE MOT DE PASSE (depuis le profil)
@@ -274,6 +279,7 @@ export async function updatePassword(
     }
 }
 
+
 // ============================================================
 // RÉCUPÉRER L'UTILISATEUR CONNECTÉ (avec vérification SuperAdmin)
 // ============================================================
@@ -287,26 +293,6 @@ export async function getUser() {
 
     return user
 }
-
-// ============================================================
-// VÉRIFIER SI L'UTILISATEUR EST SUPERADMIN
-// ============================================================
-
-// export async function isSuperAdmin(): Promise<boolean> {
-//     const supabase = await createClient()
-
-//     const {
-//         data: { user },
-//     } = await supabase.auth.getUser()
-
-//     if (!user || !user.email) {
-//         return false
-//     }
-
-//     // Vérifier si l'email est dans la liste des SuperAdmins
-//     const { isSuperAdminEmail } = await import('@/lib/utils/permissions')
-//     return isSuperAdminEmail(user.email)
-// }
 
 
 // ============================================================
@@ -335,6 +321,11 @@ export async function getUserRole(): Promise<"admin" | "kitchen" | "superadmin">
 
     return restaurantUser?.role || "kitchen"
 }
+
+
+// ============================================================
+// VÉRIFIER SI L'UTILISATEUR EST SUPERADMIN
+// ============================================================
 
 export async function isSuperAdmin(): Promise<boolean> {
     const supabase = await createClient()

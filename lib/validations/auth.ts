@@ -1,6 +1,8 @@
 import { z } from 'zod'
 
+// ============================================================
 // Schéma de connexion
+// ============================================================
 export const loginSchema = z.object({
     email: z
         .string()
@@ -12,7 +14,10 @@ export const loginSchema = z.object({
         .min(6, 'Le mot de passe doit contenir au moins 6 caractères'),
 })
 
+
+// ============================================================
 // Schéma d'inscription
+// ============================================================
 export const registerSchema = z.object({
     email: z
         .string()
@@ -30,7 +35,10 @@ export const registerSchema = z.object({
     path: ['confirmPassword'],
 })
 
+
+// ============================================================
 // Schéma de réinitialisation mot de passe
+// ============================================================
 export const forgotPasswordSchema = z.object({
     email: z
         .string()
@@ -38,7 +46,10 @@ export const forgotPasswordSchema = z.object({
         .email('Email invalide'),
 })
 
+
+// ============================================================
 // Schéma de nouveau mot de passe
+// ============================================================
 export const resetPasswordSchema = z.object({
     password: z
         .string()

@@ -56,12 +56,12 @@ export default function ResetPasswordPage() {
         }
     }
 
-    // ⏳ Pendant la vérification de session
+    // Vérification de session
     if (checkingSession) {
         return null
     }
 
-    // ✅ Succès
+    // Succès
     if (success) {
         return (
             <div>
@@ -85,7 +85,7 @@ export default function ResetPasswordPage() {
         )
     }
 
-    // ✅ Formulaire
+    // Formulaire
     return (
         <div>
             <h2 className="text-2xl font-bold mb-2">

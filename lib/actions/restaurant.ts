@@ -56,7 +56,7 @@ export async function createRestaurant(data: CreateRestaurantData) {
     })
 
     revalidatePath('/dashboard')
-    redirect('/dashboard') // ✅ Laisse Next gérer
+    redirect('/dashboard')
 }
 
 

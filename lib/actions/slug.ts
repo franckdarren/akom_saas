@@ -3,10 +3,11 @@
 import prisma from '@/lib/prisma'
 import { generateSlug } from '@/lib/utils/slugify'
 
-/**
- * Génère un slug unique en ajoutant un suffixe si nécessaire
- * "chez-maman" existe déjà → "chez-maman-2"
- */
+/*********************************************************************
+ *  Génère un slug unique en ajoutant un suffixe si nécessaire
+ *  "chez-maman" existe déjà → "chez-maman-2"
+ *********************************************************************/
+
 export async function generateUniqueSlug(name: string): Promise<string> {
     const baseSlug = generateSlug(name)
     let slug = baseSlug

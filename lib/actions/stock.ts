@@ -5,7 +5,11 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
 
+
+// ============================================================
 // Récupérer le restaurant et l'utilisateur connecté
+// ============================================================
+
 async function getCurrentUserAndRestaurant() {
     const supabase = await createClient()
     const {
@@ -28,9 +32,11 @@ async function getCurrentUserAndRestaurant() {
     return { userId: user.id, restaurantId: restaurantUser.restaurantId }
 }
 
-/**
- * Ajuster le stock d'un produit (entrée ou sortie manuelle)
- */
+
+// ============================================================
+// Ajuster le stock d'un produit (entrée ou sortie manuelle)
+// ============================================================
+
 export async function adjustStock(
     productId: string,
     quantity: number,
@@ -119,9 +125,11 @@ export async function adjustStock(
     }
 }
 
-/**
- * Récupérer l'historique des mouvements d'un produit
- */
+
+// ============================================================
+// Récupérer l'historique des mouvements d'un produit
+// ============================================================
+
 export async function getProductStockHistory(productId: string) {
     try {
         const { restaurantId } = await getCurrentUserAndRestaurant()

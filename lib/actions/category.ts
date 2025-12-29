@@ -10,7 +10,10 @@ interface CategoryData {
     description?: string
 }
 
+// ============================================================
 // Récupérer le restaurant de l'utilisateur connecté
+// ============================================================
+
 async function getCurrentRestaurantId() {
     const supabase = await createClient()
     const {
@@ -32,6 +35,11 @@ async function getCurrentRestaurantId() {
 
     return restaurantUser.restaurantId
 }
+
+
+// ============================================================
+// Créer une catégorie
+// ============================================================
 
 export async function createCategory(data: CategoryData) {
     try {
@@ -61,6 +69,11 @@ export async function createCategory(data: CategoryData) {
     }
 }
 
+
+// ============================================================
+// Modifier une catégorie
+// ============================================================
+
 export async function updateCategory(id: string, data: CategoryData) {
     try {
         const restaurantId = await getCurrentRestaurantId()
@@ -83,6 +96,11 @@ export async function updateCategory(id: string, data: CategoryData) {
         return { error: 'Erreur lors de la mise à jour de la catégorie' }
     }
 }
+
+
+// ============================================================
+// Changer le status d'une catégorie
+// ============================================================
 
 export async function toggleCategoryStatus(id: string) {
     try {
@@ -109,6 +127,11 @@ export async function toggleCategoryStatus(id: string) {
         return { error: 'Erreur lors du changement de statut' }
     }
 }
+
+
+// ============================================================
+// Supprimer une catégorie
+// ============================================================
 
 export async function deleteCategory(id: string) {
     try {

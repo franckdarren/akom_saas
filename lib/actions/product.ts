@@ -13,7 +13,11 @@ interface ProductData {
     imageUrl?: string
 }
 
+
+// ============================================================
 // Récupérer le restaurant de l'utilisateur connecté
+// ============================================================
+
 async function getCurrentRestaurantId() {
     const supabase = await createClient()
     const {
@@ -35,6 +39,11 @@ async function getCurrentRestaurantId() {
 
     return restaurantUser.restaurantId
 }
+
+
+// ============================================================
+// Créer un produit
+// ============================================================
 
 export async function createProduct(data: ProductData) {
     try {
@@ -81,6 +90,11 @@ export async function createProduct(data: ProductData) {
     }
 }
 
+
+// ============================================================
+// Modifier un produit
+// ============================================================
+
 export async function updateProduct(id: string, data: ProductData) {
     try {
         const restaurantId = await getCurrentRestaurantId()
@@ -112,6 +126,11 @@ export async function updateProduct(id: string, data: ProductData) {
     }
 }
 
+
+// ============================================================
+// Changer la disponibilité d'un produit
+// ============================================================
+
 export async function toggleProductAvailability(id: string) {
     try {
         const restaurantId = await getCurrentRestaurantId()
@@ -137,6 +156,11 @@ export async function toggleProductAvailability(id: string) {
         return { error: 'Erreur lors du changement de disponibilité' }
     }
 }
+
+
+// ============================================================
+// Supprimer un produit
+// ============================================================
 
 export async function deleteProduct(id: string) {
     try {

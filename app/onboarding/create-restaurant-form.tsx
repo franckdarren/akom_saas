@@ -33,7 +33,7 @@ export function CreateRestaurantForm() {
             setError(result.error)
             setIsLoading(false)
         }
-        // Sinon, la redirection se fait automatiquement dans l'action
+        // la redirection se fait automatiquement dans l'action
     }
 
     return (
