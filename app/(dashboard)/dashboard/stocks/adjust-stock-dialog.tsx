@@ -24,7 +24,7 @@ import {
 } from '@/components/ui/select'
 import { Loader2, Plus, Minus, RefreshCw } from 'lucide-react'
 import { adjustStock } from '@/lib/actions/stock'
-import { formatNumber } from '@/lib/utils/slug'
+import { formatNumber } from '@/lib/utils/format'
 
 type Stock = {
     id: string
@@ -85,6 +85,7 @@ export function AdjustStockDialog({
             setOpen(false)
             router.refresh()
             onSuccess?.()
+            setIsLoading(false)
         }
     }
 

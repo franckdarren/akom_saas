@@ -177,18 +177,18 @@ export function CategoriesList({ categories }: { categories: Category[] }) {
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>
-                            Supprimer la catégorie ?
+                            Supprimer la catégorie {deleteTarget?.name} ?
                         </AlertDialogTitle>
                         <AlertDialogDescription>
                             Cette action est irréversible.
-                            {deleteTarget && (
+                            {/* {deleteTarget && (
                                 <>
                                     <br />
                                     <span className="font-medium text-zinc-900 dark:text-zinc-100">
                                         {deleteTarget.name}
                                     </span>
                                 </>
-                            )}
+                            )} */}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
 

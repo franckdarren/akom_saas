@@ -12,7 +12,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Loader2, TrendingUp, TrendingDown, RefreshCw, ShoppingCart } from 'lucide-react'
 import { getProductStockHistory } from '@/lib/actions/stock'
-import { formatNumber } from '@/lib/utils/slug'
+import { formatNumber } from '@/lib/utils/format'
 import { formatDate } from '@/lib/utils/format'
 
 type Stock = {

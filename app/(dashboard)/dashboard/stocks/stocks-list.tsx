@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { History } from 'lucide-react'
 import { AdjustStockDialog } from './adjust-stock-dialog'
 import { StockHistoryDialog } from './stock-history-dialog'
-import { formatNumber } from '@/lib/utils/slug'
+import { formatNumber } from '@/lib/utils/format'
 
 type Stock = {
     id: string
@@ -64,11 +64,11 @@ export function StocksList({ stocks }: { stocks: Stock[] }) {
                                             isOutOfStock
                                                 ? 'destructive'
                                                 : isLowStock
-                                                    ? 'secondary'
-                                                    : 'default'
+                                                    ? 'success'
+                                                    : 'success'
                                         }
                                     >
-                                        {stock.product.isAvailable ? 'Dispo' : 'Indispo'}
+                                        {stock.product.isAvailable ? 'Disponible' : 'Indisponible'}
                                     </Badge>
                                 </div>
                             </CardHeader>

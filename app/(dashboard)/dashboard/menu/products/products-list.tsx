@@ -95,7 +95,7 @@ export function ProductsList({ products }: { products: Product[] }) {
                                     </p>
                                 )}
                             </div>
-                            <Badge variant={product.isAvailable ? 'default' : 'destructive'}>
+                            <Badge variant={product.isAvailable ? 'success' : 'destructive'}>
                                 {product.isAvailable ? 'Disponible' : 'Indisponible'}
                             </Badge>
                         </div>

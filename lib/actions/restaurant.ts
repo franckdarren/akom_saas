@@ -5,7 +5,7 @@ import prisma from '@/lib/prisma'
 import type { UserRole, RestaurantWithRole } from '@/types/auth'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { generateUniqueSlug } from '@/lib/utils/slug'
+import { generateUniqueSlug } from '@/lib/actions/slug'
 
 
 interface CreateRestaurantData {
