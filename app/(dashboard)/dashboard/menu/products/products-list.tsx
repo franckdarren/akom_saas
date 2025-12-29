@@ -113,7 +113,7 @@ export function ProductsList({ products }: { products: Product[] }) {
                             )}
                         </div>
 
-                        <CardContent className="p-4">
+                        <CardContent className="px-4">
                             {/* En-tête */}
                             <div className="flex items-start justify-between mb-2">
                                 <div className="space-y-1 flex-1">
