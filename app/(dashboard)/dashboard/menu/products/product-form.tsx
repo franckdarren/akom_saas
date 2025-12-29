@@ -18,6 +18,8 @@ import {
 import { Loader2 } from 'lucide-react'
 import { createProduct, updateProduct } from '@/lib/actions/product'
 import { ImageUploader } from '@/components/image-uploader'
+import { toast } from "sonner"
+
 
 type Category = {
     id: string
@@ -70,10 +72,13 @@ export function ProductForm({ categories, product }: ProductFormProps) {
         if (result.error) {
             setError(result.error)
             setIsLoading(false)
+            toast.error("Une erreur est survenue lors de la modification du produit.")
         } else {
             router.push('/dashboard/menu/products')
             router.refresh()
             setIsLoading(false)
+            toast.success("Le produit a été ajouté avec succès.")
+
 
         }
     }

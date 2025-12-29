@@ -23,6 +23,8 @@ import {
 } from '@/components/ui/select'
 import { Loader2 } from 'lucide-react'
 import { createProduct } from '@/lib/actions/product'
+import { toast } from "sonner"
+
 
 type Category = {
     id: string
@@ -69,6 +71,7 @@ export function QuickCreateProductDialog({
         if (result.error) {
             setError(result.error)
             setIsLoading(false)
+            toast.error("Une erreur est survenue lors de la création du produit.")
         } else {
             setOpen(false)
             router.refresh()
@@ -76,6 +79,8 @@ export function QuickCreateProductDialog({
                 ; (e.target as HTMLFormElement).reset()
             setSelectedCategory('')
             setIsLoading(false)
+            toast.success("Le produit a été créé avec succès.")
+
         }
     }
 

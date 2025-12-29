@@ -172,7 +172,7 @@ export function CategoriesList({ categories }: { categories: Category[] }) {
                 ))}
             </div>
 
-            {/* 🔴 AlertDialog suppression */}
+            {/* AlertDialog suppression */}
             <AlertDialog
                 open={!!deleteTarget}
                 onOpenChange={() => setDeleteTarget(null)}
