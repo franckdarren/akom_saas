@@ -96,7 +96,7 @@ export function ProductsList({ products }: { products: Product[] }) {
         <>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {products.map((product) => (
-                    <Card key={product.id} className="overflow-hidden">
+                    <Card key={product.id} className="overflow-hidden hover:shadow-md transition-shadow">
                         {/* Image du produit */}
                         <div className="relative h-48 bg-muted">
                             {product.imageUrl ? (

@@ -92,7 +92,7 @@ export function CategoriesList({ categories }: { categories: Category[] }) {
         <>
             <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
                 {categories.map((category) => (
-                    <Card key={category.id}>
+                    <Card key={category.id} className='hover:shadow-md transition-shadow'>
                         <CardHeader>
                             <div className="flex items-start justify-between">
                                 <div className="space-y-1">
