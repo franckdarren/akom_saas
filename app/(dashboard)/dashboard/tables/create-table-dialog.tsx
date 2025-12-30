@@ -2,6 +2,7 @@
 'use client'
 
 import { useState } from 'react'
+import { toast } from "sonner"
 import { useRouter } from 'next/navigation'
 import {
     Dialog,
@@ -53,6 +54,7 @@ export function CreateTableDialog({ children }: { children: React.ReactNode }) {
         } else {
             setIsLoading(false)
             setOpen(false)
+            toast.success("La table a été créée avec succès.")
             router.refresh()
                 ; (e.target as HTMLFormElement).reset()
         }

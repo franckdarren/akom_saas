@@ -2,6 +2,7 @@
 'use client'
 
 import { useState } from 'react'
+import { toast } from "sonner"
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -9,6 +10,16 @@ import { Badge } from '@/components/ui/badge'
 import { Power, Trash2, QrCode } from 'lucide-react'
 import { toggleTableStatus, deleteTable } from '@/lib/actions/table'
 import { QRCodeDialog } from './qrcode-dialog'
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 
 type Table = {
     id: string
@@ -24,28 +35,40 @@ export function TablesList({ tables }: { tables: Table[] }) {
     const [loading, setLoading] = useState<string | null>(null)
     const [selectedTable, setSelectedTable] = useState<Table | null>(null)
     const [showQRCode, setShowQRCode] = useState(false)
+    const [isLoading, setIsLoading] = useState(false)
+    const [deleteTarget, setDeleteTarget] = useState<{
+        id: string
+        number: number
+    } | null>(null)
 
     async function handleToggleStatus(id: string) {
         setLoading(id)
         await toggleTableStatus(id)
         setLoading(null)
+        toast.success("Le statut de la table a été mis à jour avec succès.")
         router.refresh()
     }
 
     async function handleDelete(id: string, number: number) {
-        if (!confirm(`Voulez-vous vraiment supprimer la table ${number} ?`)) {
+        setDeleteTarget({ id, number })
+    }
+
+    async function confirmDelete() {
+        if (!deleteTarget) return
+        setIsLoading(true)
+        setLoading(deleteTarget.id)
+        const result = await deleteTable(deleteTarget.id)
+        setLoading(null)
+        setIsLoading(false)
+
+        if (result?.error) {
+            toast.error(result.error)
             return
         }
 
-        setLoading(id)
-        const result = await deleteTable(id)
-        setLoading(null)
-
-        if (result.error) {
-            alert(result.error)
-        } else {
-            router.refresh()
-        }
+        toast.success("Le table a été supprimée avec succès.")
+        router.refresh()
+        setDeleteTarget(null)
     }
 
     if (tables.length === 0) {
@@ -128,6 +151,35 @@ export function TablesList({ tables }: { tables: Table[] }) {
                     onOpenChange={setShowQRCode}
                 />
             )}
+
+            {/* AlertDialog suppression */}
+            <AlertDialog
+                open={!!deleteTarget}
+                onOpenChange={() => setDeleteTarget(null)}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>
+                            Supprimer le produit {deleteTarget?.number} ?
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Cette action est irréversible.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>
+                            Annuler
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={confirmDelete}
+                            className="bg-red-600 hover:bg-red-700"
+                        >
+                            Supprimer
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </>
     )
 }
