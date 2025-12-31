@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/button'
 import { Plus, Zap } from 'lucide-react'
 import { ProductsList } from './products-list'
 import { QuickCreateProductDialog } from './quick-create-product-dialog'
+import { getUserRole } from "@/lib/actions/auth"
 
 export default async function ProductsPage() {
     const supabase = await createClient()
@@ -28,6 +29,9 @@ export default async function ProductsPage() {
     if (!user) {
         redirect('/login')
     }
+
+    const userRole = await getUserRole()
+
 
     // Récupérer le restaurant de l'utilisateur
     const restaurantUser = await prisma.restaurantUser.findFirst({
@@ -66,17 +70,28 @@ export default async function ProductsPage() {
             <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
                 <SidebarTrigger className="-ml-1" />
                 <Separator orientation="vertical" className="mr-2 h-4" />
-                <Breadcrumb>
-                    <BreadcrumbList>
-                        <BreadcrumbItem>
-                            <BreadcrumbLink href="/dashboard">Tableau de bord</BreadcrumbLink>
-                        </BreadcrumbItem>
-                        <BreadcrumbSeparator />
-                        <BreadcrumbItem>
-                            <BreadcrumbPage>Produits</BreadcrumbPage>
-                        </BreadcrumbItem>
-                    </BreadcrumbList>
-                </Breadcrumb>
+                <div className="flex justify-between w-full">
+                    <Breadcrumb>
+                        <BreadcrumbList>
+                            <BreadcrumbItem>
+                                <BreadcrumbLink href="/dashboard">Tableau de bord</BreadcrumbLink>
+                            </BreadcrumbItem>
+                            <BreadcrumbSeparator />
+                            <BreadcrumbItem>
+                                <BreadcrumbPage>Produits</BreadcrumbPage>
+                            </BreadcrumbItem>
+                        </BreadcrumbList>
+                    </Breadcrumb>
+                </div>
+                <div className="border-black text-right leading-tight text-sm">
+                    {
+                        userRole === "admin" && <p className="truncate font-medium">Administrateur</p>
+                    }
+                    {
+                        userRole === "kitchen" && <p className="truncate font-medium">Cuisine</p>
+                    }
+                    <p className="text-muted-foreground truncate text-xs">{user.email}</p>
+                </div>
             </header>
 
             <div className="flex flex-1 flex-col gap-4 p-4">
