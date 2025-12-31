@@ -13,6 +13,7 @@ import {
 import { Separator } from '@/components/ui/separator'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 import { StocksList } from './stocks-list'
+import { getUserRole } from "@/lib/actions/auth"
 
 export default async function StocksPage() {
     const supabase = await createClient()
@@ -20,6 +21,9 @@ export default async function StocksPage() {
     const {
         data: { user },
     } = await supabase.auth.getUser()
+
+    const userRole = await getUserRole()
+
 
     if (!user) {
         redirect('/login')
@@ -60,17 +64,28 @@ export default async function StocksPage() {
             <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
                 <SidebarTrigger className="-ml-1" />
                 <Separator orientation="vertical" className="mr-2 h-4" />
-                <Breadcrumb>
-                    <BreadcrumbList>
-                        <BreadcrumbItem>
-                            <BreadcrumbLink href="/dashboard">Tableau de bord</BreadcrumbLink>
-                        </BreadcrumbItem>
-                        <BreadcrumbSeparator />
-                        <BreadcrumbItem>
-                            <BreadcrumbPage>Stocks</BreadcrumbPage>
-                        </BreadcrumbItem>
-                    </BreadcrumbList>
-                </Breadcrumb>
+                <div className="flex justify-between w-full">
+                    <Breadcrumb>
+                        <BreadcrumbList>
+                            <BreadcrumbItem>
+                                <BreadcrumbLink href="/dashboard">Tableau de bord</BreadcrumbLink>
+                            </BreadcrumbItem>
+                            <BreadcrumbSeparator />
+                            <BreadcrumbItem>
+                                <BreadcrumbPage>Stocks</BreadcrumbPage>
+                            </BreadcrumbItem>
+                        </BreadcrumbList>
+                    </Breadcrumb>
+                </div>
+                <div className="border-black text-right leading-tight text-sm">
+                    {
+                        userRole === "admin" && <p className="truncate font-medium">Administrateur</p>
+                    }
+                    {
+                        userRole === "kitchen" && <p className="truncate font-medium">Cuisine</p>
+                    }
+                    <p className="text-muted-foreground truncate text-xs">{user.email}</p>
+                </div>
             </header>
 
             <div className="flex flex-1 flex-col gap-4 p-4">
