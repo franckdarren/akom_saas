@@ -31,6 +31,7 @@ export type RestaurantMinAggregateOutputType = {
   phone: string | null
   address: string | null
   logoUrl: string | null
+  coverImageUrl: string | null
   isActive: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -43,6 +44,7 @@ export type RestaurantMaxAggregateOutputType = {
   phone: string | null
   address: string | null
   logoUrl: string | null
+  coverImageUrl: string | null
   isActive: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -55,6 +57,7 @@ export type RestaurantCountAggregateOutputType = {
   phone: number
   address: number
   logoUrl: number
+  coverImageUrl: number
   isActive: number
   createdAt: number
   updatedAt: number
@@ -69,6 +72,7 @@ export type RestaurantMinAggregateInputType = {
   phone?: true
   address?: true
   logoUrl?: true
+  coverImageUrl?: true
   isActive?: true
   createdAt?: true
   updatedAt?: true
@@ -81,6 +85,7 @@ export type RestaurantMaxAggregateInputType = {
   phone?: true
   address?: true
   logoUrl?: true
+  coverImageUrl?: true
   isActive?: true
   createdAt?: true
   updatedAt?: true
@@ -93,6 +98,7 @@ export type RestaurantCountAggregateInputType = {
   phone?: true
   address?: true
   logoUrl?: true
+  coverImageUrl?: true
   isActive?: true
   createdAt?: true
   updatedAt?: true
@@ -178,6 +184,7 @@ export type RestaurantGroupByOutputType = {
   phone: string | null
   address: string | null
   logoUrl: string | null
+  coverImageUrl: string | null
   isActive: boolean
   createdAt: Date
   updatedAt: Date
@@ -211,6 +218,7 @@ export type RestaurantWhereInput = {
   phone?: Prisma.StringNullableFilter<"Restaurant"> | string | null
   address?: Prisma.StringNullableFilter<"Restaurant"> | string | null
   logoUrl?: Prisma.StringNullableFilter<"Restaurant"> | string | null
+  coverImageUrl?: Prisma.StringNullableFilter<"Restaurant"> | string | null
   isActive?: Prisma.BoolFilter<"Restaurant"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Restaurant"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Restaurant"> | Date | string
@@ -231,6 +239,7 @@ export type RestaurantOrderByWithRelationInput = {
   phone?: Prisma.SortOrderInput | Prisma.SortOrder
   address?: Prisma.SortOrderInput | Prisma.SortOrder
   logoUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  coverImageUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -254,6 +263,7 @@ export type RestaurantWhereUniqueInput = Prisma.AtLeast<{
   phone?: Prisma.StringNullableFilter<"Restaurant"> | string | null
   address?: Prisma.StringNullableFilter<"Restaurant"> | string | null
   logoUrl?: Prisma.StringNullableFilter<"Restaurant"> | string | null
+  coverImageUrl?: Prisma.StringNullableFilter<"Restaurant"> | string | null
   isActive?: Prisma.BoolFilter<"Restaurant"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Restaurant"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Restaurant"> | Date | string
@@ -274,6 +284,7 @@ export type RestaurantOrderByWithAggregationInput = {
   phone?: Prisma.SortOrderInput | Prisma.SortOrder
   address?: Prisma.SortOrderInput | Prisma.SortOrder
   logoUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  coverImageUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -292,6 +303,7 @@ export type RestaurantScalarWhereWithAggregatesInput = {
   phone?: Prisma.StringNullableWithAggregatesFilter<"Restaurant"> | string | null
   address?: Prisma.StringNullableWithAggregatesFilter<"Restaurant"> | string | null
   logoUrl?: Prisma.StringNullableWithAggregatesFilter<"Restaurant"> | string | null
+  coverImageUrl?: Prisma.StringNullableWithAggregatesFilter<"Restaurant"> | string | null
   isActive?: Prisma.BoolWithAggregatesFilter<"Restaurant"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Restaurant"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Restaurant"> | Date | string
@@ -304,6 +316,7 @@ export type RestaurantCreateInput = {
   phone?: string | null
   address?: string | null
   logoUrl?: string | null
+  coverImageUrl?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -324,6 +337,7 @@ export type RestaurantUncheckedCreateInput = {
   phone?: string | null
   address?: string | null
   logoUrl?: string | null
+  coverImageUrl?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -344,6 +358,7 @@ export type RestaurantUpdateInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -364,6 +379,7 @@ export type RestaurantUncheckedUpdateInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -384,6 +400,7 @@ export type RestaurantCreateManyInput = {
   phone?: string | null
   address?: string | null
   logoUrl?: string | null
+  coverImageUrl?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -396,6 +413,7 @@ export type RestaurantUpdateManyMutationInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -408,6 +426,7 @@ export type RestaurantUncheckedUpdateManyInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -420,6 +439,7 @@ export type RestaurantCountOrderByAggregateInput = {
   phone?: Prisma.SortOrder
   address?: Prisma.SortOrder
   logoUrl?: Prisma.SortOrder
+  coverImageUrl?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -432,6 +452,7 @@ export type RestaurantMaxOrderByAggregateInput = {
   phone?: Prisma.SortOrder
   address?: Prisma.SortOrder
   logoUrl?: Prisma.SortOrder
+  coverImageUrl?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -444,6 +465,7 @@ export type RestaurantMinOrderByAggregateInput = {
   phone?: Prisma.SortOrder
   address?: Prisma.SortOrder
   logoUrl?: Prisma.SortOrder
+  coverImageUrl?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -589,6 +611,7 @@ export type RestaurantCreateWithoutUsersInput = {
   phone?: string | null
   address?: string | null
   logoUrl?: string | null
+  coverImageUrl?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -608,6 +631,7 @@ export type RestaurantUncheckedCreateWithoutUsersInput = {
   phone?: string | null
   address?: string | null
   logoUrl?: string | null
+  coverImageUrl?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -643,6 +667,7 @@ export type RestaurantUpdateWithoutUsersInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -662,6 +687,7 @@ export type RestaurantUncheckedUpdateWithoutUsersInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -681,6 +707,7 @@ export type RestaurantCreateWithoutTablesInput = {
   phone?: string | null
   address?: string | null
   logoUrl?: string | null
+  coverImageUrl?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -700,6 +727,7 @@ export type RestaurantUncheckedCreateWithoutTablesInput = {
   phone?: string | null
   address?: string | null
   logoUrl?: string | null
+  coverImageUrl?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -735,6 +763,7 @@ export type RestaurantUpdateWithoutTablesInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -754,6 +783,7 @@ export type RestaurantUncheckedUpdateWithoutTablesInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -773,6 +803,7 @@ export type RestaurantCreateWithoutCategoriesInput = {
   phone?: string | null
   address?: string | null
   logoUrl?: string | null
+  coverImageUrl?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -792,6 +823,7 @@ export type RestaurantUncheckedCreateWithoutCategoriesInput = {
   phone?: string | null
   address?: string | null
   logoUrl?: string | null
+  coverImageUrl?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -827,6 +859,7 @@ export type RestaurantUpdateWithoutCategoriesInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -846,6 +879,7 @@ export type RestaurantUncheckedUpdateWithoutCategoriesInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -865,6 +899,7 @@ export type RestaurantCreateWithoutProductsInput = {
   phone?: string | null
   address?: string | null
   logoUrl?: string | null
+  coverImageUrl?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -884,6 +919,7 @@ export type RestaurantUncheckedCreateWithoutProductsInput = {
   phone?: string | null
   address?: string | null
   logoUrl?: string | null
+  coverImageUrl?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -919,6 +955,7 @@ export type RestaurantUpdateWithoutProductsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -938,6 +975,7 @@ export type RestaurantUncheckedUpdateWithoutProductsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -957,6 +995,7 @@ export type RestaurantCreateWithoutStocksInput = {
   phone?: string | null
   address?: string | null
   logoUrl?: string | null
+  coverImageUrl?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -976,6 +1015,7 @@ export type RestaurantUncheckedCreateWithoutStocksInput = {
   phone?: string | null
   address?: string | null
   logoUrl?: string | null
+  coverImageUrl?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1011,6 +1051,7 @@ export type RestaurantUpdateWithoutStocksInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1030,6 +1071,7 @@ export type RestaurantUncheckedUpdateWithoutStocksInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1049,6 +1091,7 @@ export type RestaurantCreateWithoutOrdersInput = {
   phone?: string | null
   address?: string | null
   logoUrl?: string | null
+  coverImageUrl?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1068,6 +1111,7 @@ export type RestaurantUncheckedCreateWithoutOrdersInput = {
   phone?: string | null
   address?: string | null
   logoUrl?: string | null
+  coverImageUrl?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1103,6 +1147,7 @@ export type RestaurantUpdateWithoutOrdersInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1122,6 +1167,7 @@ export type RestaurantUncheckedUpdateWithoutOrdersInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1141,6 +1187,7 @@ export type RestaurantCreateWithoutPaymentsInput = {
   phone?: string | null
   address?: string | null
   logoUrl?: string | null
+  coverImageUrl?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1160,6 +1207,7 @@ export type RestaurantUncheckedCreateWithoutPaymentsInput = {
   phone?: string | null
   address?: string | null
   logoUrl?: string | null
+  coverImageUrl?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1195,6 +1243,7 @@ export type RestaurantUpdateWithoutPaymentsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1214,6 +1263,7 @@ export type RestaurantUncheckedUpdateWithoutPaymentsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1233,6 +1283,7 @@ export type RestaurantCreateWithoutStockMovementsInput = {
   phone?: string | null
   address?: string | null
   logoUrl?: string | null
+  coverImageUrl?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1252,6 +1303,7 @@ export type RestaurantUncheckedCreateWithoutStockMovementsInput = {
   phone?: string | null
   address?: string | null
   logoUrl?: string | null
+  coverImageUrl?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1287,6 +1339,7 @@ export type RestaurantUpdateWithoutStockMovementsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1306,6 +1359,7 @@ export type RestaurantUncheckedUpdateWithoutStockMovementsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1419,6 +1473,7 @@ export type RestaurantSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   phone?: boolean
   address?: boolean
   logoUrl?: boolean
+  coverImageUrl?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1440,6 +1495,7 @@ export type RestaurantSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   phone?: boolean
   address?: boolean
   logoUrl?: boolean
+  coverImageUrl?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1452,6 +1508,7 @@ export type RestaurantSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   phone?: boolean
   address?: boolean
   logoUrl?: boolean
+  coverImageUrl?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1464,12 +1521,13 @@ export type RestaurantSelectScalar = {
   phone?: boolean
   address?: boolean
   logoUrl?: boolean
+  coverImageUrl?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type RestaurantOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "slug" | "phone" | "address" | "logoUrl" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["restaurant"]>
+export type RestaurantOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "slug" | "phone" | "address" | "logoUrl" | "coverImageUrl" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["restaurant"]>
 export type RestaurantInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   users?: boolean | Prisma.Restaurant$usersArgs<ExtArgs>
   tables?: boolean | Prisma.Restaurant$tablesArgs<ExtArgs>
@@ -1503,6 +1561,7 @@ export type $RestaurantPayload<ExtArgs extends runtime.Types.Extensions.Internal
     phone: string | null
     address: string | null
     logoUrl: string | null
+    coverImageUrl: string | null
     isActive: boolean
     createdAt: Date
     updatedAt: Date
@@ -1943,6 +2002,7 @@ export interface RestaurantFieldRefs {
   readonly phone: Prisma.FieldRef<"Restaurant", 'String'>
   readonly address: Prisma.FieldRef<"Restaurant", 'String'>
   readonly logoUrl: Prisma.FieldRef<"Restaurant", 'String'>
+  readonly coverImageUrl: Prisma.FieldRef<"Restaurant", 'String'>
   readonly isActive: Prisma.FieldRef<"Restaurant", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"Restaurant", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Restaurant", 'DateTime'>

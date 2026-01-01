@@ -21,6 +21,7 @@ export async function GET(
                 phone: true,
                 address: true,
                 logoUrl: true,
+                coverImageUrl: true,
             },
         })
 
