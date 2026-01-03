@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server"
 import { signOut, getUserRole } from "@/lib/actions/auth"
 import { AppSidebar } from "../components/app-sidebar"
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
+import { RestaurantProvider } from "@/lib/hooks/use-restaurant" // 🆕 Import
 import prisma from "@/lib/prisma"
 
 export default async function DashboardLayout({
@@ -35,19 +36,26 @@ export default async function DashboardLayout({
     // Récupérer le rôle de l'utilisateur
     const userRole = await getUserRole()
 
-    // Récupérer le nom du restaurant actuel (si admin/kitchen)
-    let restaurantName: string | undefined
-    if (userRole !== "superadmin") {
-        const restaurantUser = await prisma.restaurantUser.findFirst({
-            where: { userId: user.id },
-            include: {
-                restaurant: {
-                    select: { name: true },
+
+    // Récupérer les infos du restaurant actuel
+const restaurantUser = userRole !== "superadmin" 
+    ? await prisma.restaurantUser.findFirst({
+        where: { userId: user.id },
+        include: {
+            restaurant: {
+                select: { 
+                    id: true,
+                    name: true,
+                    logoUrl: true
                 },
             },
-        })
-        restaurantName = restaurantUser?.restaurant.name
-    }
+        },
+    })
+    : null
+
+const restaurantName = restaurantUser?.restaurant.name
+const restaurantId = restaurantUser?.restaurant.id
+const restaurantLogoUrl = restaurantUser?.restaurant.logoUrl
 
     // Server action pour déconnexion
     async function handleSignOut() {
@@ -56,19 +64,23 @@ export default async function DashboardLayout({
     }
 
     return (
-        <SidebarProvider>
-            <AppSidebar
-                user={{
-                    email: user.email || "",
-                    id: user.id,
-                }}
-                role={userRole}
-                restaurantName={restaurantName}
-                onSignOut={handleSignOut}
-            />
-            <SidebarInset>
-                {children}
-            </SidebarInset>
-        </SidebarProvider>
+        <RestaurantProvider>
+            <SidebarProvider>
+                <AppSidebar
+                    user={{
+                        email: user.email || "",
+                        id: user.id,
+                    }}
+                    role={userRole}
+                    restaurantName={restaurantName}
+                    restaurantId={restaurantId}
+                    restaurantLogoUrl={restaurantLogoUrl}
+                    onSignOut={handleSignOut}
+                />
+                <SidebarInset>
+                    {children}
+                </SidebarInset>
+            </SidebarProvider>
+        </RestaurantProvider>
     )
 }

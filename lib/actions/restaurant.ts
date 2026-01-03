@@ -6,6 +6,7 @@ import type { UserRole, RestaurantWithRole } from '@/types/auth'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { generateUniqueSlug } from '@/lib/actions/slug'
+import { restaurantSettingsSchema, type RestaurantSettingsInput } from '@/lib/validations/restaurant'
 
 
 interface CreateRestaurantData {
@@ -297,4 +298,180 @@ export async function removeUserFromRestaurant(
     })
 
     return { success: true }
+}
+
+
+// ============================================================
+// METTRE À JOUR L'IMAGE DE COUVERTURE
+// ============================================================
+
+export async function updateRestaurantCover(
+    restaurantId: string,
+    coverImageUrl: string | null
+) {
+    const supabase = await createClient()
+    const {
+        data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+        return { error: 'Non authentifié' }
+    }
+
+    // Vérifier que l'utilisateur est admin du restaurant
+    const userRole = await prisma.restaurantUser.findUnique({
+        where: {
+            userId_restaurantId: {
+                userId: user.id,
+                restaurantId: restaurantId,
+            },
+        },
+        select: { role: true },
+    })
+
+    if (!userRole || userRole.role !== 'admin') {
+        return { error: 'Seuls les admins peuvent modifier l\'image de couverture' }
+    }
+
+    try {
+        // Mettre à jour l'image
+        await prisma.restaurant.update({
+            where: { id: restaurantId },
+            data: { coverImageUrl },
+        })
+
+        // Revalider les pages concernées
+        revalidatePath('/dashboard/restaurants')
+        revalidatePath(`/dashboard/restaurants/${restaurantId}`)
+
+        return { success: true }
+    } catch (error) {
+        console.error('Erreur mise à jour cover:', error)
+        return { error: 'Erreur lors de la mise à jour' }
+    }
+}
+
+// ============================================================
+// METTRE À JOUR LES PARAMÈTRES DU RESTAURANT
+// ============================================================
+
+export async function updateRestaurantSettings(
+    restaurantId: string,
+    data: RestaurantSettingsInput
+) {
+    const supabase = await createClient()
+    const {
+        data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+        return { error: 'Non authentifié' }
+    }
+
+    // Validation des données
+    const parsed = restaurantSettingsSchema.safeParse(data)
+    if (!parsed.success) {
+        return {
+            error: parsed.error.issues[0].message,
+        }
+    }
+
+    // Vérifier que l'utilisateur est admin du restaurant
+    const userRole = await prisma.restaurantUser.findUnique({
+        where: {
+            userId_restaurantId: {
+                userId: user.id,
+                restaurantId: restaurantId,
+            },
+        },
+        select: { role: true },
+    })
+
+    if (!userRole || userRole.role !== 'admin') {
+        return { error: 'Seuls les admins peuvent modifier les paramètres' }
+    }
+
+    try {
+        // Mettre à jour le restaurant
+        const restaurant = await prisma.restaurant.update({
+            where: { id: restaurantId },
+            data: {
+                name: parsed.data.name,
+                phone: parsed.data.phone || null,
+                address: parsed.data.address || null,
+                logoUrl: parsed.data.logoUrl || null,
+                coverImageUrl: parsed.data.coverImageUrl || null,
+                isActive: parsed.data.isActive,
+            },
+        })
+
+        // Revalider les pages concernées
+        revalidatePath('/dashboard')
+        revalidatePath('/dashboard/restaurants')
+        revalidatePath(`/dashboard/restaurants/${restaurantId}`)
+
+        return { success: true, restaurant }
+    } catch (error) {
+        console.error('Erreur mise à jour restaurant:', error)
+        return { error: 'Erreur lors de la mise à jour' }
+    }
+}
+
+// ============================================================
+// RÉCUPÉRER LES DÉTAILS D'UN RESTAURANT (pour l'admin)
+// ============================================================
+
+export async function getRestaurantDetails(restaurantId: string) {
+    const supabase = await createClient()
+    const {
+        data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+        return { error: 'Non authentifié' }
+    }
+
+    if (!restaurantId) {
+    throw new Error("Restaurant non sélectionné")
+}
+
+    // Vérifier l'accès
+    const userRole = await prisma.restaurantUser.findUnique({
+        where: {
+            userId_restaurantId: {
+                userId: user.id,
+                restaurantId: restaurantId,
+            },
+        },
+        select: { role: true },
+    })
+
+    if (!userRole) {
+        return { error: 'Accès refusé' }
+    }
+
+    try {
+        const restaurant = await prisma.restaurant.findUnique({
+            where: { id: restaurantId },
+            select: {
+                id: true,
+                name: true,
+                slug: true,
+                phone: true,
+                address: true,
+                logoUrl: true,
+                coverImageUrl: true,
+                isActive: true,
+            },
+        })
+
+        if (!restaurant) {
+            return { error: 'Restaurant introuvable' }
+        }
+
+        return { success: true, restaurant }
+    } catch (error) {
+        console.error('Erreur récupération restaurant:', error)
+        return { error: 'Erreur lors de la récupération' }
+    }
 }
