@@ -2,7 +2,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Loader2 } from 'lucide-react'
+import { Loader2, LocationEdit, MapPin, Phone, PhoneCall } from 'lucide-react'
 import { useCart } from '../cart-context'
 import { CartDialog } from '../cart-dialog'
 import { RestaurantHeader } from './restaurant-header'
@@ -30,6 +30,8 @@ interface MenuData {
         address: string | null
         phone: string | null
         coverImageUrl: string | null
+        logoUrl: string | null
+
     }
     categories: Category[]
 }
@@ -102,7 +104,7 @@ export function MenuLayout({
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-zinc-900 pb-24">
+        <div className="min-h-screen bg-gray-50 dark:bg-zinc-900">
             {/* Header avec image */}
             <RestaurantHeader
                 restaurantName={menuData.restaurant.name}
@@ -155,6 +157,30 @@ export function MenuLayout({
                 restaurantId={restaurantId}
                 tableId={tableId}
             />
+
+            {/* footer */}
+            <footer className=" bg-white mt-10">
+                <div className="w-full max-w-screen-xl mx-auto py-4 md:py-8">
+                    <div className="">
+                        <span className="flex gap-2 justify-center items-center">
+                            <img src={menuData.restaurant.logoUrl ? menuData.restaurant.logoUrl : ""} className="h-5" alt="Logo" />
+                            <span className="text-heading self-center text-xl font-semibold whitespace-nowrap">{menuData.restaurant.name}</span>
+                        </span>
+                    </div>
+                    <div className='flex gap-3 justify-center'>
+                        <div className="flex gap-2 justify-center mt-3 items-center">
+                            <span className="block"><Phone className="h-4 w-4" /></span>
+                            <span className='text-xs'>{menuData.restaurant.phone}</span>
+                        </div>
+                        <div className="flex gap-2 justify-center mt-3 items-center">
+                            <span className="block"><MapPin className="h-4 w-4" /></span>
+                            <span className="block text-xs">{menuData.restaurant.address}</span>
+                        </div>
+
+                    </div>
+                </div>
+            </footer>
+
         </div>
     )
 }

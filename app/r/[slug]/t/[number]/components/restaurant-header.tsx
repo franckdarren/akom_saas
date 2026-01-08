@@ -35,17 +35,18 @@ export function RestaurantHeader({
                 <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/60" />
             </div>
 
-            {/* Nom du restaurant (optionnel, sur l'image) */}
-            {/* <div className="absolute bottom-10 left-4 right-4">
-                <h1 className="text-white text-2xl md:text-3xl font-bold drop-shadow-lg">
+            {/* Nom du restaurant CENTRÉ */}
+            <div className="absolute inset-0 flex items-center justify-center z-10">
+                <h1 className="text-white text-2xl md:text-3xl font-bold drop-shadow-lg text-center px-4">
                     {restaurantName}
                 </h1>
-            </div> */}
+            </div>
 
-            {/* Bouton panier fixé en haut à droite */}
-            <div className="absolute top-4 right-4 z-10">
+            {/* Bouton panier */}
+            <div className="absolute top-4 right-4 z-20">
                 <CartButton itemCount={itemCount} onClick={onCartClick} />
             </div>
         </div>
+
     )
 }
