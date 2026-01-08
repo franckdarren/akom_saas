@@ -63,7 +63,7 @@ export function MenuItem({ product }: MenuItemProps) {
             layout
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`flex gap-4 bg-white dark:bg-zinc-800 rounded-xl p-4 shadow-sm ${isOutOfStock ? 'opacity-60' : ''
+            className={`flex gap-2 bg-white dark:bg-zinc-800 p-3 shadow-sm ${isOutOfStock ? 'opacity-60' : ''
                 }`}
         >
             {/* Image */}
@@ -93,7 +93,7 @@ export function MenuItem({ product }: MenuItemProps) {
 
             {/* Infos */}
             <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-base">{product.name}</h3>
+                <h3 className="font-regular text-[14px]">{product.name}</h3>
 
                 {product.description && (
                     <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
@@ -101,13 +101,13 @@ export function MenuItem({ product }: MenuItemProps) {
                     </p>
                 )}
 
-                <p className="font-bold text-primary mt-2">
+                <p className="font-bold text-primary text-[14px] mt-2">
                     {formatPrice(product.price)}
                 </p>
             </div>
 
             {/* Contrôles +/- */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
                 {quantity > 0 && (
                     <motion.div
                         initial={{ scale: 0, opacity: 0 }}

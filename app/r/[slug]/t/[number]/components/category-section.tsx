@@ -28,7 +28,7 @@ export function CategorySection({ categoryName, products }: CategorySectionProps
                 {categoryName}
             </h2>
 
-            <div className="space-y-3 px-4">
+            <div className="space-y-3">
                 {products.map((product) => (
                     <MenuItem key={product.id} product={product} />
                 ))}
