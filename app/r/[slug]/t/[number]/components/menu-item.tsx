@@ -63,7 +63,7 @@ export function MenuItem({ product }: MenuItemProps) {
             layout
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`flex gap-2 bg-white dark:bg-zinc-800 p-3 shadow-sm ${isOutOfStock ? 'opacity-60' : ''
+            className={`flex items-center gap-2 bg-white dark:bg-zinc-800 p-3 shadow-sm ${isOutOfStock ? 'opacity-60' : ''
                 }`}
         >
             {/* Image */}

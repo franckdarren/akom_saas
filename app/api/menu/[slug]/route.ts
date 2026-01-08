@@ -41,7 +41,7 @@ export async function GET(
             include: {
                 products: {
                     where: {
-                        isAvailable: true,
+                        // isAvailable: true, on récupère même les produits dont le stock=0
                     },
                     include: {
                         stock: {
