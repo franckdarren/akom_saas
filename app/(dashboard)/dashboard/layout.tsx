@@ -74,7 +74,7 @@ const restaurantLogoUrl = restaurantUser?.restaurant.logoUrl
                     role={userRole}
                     restaurantName={restaurantName}
                     restaurantId={restaurantId}
-                    restaurantLogoUrl={restaurantLogoUrl}
+                    restaurantLogoUrl={restaurantLogoUrl ? restaurantLogoUrl : ""}
                     onSignOut={handleSignOut}
                 />
                 <SidebarInset>

@@ -105,7 +105,7 @@ export function RestaurantSettingsForm({ restaurant }: RestaurantSettingsFormPro
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div>
-                        <Label htmlFor="name">Nom du restaurant *</Label>
+                        <Label htmlFor="name" className="mb-2">Nom du restaurant *</Label>
                         <Input
                             id="name"
                             value={name}
@@ -117,7 +117,7 @@ export function RestaurantSettingsForm({ restaurant }: RestaurantSettingsFormPro
                     </div>
 
                     <div>
-                        <Label htmlFor="phone">Téléphone</Label>
+                        <Label htmlFor="phone" className="mb-2">Téléphone</Label>
                         <Input
                             id="phone"
                             type="tel"
@@ -129,7 +129,7 @@ export function RestaurantSettingsForm({ restaurant }: RestaurantSettingsFormPro
                     </div>
 
                     <div>
-                        <Label htmlFor="address">Adresse</Label>
+                        <Label htmlFor="address" className="mb-2">Adresse</Label>
                         <Textarea
                             id="address"
                             value={address}
@@ -232,14 +232,15 @@ export function RestaurantSettingsForm({ restaurant }: RestaurantSettingsFormPro
                             className="h-4 w-4"
                         />
                         <Label htmlFor="isActive" className="cursor-pointer">
-                            Restaurant actif
+                            Restaurant actif 
+                            <span className="text-sm text-muted-foreground">
+                                {isActive
+                                    ? '(les clients peuvent accéder au menu et passer commande)'
+                                    : '(le menu est désactivé, les clients ne peuvent plus commander)'}
+                            </span>
                         </Label>
                     </div>
-                    <p className="text-sm text-muted-foreground mt-2">
-                        {isActive
-                            ? '✅ Les clients peuvent accéder au menu et passer commande'
-                            : '❌ Le menu est désactivé, les clients ne peuvent plus commander'}
-                    </p>
+
                 </CardContent>
             </Card>
 

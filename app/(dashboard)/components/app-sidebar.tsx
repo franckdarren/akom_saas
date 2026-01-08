@@ -49,7 +49,7 @@ interface AppSidebarProps {
     role: UserRole
     restaurantName?: string
     restaurantId?: string
-    restaurantLogo?: string
+    restaurantLogoUrl?: string
 
 
     onSignOut: () => void
@@ -161,7 +161,7 @@ export function AppSidebar({ user, role, restaurantName, restaurantLogoUrl, onSi
                 <Link href="/dashboard" className="flex items-center gap-2">
                     <div className="flex h-8 w-8 items-center justify-center rounded-lg text-primary-foreground">
                         <Image
-                            src={restaurantLogoUrl}
+                            src={restaurantLogoUrl ? restaurantLogoUrl : ""}
                             width={50}
                             height={50}
                             alt="logo"
