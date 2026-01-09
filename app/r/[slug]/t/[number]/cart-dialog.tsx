@@ -14,6 +14,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { useCart } from './cart-context'
 import { formatPrice } from '@/lib/utils/format'
+import { toast } from "sonner"
 
 interface CartDialogProps {
     open: boolean
@@ -32,14 +33,6 @@ export function CartDialog({
     const { items, updateQuantity, removeItem, clearCart, totalAmount } = useCart()
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [error, setError] = useState<string | null>(null)
-
-    // const formatPrice = (price: number) => {
-    //     return new Intl.NumberFormat('fr-FR', {
-    //         style: 'currency',
-    //         currency: 'XAF',
-    //         minimumFractionDigits: 0,
-    //     }).format(price)
-    // }
 
     async function handleCheckout() {
         setIsSubmitting(true)
@@ -69,8 +62,8 @@ export function CartDialog({
             clearCart()
             onOpenChange(false)
 
-            // Afficher message de succès (vous pouvez améliorer avec un toast)
-            alert(`✅ Commande ${data.order.orderNumber} envoyée en cuisine !`)
+            // Afficher message de succès
+            toast.success(` La commande ${data.order.orderNumber} a bien été enregistrée !`)
 
         } catch (err: any) {
             setError(err.message || 'Une erreur est survenue')

@@ -30,14 +30,6 @@ export function ProductCard({ product }: { product: Product }) {
         })
     }
 
-    // const formatPrice = (price: number) => {
-    //     return new Intl.NumberFormat('fr-FR', {
-    //         style: 'currency',
-    //         currency: 'XAF',
-    //         minimumFractionDigits: 0,
-    //     }).format(price)
-    // }
-
     return (
         <Card>
             <CardContent className="p-4">
