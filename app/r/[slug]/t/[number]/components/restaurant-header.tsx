@@ -43,7 +43,7 @@ export function RestaurantHeader({
             </div>
 
             {/* Bouton panier */}
-            <div className="absolute top-4 right-4 z-20">
+            <div className="absolute top-4 right-4 z-20 fixed">
                 <CartButton itemCount={itemCount} onClick={onCartClick} />
             </div>
         </div>

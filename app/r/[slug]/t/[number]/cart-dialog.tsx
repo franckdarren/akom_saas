@@ -99,7 +99,7 @@ export function CartDialog({
                             {items.map((item) => (
                                 <div
                                     key={item.productId}
-                                    className="flex items-center gap-3 p-3 bg-muted rounded-lg"
+                                    className="flex items-center gap-3 py-3 shadow-xs"
                                 >
                                     <div className="flex-1">
                                         <p className="font-medium">{item.name}</p>
@@ -109,7 +109,7 @@ export function CartDialog({
                                     </div>
 
                                     {/* Contrôles quantité */}
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-1">
                                         <Button
                                             variant="outline"
                                             size="icon"
