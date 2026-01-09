@@ -119,7 +119,7 @@ export function QuickCreateProductDialog({
                             name="price"
                             type="number"
                             min="0"
-                            step="1"
+                            step="25"
                             placeholder="3500"
                             required
                             disabled={isLoading}

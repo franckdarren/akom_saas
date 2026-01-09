@@ -123,7 +123,7 @@ export function ProductForm({ categories, product }: ProductFormProps) {
                                 name="price"
                                 type="number"
                                 min="0"
-                                step="1"
+                                step="25"
                                 placeholder="3500"
                                 defaultValue={product?.price}
                                 required
