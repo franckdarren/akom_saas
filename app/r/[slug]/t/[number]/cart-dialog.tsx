@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { useCart } from './cart-context'
+import { formatPrice } from '@/lib/utils/format'
 
 interface CartDialogProps {
     open: boolean
@@ -32,13 +33,13 @@ export function CartDialog({
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
-    const formatPrice = (price: number) => {
-        return new Intl.NumberFormat('fr-FR', {
-            style: 'currency',
-            currency: 'XAF',
-            minimumFractionDigits: 0,
-        }).format(price)
-    }
+    // const formatPrice = (price: number) => {
+    //     return new Intl.NumberFormat('fr-FR', {
+    //         style: 'currency',
+    //         currency: 'XAF',
+    //         minimumFractionDigits: 0,
+    //     }).format(price)
+    // }
 
     async function handleCheckout() {
         setIsSubmitting(true)

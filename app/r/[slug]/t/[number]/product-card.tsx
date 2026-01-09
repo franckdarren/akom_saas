@@ -6,6 +6,8 @@ import { Plus, Package } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { useCart } from './cart-context'
+import { formatPrice } from '@/lib/utils/format'
+
 
 interface Product {
     id: string
@@ -28,13 +30,13 @@ export function ProductCard({ product }: { product: Product }) {
         })
     }
 
-    const formatPrice = (price: number) => {
-        return new Intl.NumberFormat('fr-FR', {
-            style: 'currency',
-            currency: 'XAF',
-            minimumFractionDigits: 0,
-        }).format(price)
-    }
+    // const formatPrice = (price: number) => {
+    //     return new Intl.NumberFormat('fr-FR', {
+    //         style: 'currency',
+    //         currency: 'XAF',
+    //         minimumFractionDigits: 0,
+    //     }).format(price)
+    // }
 
     return (
         <Card>

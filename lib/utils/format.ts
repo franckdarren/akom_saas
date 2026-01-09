@@ -2,13 +2,8 @@
 // Formatage des montants
 // ============================================================
 
-export function formatPrice(amount: number): string {
-    return new Intl.NumberFormat('fr-FR', {
-        style: 'currency',
-        currency: 'XAF',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-    }).format(amount)
+export function formatPrice(price: number) {
+    return `${price.toLocaleString('fr-FR')} FCFA`
 }
 
 
