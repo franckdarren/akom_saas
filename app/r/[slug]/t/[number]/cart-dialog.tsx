@@ -63,7 +63,12 @@ export function CartDialog({
             onOpenChange(false)
 
             // Afficher message de succès
-            toast.success(` La commande ${data.order.orderNumber} a bien été enregistrée !`)
+            toast.success(
+                `La commande ${data.order.orderNumber} a bien été enregistrée !`,
+                {
+                    duration: 15000, // 15 secondes
+                }
+            )
 
         } catch (err: any) {
             setError(err.message || 'Une erreur est survenue')
