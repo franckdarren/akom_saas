@@ -8,6 +8,17 @@ import { Button } from '@/components/ui/button'
 import { formatDate, formatPrice } from '@/lib/utils/format'
 import { Clock, CheckCircle, XCircle, ChefHat, Package } from 'lucide-react'
 import { toast } from 'sonner'
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import { useRouter } from 'next/navigation'
 
 type OrderStatus = 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled'
 
@@ -80,6 +91,14 @@ export function OrderCard({ order }: OrderCardProps) {
     const config = statusConfig[order.status]
     const Icon = config.icon
 
+    const router = useRouter()
+    const [loading, setLoading] = useState<string | null>(null)
+
+    const [deleteTarget, setDeleteTarget] = useState<{
+        id: string
+        orderNumber: string
+    } | null>(null)
+
     // Fonction pour changer le statut
     async function handleStatusChange(newStatus: OrderStatus) {
         setIsUpdating(true)
@@ -108,85 +127,141 @@ export function OrderCard({ order }: OrderCardProps) {
     }
 
     // Fonction pour annuler
-    async function handleCancel() {
-        if (!confirm('Voulez-vous vraiment annuler cette commande ?')) return
-        await handleStatusChange('cancelled')
+    async function handleCancel(id: string, orderNumber: string) {
+        setDeleteTarget({ id, orderNumber })
+    }
+
+    function handleDelete(id: string, orderNumber: string) {
+        setDeleteTarget({ id, orderNumber })
+    }
+
+    async function confirmCancel() {
+        if (!deleteTarget) return
+
+        setLoading(deleteTarget.id)
+        const result = await handleStatusChange('cancelled')
+        setLoading(null)
+        setDeleteTarget(null)
+        toast.success("La commande a été annulée avec succès.")
     }
 
     return (
-        <Card className={order.status === 'pending' ? 'border-yellow-500 shadow-lg' : ''}>
-            <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg font-bold">
-                        {order.orderNumber}
-                    </CardTitle>
-                    <Badge className={config.color}>
-                        <Icon className="h-3 w-3 mr-1" />
-                        {config.label}
-                    </Badge>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <span>Table {order.table?.number || 'N/A'}</span>
-                    <span>•</span>
-                    <span>{formatDate(new Date(order.createdAt))}</span>
-                </div>
-            </CardHeader>
-
-            <CardContent className="space-y-4">
-                {/* Liste des produits */}
-                <div className="space-y-2">
-                    {order.orderItems.map((item) => (
-                        <div
-                            key={item.id}
-                            className="flex items-center justify-between text-sm"
-                        >
-                            <span>
-                                <span className="font-medium">{item.quantity}x</span>{' '}
-                                {item.productName}
-                            </span>
-                            <span className="text-muted-foreground">
-                                {formatPrice(item.unitPrice * item.quantity)}
-                            </span>
-                        </div>
-                    ))}
-                </div>
-
-                {/* Notes */}
-                {order.notes && (
-                    <div className="text-sm p-2 bg-muted rounded-md">
-                        <span className="font-medium">Note :</span> {order.notes}
+        <>
+            <Card className={order.status === 'pending' ? 'border-yellow-500 shadow-lg' : ''}>
+                <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                        <CardTitle className="text-lg font-bold">
+                            {order.orderNumber}
+                        </CardTitle>
+                        <Badge className={config.color}>
+                            <Icon className="h-3 w-3 mr-1" />
+                            {config.label}
+                        </Badge>
                     </div>
-                )}
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <span>Table {order.table?.number || 'N/A'}</span>
+                        <span>•</span>
+                        <span>{formatDate(new Date(order.createdAt))}</span>
+                    </div>
+                </CardHeader>
 
-                {/* Total */}
-                <div className="pt-2 border-t flex items-center justify-between font-semibold">
-                    <span>Total</span>
-                    <span>{formatPrice(order.totalAmount)}</span>
-                </div>
+                <CardContent className="space-y-4">
+                    {/* Liste des produits */}
+                    <div className="space-y-2">
+                        {order.orderItems.map((item) => (
+                            <div
+                                key={item.id}
+                                className="flex items-center justify-between text-sm"
+                            >
+                                <span>
+                                    <span className="font-medium">{item.quantity}x</span>{' '}
+                                    {item.productName}
+                                </span>
+                                <span className="text-muted-foreground">
+                                    {formatPrice(item.unitPrice * item.quantity)}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
 
-                {/* Actions */}
-                <div className="flex gap-2 pt-2">
-                    {config.nextStatus && (
-                        <Button
-                            className="flex-1"
-                            onClick={() => handleStatusChange(config.nextStatus!)}
-                            disabled={isUpdating}
-                        >
-                            {isUpdating ? 'Mise à jour...' : config.nextLabel}
-                        </Button>
+                    {/* Notes */}
+                    {order.notes && (
+                        <div className="text-sm p-2 bg-muted rounded-md">
+                            <span className="font-medium">Note :</span> {order.notes}
+                        </div>
                     )}
 
-                    {order.status !== 'delivered' && order.status !== 'cancelled' && (
-                        <Button
-                            variant="destructive"
-                            onClick={handleCancel}
-                            disabled={isUpdating}
-                        >
+                    {/* Total */}
+                    <div className="pt-2 border-t flex items-center justify-between font-semibold">
+                        <span>Total</span>
+                        <span>{formatPrice(order.totalAmount)}</span>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex gap-2 pt-2">
+                        {config.nextStatus && (
+                            <Button
+                                className="flex-1"
+                                onClick={() => handleStatusChange(config.nextStatus!)}
+                                disabled={isUpdating}
+                            >
+                                {isUpdating ? 'Mise à jour...' : config.nextLabel}
+                            </Button>
+                        )}
+
+                        {order.status !== 'delivered' && order.status !== 'cancelled' && (
+                            <Button
+                                variant="destructive"
+                                onClick={() =>
+                                    handleCancel(
+                                        order.id,
+                                        order.orderNumber
+                                    )
+                                }
+                                disabled={isUpdating}
+                            >
+                                Annuler
+                            </Button>
+                        )}
+                    </div>
+                </CardContent>
+            </Card>
+            {/* AlertDialog suppression */}
+            <AlertDialog
+                open={!!deleteTarget}
+                onOpenChange={() => setDeleteTarget(null)}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>
+                            Annuler la commande {deleteTarget?.orderNumber} ?
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Cette action est irréversible.
+                            {/* {deleteTarget && (
+                                            <>
+                                                <br />
+                                                <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                                                    {deleteTarget.name}
+                                                </span>
+                                            </>
+                                        )} */}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>
                             Annuler
-                        </Button>
-                    )}
-                </div>
-            </CardContent>
-        </Card>
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={confirmCancel}
+                            className="bg-red-600 hover:bg-red-700"
+                        >
+                            Confirmer
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        </>
     )
 }
