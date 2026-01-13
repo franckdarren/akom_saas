@@ -19,7 +19,7 @@ interface OrderFiltersProps {
 
 export function OrderFilters({ activeFilter, onFilterChange, counts }: OrderFiltersProps) {
     const filters: { value: OrderStatus; label: string }[] = [
-        { value: 'all', label: 'Toutes' },
+        // { value: 'all', label: 'Toutes' },
         { value: 'pending', label: 'Nouvelles' },
         { value: 'preparing', label: 'En préparation' },
         { value: 'ready', label: 'Prêtes' },
