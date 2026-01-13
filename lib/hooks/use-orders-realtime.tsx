@@ -12,6 +12,14 @@ export type OrderStatus =
     | 'delivered'
     | 'cancelled'
 
+export type OrderStatusFilter =
+    | 'pending'
+    | 'preparing'
+    | 'ready'
+    | 'delivered'
+    | 'cancelled'
+    | 'all'
+
 export interface OrderItem {
     id: string
     productName: string

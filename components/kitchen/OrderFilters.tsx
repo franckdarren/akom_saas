@@ -2,11 +2,11 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import type { OrderStatus } from '@/lib/hooks/use-orders-realtime'
+import type { OrderStatusFilter } from '@/lib/hooks/use-orders-realtime'
 
 interface OrderFiltersProps {
-    activeFilter: OrderStatus
-    onFilterChange: (filter: OrderStatus) => void
+    activeFilter: OrderStatusFilter
+    onFilterChange: (filter: OrderStatusFilter) => void
     counts: {
         all: number
         pending: number
@@ -18,8 +18,8 @@ interface OrderFiltersProps {
 }
 
 export function OrderFilters({ activeFilter, onFilterChange, counts }: OrderFiltersProps) {
-    const filters: { value: OrderStatus; label: string }[] = [
-        // { value: 'all', label: 'Toutes' },
+    const filters: { value: OrderStatusFilter; label: string }[] = [
+        { value: 'all', label: 'Toutes' },
         { value: 'pending', label: 'Nouvelles' },
         { value: 'preparing', label: 'En préparation' },
         { value: 'ready', label: 'Prêtes' },
