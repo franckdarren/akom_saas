@@ -90,7 +90,7 @@ export function CategoriesList({ categories }: { categories: Category[] }) {
 
     return (
         <>
-            <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
+            <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-3">
                 {categories.map((category) => (
                     <Card key={category.id} className='hover:shadow-md transition-shadow'>
                         <CardHeader>

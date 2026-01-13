@@ -87,7 +87,7 @@ export function TablesList({ tables }: { tables: Table[] }) {
 
     return (
         <>
-            <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
+            <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-3">
                 {tables.map((table) => (
                     <Card key={table.id} className='hover:shadow-md transition-shadow'>
                         <CardHeader>

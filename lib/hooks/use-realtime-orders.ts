@@ -1,4 +1,4 @@
-// lib/hooks/use-realtime-orders.ts
+// lib/hooks/use-realtime-orders.ts !!!!! PAS UTILISE !!!!!
 'use client'
 
 import { useEffect, useState } from 'react'
@@ -124,7 +124,7 @@ export function useRealtimeOrders(restaurantId: string) {
                                         product: item.product?.[0] || { name: item.productName, imageUrl: null }
                                     }))
                                 }
-                                
+
                                 setOrders((prev) => [transformedOrder, ...prev])
                                 // Marquer comme nouvelle commande (pour le son)
                                 setNewOrderIds((prev) => new Set(prev).add(transformedOrder.id))

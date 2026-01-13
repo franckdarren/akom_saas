@@ -15,6 +15,53 @@ interface CreateOrderRequest {
     notes?: string
 }
 
+// ============================================================
+// GET - Récupérer toutes les commandes d'un restaurant
+// ============================================================
+export async function GET(request: NextRequest) {
+    try {
+        // ✅ PAS de params ici, juste searchParams
+        const { searchParams } = request.nextUrl
+        const restaurantId = searchParams.get('restaurantId')
+
+        if (!restaurantId) {
+            return NextResponse.json(
+                { error: 'restaurantId manquant' },
+                { status: 400 }
+            )
+        }
+
+        // Récupérer toutes les commandes avec leurs relations
+        const orders = await prisma.order.findMany({
+            where: {
+                restaurantId,
+            },
+            include: {
+                orderItems: {
+                    include: {
+                        product: true,
+                    },
+                },
+                table: true,
+            },
+            orderBy: {
+                createdAt: 'desc',
+            },
+        })
+
+        return NextResponse.json({ orders })
+    } catch (error) {
+        console.error('Erreur récupération commandes:', error)
+        return NextResponse.json(
+            { error: 'Erreur lors de la récupération des commandes' },
+            { status: 500 }
+        )
+    }
+}
+
+// ============================================================
+// POST - Créer une nouvelle commande
+// ============================================================
 export async function POST(request: NextRequest) {
     try {
         const body: CreateOrderRequest = await request.json()
@@ -76,14 +123,35 @@ export async function POST(request: NextRequest) {
             }
         }
 
+        // Calculer le montant total
+        const totalAmount = body.items.reduce((sum, item) => {
+            const product = products.find((p) => p.id === item.productId)!
+            return sum + product.price * item.quantity
+        }, 0)
+
+        // Générer un orderNumber unique (format #001, #002, etc.)
+        const lastOrder = await prisma.order.findFirst({
+            where: { restaurantId: body.restaurantId },
+            orderBy: { createdAt: 'desc' },
+            select: { orderNumber: true },
+        })
+
+        let orderNumber = '#001'
+        if (lastOrder?.orderNumber) {
+            const lastNumber = parseInt(lastOrder.orderNumber.replace('#', ''))
+            orderNumber = `#${String(lastNumber + 1).padStart(3, '0')}`
+        }
+
         // Créer la commande avec ses items
         const order = await prisma.order.create({
             data: {
                 restaurantId: body.restaurantId,
                 tableId: body.tableId,
+                orderNumber,
                 customerName: body.customerName || null,
                 notes: body.notes || null,
                 status: 'pending',
+                totalAmount,
                 orderItems: {
                     create: body.items.map((item) => {
                         const product = products.find((p) => p.id === item.productId)!

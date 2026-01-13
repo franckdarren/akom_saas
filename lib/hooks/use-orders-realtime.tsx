@@ -1,140 +1,132 @@
+// lib/hooks/use-orders-realtime.tsx
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRestaurant } from '@/lib/hooks/use-restaurant'
-import type { Order, OrderItem, Product, Table } from '@/app/generated/prisma/client'
-import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
 
-export type OrderWithDetails = Order & {
-    orderItems: (OrderItem & {
-        product: Product
-    })[]
-    table: Table | null
-}
-
-export type OrderStatusFilter =
-    | 'all'
+export type OrderStatus =
     | 'pending'
     | 'preparing'
     | 'ready'
     | 'delivered'
     | 'cancelled'
 
+export interface OrderItem {
+    id: string
+    productName: string
+    quantity: number
+    unitPrice: number
+}
+
+export interface Order {
+    id: string
+    orderNumber: string
+    status: OrderStatus
+    totalAmount: number
+    createdAt: string
+    table?: {
+        number: number
+    }
+    orderItems: OrderItem[]
+    customerName?: string
+    notes?: string
+}
+
 export function useOrdersRealtime() {
+    const supabase = createClient()
     const { currentRestaurant } = useRestaurant()
-    const [orders, setOrders] = useState<OrderWithDetails[]>([])
+
+    const [allOrders, setAllOrders] = useState<Order[]>([])
     const [loading, setLoading] = useState(true)
-    const [statusFilter, setStatusFilter] = useState<OrderStatusFilter>('all')
+    const [statusFilter, setStatusFilter] = useState<OrderStatus | 'all'>('all')
 
     /**
-     * 🔹 Chargement initial
+     * 🔄 SOURCE DE VÉRITÉ = API
      */
-    useEffect(() => {
+    const fetchOrders = useCallback(async () => {
         if (!currentRestaurant?.id) return
 
-        const restaurantId = currentRestaurant.id
+        try {
+            const res = await fetch(
+                `/api/orders?restaurantId=${currentRestaurant.id}`,
+                { cache: 'no-store' }
+            )
 
-        async function fetchOrders() {
-            try {
-                const response = await fetch(`/api/orders?restaurantId=${restaurantId}`)
-                const data = await response.json()
-                setOrders(data.orders || [])
-            } catch (error) {
-                console.error('Erreur chargement commandes:', error)
-            } finally {
-                setLoading(false)
+            const data = await res.json()
+
+            if (data?.orders) {
+                setAllOrders(data.orders)
             }
+        } catch (e) {
+            console.error('Erreur fetch orders:', e)
+        } finally {
+            setLoading(false)
         }
-
-        fetchOrders()
     }, [currentRestaurant?.id])
 
     /**
-     * 🔹 Temps réel
+     * ⏳ Chargement initial
+     */
+    useEffect(() => {
+        fetchOrders()
+    }, [fetchOrders])
+
+    /**
+     * ⚡ REALTIME = SIGNAL UNIQUEMENT
+     * Déclenche un refetch dès qu'une modification est détectée
      */
     useEffect(() => {
         if (!currentRestaurant?.id) return
 
-        const restaurantId = currentRestaurant.id
-        const supabase = createClient()
-
         const channel = supabase
-            .channel('orders-changes')
+            .channel(`orders:${currentRestaurant.id}`)
             .on(
                 'postgres_changes',
                 {
                     event: '*',
                     schema: 'public',
                     table: 'orders',
-                    filter: `restaurant_id=eq.${restaurantId}`,
+                    filter: `restaurant_id=eq.${currentRestaurant.id}`,
                 },
-                async (
-                    payload: RealtimePostgresChangesPayload<Order>
-                ) => {
-                    console.log('Changement détecté:', payload)
-
-                    // Sécurité INSERT / UPDATE
-                    if (payload.eventType !== 'DELETE' && payload.new?.id) {
-                        const response = await fetch(
-                            `/api/orders/${payload.new.id}?restaurantId=${restaurantId}`
-                        )
-                        const data = await response.json()
-
-                        if (payload.eventType === 'INSERT') {
-                            setOrders((prev) => [data.order, ...prev])
-                        }
-
-                        if (payload.eventType === 'UPDATE') {
-                            setOrders((prev) =>
-                                prev.map((order) =>
-                                    order.id === payload.new.id ? data.order : order
-                                )
-                            )
-                        }
-                    }
-
-                    // Sécurité DELETE
-                    if (payload.eventType === 'DELETE' && payload.old?.id) {
-                        setOrders((prev) =>
-                            prev.filter((order) => order.id !== payload.old.id)
-                        )
-                    }
+                (payload) => {
+                    console.log('📡 Realtime event:', payload.eventType)
+                    // Refetch immédiatement pour avoir les données à jour
+                    fetchOrders()
                 }
             )
-            .subscribe()
+            .subscribe((status) => {
+                console.log('🔌 Subscription status:', status)
+            })
 
         return () => {
             supabase.removeChannel(channel)
         }
-    }, [currentRestaurant?.id])
+    }, [currentRestaurant?.id, fetchOrders, supabase])
 
     /**
-     * 🔹 Filtrage & tri
+     * 🎯 Filtrage
      */
-    const filteredOrders = orders.filter((order) => {
-        if (statusFilter === 'all') return true
-        return order.status === statusFilter
-    })
+    const orders = useMemo(() => {
+        if (statusFilter === 'all') return allOrders
+        return allOrders.filter((o) => o.status === statusFilter)
+    }, [allOrders, statusFilter])
 
-    const statusOrder = ['pending', 'preparing', 'ready', 'delivered', 'cancelled']
-
-    const sortedOrders = [...filteredOrders].sort((a, b) => {
-        const aIndex = statusOrder.indexOf(a.status)
-        const bIndex = statusOrder.indexOf(b.status)
-
-        if (aIndex !== bIndex) return aIndex - bIndex
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    })
-
-    const pendingCount = orders.filter((o) => o.status === 'pending').length
+    /**
+     * 🔔 Pending count
+     */
+    const pendingCount = useMemo(
+        () => allOrders.filter((o) => o.status === 'pending').length,
+        [allOrders]
+    )
 
     return {
-        orders: sortedOrders,
-        allOrders: orders,
+        orders,
+        allOrders,
         loading,
         pendingCount,
         statusFilter,
         setStatusFilter,
+        refetch: fetchOrders, // ✅ Exposer refetch pour un refresh manuel
     }
 }
