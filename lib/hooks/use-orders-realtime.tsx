@@ -11,6 +11,7 @@ export type OrderStatus =
     | 'ready'
     | 'delivered'
     | 'cancelled'
+    | 'all'
 
 export interface OrderItem {
     id: string
