@@ -64,7 +64,7 @@ export default function OrdersPage() {
                         <BreadcrumbList>
                             <BreadcrumbItem>
                                 <BreadcrumbLink href="/dashboard">
-                                    Tableau de bord
+                                    Opérations
                                 </BreadcrumbLink>
                             </BreadcrumbItem>
                             <BreadcrumbSeparator />

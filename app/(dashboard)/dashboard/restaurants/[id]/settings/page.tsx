@@ -65,7 +65,7 @@ export default async function RestaurantSettingsPage({
                             <div className='my-auto'>
                                 <BreadcrumbList>
                                     <BreadcrumbItem>
-                                        <BreadcrumbLink href="/dashboard">Tableau de bord</BreadcrumbLink>
+                                        <BreadcrumbLink href="/dashboard">Configuration</BreadcrumbLink>
                                     </BreadcrumbItem>
                                     <BreadcrumbSeparator />
                                     <BreadcrumbItem>

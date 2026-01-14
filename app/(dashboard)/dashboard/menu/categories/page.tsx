@@ -61,7 +61,7 @@ export default async function CategoriesPage() {
                     <div className='my-auto'>
                         <BreadcrumbList>
                             <BreadcrumbItem>
-                                <BreadcrumbLink href="/dashboard">Tableau de bord</BreadcrumbLink>
+                                <BreadcrumbLink href="/dashboard">Menu</BreadcrumbLink>
                             </BreadcrumbItem>
                             <BreadcrumbSeparator />
                             <BreadcrumbItem>

@@ -74,7 +74,7 @@ export default async function ProductsPage() {
                     <Breadcrumb>
                         <BreadcrumbList>
                             <BreadcrumbItem>
-                                <BreadcrumbLink href="/dashboard">Tableau de bord</BreadcrumbLink>
+                                <BreadcrumbLink href="/dashboard">Menu</BreadcrumbLink>
                             </BreadcrumbItem>
                             <BreadcrumbSeparator />
                             <BreadcrumbItem>

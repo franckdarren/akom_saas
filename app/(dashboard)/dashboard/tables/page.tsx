@@ -65,7 +65,7 @@ export default async function TablesPage() {
                     <Breadcrumb>
                         <BreadcrumbList>
                             <BreadcrumbItem>
-                                <BreadcrumbLink href="/dashboard">Tableau de bord</BreadcrumbLink>
+                                <BreadcrumbLink href="/dashboard">Opérations</BreadcrumbLink>
                             </BreadcrumbItem>
                             <BreadcrumbSeparator />
                             <BreadcrumbItem>
