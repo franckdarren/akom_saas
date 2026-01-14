@@ -1,7 +1,7 @@
 // lib/hooks/use-orders-realtime.tsx
 'use client'
 
-import { useEffect, useState, useCallback, useMemo } from 'react'
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRestaurant } from '@/lib/hooks/use-restaurant'
 
@@ -11,6 +11,7 @@ export type OrderStatus =
     | 'ready'
     | 'delivered'
     | 'cancelled'
+
 
 export type OrderStatusFilter =
     | 'pending'
@@ -48,9 +49,11 @@ export function useOrdersRealtime() {
     const [allOrders, setAllOrders] = useState<Order[]>([])
     const [loading, setLoading] = useState(true)
     const [statusFilter, setStatusFilter] = useState<OrderStatus | 'all'>('all')
+    
+    const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
     /**
-     * 🔄 SOURCE DE VÉRITÉ = API
+     * SOURCE DE VÉRITÉ = API
      */
     const fetchOrders = useCallback(async () => {
         if (!currentRestaurant?.id) return
@@ -74,15 +77,14 @@ export function useOrdersRealtime() {
     }, [currentRestaurant?.id])
 
     /**
-     * ⏳ Chargement initial
+     * Chargement initial
      */
     useEffect(() => {
         fetchOrders()
     }, [fetchOrders])
 
     /**
-     * ⚡ REALTIME = SIGNAL UNIQUEMENT
-     * Déclenche un refetch dès qu'une modification est détectée
+     * ⚡ REALTIME via Supabase
      */
     useEffect(() => {
         if (!currentRestaurant?.id) return
@@ -99,7 +101,6 @@ export function useOrdersRealtime() {
                 },
                 (payload) => {
                     console.log('📡 Realtime event:', payload.eventType)
-                    // Refetch immédiatement pour avoir les données à jour
                     fetchOrders()
                 }
             )
@@ -113,7 +114,39 @@ export function useOrdersRealtime() {
     }, [currentRestaurant?.id, fetchOrders, supabase])
 
     /**
-     * 🎯 Filtrage
+     * POLLING INTELLIGENT
+     * Refetch toutes les 3 secondes s'il y a des commandes actives
+     */
+    useEffect(() => {
+        // Vérifier s'il y a des commandes actives (pas delivered ni cancelled)
+        const hasActiveOrders = allOrders.some(
+            (order) => !['delivered', 'cancelled'].includes(order.status)
+        )
+
+        // Si commandes actives → polling
+        if (hasActiveOrders) {
+            console.log('🔄 Polling activé (commandes actives)')
+            pollingIntervalRef.current = setInterval(() => {
+                fetchOrders()
+            }, 3000) // Refetch toutes les 3 secondes
+        } else {
+            console.log('⏸️ Polling désactivé (aucune commande active)')
+            if (pollingIntervalRef.current) {
+                clearInterval(pollingIntervalRef.current)
+                pollingIntervalRef.current = null
+            }
+        }
+
+        // Cleanup
+        return () => {
+            if (pollingIntervalRef.current) {
+                clearInterval(pollingIntervalRef.current)
+            }
+        }
+    }, [allOrders, fetchOrders])
+
+    /**
+     * Filtrage
      */
     const orders = useMemo(() => {
         if (statusFilter === 'all') return allOrders
@@ -121,7 +154,7 @@ export function useOrdersRealtime() {
     }, [allOrders, statusFilter])
 
     /**
-     * 🔔 Pending count
+     * Pending count
      */
     const pendingCount = useMemo(
         () => allOrders.filter((o) => o.status === 'pending').length,
@@ -135,6 +168,6 @@ export function useOrdersRealtime() {
         pendingCount,
         statusFilter,
         setStatusFilter,
-        refetch: fetchOrders, // ✅ Exposer refetch pour un refresh manuel
+        refetch: fetchOrders,
     }
 }

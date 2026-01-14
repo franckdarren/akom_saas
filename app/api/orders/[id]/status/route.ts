@@ -1,6 +1,7 @@
 // app/api/orders/[id]/status/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { supabaseAdmin } from '@/lib/supabase/admin'
 import prisma from '@/lib/prisma'
 
 type OrderStatus = 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled'
@@ -8,6 +9,7 @@ type OrderStatus = 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled'
 // ============================================================
 // PATCH - Changer le statut d'une commande
 // ============================================================
+
 export async function PATCH(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
@@ -35,7 +37,7 @@ export async function PATCH(
             )
         }
 
-        // ✅ Utiliser Prisma pour les lectures (pas de RLS bloquant)
+        // Utiliser Prisma pour les lectures (pas de RLS bloquant)
         const order = await prisma.order.findFirst({
             where: { 
                 id,
@@ -78,19 +80,26 @@ export async function PATCH(
             )
         }
 
-        // ✅ UPDATE via Supabase RAW SQL (bypass RLS proprement)
-        const { error: updateError } = await supabase.rpc('update_order_status', {
-            p_order_id: id,
-            p_new_status: newStatus
+        // UPDATE via Prisma
+        await prisma.order.update({
+            where: { id },
+            data: { 
+                status: newStatus,
+                updatedAt: new Date()
+            },
         })
 
-        if (updateError) {
-            console.error('Erreur update:', updateError)
-            return NextResponse.json(
-                { error: 'Erreur lors de la mise à jour' },
-                { status: 500 }
+        // Trigger Realtime manuellement via une notification Postgres
+        await prisma.$executeRaw`
+            SELECT pg_notify(
+                'order_update',
+                json_build_object(
+                    'id', ${id}::text,
+                    'status', ${newStatus}::text,
+                    'restaurant_id', ${order.restaurantId}::text
+                )::text
             )
-        }
+        `
 
         return NextResponse.json({ 
             success: true,

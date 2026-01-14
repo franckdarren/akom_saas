@@ -18,9 +18,10 @@ interface CreateOrderRequest {
 // ============================================================
 // GET - Récupérer toutes les commandes d'un restaurant
 // ============================================================
+
 export async function GET(request: NextRequest) {
     try {
-        // ✅ PAS de params ici, juste searchParams
+        // PAS de params ici, juste searchParams
         const { searchParams } = request.nextUrl
         const restaurantId = searchParams.get('restaurantId')
 
@@ -62,6 +63,7 @@ export async function GET(request: NextRequest) {
 // ============================================================
 // POST - Créer une nouvelle commande
 // ============================================================
+
 export async function POST(request: NextRequest) {
     try {
         const body: CreateOrderRequest = await request.json()

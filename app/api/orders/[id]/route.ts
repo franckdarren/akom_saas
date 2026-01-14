@@ -5,6 +5,7 @@ import prisma from '@/lib/prisma'
 // ============================================================
 // GET - Récupérer une commande par ID
 // ============================================================
+
 export async function GET(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> } // ✅ Promise
