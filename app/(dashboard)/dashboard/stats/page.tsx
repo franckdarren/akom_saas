@@ -86,18 +86,18 @@ export default function StatsPage() {
                 <SidebarTrigger className="-ml-1" />
                 <Separator orientation="vertical" className="mr-2 h-4" />
                 <div className="flex justify-between w-full">
-                            <div className='my-auto'>
-                                <BreadcrumbList>
-                                    <BreadcrumbItem>
-                                        <BreadcrumbLink href="/dashboard">Analyse</BreadcrumbLink>
-                                    </BreadcrumbItem>
-                                    <BreadcrumbSeparator />
-                                    <BreadcrumbItem>
-                                        <BreadcrumbPage>Paramètres</BreadcrumbPage>
-                                    </BreadcrumbItem>
-                                </BreadcrumbList>
-                            </div>
-                            {/* <div className="border-black text-right leading-tight text-sm">
+                    <div className='my-auto'>
+                        <BreadcrumbList>
+                            <BreadcrumbItem>
+                                <BreadcrumbLink href="/dashboard">Analyse</BreadcrumbLink>
+                            </BreadcrumbItem>
+                            <BreadcrumbSeparator />
+                            <BreadcrumbItem>
+                                <BreadcrumbPage>Paramètres</BreadcrumbPage>
+                            </BreadcrumbItem>
+                        </BreadcrumbList>
+                    </div>
+                    {/* <div className="border-black text-right leading-tight text-sm">
                                 {
                                     userRole === "admin" && <p className="truncate font-medium">Administrateur</p>
                                 }
@@ -106,7 +106,7 @@ export default function StatsPage() {
                                 }
                                 <p className="text-muted-foreground truncate text-xs">{user.email}</p>
                             </div> */}
-                        </div>
+                </div>
 
             </header >
 
@@ -116,7 +116,7 @@ export default function StatsPage() {
                     <div>
                         <h1 className="text-2xl font-bold">Statistiques</h1>
                         <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                            Analysez les performances de votre restaurant
+                            Analysez les performances de votre structure
                         </p>
                     </div>
                     <PeriodFilter value={period} onChange={setPeriod} />
