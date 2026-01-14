@@ -108,6 +108,11 @@ export function AppSidebar({ user, role, restaurantName, restaurantLogoUrl, onSi
                             ? `/dashboard/restaurants/${currentRestaurant.id}/settings`
                             : '#',
                         icon: Settings,
+                    },
+                    {
+                        title: "Utilisateurs",
+                        href: '/dashboard/users',
+                        icon: Users,
                         disabled: !currentRestaurant, // Désactivé si pas de restaurant
                     },
                 ],
