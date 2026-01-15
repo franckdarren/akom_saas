@@ -62,3 +62,33 @@ export const StockMovementType = {
 } as const
 
 export type StockMovementType = (typeof StockMovementType)[keyof typeof StockMovementType]
+
+
+export const TicketStatus = {
+  open: 'open',
+  in_progress: 'in_progress',
+  resolved: 'resolved',
+  closed: 'closed'
+} as const
+
+export type TicketStatus = (typeof TicketStatus)[keyof typeof TicketStatus]
+
+
+export const TicketPriority = {
+  low: 'low',
+  medium: 'medium',
+  high: 'high',
+  urgent: 'urgent'
+} as const
+
+export type TicketPriority = (typeof TicketPriority)[keyof typeof TicketPriority]
+
+
+export const LogLevel = {
+  info: 'info',
+  warning: 'warning',
+  error: 'error',
+  critical: 'critical'
+} as const
+
+export type LogLevel = (typeof LogLevel)[keyof typeof LogLevel]

@@ -7,14 +7,9 @@ import {
     Users,
     BarChart3,
     ArrowLeft,
+    MessageSquare,
+    FileText,
 } from 'lucide-react'
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card'
 
 export default function SuperAdminLayout({ children }: { children: ReactNode }) {
     return (
@@ -75,6 +70,24 @@ export default function SuperAdminLayout({ children }: { children: ReactNode }) 
                             >
                                 <BarChart3 className="h-4 w-4" />
                                 Stats avancées
+                            </Link>
+                        </Button>
+                        <Button variant="ghost" size="sm" asChild>
+                            <Link
+                                href="/superadmin/support"
+                                className="flex items-center gap-2"
+                            >
+                                <MessageSquare className="h-4 w-4" />
+                                Support
+                            </Link>
+                        </Button>
+                        <Button variant="ghost" size="sm" asChild>
+                            <Link
+                                href="/superadmin/logs"
+                                className="flex items-center gap-2"
+                            >
+                                <FileText className="h-4 w-4" />
+                                Logs
                             </Link>
                         </Button>
                     </div>

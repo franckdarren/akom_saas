@@ -393,7 +393,11 @@ export const ModelName = {
   Order: 'Order',
   OrderItem: 'OrderItem',
   Payment: 'Payment',
-  StockMovement: 'StockMovement'
+  StockMovement: 'StockMovement',
+  SupportTicket: 'SupportTicket',
+  TicketMessage: 'TicketMessage',
+  DailyStats: 'DailyStats',
+  SystemLog: 'SystemLog'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -409,7 +413,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "restaurant" | "restaurantUser" | "table" | "category" | "product" | "stock" | "order" | "orderItem" | "payment" | "stockMovement"
+    modelProps: "restaurant" | "restaurantUser" | "table" | "category" | "product" | "stock" | "order" | "orderItem" | "payment" | "stockMovement" | "supportTicket" | "ticketMessage" | "dailyStats" | "systemLog"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1153,6 +1157,302 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    SupportTicket: {
+      payload: Prisma.$SupportTicketPayload<ExtArgs>
+      fields: Prisma.SupportTicketFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SupportTicketFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SupportTicketPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SupportTicketFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SupportTicketPayload>
+        }
+        findFirst: {
+          args: Prisma.SupportTicketFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SupportTicketPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SupportTicketFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SupportTicketPayload>
+        }
+        findMany: {
+          args: Prisma.SupportTicketFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SupportTicketPayload>[]
+        }
+        create: {
+          args: Prisma.SupportTicketCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SupportTicketPayload>
+        }
+        createMany: {
+          args: Prisma.SupportTicketCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.SupportTicketCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SupportTicketPayload>[]
+        }
+        delete: {
+          args: Prisma.SupportTicketDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SupportTicketPayload>
+        }
+        update: {
+          args: Prisma.SupportTicketUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SupportTicketPayload>
+        }
+        deleteMany: {
+          args: Prisma.SupportTicketDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SupportTicketUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.SupportTicketUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SupportTicketPayload>[]
+        }
+        upsert: {
+          args: Prisma.SupportTicketUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SupportTicketPayload>
+        }
+        aggregate: {
+          args: Prisma.SupportTicketAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSupportTicket>
+        }
+        groupBy: {
+          args: Prisma.SupportTicketGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SupportTicketGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SupportTicketCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SupportTicketCountAggregateOutputType> | number
+        }
+      }
+    }
+    TicketMessage: {
+      payload: Prisma.$TicketMessagePayload<ExtArgs>
+      fields: Prisma.TicketMessageFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TicketMessageFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TicketMessagePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TicketMessageFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TicketMessagePayload>
+        }
+        findFirst: {
+          args: Prisma.TicketMessageFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TicketMessagePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TicketMessageFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TicketMessagePayload>
+        }
+        findMany: {
+          args: Prisma.TicketMessageFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TicketMessagePayload>[]
+        }
+        create: {
+          args: Prisma.TicketMessageCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TicketMessagePayload>
+        }
+        createMany: {
+          args: Prisma.TicketMessageCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TicketMessageCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TicketMessagePayload>[]
+        }
+        delete: {
+          args: Prisma.TicketMessageDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TicketMessagePayload>
+        }
+        update: {
+          args: Prisma.TicketMessageUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TicketMessagePayload>
+        }
+        deleteMany: {
+          args: Prisma.TicketMessageDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TicketMessageUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TicketMessageUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TicketMessagePayload>[]
+        }
+        upsert: {
+          args: Prisma.TicketMessageUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TicketMessagePayload>
+        }
+        aggregate: {
+          args: Prisma.TicketMessageAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTicketMessage>
+        }
+        groupBy: {
+          args: Prisma.TicketMessageGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TicketMessageGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TicketMessageCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TicketMessageCountAggregateOutputType> | number
+        }
+      }
+    }
+    DailyStats: {
+      payload: Prisma.$DailyStatsPayload<ExtArgs>
+      fields: Prisma.DailyStatsFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.DailyStatsFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyStatsPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.DailyStatsFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyStatsPayload>
+        }
+        findFirst: {
+          args: Prisma.DailyStatsFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyStatsPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.DailyStatsFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyStatsPayload>
+        }
+        findMany: {
+          args: Prisma.DailyStatsFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyStatsPayload>[]
+        }
+        create: {
+          args: Prisma.DailyStatsCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyStatsPayload>
+        }
+        createMany: {
+          args: Prisma.DailyStatsCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.DailyStatsCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyStatsPayload>[]
+        }
+        delete: {
+          args: Prisma.DailyStatsDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyStatsPayload>
+        }
+        update: {
+          args: Prisma.DailyStatsUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyStatsPayload>
+        }
+        deleteMany: {
+          args: Prisma.DailyStatsDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.DailyStatsUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.DailyStatsUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyStatsPayload>[]
+        }
+        upsert: {
+          args: Prisma.DailyStatsUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyStatsPayload>
+        }
+        aggregate: {
+          args: Prisma.DailyStatsAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateDailyStats>
+        }
+        groupBy: {
+          args: Prisma.DailyStatsGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DailyStatsGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.DailyStatsCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DailyStatsCountAggregateOutputType> | number
+        }
+      }
+    }
+    SystemLog: {
+      payload: Prisma.$SystemLogPayload<ExtArgs>
+      fields: Prisma.SystemLogFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SystemLogFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SystemLogPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SystemLogFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SystemLogPayload>
+        }
+        findFirst: {
+          args: Prisma.SystemLogFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SystemLogPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SystemLogFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SystemLogPayload>
+        }
+        findMany: {
+          args: Prisma.SystemLogFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SystemLogPayload>[]
+        }
+        create: {
+          args: Prisma.SystemLogCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SystemLogPayload>
+        }
+        createMany: {
+          args: Prisma.SystemLogCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.SystemLogCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SystemLogPayload>[]
+        }
+        delete: {
+          args: Prisma.SystemLogDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SystemLogPayload>
+        }
+        update: {
+          args: Prisma.SystemLogUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SystemLogPayload>
+        }
+        deleteMany: {
+          args: Prisma.SystemLogDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SystemLogUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.SystemLogUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SystemLogPayload>[]
+        }
+        upsert: {
+          args: Prisma.SystemLogUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SystemLogPayload>
+        }
+        aggregate: {
+          args: Prisma.SystemLogAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSystemLog>
+        }
+        groupBy: {
+          args: Prisma.SystemLogGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SystemLogGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SystemLogCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SystemLogCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1336,12 +1636,75 @@ export const StockMovementScalarFieldEnum = {
 export type StockMovementScalarFieldEnum = (typeof StockMovementScalarFieldEnum)[keyof typeof StockMovementScalarFieldEnum]
 
 
+export const SupportTicketScalarFieldEnum = {
+  id: 'id',
+  restaurantId: 'restaurantId',
+  userId: 'userId',
+  subject: 'subject',
+  description: 'description',
+  status: 'status',
+  priority: 'priority',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  resolvedAt: 'resolvedAt'
+} as const
+
+export type SupportTicketScalarFieldEnum = (typeof SupportTicketScalarFieldEnum)[keyof typeof SupportTicketScalarFieldEnum]
+
+
+export const TicketMessageScalarFieldEnum = {
+  id: 'id',
+  ticketId: 'ticketId',
+  userId: 'userId',
+  message: 'message',
+  isAdmin: 'isAdmin',
+  createdAt: 'createdAt'
+} as const
+
+export type TicketMessageScalarFieldEnum = (typeof TicketMessageScalarFieldEnum)[keyof typeof TicketMessageScalarFieldEnum]
+
+
+export const DailyStatsScalarFieldEnum = {
+  id: 'id',
+  date: 'date',
+  restaurantId: 'restaurantId',
+  ordersCount: 'ordersCount',
+  revenue: 'revenue',
+  avgOrderValue: 'avgOrderValue',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DailyStatsScalarFieldEnum = (typeof DailyStatsScalarFieldEnum)[keyof typeof DailyStatsScalarFieldEnum]
+
+
+export const SystemLogScalarFieldEnum = {
+  id: 'id',
+  level: 'level',
+  action: 'action',
+  message: 'message',
+  userId: 'userId',
+  metadata: 'metadata',
+  createdAt: 'createdAt'
+} as const
+
+export type SystemLogScalarFieldEnum = (typeof SystemLogScalarFieldEnum)[keyof typeof SystemLogScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
 } as const
 
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
+
+
+export const NullableJsonNullValueInput = {
+  DbNull: DbNull,
+  JsonNull: JsonNull
+} as const
+
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
 
 
 export const QueryMode = {
@@ -1358,6 +1721,15 @@ export const NullsOrder = {
 } as const
 
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull
+} as const
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 
 
 
@@ -1500,6 +1872,62 @@ export type ListEnumStockMovementTypeFieldRefInput<$PrismaModel> = FieldRefInput
 
 
 /**
+ * Reference to a field of type 'TicketStatus'
+ */
+export type EnumTicketStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TicketStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'TicketStatus[]'
+ */
+export type ListEnumTicketStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TicketStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'TicketPriority'
+ */
+export type EnumTicketPriorityFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TicketPriority'>
+    
+
+
+/**
+ * Reference to a field of type 'TicketPriority[]'
+ */
+export type ListEnumTicketPriorityFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TicketPriority[]'>
+    
+
+
+/**
+ * Reference to a field of type 'LogLevel'
+ */
+export type EnumLogLevelFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LogLevel'>
+    
+
+
+/**
+ * Reference to a field of type 'LogLevel[]'
+ */
+export type ListEnumLogLevelFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LogLevel[]'>
+    
+
+
+/**
+ * Reference to a field of type 'Json'
+ */
+export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
+    
+
+
+/**
+ * Reference to a field of type 'QueryMode'
+ */
+export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
+    
+
+
+/**
  * Reference to a field of type 'Float'
  */
 export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
@@ -1617,6 +2045,10 @@ export type GlobalOmitConfig = {
   orderItem?: Prisma.OrderItemOmit
   payment?: Prisma.PaymentOmit
   stockMovement?: Prisma.StockMovementOmit
+  supportTicket?: Prisma.SupportTicketOmit
+  ticketMessage?: Prisma.TicketMessageOmit
+  dailyStats?: Prisma.DailyStatsOmit
+  systemLog?: Prisma.SystemLogOmit
 }
 
 /* Types for Logging */

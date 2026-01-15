@@ -60,6 +60,33 @@ enum StockMovementType {
   @@map("stock_movement_type")
 }
 
+enum TicketStatus {
+  open
+  in_progress
+  resolved
+  closed
+
+  @@map("ticket_status")
+}
+
+enum TicketPriority {
+  low
+  medium
+  high
+  urgent
+
+  @@map("ticket_priority")
+}
+
+enum LogLevel {
+  info
+  warning
+  error
+  critical
+
+  @@map("log_level")
+}
+
 // ============================================================
 // MODELS
 // ============================================================
@@ -85,6 +112,8 @@ model Restaurant {
   orders         Order[]
   payments       Payment[]
   stockMovements StockMovement[]
+  dailyStats     DailyStats[]
+  supportTickets SupportTicket[]
 
   @@map("restaurants")
 }
@@ -263,4 +292,83 @@ model StockMovement {
   @@index([restaurantId, productId])
   @@index([restaurantId, createdAt(sort: Desc)])
   @@map("stock_movements")
+}
+
+
+// Table Support Tickets
+model SupportTicket {
+  id           String         @id @default(uuid()) @db.Uuid
+  restaurantId String         @map("restaurant_id") @db.Uuid
+  userId       String         @map("user_id") @db.Uuid
+  
+  // Contenu
+  subject      String
+  description  String
+  status       TicketStatus   @default(open)
+  priority     TicketPriority @default(medium)
+  
+  // Méta
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime       @updatedAt @map("updated_at")
+  resolvedAt   DateTime?      @map("resolved_at")
+  
+  // Relations
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  messages   TicketMessage[]
+
+  @@index([restaurantId, status])
+  @@index([status, priority])
+  @@map("support_tickets")
+}
+
+// Messages du ticket
+model TicketMessage {
+  id       String   @id @default(uuid()) @db.Uuid
+  ticketId String   @map("ticket_id") @db.Uuid
+  userId   String   @map("user_id") @db.Uuid
+  message  String
+  isAdmin  Boolean  @default(false) @map("is_admin")
+  
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  // Relations
+  ticket SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
+  @@map("ticket_messages")
+}
+
+// Table optionnelle pour cache des stats (performance)
+model DailyStats {
+  id           String   @id @default(uuid()) @db.Uuid
+  date         DateTime @db.Date
+  restaurantId String?  @map("restaurant_id") @db.Uuid
+  ordersCount  Int      @default(0) @map("orders_count")
+  revenue      Int      @default(0)
+  avgOrderValue Int     @default(0) @map("avg_order_value")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  restaurant Restaurant? @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@unique([date, restaurantId])
+  @@index([date])
+  @@index([restaurantId, date])
+  @@map("daily_stats")
+}
+
+// Table Logs Système
+model SystemLog {
+  id        String   @id @default(uuid()) @db.Uuid
+  level     LogLevel
+  action    String   // Ex: "restaurant_created", "order_failed"
+  message   String
+  userId    String?  @map("user_id") @db.Uuid
+  metadata  Json?    // Données additionnelles
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([level, createdAt(sort: Desc)])
+  @@index([action])
+  @@map("system_logs")
 }

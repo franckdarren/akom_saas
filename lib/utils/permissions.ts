@@ -4,7 +4,7 @@ import { PERMISSIONS, type SystemRole, type Permission } from '@/types/auth'
  * Liste des emails SuperAdmin (TOI)
  ************************************************************/
 export const SUPERADMIN_EMAILS = [
-    'kikondanze@gmail.com',
+    'franck@superadmin.com',
 ]
 
 /************************************************************

@@ -67,3 +67,23 @@ export type Payment = Prisma.PaymentModel
  * 
  */
 export type StockMovement = Prisma.StockMovementModel
+/**
+ * Model SupportTicket
+ * 
+ */
+export type SupportTicket = Prisma.SupportTicketModel
+/**
+ * Model TicketMessage
+ * 
+ */
+export type TicketMessage = Prisma.TicketMessageModel
+/**
+ * Model DailyStats
+ * 
+ */
+export type DailyStats = Prisma.DailyStatsModel
+/**
+ * Model SystemLog
+ * 
+ */
+export type SystemLog = Prisma.SystemLogModel

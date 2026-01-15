@@ -60,7 +60,11 @@ export const ModelName = {
   Order: 'Order',
   OrderItem: 'OrderItem',
   Payment: 'Payment',
-  StockMovement: 'StockMovement'
+  StockMovement: 'StockMovement',
+  SupportTicket: 'SupportTicket',
+  TicketMessage: 'TicketMessage',
+  DailyStats: 'DailyStats',
+  SystemLog: 'SystemLog'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -223,12 +227,75 @@ export const StockMovementScalarFieldEnum = {
 export type StockMovementScalarFieldEnum = (typeof StockMovementScalarFieldEnum)[keyof typeof StockMovementScalarFieldEnum]
 
 
+export const SupportTicketScalarFieldEnum = {
+  id: 'id',
+  restaurantId: 'restaurantId',
+  userId: 'userId',
+  subject: 'subject',
+  description: 'description',
+  status: 'status',
+  priority: 'priority',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  resolvedAt: 'resolvedAt'
+} as const
+
+export type SupportTicketScalarFieldEnum = (typeof SupportTicketScalarFieldEnum)[keyof typeof SupportTicketScalarFieldEnum]
+
+
+export const TicketMessageScalarFieldEnum = {
+  id: 'id',
+  ticketId: 'ticketId',
+  userId: 'userId',
+  message: 'message',
+  isAdmin: 'isAdmin',
+  createdAt: 'createdAt'
+} as const
+
+export type TicketMessageScalarFieldEnum = (typeof TicketMessageScalarFieldEnum)[keyof typeof TicketMessageScalarFieldEnum]
+
+
+export const DailyStatsScalarFieldEnum = {
+  id: 'id',
+  date: 'date',
+  restaurantId: 'restaurantId',
+  ordersCount: 'ordersCount',
+  revenue: 'revenue',
+  avgOrderValue: 'avgOrderValue',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DailyStatsScalarFieldEnum = (typeof DailyStatsScalarFieldEnum)[keyof typeof DailyStatsScalarFieldEnum]
+
+
+export const SystemLogScalarFieldEnum = {
+  id: 'id',
+  level: 'level',
+  action: 'action',
+  message: 'message',
+  userId: 'userId',
+  metadata: 'metadata',
+  createdAt: 'createdAt'
+} as const
+
+export type SystemLogScalarFieldEnum = (typeof SystemLogScalarFieldEnum)[keyof typeof SystemLogScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
 } as const
 
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
+
+
+export const NullableJsonNullValueInput = {
+  DbNull: 'DbNull',
+  JsonNull: 'JsonNull'
+} as const
+
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
 
 
 export const QueryMode = {
@@ -245,4 +312,13 @@ export const NullsOrder = {
 } as const
 
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+export const JsonNullValueFilter = {
+  DbNull: 'DbNull',
+  JsonNull: 'JsonNull',
+  AnyNull: 'AnyNull'
+} as const
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 
