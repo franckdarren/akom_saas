@@ -1,134 +1,236 @@
-// app/(dashboard)/superadmin/page.tsx
 import {
-    Breadcrumb,
-    BreadcrumbList,
-    BreadcrumbItem,
-    BreadcrumbPage,
-} from "@/components/ui/breadcrumb"
-import { Separator } from "@/components/ui/separator"
-import { SidebarTrigger } from "@/components/ui/sidebar"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import prisma from "@/lib/prisma"
-import { formatPrice } from "@/lib/utils/format"
-import { Badge } from "@/components/ui/badge"
+    getPlatformStats,
+    getActivityStats,
+    getTopRestaurants,
+} from '@/lib/actions/superadmin'
+import { formatPrice, formatNumber } from '@/lib/utils/format'
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card'
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table'
+import { Badge } from '@/components/ui/badge'
+import {
+    Building2,
+    Users,
+    ShoppingCart,
+    TrendingUp,
+    Calendar,
+} from 'lucide-react'
+import Link from 'next/link'
 
-export default async function SuperAdminPage() {
-    // Statistiques globales de la plateforme
-    const [totalRestaurants, totalOrders, totalRevenue, restaurantUsers] =
-        await Promise.all([
-            prisma.restaurant.count(),
-            prisma.order.count(),
-            prisma.order.aggregate({
-                _sum: {
-                    totalAmount: true,
-                },
-                where: {
-                    status: "delivered",
-                },
-            }),
-            prisma.restaurantUser.findMany({
-                select: {
-                    userId: true,
-                },
-                distinct: ["userId"],
-            }),
-        ])
-
-    const activeUsers = restaurantUsers.length
+export default async function SuperAdminDashboard() {
+    const [stats, activity, topRestaurants] = await Promise.all([
+        getPlatformStats(),
+        getActivityStats(),
+        getTopRestaurants(),
+    ])
 
     return (
-        <>
-            {/* Header avec breadcrumb */}
-            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-                <SidebarTrigger className="-ml-1" />
-                <Separator orientation="vertical" className="mr-2 h-4" />
-                <Breadcrumb>
-                    <BreadcrumbList>
-                        <BreadcrumbItem>
-                            <BreadcrumbPage className="flex items-center gap-2">
-                                Vue d'ensemble
-                                <Badge variant="destructive">Super Admin</Badge>
-                            </BreadcrumbPage>
-                        </BreadcrumbItem>
-                    </BreadcrumbList>
-                </Breadcrumb>
-            </header>
+        <div className="space-y-8">
+            {/* Header */}
+            <div>
+                <h1 className="text-3xl font-bold">SuperAdmin Dashboard</h1>
+                <p className="text-zinc-600 dark:text-zinc-400">
+                    Vue d'ensemble de la plateforme Akôm
+                </p>
+            </div>
 
-            {/* Contenu */}
-            <div className="flex flex-1 flex-col gap-4 p-4">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Statistiques de la plateforme</h1>
-                    <p className="text-muted-foreground mt-2">
-                        Vue d'ensemble de tous les restaurants Akôm
-                    </p>
-                </div>
-
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                    <Card>
-                        <CardHeader className="pb-3">
-                            <CardDescription>Restaurants</CardDescription>
-                            <CardTitle className="text-4xl">{totalRestaurants}</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-xs text-muted-foreground">
-                                Total de restaurants actifs
-                            </p>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader className="pb-3">
-                            <CardDescription>Commandes totales</CardDescription>
-                            <CardTitle className="text-4xl">{totalOrders}</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-xs text-muted-foreground">
-                                Toutes les commandes de la plateforme
-                            </p>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader className="pb-3">
-                            <CardDescription>Chiffre d'affaires</CardDescription>
-                            <CardTitle className="text-4xl">
-                                {formatPrice(totalRevenue._sum.totalAmount || 0)}
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-xs text-muted-foreground">
-                                Commandes livrées uniquement
-                            </p>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader className="pb-3">
-                            <CardDescription>Utilisateurs actifs</CardDescription>
-                            <CardTitle className="text-4xl">{activeUsers}</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-xs text-muted-foreground">
-                                Utilisateurs avec au moins un restaurant
-                            </p>
-                        </CardContent>
-                    </Card>
-                </div>
-
+            {/* Stats Cards */}
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {/* Total Restaurants */}
                 <Card>
-                    <CardHeader>
-                        <CardTitle>Activité récente</CardTitle>
-                        <CardDescription>
-                            Derniers restaurants et commandes de la plateforme
-                        </CardDescription>
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                        <CardTitle className="text-sm font-medium">
+                            Restaurants
+                        </CardTitle>
+                        <Building2 className="h-4 w-4 text-zinc-600 dark:text-zinc-400" />
                     </CardHeader>
                     <CardContent>
-                        <div className="min-h-[300px] flex items-center justify-center text-muted-foreground">
-                            Liste détaillée à venir...
+                        <div className="text-2xl font-bold">
+                            {formatNumber(stats.totalRestaurants)}
                         </div>
+                        <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                            {stats.activeRestaurants} actifs
+                        </p>
+                    </CardContent>
+                </Card>
+
+                {/* Total Users */}
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                        <CardTitle className="text-sm font-medium">
+                            Utilisateurs
+                        </CardTitle>
+                        <Users className="h-4 w-4 text-zinc-600 dark:text-zinc-400" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">
+                            {formatNumber(stats.totalUsers)}
+                        </div>
+                        <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                            Total utilisateurs
+                        </p>
+                    </CardContent>
+                </Card>
+
+                {/* Total Orders */}
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                        <CardTitle className="text-sm font-medium">
+                            Commandes
+                        </CardTitle>
+                        <ShoppingCart className="h-4 w-4 text-zinc-600 dark:text-zinc-400" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">
+                            {formatNumber(stats.totalOrders)}
+                        </div>
+                        <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                            {stats.ordersToday} aujourd'hui
+                        </p>
+                    </CardContent>
+                </Card>
+
+                {/* Total Revenue */}
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                        <CardTitle className="text-sm font-medium">
+                            Revenu Total
+                        </CardTitle>
+                        <TrendingUp className="h-4 w-4 text-zinc-600 dark:text-zinc-400" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">
+                            {formatPrice(stats.totalRevenue)}
+                        </div>
+                        <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                            Tous restaurants confondus
+                        </p>
+                    </CardContent>
+                </Card>
+
+                {/* Activity Today */}
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                        <CardTitle className="text-sm font-medium">
+                            Aujourd'hui
+                        </CardTitle>
+                        <Calendar className="h-4 w-4 text-zinc-600 dark:text-zinc-400" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">
+                            {formatNumber(stats.ordersToday)}
+                        </div>
+                        <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                            Nouvelles commandes
+                        </p>
                     </CardContent>
                 </Card>
             </div>
-        </>
+
+            {/* Activity Chart (simple version) */}
+            <Card>
+                <CardHeader>
+                    <CardTitle>Activité des 7 derniers jours</CardTitle>
+                    <CardDescription>
+                        Commandes et revenus par jour
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="space-y-2">
+                        {activity.map((day) => (
+                            <div
+                                key={day.date}
+                                className="flex items-center justify-between py-2 border-b last:border-0"
+                            >
+                                <span className="text-sm text-zinc-600 dark:text-zinc-400">
+                                    {new Date(day.date).toLocaleDateString('fr-FR', {
+                                        weekday: 'short',
+                                        day: 'numeric',
+                                        month: 'short',
+                                    })}
+                                </span>
+                                <div className="flex items-center gap-4">
+                                    <span className="text-sm font-medium">
+                                        {formatNumber(day.orders)} commandes
+                                    </span>
+                                    <span className="text-sm font-bold text-green-600">
+                                        {formatPrice(day.revenue)}
+                                    </span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </CardContent>
+            </Card>
+
+            {/* Top Restaurants */}
+            <Card>
+                <CardHeader>
+                    <CardTitle>Top 5 Restaurants</CardTitle>
+                    <CardDescription>
+                        Par nombre de commandes
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Restaurant</TableHead>
+                                <TableHead>Slug</TableHead>
+                                <TableHead>Statut</TableHead>
+                                <TableHead className="text-right">
+                                    Commandes
+                                </TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {topRestaurants.map((restaurant) => (
+                                <TableRow key={restaurant.id}>
+                                    <TableCell className="font-medium">
+                                        <Link
+                                            href={`/superadmin/restaurants/${restaurant.id}`}
+                                            className="hover:underline"
+                                        >
+                                            {restaurant.name}
+                                        </Link>
+                                    </TableCell>
+                                    <TableCell className="text-zinc-600 dark:text-zinc-400">
+                                        {restaurant.slug}
+                                    </TableCell>
+                                    <TableCell>
+                                        <Badge
+                                            variant={
+                                                restaurant.isActive
+                                                    ? 'default'
+                                                    : 'outline'
+                                            }
+                                        >
+                                            {restaurant.isActive
+                                                ? 'Actif'
+                                                : 'Inactif'}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell className="text-right font-medium">
+                                        {formatNumber(restaurant._count.orders)}
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
+        </div>
     )
 }

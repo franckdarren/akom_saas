@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
+import { isSuperAdminEmail } from '@/lib/utils/permissions'
 import {
     loginSchema,
     registerSchema,
@@ -21,6 +22,33 @@ type ActionResult = {
     success: boolean
     message: string
     error?: string
+}
+
+// ============================================================
+// HELPER : Déterminer la redirection après auth
+// ============================================================
+
+async function getRedirectUrl(user: { id: string; email: string }): Promise<string> {
+    // 1. Vérifier si SuperAdmin
+    const isSuperAdmin = isSuperAdminEmail(user.email)
+    
+    if (isSuperAdmin) {
+        // SuperAdmin → /superadmin directement
+        return '/superadmin'
+    }
+
+    // 2. Vérifier si l'utilisateur a un restaurant
+    const restaurantUser = await prisma.restaurantUser.findFirst({
+        where: { userId: user.id },
+    })
+
+    // Pas de restaurant → Onboarding
+    if (!restaurantUser) {
+        return '/onboarding'
+    }
+
+    // A un restaurant → Dashboard normal
+    return '/dashboard'
 }
 
 // ============================================================
@@ -64,9 +92,14 @@ export async function signUp(data: RegisterInput): Promise<ActionResult> {
         }
     }
 
-    // Rediriger vers le dashboard
+    // ✅ FIX : Déterminer la redirection selon le type d'utilisateur
+    const redirectUrl = await getRedirectUrl({
+        id: authData.user.id,
+        email: authData.user.email || '',
+    })
+
     revalidatePath('/', 'layout')
-    redirect('/dashboard')
+    redirect(redirectUrl)
 }
 
 
@@ -88,7 +121,7 @@ export async function signIn(data: LoginInput): Promise<ActionResult> {
     const supabase = await createClient()
 
     // Connexion
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data: authData, error } = await supabase.auth.signInWithPassword({
         email: parsed.data.email,
         password: parsed.data.password,
     })
@@ -101,9 +134,21 @@ export async function signIn(data: LoginInput): Promise<ActionResult> {
         }
     }
 
-    // Rediriger vers le dashboard
+    if (!authData.user) {
+        return {
+            success: false,
+            message: 'Erreur lors de la connexion',
+        }
+    }
+
+    // ✅ FIX : Déterminer la redirection selon le type d'utilisateur
+    const redirectUrl = await getRedirectUrl({
+        id: authData.user.id,
+        email: authData.user.email || '',
+    })
+
     revalidatePath('/', 'layout')
-    redirect('/dashboard')
+    redirect(redirectUrl)
 }
 
 
@@ -201,7 +246,6 @@ export async function resetPassword(
         }
     }
 
-    // NE PAS rediriger ici - on laisse le composant gérer ça
     return {
         success: true,
         message: 'Mot de passe mis à jour avec succès',
@@ -281,7 +325,7 @@ export async function updatePassword(
 
 
 // ============================================================
-// RÉCUPÉRER L'UTILISATEUR CONNECTÉ (avec vérification SuperAdmin)
+// RÉCUPÉRER L'UTILISATEUR CONNECTÉ
 // ============================================================
 
 export async function getUser() {
@@ -333,8 +377,5 @@ export async function isSuperAdmin(): Promise<boolean> {
 
     if (!user) return false
 
-    // Liste des emails SuperAdmin (à mettre dans .env en production)
-    const superAdmins = process.env.SUPER_ADMIN_EMAILS?.split(',') || []
-
-    return superAdmins.includes(user.email || '')
+    return isSuperAdminEmail(user.email || '')
 }
