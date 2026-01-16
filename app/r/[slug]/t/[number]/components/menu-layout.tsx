@@ -188,7 +188,7 @@ export function MenuLayout({
                                 <h2 className="text-xl font-bold mb-3 px-2">
                                     {category.name}
                                 </h2>
-                                <div className="space-y-3">
+                                <div className="space-y-2">
                                     {category.products.map((product) => (
                                         <ProductCard key={product.id} product={product} />
                                     ))}

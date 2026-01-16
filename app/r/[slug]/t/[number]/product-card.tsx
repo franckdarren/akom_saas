@@ -53,7 +53,7 @@ export function ProductCard({ product }: { product: Product }) {
             <CardContent className="px-2">
                 <div className="flex gap-2 items-center">
                     {/* Image */}
-                    <div className="relative h-24 w-24 shrink-0 bg-muted overflow-hidden">
+                    <div className="relative h-24 w-24 shrink-0 bg-muted rounded-lg overflow-hidden">
                         {product.imageUrl ? (
                             <Image
                                 src={product.imageUrl}
@@ -64,7 +64,7 @@ export function ProductCard({ product }: { product: Product }) {
                             />
                         ) : (
                             <div className="h-full w-full flex items-center justify-center">
-                                <Package className="h-8 w-8 text-muted-foreground" />
+                                <Package className="h-10 w-10 text-muted-foreground" />
                             </div>
                         )}
 

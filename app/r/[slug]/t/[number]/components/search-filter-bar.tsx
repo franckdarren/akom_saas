@@ -27,7 +27,7 @@ export function SearchFilterBar({
     onSearchChange,
 }: SearchFilterBarProps) {
     return (
-        <div className="bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 sticky top-0 z-40 shadow-sm mt-5">
+        <div className="bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 sticky top-0 z-40 shadow-sm mt-5 max-w-3xl mx-auto lg:rounded-xl">
             <div className="max-w-3xl mx-auto px-4 py-3 space-y-3">
                 {/* Barre de recherche */}
                 <div className="relative">
