@@ -7,6 +7,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { generateUniqueSlug } from '@/lib/actions/slug'
 import { restaurantSettingsSchema, type RestaurantSettingsInput } from '@/lib/validations/restaurant'
+import { logRestaurantCreated } from '@/lib/actions/logs'
 
 
 interface CreateRestaurantData {
@@ -54,6 +55,9 @@ export async function createRestaurant(data: CreateRestaurantData) {
                 role: 'admin',
             },
         })
+
+        // Logger la création
+        await logRestaurantCreated(restaurant.id, restaurant.name)
     })
 
     revalidatePath('/dashboard')
@@ -432,8 +436,8 @@ export async function getRestaurantDetails(restaurantId: string) {
     }
 
     if (!restaurantId) {
-    throw new Error("Restaurant non sélectionné")
-}
+        throw new Error("Restaurant non sélectionné")
+    }
 
     // Vérifier l'accès
     const userRole = await prisma.restaurantUser.findUnique({

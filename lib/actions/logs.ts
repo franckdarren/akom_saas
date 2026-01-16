@@ -128,12 +128,21 @@ export async function logRestaurantDeactivated(restaurantId: string, name: strin
     )
 }
 
-export async function logOrderFailed(orderId: string, error: string) {
+export async function logRestaurantActivated(restaurantId: string, name: string) {
+    await createLog(
+        'warning',
+        'restaurant_activated',
+        `Restaurant activé : ${name}`,
+        { restaurantId, name }
+    )
+}
+
+export async function logOrderFailed(error: string) {
     await createLog(
         'error',
         'order_failed',
         `Erreur lors de la création de commande`,
-        { orderId, error }
+        { error }
     )
 }
 

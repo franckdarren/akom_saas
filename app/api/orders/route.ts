@@ -1,5 +1,6 @@
 // app/api/orders/route.ts
 import { NextRequest, NextResponse } from 'next/server'
+import { logOrderFailed } from '@/lib/actions/logs'
 import prisma from '@/lib/prisma'
 
 interface OrderItem {
@@ -188,6 +189,8 @@ export async function POST(request: NextRequest) {
         })
     } catch (error) {
         console.error('Erreur création commande:', error)
+        // Échec commande
+        await logOrderFailed(error instanceof Error ? error.message : 'Erreur inconnue')
         return NextResponse.json(
             { error: 'Erreur lors de la création de la commande' },
             { status: 500 }

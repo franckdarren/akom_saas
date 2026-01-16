@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { logRestaurantDeactivated, logRestaurantActivated } from '@/lib/actions/logs'
 import prisma from '@/lib/prisma'
 import { isSuperAdminEmail } from '@/lib/utils/permissions'
 
@@ -183,10 +184,20 @@ export async function toggleRestaurantStatus(restaurantId: string) {
         return { error: 'Restaurant introuvable' }
     }
 
-    await prisma.restaurant.update({
+    // 1. On met à jour le restaurant et on récupère la nouvelle valeur
+    const updatedRestaurant = await prisma.restaurant.update({
         where: { id: restaurantId },
         data: { isActive: !restaurant.isActive },
-    })
+    });
+    const { name } = await prisma.restaurant.findUniqueOrThrow({
+        where: { id: restaurantId },
+        select: { name: true },
+    });
+    if (!updatedRestaurant.isActive) {
+        await logRestaurantDeactivated(restaurantId, name);
+    } else {
+        await logRestaurantActivated(restaurantId, name);
+    }
 
     return { success: true }
 }
@@ -223,7 +234,7 @@ export async function searchUser(query: string) {
 
     // Si la query ressemble à un UUID, chercher par userId exact
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(query)
-    
+
     const users = await prisma.restaurantUser.findMany({
         where: {
             OR: [
@@ -232,8 +243,8 @@ export async function searchUser(query: string) {
                 // Recherche par nom de restaurant
                 {
                     restaurant: {
-                        name: { 
-                            contains: query, 
+                        name: {
+                            contains: query,
                             mode: 'insensitive' as const
                         },
                     },
@@ -241,8 +252,8 @@ export async function searchUser(query: string) {
                 // Recherche par slug de restaurant
                 {
                     restaurant: {
-                        slug: { 
-                            contains: query, 
+                        slug: {
+                            contains: query,
                             mode: 'insensitive' as const
                         },
                     },
