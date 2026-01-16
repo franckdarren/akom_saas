@@ -1,26 +1,29 @@
 // app/r/[slug]/t/[number]/components/menu-layout.tsx
 'use client'
 
-import { useEffect, useState } from 'react'
-import { Loader2, LocationEdit, MapPin, Phone, PhoneCall } from 'lucide-react'
+import { useEffect, useState, useMemo } from 'react'
+import { Loader2, MapPin, Phone } from 'lucide-react'
 import { useCart } from '../cart-context'
 import { CartDialog } from '../cart-dialog'
 import { RestaurantHeader } from './restaurant-header'
 import { RestaurantInfo } from './restaurant-info'
-import { CategorySection } from './category-section'
+import { SearchFilterBar } from './search-filter-bar'
+import { ProductCard } from '../product-card'
 import { FixedBottomBar } from './fixed-bottom-bar'
+
+interface Product {
+    id: string
+    name: string
+    description: string | null
+    price: number
+    imageUrl: string | null
+    stock: { quantity: number } | null
+}
 
 interface Category {
     id: string
     name: string
-    products: Array<{
-        id: string
-        name: string
-        description: string | null
-        price: number
-        imageUrl: string | null
-        stock: { quantity: number } | null
-    }>
+    products: Product[]
 }
 
 interface MenuData {
@@ -31,7 +34,6 @@ interface MenuData {
         phone: string | null
         coverImageUrl: string | null
         logoUrl: string | null
-
     }
     categories: Category[]
 }
@@ -54,6 +56,10 @@ export function MenuLayout({
     const [error, setError] = useState<string | null>(null)
     const [showCartDialog, setShowCartDialog] = useState(false)
 
+    // États de recherche et filtres
+    const [searchQuery, setSearchQuery] = useState('')
+    const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+
     const { totalItems, totalAmount } = useCart()
 
     // Charger le menu
@@ -75,6 +81,36 @@ export function MenuLayout({
 
         loadMenu()
     }, [restaurantSlug])
+
+    // Filtrer les catégories et produits
+    const filteredCategories = useMemo(() => {
+        if (!menuData) return []
+
+        let categories = menuData.categories
+
+        // Filtrer par catégorie sélectionnée
+        if (selectedCategory) {
+            categories = categories.filter((cat) => cat.id === selectedCategory)
+        }
+
+        // Filtrer par recherche
+        if (searchQuery.trim()) {
+            const query = searchQuery.toLowerCase()
+            categories = categories
+                .map((category) => ({
+                    ...category,
+                    products: category.products.filter(
+                        (product) =>
+                            product.name.toLowerCase().includes(query) ||
+                            product.description?.toLowerCase().includes(query) ||
+                            category.name.toLowerCase().includes(query)
+                    ),
+                }))
+                .filter((category) => category.products.length > 0)
+        }
+
+        return categories
+    }, [menuData, selectedCategory, searchQuery])
 
     // États de chargement et d'erreur
     if (isLoading) {
@@ -104,7 +140,7 @@ export function MenuLayout({
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-zinc-900">
+        <div className="min-h-screen bg-gray-50 dark:bg-zinc-900 pb-3">
             {/* Header avec image */}
             <RestaurantHeader
                 restaurantName={menuData.restaurant.name}
@@ -113,31 +149,51 @@ export function MenuLayout({
                 onCartClick={() => setShowCartDialog(true)}
             />
 
+            {/* Card infos restaurant */}
+            <RestaurantInfo
+                restaurantName={menuData.restaurant.name}
+                address={menuData.restaurant.address}
+                phone={menuData.restaurant.phone}
+                tableNumber={tableNumber}
+            />
+
+            {/* Barre de recherche et filtres */}
+            <SearchFilterBar
+                categories={menuData.categories.map((c) => ({
+                    id: c.id,
+                    name: c.name,
+                }))}
+                selectedCategory={selectedCategory}
+                onCategorySelect={setSelectedCategory}
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
+            />
+
             {/* Contenu principal */}
             <div className="max-w-3xl mx-auto">
-                {/* Card infos restaurant */}
-                <RestaurantInfo
-                    restaurantName={menuData.restaurant.name}
-                    address={menuData.restaurant.address}
-                    phone={menuData.restaurant.phone}
-                    tableNumber={tableNumber}
-                />
 
                 {/* Menu par catégories */}
-                <div className="mt-6 space-y-8">
-                    {menuData.categories.length === 0 ? (
-                        <div className="text-center py-12 px-4">
+                <div className="mt-6 px-2 space-y-6">
+                    {filteredCategories.length === 0 ? (
+                        <div className="text-center py-12">
                             <p className="text-muted-foreground">
-                                Le menu est en cours de préparation...
+                                {searchQuery
+                                    ? 'Aucun produit trouvé pour cette recherche'
+                                    : 'Aucun produit disponible'}
                             </p>
                         </div>
                     ) : (
-                        menuData.categories.map((category) => (
-                            <CategorySection
-                                key={category.id}
-                                categoryName={category.name}
-                                products={category.products}
-                            />
+                        filteredCategories.map((category) => (
+                            <div key={category.id}>
+                                <h2 className="text-xl font-bold mb-3 px-2">
+                                    {category.name}
+                                </h2>
+                                <div className="space-y-3">
+                                    {category.products.map((product) => (
+                                        <ProductCard key={product.id} product={product} />
+                                    ))}
+                                </div>
+                            </div>
                         ))
                     )}
                 </div>
@@ -158,35 +214,37 @@ export function MenuLayout({
                 tableId={tableId}
             />
 
-            {/* footer */}
-            <footer className=" bg-white mt-10">
-                <div className="w-full max-w-7xl mx-auto py-4 md:py-8">
-                    <div className="">
-                        <span className="flex gap-2 justify-center items-center">
-                            {menuData.restaurant.logoUrl && (
-                                <img
-                                    src={menuData.restaurant.logoUrl}
-                                    className="h-5"
-                                    alt="Logo"
-                                />
-                            )}
-                            <span className="text-heading self-center text-xl font-semibold whitespace-nowrap">{menuData.restaurant.name}</span>
+            {/* Footer */}
+            <footer className="bg-white dark:bg-zinc-800 mt-10 border-t border-zinc-200 dark:border-zinc-700">
+                <div className="w-full max-w-screen-xl mx-auto py-4 md:py-8">
+                    <div className="flex justify-center items-center gap-2 mb-3">
+                        {menuData.restaurant.logoUrl && (
+                            <img
+                                src={menuData.restaurant.logoUrl}
+                                className="h-5"
+                                alt="Logo"
+                            />
+                        )}
+                        <span className="text-xl font-semibold whitespace-nowrap">
+                            {menuData.restaurant.name}
                         </span>
                     </div>
-                    <div className='flex gap-3 justify-center'>
-                        <div className="flex gap-2 justify-center mt-3 items-center">
-                            <span className="block"><Phone className="h-4 w-4" /></span>
-                            <span className='text-xs'>{menuData.restaurant.phone}</span>
-                        </div>
-                        <div className="flex gap-2 justify-center mt-3 items-center">
-                            <span className="block"><MapPin className="h-4 w-4" /></span>
-                            <span className="block text-xs">{menuData.restaurant.address}</span>
-                        </div>
-
+                    <div className="flex gap-3 justify-center">
+                        {menuData.restaurant.phone && (
+                            <div className="flex gap-2 items-center text-xs">
+                                <Phone className="h-4 w-4" />
+                                <span>{menuData.restaurant.phone}</span>
+                            </div>
+                        )}
+                        {menuData.restaurant.address && (
+                            <div className="flex gap-2 items-center text-xs">
+                                <MapPin className="h-4 w-4" />
+                                <span>{menuData.restaurant.address}</span>
+                            </div>
+                        )}
                     </div>
                 </div>
             </footer>
-
         </div>
     )
 }

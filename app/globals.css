@@ -142,3 +142,14 @@
     @apply bg-background text-foreground;
   }
 }
+
+
+/* Masquer la scrollbar pour les filtres horizontaux */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}

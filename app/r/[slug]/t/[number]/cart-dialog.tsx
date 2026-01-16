@@ -14,7 +14,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { useCart } from './cart-context'
 import { formatPrice } from '@/lib/utils/format'
-import { toast } from "sonner"
+import { toast } from 'sonner'
 
 interface CartDialogProps {
     open: boolean
@@ -58,18 +58,20 @@ export function CartDialog({
                 throw new Error(data.error || 'Erreur lors de la commande')
             }
 
-            // Succès ! Vider le panier et afficher confirmation
+            // Vider le panier
             clearCart()
+
+            // Fermer le dialog
             onOpenChange(false)
 
             // Afficher message de succès
-            toast.success(
-                `La commande ${data.order.orderNumber} a bien été enregistrée !`,
-                {
-                    duration: 15000, // 15 secondes
-                }
-            )
+            toast.success(`Commande ${data.order.orderNumber} enregistrée !`, {
+                description: 'Votre commande a été transmise à la cuisine',
+                duration: 5000,
+            })
 
+            // Rediriger vers la page de suivi
+            router.push(`/orders/${data.order.id}`)
         } catch (err: any) {
             setError(err.message || 'Une erreur est survenue')
         } finally {
@@ -113,7 +115,12 @@ export function CartDialog({
                                             variant="outline"
                                             size="icon"
                                             className="h-8 w-8"
-                                            onClick={() => updateQuantity(item.productId, item.quantity - 1)}
+                                            onClick={() =>
+                                                updateQuantity(
+                                                    item.productId,
+                                                    item.quantity - 1
+                                                )
+                                            }
                                             disabled={isSubmitting}
                                         >
                                             <Minus className="h-4 w-4" />
@@ -127,7 +134,12 @@ export function CartDialog({
                                             variant="outline"
                                             size="icon"
                                             className="h-8 w-8"
-                                            onClick={() => updateQuantity(item.productId, item.quantity + 1)}
+                                            onClick={() =>
+                                                updateQuantity(
+                                                    item.productId,
+                                                    item.quantity + 1
+                                                )
+                                            }
                                             disabled={isSubmitting}
                                         >
                                             <Plus className="h-4 w-4" />
