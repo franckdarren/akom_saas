@@ -50,8 +50,8 @@ export function ProductCard({ product }: { product: Product }) {
 
     return (
         <Card className={!isAvailable ? 'opacity-60' : ''}>
-            <CardContent className="px-4">
-                <div className="flex gap-4 items-center">
+            <CardContent className="px-2">
+                <div className="flex gap-2 items-center">
                     {/* Image */}
                     <div className="relative h-24 w-24 shrink-0 bg-muted overflow-hidden">
                         {product.imageUrl ? (

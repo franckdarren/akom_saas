@@ -4,6 +4,8 @@
 import { ShoppingBag } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { motion, AnimatePresence } from 'framer-motion'
+import { formatPrice } from '@/lib/utils/format'
+
 
 interface FixedBottomBarProps {
     itemCount: number
@@ -12,14 +14,6 @@ interface FixedBottomBarProps {
 }
 
 export function FixedBottomBar({ itemCount, totalAmount, onViewCart }: FixedBottomBarProps) {
-    const formatPrice = (price: number) => {
-        return new Intl.NumberFormat('fr-FR', {
-            style: 'currency',
-            currency: 'XAF',
-            minimumFractionDigits: 0,
-        }).format(price)
-    }
-
     return (
         <AnimatePresence>
             {itemCount > 0 && (
