@@ -35,50 +35,59 @@ export async function getStatsByPeriod(
 
     switch (period) {
         case 'day':
-            // 30 derniers jours
             startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
-            groupByFormat = '%Y-%m-%d'
+            groupByFormat = 'YYYY-MM-DD' // Format compatible Postgres TO_CHAR
             break
         case 'week':
-            // 12 dernières semaines
             startDate = new Date(now.getTime() - 12 * 7 * 24 * 60 * 60 * 1000)
-            groupByFormat = '%Y-W%V'
+            groupByFormat = 'YYYY-"W"IW'
             break
         case 'month':
-            // 12 derniers mois
             startDate = new Date(now.getTime() - 12 * 30 * 24 * 60 * 60 * 1000)
-            groupByFormat = '%Y-%m'
+            groupByFormat = 'YYYY-MM'
             break
+        default:
+            startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+            groupByFormat = 'YYYY-MM-DD'
     }
 
-    // Construction sécurisée de la requête
-    const whereClause = restaurantId 
-        ? `AND restaurant_id = $2::uuid`
-        : ''
-
-    const params = restaurantId 
-        ? [groupByFormat, startDate, restaurantId]
-        : [groupByFormat, startDate]
-
-    // Requête SQL pour grouper par période
-    const stats = await prisma.$queryRaw<Array<{
-        period: string
-        orders_count: bigint
-        revenue: bigint
-        avg_order_value: number
-    }>>`
-        SELECT 
-            TO_CHAR(created_at, ${groupByFormat}) as period,
-            COUNT(*)::bigint as orders_count,
-            COALESCE(SUM(total_amount), 0)::bigint as revenue,
-            COALESCE(AVG(total_amount), 0)::float as avg_order_value
-        FROM orders
-        WHERE created_at >= ${startDate}
-            ${restaurantId ? `AND restaurant_id = ${restaurantId}::uuid` : ''}
-            AND status IN ('delivered', 'ready')
-        GROUP BY period
-        ORDER BY period ASC
-    `
+    // Solution : On sépare les deux cas pour que Prisma puisse préparer correctement les requêtes
+    const stats = restaurantId
+        ? await prisma.$queryRaw<Array<{
+            period: string
+            orders_count: bigint
+            revenue: bigint
+            avg_order_value: number
+        }>>`
+            SELECT 
+                TO_CHAR(created_at, ${groupByFormat}) as period,
+                COUNT(*)::bigint as orders_count,
+                COALESCE(SUM(total_amount), 0)::bigint as revenue,
+                COALESCE(AVG(total_amount), 0)::float as avg_order_value
+            FROM orders
+            WHERE created_at >= ${startDate}
+                AND restaurant_id = ${restaurantId}::uuid
+                AND status IN ('delivered', 'ready')
+            GROUP BY period
+            ORDER BY period ASC
+          `
+        : await prisma.$queryRaw<Array<{
+            period: string
+            orders_count: bigint
+            revenue: bigint
+            avg_order_value: number
+        }>>`
+            SELECT 
+                TO_CHAR(created_at, ${groupByFormat}) as period,
+                COUNT(*)::bigint as orders_count,
+                COALESCE(SUM(total_amount), 0)::bigint as revenue,
+                COALESCE(AVG(total_amount), 0)::float as avg_order_value
+            FROM orders
+            WHERE created_at >= ${startDate}
+                AND status IN ('delivered', 'ready')
+            GROUP BY period
+            ORDER BY period ASC
+            `;
 
     return stats.map(s => ({
         period: s.period,
