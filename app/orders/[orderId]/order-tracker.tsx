@@ -271,7 +271,7 @@ export function OrderTracker({
                 </Card>
 
                 {/* Contact restaurant */}
-                {restaurantPhone && (
+                {/* {restaurantPhone && (
                     <Card>
                         <CardHeader>
                             <CardTitle>Besoin d'aide ?</CardTitle>
@@ -285,7 +285,7 @@ export function OrderTracker({
                             </a>
                         </CardContent>
                     </Card>
-                )}
+                )} */}
             </div>
         </div>
     )

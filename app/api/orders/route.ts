@@ -138,6 +138,8 @@ export async function POST(request: NextRequest) {
             orderBy: { createdAt: 'desc' },
             select: { orderNumber: true },
         })
+        console.log(lastOrder);
+
 
         let orderNumber = '#001'
         if (lastOrder?.orderNumber) {
