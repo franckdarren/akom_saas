@@ -173,7 +173,7 @@ export function MenuLayout({
             <div className="max-w-3xl mx-auto">
 
                 {/* Menu par catégories */}
-                <div className="mt-6 px-2 space-y-6">
+                <div className="mt-10 px-2 space-y-10">
                     {filteredCategories.length === 0 ? (
                         <div className="text-center py-12">
                             <p className="text-muted-foreground">
@@ -188,7 +188,7 @@ export function MenuLayout({
                                 <h2 className="text-xl font-bold mb-3 px-2">
                                     {category.name}
                                 </h2>
-                                <div className="space-y-2">
+                                <div className="space-y-3">
                                     {category.products.map((product) => (
                                         <ProductCard key={product.id} product={product} />
                                     ))}
