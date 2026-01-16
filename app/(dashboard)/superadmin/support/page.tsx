@@ -172,7 +172,7 @@ export default async function SupportPage() {
                                             </TableCell>
                                             <TableCell>
                                                 <Link
-                                                    href={`/superadmin/restaurants/${ticket.restaurant.id}`}
+                                                    href={`/superadmin/restaurants/${ticket.restaurantId}`}
                                                     className="hover:underline"
                                                 >
                                                     {ticket.restaurant.name}
