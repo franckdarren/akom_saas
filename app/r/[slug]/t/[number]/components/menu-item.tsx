@@ -67,7 +67,7 @@ export function MenuItem({ product }: MenuItemProps) {
                 }`}
         >
             {/* Image */}
-            <div className="relative w-20 h-20 flex-shrink-0 bg-muted rounded-lg overflow-hidden">
+            <div className="relative w-20 h-20 shrink-0 bg-muted rounded-lg overflow-hidden">
                 {product.imageUrl ? (
                     <Image
                         src={product.imageUrl}

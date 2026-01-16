@@ -160,10 +160,16 @@ export function MenuLayout({
 
             {/* footer */}
             <footer className=" bg-white mt-10">
-                <div className="w-full max-w-screen-xl mx-auto py-4 md:py-8">
+                <div className="w-full max-w-7xl mx-auto py-4 md:py-8">
                     <div className="">
                         <span className="flex gap-2 justify-center items-center">
-                            <img src={menuData.restaurant.logoUrl ? menuData.restaurant.logoUrl : ""} className="h-5" alt="Logo" />
+                            {menuData.restaurant.logoUrl && (
+                                <img
+                                    src={menuData.restaurant.logoUrl}
+                                    className="h-5"
+                                    alt="Logo"
+                                />
+                            )}
                             <span className="text-heading self-center text-xl font-semibold whitespace-nowrap">{menuData.restaurant.name}</span>
                         </span>
                     </div>
