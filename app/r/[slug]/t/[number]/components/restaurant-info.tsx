@@ -18,7 +18,7 @@ export function RestaurantInfo({
     tableNumber,
 }: RestaurantInfoProps) {
     return (
-        <div className="mx-4 -mt-8 relative z-10 shadow-lg bg-white rounded max-w-3xl">
+        <div className="mx-4 -mt-8 relative z-10 shadow-lg bg-white rounded max-w-3xl mx-auto">
             <div className="p-4">
                 <div className="flex justify-between items-start">
                     <h2 className="text-xl font-bold">Menu du jour</h2>

@@ -3,7 +3,6 @@
 
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
-import { createClient } from '@/lib/supabase/client'
 import {
     Clock,
     ChefHat,
@@ -11,6 +10,7 @@ import {
     Package,
     Phone,
     ArrowLeft,
+    RefreshCw,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -46,25 +46,21 @@ const ORDER_STEPS = [
         status: 'pending' as OrderStatus,
         label: 'Commande reçue',
         icon: Clock,
-        color: 'text-blue-500',
     },
     {
         status: 'preparing' as OrderStatus,
         label: 'En préparation',
         icon: ChefHat,
-        color: 'text-orange-500',
     },
     {
         status: 'ready' as OrderStatus,
         label: 'Prête',
         icon: CheckCircle2,
-        color: 'text-green-500',
     },
     {
         status: 'delivered' as OrderStatus,
         label: 'Servie',
         icon: Package,
-        color: 'text-purple-500',
     },
 ]
 
@@ -81,34 +77,96 @@ export function OrderTracker({
     createdAt,
 }: OrderTrackerProps) {
     const [status, setStatus] = useState<OrderStatus>(initialStatus)
+    const [isRefreshing, setIsRefreshing] = useState(false)
+    const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
+    const [errorCount, setErrorCount] = useState(0)
 
-    // Écouter les changements en temps réel
+    // Polling automatique
     useEffect(() => {
-        const supabase = createClient()
 
-        const channel = supabase
-            .channel(`order-${orderId}`)
-            .on(
-                'postgres_changes',
-                {
-                    event: 'UPDATE',
-                    schema: 'public',
-                    table: 'orders',
-                    filter: `id=eq.${orderId}`,
-                },
-                (payload) => {
-                    const newStatus = payload.new.status as OrderStatus
-                    setStatus(newStatus)
+        const fetchStatus = async () => {
+            const fetchStart = Date.now()
+
+            try {
+                setIsRefreshing(true)
+
+                const apiUrl = `/api/orders/${orderId}`
+
+                const response = await fetch(apiUrl, {
+                    cache: 'no-store',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                })
+
+                const fetchDuration = Date.now() - fetchStart
+
+                if (!response.ok) {
+                    const errorText = await response.text()
+                    console.error('❌ [POLLING] Erreur HTTP:', {
+                        status: response.status,
+                        statusText: response.statusText,
+                        body: errorText
+                    })
+                    setErrorCount(prev => prev + 1)
+                    return
                 }
-            )
-            .subscribe()
+
+                const data = await response.json()
+
+                if (data.status !== status) {
+                    setStatus(data.status)
+                    setLastUpdate(new Date())
+                    setErrorCount(0)
+                } else {
+                }
+            } catch (error) {
+                const fetchDuration = Date.now() - fetchStart
+                console.error(`💥 [POLLING] Erreur après ${fetchDuration}ms:`, error)
+                console.error('💥 [POLLING] Type:', error instanceof Error ? error.message : typeof error)
+                setErrorCount(prev => prev + 1)
+            } finally {
+                setIsRefreshing(false)
+            }
+        }
+
+        // Première vérification après 10 secondes
+        const initialTimeout = setTimeout(() => {
+            fetchStatus()
+        }, 10000)
+
+        // Puis toutes les 3 secondes
+        console.log('⏰ [TRACKER] Polling configuré toutes les 12s')
+        const interval = setInterval(() => {
+            fetchStatus()
+        }, 12000)
 
         return () => {
-            supabase.removeChannel(channel)
+            clearTimeout(initialTimeout)
+            clearInterval(interval)
         }
-    }, [orderId])
+    }, [orderId, status, errorCount])
 
-    // Trouver l'index de l'étape actuelle
+    // Refresh manuel
+    const handleRefresh = async () => {
+        setIsRefreshing(true)
+
+        try {
+            const response = await fetch(`/api/orders/${orderId}`)
+
+            if (response.ok) {
+                const data = await response.json()
+                setStatus(data.status)
+                setLastUpdate(new Date())
+                setErrorCount(0)
+            }
+        } catch (error) {
+            console.error('💥 [MANUAL] Erreur:', error)
+        } finally {
+            setIsRefreshing(false)
+        }
+    }
+
     const currentStepIndex = ORDER_STEPS.findIndex((step) => step.status === status)
 
     return (
@@ -124,9 +182,46 @@ export function OrderTracker({
                             </Button>
                         </Link>
 
-                        {restaurantLogo && (
-                            <img src={restaurantLogo} alt={restaurantName} className="h-8" />
-                        )}
+                        <div className="flex items-center gap-3">
+                            {/* Debug info en développement */}
+                            {process.env.NODE_ENV === 'development' && (
+                                <div className="text-xs space-y-1">
+                                    <div className="flex items-center gap-2">
+                                        <div className={`w-2 h-2 rounded-full ${isRefreshing ? 'bg-blue-500 animate-pulse' : 'bg-green-500'
+                                            }`} />
+                                        <span className="text-muted-foreground">
+                                            {isRefreshing ? 'Actualisation...' : 'Actif'}
+                                        </span>
+                                    </div>
+                                    {errorCount > 0 && (
+                                        <div className="text-red-500">
+                                            Erreurs: {errorCount}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Bouton refresh manuel */}
+                            <Button
+                                variant="ghost"
+                                size="icon-sm"
+                                onClick={handleRefresh}
+                                disabled={isRefreshing}
+                            >
+                                <RefreshCw
+                                    className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''
+                                        }`}
+                                />
+                            </Button>
+
+                            {restaurantLogo && (
+                                <img
+                                    src={restaurantLogo}
+                                    alt={restaurantName}
+                                    className="h-8"
+                                />
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -150,8 +245,8 @@ export function OrderTracker({
                                     status === 'delivered'
                                         ? 'success'
                                         : status === 'cancelled'
-                                        ? 'destructive'
-                                        : 'default'
+                                            ? 'destructive'
+                                            : 'default'
                                 }
                                 className="text-sm"
                             >
@@ -179,36 +274,32 @@ export function OrderTracker({
                                         <div key={step.status} className="flex items-start gap-4">
                                             <div className="relative">
                                                 <div
-                                                    className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
-                                                        isCompleted
-                                                            ? 'bg-primary text-white'
-                                                            : 'bg-zinc-200 dark:bg-zinc-700 text-zinc-400'
-                                                    }`}
+                                                    className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-500 ${isCompleted
+                                                        ? 'bg-primary text-white scale-110'
+                                                        : 'bg-zinc-200 dark:bg-zinc-700 text-zinc-400'
+                                                        }`}
                                                 >
                                                     <Icon className="h-5 w-5" />
                                                 </div>
 
-                                                {/* Ligne de connexion */}
                                                 {index < ORDER_STEPS.length - 1 && (
                                                     <div
-                                                        className={`absolute left-5 top-10 w-0.5 h-8 transition-colors ${
-                                                            isCompleted
-                                                                ? 'bg-primary'
-                                                                : 'bg-zinc-200 dark:bg-zinc-700'
-                                                        }`}
+                                                        className={`absolute left-5 top-10 w-0.5 h-8 transition-all duration-500 ${isCompleted
+                                                            ? 'bg-primary'
+                                                            : 'bg-zinc-200 dark:bg-zinc-700'
+                                                            }`}
                                                     />
                                                 )}
                                             </div>
 
                                             <div className="flex-1 pt-2">
                                                 <p
-                                                    className={`font-medium ${
-                                                        isCurrent
-                                                            ? 'text-primary'
-                                                            : isCompleted
+                                                    className={`font-medium transition-colors duration-300 ${isCurrent
+                                                        ? 'text-primary'
+                                                        : isCompleted
                                                             ? 'text-zinc-900 dark:text-zinc-100'
                                                             : 'text-zinc-400'
-                                                    }`}
+                                                        }`}
                                                 >
                                                     {step.label}
                                                 </p>
@@ -229,7 +320,6 @@ export function OrderTracker({
                     <CardContent className="space-y-3">
                         {items.map((item, index) => (
                             <div key={index} className="flex items-center gap-3">
-                                {/* Image */}
                                 <div className="relative w-16 h-16 rounded-lg bg-zinc-100 dark:bg-zinc-800 overflow-hidden shrink-0">
                                     {item.imageUrl ? (
                                         <Image
@@ -245,7 +335,6 @@ export function OrderTracker({
                                     )}
                                 </div>
 
-                                {/* Info */}
                                 <div className="flex-1 min-w-0">
                                     <p className="font-medium truncate">{item.name}</p>
                                     <p className="text-sm text-muted-foreground">
@@ -253,14 +342,12 @@ export function OrderTracker({
                                     </p>
                                 </div>
 
-                                {/* Prix total */}
                                 <p className="font-semibold shrink-0">
                                     {formatPrice(item.price * item.quantity)}
                                 </p>
                             </div>
                         ))}
 
-                        {/* Total */}
                         <div className="border-t pt-3 mt-3 flex justify-between items-center">
                             <span className="font-semibold text-lg">Total</span>
                             <span className="font-bold text-xl text-primary">
@@ -270,8 +357,7 @@ export function OrderTracker({
                     </CardContent>
                 </Card>
 
-                {/* Contact restaurant */}
-                {/* {restaurantPhone && (
+                {restaurantPhone && (
                     <Card>
                         <CardHeader>
                             <CardTitle>Besoin d'aide ?</CardTitle>
@@ -285,7 +371,7 @@ export function OrderTracker({
                             </a>
                         </CardContent>
                     </Card>
-                )} */}
+                )}
             </div>
         </div>
     )

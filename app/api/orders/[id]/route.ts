@@ -1,55 +1,79 @@
-// app/api/orders/[id]/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 
-// ============================================================
-// GET - Récupérer une commande par ID
-// ============================================================
-
 export async function GET(
     request: NextRequest,
-    { params }: { params: Promise<{ id: string }> } // ✅ Promise
+    context: { params: Promise<{ id: string }> }
 ) {
+    const startTime = Date.now()
+    
     try {
-        const { id } = await params // ✅ AWAIT
-        const { searchParams } = request.nextUrl
-        const restaurantId = searchParams.get('restaurantId')
-
-        if (!restaurantId) {
-            return NextResponse.json(
-                { error: 'restaurantId manquant' },
-                { status: 400 }
-            )
-        }
-
-        // Récupérer la commande avec toutes ses relations
+        const { id: orderId } = await context.params
+        
+        // On utilise Prisma pour éviter les erreurs de permissions "schema public" de Supabase
         const order = await prisma.order.findUnique({
-            where: {
-                id,
-                restaurantId, // Sécurité : vérifier que la commande appartient au restaurant
-            },
+            where: { id: orderId },
             include: {
+                table: {
+                    select: { number: true }
+                },
+                restaurant: {
+                    select: {
+                        name: true,
+                        logoUrl: true,
+                        phone: true
+                    }
+                },
                 orderItems: {
                     include: {
-                        product: true,
-                    },
-                },
-                table: true,
-            },
+                        product: {
+                            select: { imageUrl: true }
+                        }
+                    }
+                }
+            }
         })
 
         if (!order) {
+            console.warn('⚠️ [API] Commande introuvable:', orderId)
             return NextResponse.json(
-                { error: 'Commande non trouvée' },
+                { error: 'Commande introuvable' },
                 { status: 404 }
             )
         }
 
-        return NextResponse.json({ order })
+        // Formatage de la réponse (pour correspondre à ton frontend)
+        const response = {
+            id: order.id,
+            orderNumber: order.orderNumber,
+            status: order.status,
+            totalAmount: order.totalAmount,
+            createdAt: order.createdAt,
+            tableNumber: order.table?.number,
+            restaurant: {
+                name: order.restaurant?.name,
+                logoUrl: order.restaurant?.logoUrl,
+                phone: order.restaurant?.phone
+            },
+            items: order.orderItems.map((item) => ({
+                name: item.productName,
+                quantity: item.quantity,
+                price: item.unitPrice,
+                imageUrl: item.product?.imageUrl || null,
+            })),
+        }
+
+        const duration = Date.now() - startTime
+
+        return NextResponse.json(response)
+        
     } catch (error) {
-        console.error('Erreur récupération commande:', error)
+        console.error('💥 [API] Erreur:', error)
         return NextResponse.json(
-            { error: 'Erreur lors de la récupération de la commande' },
+            { 
+                error: 'Erreur serveur', 
+                details: error instanceof Error ? error.message : 'Erreur inconnue'
+            },
             { status: 500 }
         )
     }

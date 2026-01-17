@@ -1,6 +1,5 @@
 // app/orders/[orderId]/page.tsx
 import { notFound } from 'next/navigation'
-import prisma from '@/lib/prisma'
 import { OrderTracker } from './order-tracker'
 
 export default async function OrderTrackingPage({
@@ -10,55 +9,49 @@ export default async function OrderTrackingPage({
 }) {
     const { orderId } = await params
 
-    // Récupérer la commande
-    const order = await prisma.order.findUnique({
-        where: { id: orderId },
-        include: {
-            restaurant: {
-                select: {
-                    name: true,
-                    logoUrl: true,
-                    phone: true,
-                },
-            },
-            table: {
-                select: {
-                    number: true,
-                },
-            },
-            orderItems: {
-                include: {
-                    product: {
-                        select: {
-                            imageUrl: true,
-                        },
-                    },
-                },
-            },
-        },
-    })
+    try {
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+        // ⚠️ Utiliser /api/orders/[id] car le dossier s'appelle [id]
+        const apiUrl = `${baseUrl}/api/orders/${orderId}`
 
-    if (!order) {
+        const response = await fetch(apiUrl, {
+            cache: 'no-store',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        })
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}))
+            console.error('❌ [PAGE] Erreur API:', errorData)
+            notFound()
+        }
+
+        const order = await response.json()
+
+        if (!order || !order.id) {
+            console.error('❌ [PAGE] Données invalides:', order)
+            notFound()
+        }
+
+        return (
+            <OrderTracker
+                orderId={order.id}
+                orderNumber={order.orderNumber}
+                restaurantName={order.restaurantName}
+                restaurantLogo={order.restaurantLogo}
+                restaurantPhone={order.restaurantPhone}
+                tableNumber={order.tableNumber}
+                status={order.status}
+                totalAmount={order.totalAmount}
+                items={order.items}
+                createdAt={order.createdAt}
+            />
+        )
+    } catch (error) {
+        console.error('💥 [PAGE] Erreur catch:', error)
+        console.error('💥 [PAGE] Type erreur:', error instanceof Error ? error.message : typeof error)
+        console.error('💥 [PAGE] Stack:', error instanceof Error ? error.stack : 'N/A')
         notFound()
     }
-
-    return (
-        <OrderTracker
-            orderId={order.id}
-            orderNumber={order.orderNumber || ''}
-            restaurantName={order.restaurant.name}
-            restaurantLogo={order.restaurant.logoUrl}
-            restaurantPhone={order.restaurant.phone}
-            tableNumber={order.table?.number || 0}
-            status={order.status}
-            totalAmount={order.totalAmount}
-            items={order.orderItems.map((item) => ({
-                name: item.productName,
-                quantity: item.quantity,
-                price: item.unitPrice,
-                imageUrl: item.product.imageUrl,
-            }))}
-            createdAt={order.createdAt.toISOString()}
-        />
-    )
 }
