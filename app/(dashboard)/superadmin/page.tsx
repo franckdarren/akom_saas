@@ -40,7 +40,7 @@ export default async function SuperAdminDashboard() {
         <div className="space-y-8">
             {/* Header */}
             <div>
-                <h1 className="text-3xl font-bold">SuperAdmin Dashboard</h1>
+                <h1 className="text-3xl font-bold pb-2">SuperAdmin Dashboard</h1>
                 <p className="text-zinc-600 dark:text-zinc-400">
                     Vue d'ensemble de la plateforme Akôm
                 </p>

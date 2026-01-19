@@ -1,6 +1,7 @@
 import { ReactNode } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { SignOutButton } from '@/components/auth/SignOutButton'
 import {
     LayoutDashboard,
     Building2,
@@ -20,13 +21,14 @@ export default function SuperAdminLayout({ children }: { children: ReactNode }) 
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
                             <h1 className="text-xl font-bold">
-                                SuperAdmin Dashboard
+                                Akôm
                             </h1>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-3">
                             <span className="text-xs px-2 py-1 rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
                                 Super Admin
                             </span>
+                            <SignOutButton variant="outline" />
                         </div>
                     </div>
                 </div>
