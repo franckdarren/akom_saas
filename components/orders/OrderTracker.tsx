@@ -15,7 +15,7 @@ import { fr } from 'date-fns/locale'
 interface Order {
     id: string
     order_number: string
-    status: 'pending' | 'preparing' | 'ready' | 'delivered'
+    status: 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled'
     total_amount: number
     customer_name: string | null
     created_at: string
@@ -70,7 +70,7 @@ const STATUS_CONFIG = {
         label: 'Annulée',
         description: 'Cette commande a été annulée',
         color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
-        icon: XCircle // Ou une icône XCircle de lucide-react
+        icon: XCircle
     }
 }
 
@@ -168,8 +168,8 @@ export function OrderTracker({ order: initialOrder, restaurant, table }: OrderTr
     }, [order.id]) // L'effet se re-déclenche uniquement si l'ID de la commande change
 
     // Récupérer la configuration du statut actuel
-    const statusConfig = STATUS_CONFIG[order.status]
-    const StatusIcon = statusConfig.icon
+    const statusConfig = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending;
+    const StatusIcon = statusConfig.icon;
 
     // Calculer le temps écoulé depuis la création de la commande
     // Cette valeur change automatiquement grâce à React qui re-render
@@ -268,27 +268,38 @@ export function OrderTracker({ order: initialOrder, restaurant, table }: OrderTr
                     <div>
                         <h3 className="font-medium mb-5">Progression de la commande</h3>
                         <div className="space-y-3">
-                            {Object.entries(STATUS_CONFIG).map(([key, config]) => {
-                                // Déterminer si cette étape est complétée
-                                const isCompleted =
-                                    key === 'pending' ? true :
-                                        key === 'preparing' ? ['preparing', 'ready', 'delivered'].includes(order.status) :
-                                            key === 'ready' ? ['ready', 'delivered'].includes(order.status) :
-                                                order.status === 'delivered'
+                            {Object.entries(STATUS_CONFIG)
+                                .filter(([key]) => {
+                                    // Si la commande est annulée, on n'affiche que 'pending' et 'cancelled'
+                                    if (order.status === 'cancelled') {
+                                        return ['pending', 'cancelled'].includes(key)
+                                    }
+                                    // Sinon, on affiche tout SAUF 'cancelled'
+                                    return key !== 'cancelled'
+                                })
+                                .map(([key, config]) => {
+                                    const isActive = order.status === key
 
-                                const isActive = order.status === key
-                                const Icon = config.icon
+                                    // Logique simplifiée pour 'completed'
+                                    const statuses = ['pending', 'preparing', 'ready', 'delivered']
+                                    const currentIndex = statuses.indexOf(order.status)
+                                    const stepIndex = statuses.indexOf(key)
 
-                                return (
-                                    <StatusStep
-                                        key={key}
-                                        label={config.label}
-                                        icon={Icon}
-                                        completed={isCompleted}
-                                        active={isActive}
-                                    />
-                                )
-                            })}
+                                    const isCompleted = order.status === 'cancelled'
+                                        ? key === 'pending' || key === 'cancelled'
+                                        : stepIndex <= currentIndex
+
+                                    return (
+                                        <StatusStep
+                                            key={key}
+                                            label={config.label}
+                                            icon={config.icon}
+                                            completed={isCompleted}
+                                            active={isActive}
+                                        />
+                                    )
+                                })
+                            }
                         </div>
                     </div>
 
