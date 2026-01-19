@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, Clock, CheckCircle, Package, UtensilsCrossed } from 'lucide-react'
+import { ArrowLeft, Clock, CheckCircle, Package, UtensilsCrossed, XCircle } from 'lucide-react'
 import { formatPrice } from '@/lib/utils/format'
 import { formatDistanceToNow } from 'date-fns'
 import { fr } from 'date-fns/locale'
@@ -65,8 +65,15 @@ const STATUS_CONFIG = {
         description: 'Bon appétit !',
         color: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200',
         icon: Package
+    },
+    cancelled: {
+        label: 'Annulée',
+        description: 'Cette commande a été annulée',
+        color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+        icon: XCircle // Ou une icône XCircle de lucide-react
     }
 }
+
 
 export function OrderTracker({ order: initialOrder, restaurant, table }: OrderTrackerProps) {
     // État local pour stocker les données de la commande
@@ -204,7 +211,7 @@ export function OrderTracker({ order: initialOrder, restaurant, table }: OrderTr
     }, [order.id, order.status])
 
     return (
-        <div className="container max-w-2xl mx-auto p-4 space-y-6">
+        <div className="container max-w-2xl mx-auto py-4 px-1 space-y-6">
             {/* Header avec navigation et indicateur de connexion */}
             <div className="flex items-center justify-between">
                 <Link href={menuUrl}>
@@ -218,7 +225,7 @@ export function OrderTracker({ order: initialOrder, restaurant, table }: OrderTr
                 {isConnected && (
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                        <span className="hidden sm:inline">Mises à jour en temps réel</span>
+                        <span className="hidden sm:inline">Temps réel</span>
                     </div>
                 )}
             </div>
@@ -229,7 +236,7 @@ export function OrderTracker({ order: initialOrder, restaurant, table }: OrderTr
                     <div className="space-y-3">
                         <div className="flex items-start justify-between gap-4">
                             <div className="flex-1 min-w-0">
-                                <CardTitle className="text-2xl truncate">
+                                <CardTitle className="text-xl truncate">
                                     Commande {order.order_number}
                                 </CardTitle>
                                 <p className="text-sm text-muted-foreground mt-1 truncate">
@@ -242,7 +249,7 @@ export function OrderTracker({ order: initialOrder, restaurant, table }: OrderTr
                             </Badge>
                         </div>
 
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground mt-5">
                             <Clock className="h-4 w-4 shrink-0" />
                             <span>Commandé {timeAgo}</span>
                         </div>
@@ -251,7 +258,7 @@ export function OrderTracker({ order: initialOrder, restaurant, table }: OrderTr
 
                 <CardContent className="space-y-6">
                     {/* Message de statut actuel */}
-                    <div className="bg-muted/50 rounded-lg p-4">
+                    <div className="bg-muted/50 rounded-lg p-3">
                         <p className="text-center text-lg font-medium">
                             {statusConfig.description}
                         </p>
@@ -259,7 +266,7 @@ export function OrderTracker({ order: initialOrder, restaurant, table }: OrderTr
 
                     {/* Timeline de progression */}
                     <div>
-                        <h3 className="font-medium mb-4">Progression de la commande</h3>
+                        <h3 className="font-medium mb-5">Progression de la commande</h3>
                         <div className="space-y-3">
                             {Object.entries(STATUS_CONFIG).map(([key, config]) => {
                                 // Déterminer si cette étape est complétée
@@ -353,7 +360,7 @@ export function OrderTracker({ order: initialOrder, restaurant, table }: OrderTr
             </Card>
 
             {/* Actions supplémentaires */}
-            <Card>
+            <div>
                 <CardContent className="pt-6">
                     <Link href={menuUrl} className="block">
                         <Button variant="outline" className="w-full">
@@ -361,7 +368,7 @@ export function OrderTracker({ order: initialOrder, restaurant, table }: OrderTr
                         </Button>
                     </Link>
                 </CardContent>
-            </Card>
+            </div>
         </div>
     )
 }
