@@ -211,7 +211,7 @@ export function OrderTracker({ order: initialOrder, restaurant, table }: OrderTr
     }, [order.id, order.status])
 
     return (
-        <div className="container max-w-2xl mx-auto py-4 px-1 space-y-6">
+        <div className="container max-w-2xl mx-auto py-4 px-2 space-y-6">
             {/* Header avec navigation et indicateur de connexion */}
             <div className="flex items-center justify-between">
                 <Link href={menuUrl}>
@@ -224,8 +224,8 @@ export function OrderTracker({ order: initialOrder, restaurant, table }: OrderTr
                 {/* Indicateur visuel de la connexion temps réel */}
                 {isConnected && (
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                        <span className="hidden sm:inline">Temps réel</span>
+                        <div className="w-2 h-2 bg-green-500 rounded-full animate-radical-pulse" />
+                        <span className=" sm:inline">Temps réel</span>
                     </div>
                 )}
             </div>
@@ -234,7 +234,7 @@ export function OrderTracker({ order: initialOrder, restaurant, table }: OrderTr
             <Card>
                 <CardHeader>
                     <div className="space-y-3">
-                        <div className="flex items-start justify-between gap-4">
+                        <div className="flex items-center justify-between gap-4">
                             <div className="flex-1 min-w-0">
                                 <CardTitle className="text-xl truncate">
                                     Commande {order.order_number}
