@@ -140,45 +140,51 @@ export function CategoriesList({ categories }: { categories: Category[] }) {
         <>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 items-center">
                 {categories.map((category, index) => (
-                    <Card key={category.id} className='hover:shadow-md transition-shadow'>
-                        <CardHeader>
-                            <div className="flex items-center justify-between gap-2">
+                    <Card
+                        key={category.id}
+                        className="hover:shadow-md transition-shadow flex flex-col overflow-hidden h-50">
+                        <CardHeader className="pb-2">
+                            <div className="flex items-center justify-between gap-2 overflow-hidden">
                                 {/* Numéro de position */}
                                 <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 text-primary font-bold text-lg shrink-0">
                                     {category.position}
                                 </div>
 
-                                <div className="flex-1 space-y-1 min-w-0">
-                                    <CardTitle className="truncate">{category.name}</CardTitle>
+                                {/* Nom */}
+                                <div className="flex-1 min-w-0">
+                                    <CardTitle className="truncate text-base">
+                                        {category.name}
+                                    </CardTitle>
                                 </div>
+
+                                {/* Statut */}
                                 <Badge
-                                    variant={
-                                        category.isActive
-                                            ? 'default'
-                                            : 'secondary'
-                                    }
+                                    variant={category.isActive ? 'default' : 'secondary'}
                                     className="shrink-0"
                                 >
-                                    {category.isActive
-                                        ? 'Active'
-                                        : 'Inactive'}
+                                    {category.isActive ? 'Active' : 'Inactive'}
                                 </Badge>
                             </div>
-                            <div>{category.description && (
-                                <CardDescription className="line-clamp-2 text-sm text-muted-foreground">
+
+                            {/* Description */}
+                            {category.description && (
+                                <CardDescription
+                                    className="mt-1 line-clamp-2 overflow-hidden text-sm text-muted-foreground">
                                     {category.description}
                                 </CardDescription>
-                            )}</div>
+                            )}
                         </CardHeader>
 
-                        <CardContent className="space-y-1">
+                        <CardContent className="mt-auto space-y-2">
+                            {/* Nombre de produits */}
                             <p className="text-xs text-muted-foreground">
                                 {category._count.products} produit(s)
                             </p>
 
-                            {/* Boutons de réorganisation */}
-                            <div className="flex gap-2">
-                                <div className="flex gap-1 items-center">
+                            {/* Actions */}
+                            <div className="flex gap-2 flex-wrap">
+                                {/* Réorganisation */}
+                                <div className="flex gap-1 items-center shrink-0">
                                     <Button
                                         variant="outline"
                                         size="icon-sm"
@@ -192,6 +198,7 @@ export function CategoriesList({ categories }: { categories: Category[] }) {
                                             <ArrowUp className="h-4 w-4" />
                                         )}
                                     </Button>
+
                                     <Button
                                         variant="outline"
                                         size="icon-sm"
@@ -208,7 +215,7 @@ export function CategoriesList({ categories }: { categories: Category[] }) {
                                 </div>
 
                                 {/* Autres actions */}
-                                <div className="flex gap-2 ml-auto">
+                                <div className="flex gap-2 ml-auto flex-wrap justify-end">
                                     <EditCategoryDialog category={category}>
                                         <Button
                                             variant="outline"
@@ -237,10 +244,7 @@ export function CategoriesList({ categories }: { categories: Category[] }) {
                                         variant="destructive"
                                         size="sm"
                                         onClick={() => handleDelete(category.id, category.name)}
-                                        disabled={
-                                            loading !== null ||
-                                            category._count.products > 0
-                                        }
+                                        disabled={loading !== null || category._count.products > 0}
                                         title={
                                             category._count.products > 0
                                                 ? 'Impossible de supprimer : des produits sont liés'
@@ -257,6 +261,7 @@ export function CategoriesList({ categories }: { categories: Category[] }) {
                             </div>
                         </CardContent>
                     </Card>
+
                 ))}
             </div>
 
