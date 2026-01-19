@@ -211,7 +211,9 @@ export function MenuLayout({
                 open={showCartDialog}
                 onOpenChange={setShowCartDialog}
                 restaurantId={restaurantId}
+                restaurantSlug={restaurantSlug}  // ← Déjà présent dans tes props
                 tableId={tableId}
+                tableNumber={tableNumber}        // ← Déjà présent dans tes props
             />
 
             {/* Footer */}

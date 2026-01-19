@@ -21,6 +21,8 @@ interface CartDialogProps {
     onOpenChange: (open: boolean) => void
     restaurantId: string
     tableId: string
+    restaurantSlug: string
+    tableNumber: number
 }
 
 export function CartDialog({
@@ -28,6 +30,8 @@ export function CartDialog({
     onOpenChange,
     restaurantId,
     tableId,
+    restaurantSlug,  // ✅ On reçoit bien le slug
+    tableNumber,     // ✅ On reçoit bien le numéro de table
 }: CartDialogProps) {
     const router = useRouter()
     const { items, updateQuantity, removeItem, clearCart, totalAmount } = useCart()
@@ -58,21 +62,34 @@ export function CartDialog({
                 throw new Error(data.error || 'Erreur lors de la commande')
             }
 
-            // Vider le panier
+            console.log('✅ [CART] Réponse API reçue:', data)
+
+            // ✅ CORRECTION MAJEURE : Utiliser trackingUrl fourni par l'API
+            // L'API retourne maintenant une URL complète et contextuelle
+            // qui permet de revenir facilement au menu depuis le tracking
+            const trackingUrl = data.trackingUrl || `/orders/${data.order.id}`
+
+            console.log('🔗 [CART] Redirection vers:', trackingUrl)
+
+            // Vider le panier (la commande est validée)
             clearCart()
 
             // Fermer le dialog
             onOpenChange(false)
 
-            // Afficher message de succès
+            // Afficher un message de succès avec le numéro de commande
             toast.success(`Commande ${data.order.orderNumber} enregistrée !`, {
                 description: 'Votre commande a été transmise à la cuisine',
                 duration: 5000,
             })
 
-            // Rediriger vers la page de suivi
-            router.push(`/orders/${data.order.id}`)
+            // ✅ CORRECTION : Rediriger vers l'URL contextuelle
+            // Format: /r/[slug]/t/[number]/orders/[orderId]
+            // Cela permet au client de revenir facilement au menu
+            router.push(trackingUrl)
+            
         } catch (err: any) {
+            console.error('❌ [CART] Erreur lors de la commande:', err)
             setError(err.message || 'Une erreur est survenue')
         } finally {
             setIsSubmitting(false)
