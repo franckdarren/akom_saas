@@ -8,6 +8,7 @@ import { redirect } from 'next/navigation'
 import { generateUniqueSlug } from '@/lib/actions/slug'
 import { restaurantSettingsSchema, type RestaurantSettingsInput } from '@/lib/validations/restaurant'
 import { logRestaurantCreated } from '@/lib/actions/logs'
+import { formatRestaurantName } from '@/lib/utils/format-text'
 
 
 interface CreateRestaurantData {
@@ -34,13 +35,15 @@ export async function createRestaurant(data: CreateRestaurantData) {
         return { error: 'Le nom du restaurant est obligatoire' }
     }
 
-    // PAS DE try/catch AUTOUR DE redirect
-    const slug = await generateUniqueSlug(data.name)
+    // ✅ Formater le nom AVANT de générer le slug
+    // Cela garantit que le slug sera basé sur le nom formaté
+    const formattedName = formatRestaurantName(data.name)
+    const slug = await generateUniqueSlug(formattedName)
 
     await prisma.$transaction(async (tx) => {
         const restaurant = await tx.restaurant.create({
             data: {
-                name: data.name.trim(),
+                name: formattedName, // ✅ Utiliser le nom formaté
                 slug,
                 phone: data.phone?.trim() || null,
                 address: data.address?.trim() || null,
@@ -56,7 +59,7 @@ export async function createRestaurant(data: CreateRestaurantData) {
             },
         })
 
-        // Logger la création
+        // Logger la création avec le nom formaté
         await logRestaurantCreated(restaurant.id, restaurant.name)
     })
 
@@ -396,11 +399,15 @@ export async function updateRestaurantSettings(
     }
 
     try {
+        // ✅ Formater le nom avant la mise à jour
+        // Cela garantit la cohérence avec la création
+        const formattedName = formatRestaurantName(parsed.data.name)
+        
         // Mettre à jour le restaurant
         const restaurant = await prisma.restaurant.update({
             where: { id: restaurantId },
             data: {
-                name: parsed.data.name,
+                name: formattedName, // ✅ Utiliser le nom formaté
                 phone: parsed.data.phone || null,
                 address: parsed.data.address || null,
                 logoUrl: parsed.data.logoUrl || null,

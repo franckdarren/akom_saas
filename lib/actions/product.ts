@@ -4,6 +4,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
+import { capitalizeFirst, formatDescription } from '@/lib/utils/format-text'
 
 interface ProductData {
     name: string
@@ -54,18 +55,25 @@ export async function createProduct(data: ProductData) {
             return { error: 'Le prix ne peut pas être négatif' }
         }
 
+        // ✅ Formatage automatique des données
+        const formattedData = {
+            name: capitalizeFirst(data.name),
+            description: data.description 
+                ? formatDescription(data.description) 
+                : null,
+            price: Math.floor(data.price),
+            categoryId: data.categoryId || null,
+            imageUrl: data.imageUrl || null,
+        }
+
         // Créer le produit ET son stock dans une transaction
         const product = await prisma.$transaction(async (tx) => {
             // Créer le produit (INDISPONIBLE par défaut)
             const newProduct = await tx.product.create({
                 data: {
                     restaurantId,
-                    name: data.name.trim(),
-                    description: data.description?.trim() || null,
-                    price: Math.floor(data.price), // S'assurer que c'est un entier
-                    categoryId: data.categoryId || null,
-                    imageUrl: data.imageUrl || null,
-                    isAvailable: false, // ← INDISPONIBLE jusqu'à ce qu'il y ait du stock
+                    ...formattedData, // ✅ Utiliser les données formatées
+                    isAvailable: false,
                 },
             })
 
@@ -74,7 +82,7 @@ export async function createProduct(data: ProductData) {
                 data: {
                     restaurantId,
                     productId: newProduct.id,
-                    quantity: 0, // Stock initial à 0
+                    quantity: 0,
                     alertThreshold: 5,
                 },
             })
@@ -104,18 +112,23 @@ export async function updateProduct(id: string, data: ProductData) {
             return { error: 'Le prix ne peut pas être négatif' }
         }
 
+        // ✅ Formatage automatique des données
+        const formattedData = {
+            name: capitalizeFirst(data.name),
+            description: data.description 
+                ? formatDescription(data.description) 
+                : null,
+            price: Math.floor(data.price),
+            categoryId: data.categoryId || null,
+            imageUrl: data.imageUrl || null,
+        }
+
         const product = await prisma.product.update({
             where: {
                 id,
-                restaurantId, // Sécurité RLS
+                restaurantId,
             },
-            data: {
-                name: data.name.trim(),
-                description: data.description?.trim() || null,
-                price: Math.floor(data.price),
-                categoryId: data.categoryId || null,
-                imageUrl: data.imageUrl || null,
-            },
+            data: formattedData, // ✅ Utiliser les données formatées
         })
 
         revalidatePath('/dashboard/menu/products')

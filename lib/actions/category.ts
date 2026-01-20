@@ -4,6 +4,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
+import { capitalizeFirst, formatDescription } from '@/lib/utils/format-text'
 
 interface CategoryData {
     name: string
@@ -54,8 +55,10 @@ export async function createCategory(data: CategoryData) {
         const category = await prisma.category.create({
             data: {
                 restaurantId,
-                name: data.name.trim(),
-                description: data.description?.trim() || null,
+                name: capitalizeFirst(data.name), // ✅
+                description: data.description 
+                    ? formatDescription(data.description) 
+                    : null, // ✅
                 position: (maxPosition._max.position || 0) + 1,
                 isActive: true,
             },
@@ -81,11 +84,13 @@ export async function updateCategory(id: string, data: CategoryData) {
         const category = await prisma.category.update({
             where: {
                 id,
-                restaurantId, // Sécurité : s'assurer que la catégorie appartient au restaurant
+                restaurantId,
             },
             data: {
-                name: data.name.trim(),
-                description: data.description?.trim() || null,
+                name: capitalizeFirst(data.name), // ✅
+                description: data.description 
+                    ? formatDescription(data.description) 
+                    : null, // ✅
             },
         })
 
@@ -160,12 +165,10 @@ export async function deleteCategory(id: string) {
 
         // Supprimer la catégorie et réorganiser les positions dans une transaction
         await prisma.$transaction(async (tx) => {
-            // Supprimer la catégorie
             await tx.category.delete({
                 where: { id, restaurantId },
             })
 
-            // Décaler toutes les catégories suivantes d'une position vers le haut
             await tx.category.updateMany({
                 where: {
                     restaurantId,
@@ -185,25 +188,12 @@ export async function deleteCategory(id: string) {
     }
 }
 
-// ============================================================
-// NOUVELLE FONCTION : Réorganiser les catégories
-// ============================================================
-
-/**
- * Réorganise l'ordre des catégories
- * @param categoryIds - Tableau des IDs de catégories dans le nouvel ordre souhaité
- * 
- * Exemple d'utilisation :
- * categoryIds = ['uuid-desserts', 'uuid-boissons', 'uuid-plats']
- * → "Desserts" aura position 1
- * → "Boissons" aura position 2
- * → "Plats" aura position 3
- */
+// Les autres fonctions (reorderCategories, moveCategoryUp, moveCategoryDown) 
+// restent inchangées car elles ne modifient que les positions
 export async function reorderCategories(categoryIds: string[]) {
     try {
         const restaurantId = await getCurrentRestaurantId()
 
-        // Vérifier que toutes les catégories appartiennent bien au restaurant
         const categories = await prisma.category.findMany({
             where: {
                 id: { in: categoryIds },
@@ -215,13 +205,11 @@ export async function reorderCategories(categoryIds: string[]) {
             return { error: 'Certaines catégories sont invalides' }
         }
 
-        // Mettre à jour les positions dans une transaction
-        // pour garantir la cohérence des données
         await prisma.$transaction(
             categoryIds.map((categoryId, index) =>
                 prisma.category.update({
                     where: { id: categoryId },
-                    data: { position: index + 1 }, // Position commence à 1
+                    data: { position: index + 1 },
                 })
             )
         )
@@ -234,15 +222,6 @@ export async function reorderCategories(categoryIds: string[]) {
     }
 }
 
-
-// ============================================================
-// NOUVELLE FONCTION : Déplacer une catégorie vers le haut
-// ============================================================
-
-/**
- * Déplace une catégorie d'une position vers le haut
- * Si elle est déjà en première position, ne fait rien
- */
 export async function moveCategoryUp(categoryId: string) {
     try {
         const restaurantId = await getCurrentRestaurantId()
@@ -256,12 +235,10 @@ export async function moveCategoryUp(categoryId: string) {
             return { error: 'Catégorie introuvable' }
         }
 
-        // Si déjà en première position, on ne peut pas monter
         if (category.position <= 1) {
-            return { success: true } // Pas d'erreur, juste rien à faire
+            return { success: true }
         }
 
-        // Trouver la catégorie qui est juste au-dessus
         const categoryAbove = await prisma.category.findFirst({
             where: {
                 restaurantId,
@@ -273,7 +250,6 @@ export async function moveCategoryUp(categoryId: string) {
             return { error: 'Aucune catégorie au-dessus' }
         }
 
-        // Échanger les positions dans une transaction
         await prisma.$transaction([
             prisma.category.update({
                 where: { id: categoryId },
@@ -293,15 +269,6 @@ export async function moveCategoryUp(categoryId: string) {
     }
 }
 
-
-// ============================================================
-// NOUVELLE FONCTION : Déplacer une catégorie vers le bas
-// ============================================================
-
-/**
- * Déplace une catégorie d'une position vers le bas
- * Si elle est déjà en dernière position, ne fait rien
- */
 export async function moveCategoryDown(categoryId: string) {
     try {
         const restaurantId = await getCurrentRestaurantId()
@@ -315,7 +282,6 @@ export async function moveCategoryDown(categoryId: string) {
             return { error: 'Catégorie introuvable' }
         }
 
-        // Trouver la catégorie qui est juste en-dessous
         const categoryBelow = await prisma.category.findFirst({
             where: {
                 restaurantId,
@@ -323,12 +289,10 @@ export async function moveCategoryDown(categoryId: string) {
             },
         })
 
-        // Si aucune catégorie en dessous, on est déjà en dernière position
         if (!categoryBelow) {
             return { success: true }
         }
 
-        // Échanger les positions dans une transaction
         await prisma.$transaction([
             prisma.category.update({
                 where: { id: categoryId },
