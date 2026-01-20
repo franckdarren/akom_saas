@@ -149,3 +149,46 @@ export async function getProductStockHistory(productId: string) {
         return { error: 'Erreur lors de la récupération de l\'historique' }
     }
 }
+
+
+// ============================================================
+// Modifier le seuil d'alerte d'un produit
+// ============================================================
+
+export async function updateAlertThreshold(
+    productId: string,
+    threshold: number
+) {
+    try {
+        const { restaurantId } = await getCurrentUserAndRestaurant()
+
+        // Validation
+        if (threshold < 0) {
+            return { error: 'Le seuil doit être un nombre positif' }
+        }
+
+        if (threshold > 1000) {
+            return { error: 'Le seuil ne peut pas dépasser 1000' }
+        }
+
+        // Mettre à jour le seuil
+        const stock = await prisma.stock.update({
+            where: {
+                restaurantId_productId: {
+                    restaurantId,
+                    productId,
+                },
+            },
+            data: {
+                alertThreshold: threshold,
+            },
+        })
+
+        revalidatePath('/dashboard/stocks')
+        revalidatePath('/dashboard/menu/products')
+        return { success: true, stock }
+    } catch (error) {
+        console.error('Erreur mise à jour seuil:', error)
+        return { error: 'Erreur lors de la mise à jour du seuil d\'alerte' }
+    }
+}

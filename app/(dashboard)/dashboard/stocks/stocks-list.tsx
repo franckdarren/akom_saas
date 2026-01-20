@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { History } from 'lucide-react'
 import { AdjustStockDialog } from './adjust-stock-dialog'
 import { StockHistoryDialog } from './stock-history-dialog'
+import { AlertThresholdEditor } from './alert-threshold-editor' // ← AJOUTÉ
 import { formatNumber } from '@/lib/utils/format'
 
 type Stock = {
@@ -77,21 +78,29 @@ export function StocksList({ stocks }: { stocks: Stock[] }) {
                                 <div className="flex items-center justify-between">
                                     <span className="text-sm text-muted-foreground">Quantité</span>
                                     <span
-                                        className={`text-2xl font-bold ${isOutOfStock
-                                            ? 'text-red-500 animate-ping'
-                                            : isLowStock
-                                                ? 'text-orange-500 animate-ping'
-                                                : ''
-                                            }`}
+                                        className={`text-2xl font-bold ${
+                                            isOutOfStock
+                                                ? 'text-red-500 animate-ping'
+                                                : isLowStock
+                                                    ? 'text-orange-500 animate-ping'
+                                                    : ''
+                                        }`}
                                     >
                                         {formatNumber(stock.quantity)}
                                     </span>
                                 </div>
 
-                                {/* Seuil d'alerte */}
+                                {/* Seuil d'alerte - MODIFIÉ ICI ↓ */}
                                 <div className="flex items-center justify-between text-sm">
                                     <span className="text-muted-foreground">Seuil d'alerte</span>
-                                    <span>{formatNumber(stock.alertThreshold)}</span>
+                                    <div className="flex items-center gap-2">
+                                        <span className="font-medium">{formatNumber(stock.alertThreshold)}</span>
+                                        <AlertThresholdEditor
+                                            productId={stock.product.id}
+                                            productName={stock.product.name}
+                                            currentThreshold={stock.alertThreshold}
+                                        />
+                                    </div>
                                 </div>
 
                                 {/* Actions */}
