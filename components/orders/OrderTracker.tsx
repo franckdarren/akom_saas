@@ -372,13 +372,13 @@ export function OrderTracker({ order: initialOrder, restaurant, table }: OrderTr
 
             {/* Actions supplémentaires */}
             <div>
-                <CardContent className="pt-6">
+                <div className="pt-6">
                     <Link href={menuUrl} className="block">
                         <Button variant="outline" className="w-full">
                             Passer une nouvelle commande
                         </Button>
                     </Link>
-                </CardContent>
+                </div>
             </div>
         </div>
     )

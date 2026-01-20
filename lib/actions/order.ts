@@ -134,3 +134,82 @@ export async function getRestaurantOrders(restaurantId: string) {
         return { error: 'Erreur lors de la récupération' }
     }
 }
+
+
+// ============================================================
+// Récupérer les commandes actives d'une table
+// ============================================================
+
+interface ActiveOrder {
+    id: string
+    orderNumber: string | null
+    status: OrderStatus
+    totalAmount: number
+    createdAt: Date
+}
+
+/**
+ * Récupère toutes les commandes non terminées pour une table donnée
+ * Une commande est considérée comme active si elle n'est pas "delivered" ou "cancelled"
+ */
+export async function getActiveOrdersForTable(
+    tableId: string
+): Promise<ActiveOrder[]> {
+    try {
+        const orders = await prisma.order.findMany({
+            where: {
+                tableId,
+                status: {
+                    // On exclut les commandes déjà servies ou annulées
+                    notIn: ['delivered', 'cancelled'],
+                },
+            },
+            select: {
+                id: true,
+                orderNumber: true,
+                status: true,
+                totalAmount: true,
+                createdAt: true,
+            },
+            orderBy: {
+                createdAt: 'desc',
+            },
+        })
+
+        return orders
+    } catch (error) {
+        console.error('Erreur récupération commandes actives:', error)
+        return []
+    }
+}
+
+// ============================================================
+// Récupérer les détails d'une commande spécifique
+// ============================================================
+
+export async function getOrderDetails(orderId: string) {
+    try {
+        const order = await prisma.order.findUnique({
+            where: { id: orderId },
+            include: {
+                table: {
+                    select: {
+                        number: true,
+                    },
+                },
+                orderItems: {
+                    select: {
+                        productName: true,
+                        quantity: true,
+                        unitPrice: true,
+                    },
+                },
+            },
+        })
+
+        return order
+    } catch (error) {
+        console.error('Erreur récupération détails commande:', error)
+        return null
+    }
+}

@@ -3,6 +3,7 @@
 
 import { CartProvider } from './cart-context'
 import { MenuLayout } from './components/menu-layout'
+import { ActiveOrdersBanner } from '@/components/menu/ActiveOrdersBanner'
 
 interface PublicMenuProps {
     restaurantId: string

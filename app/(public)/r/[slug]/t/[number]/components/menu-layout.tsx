@@ -10,6 +10,7 @@ import { RestaurantInfo } from './restaurant-info'
 import { SearchFilterBar } from './search-filter-bar'
 import { ProductCard } from '../product-card'
 import { FixedBottomBar } from './fixed-bottom-bar'
+import { ActiveOrdersBanner } from '@/components/menu/ActiveOrdersBanner'
 
 interface Product {
     id: string
@@ -157,6 +158,21 @@ export function MenuLayout({
                 tableNumber={tableNumber}
             />
 
+            {/* 
+                Bandeau des commandes actives
+                Ce composant s'affiche automatiquement si le client a des commandes
+                en cours (pending, preparing, ready) sur cette table.
+                Il permet au client de voir rapidement ses commandes actives et
+                d'y accéder en un clic pour suivre leur progression.
+            */}
+            <div className="max-w-3xl mx-auto px-4 mt-6">
+                <ActiveOrdersBanner 
+                    tableId={tableId}
+                    tableNumber={tableNumber}
+                    restaurantSlug={restaurantSlug}
+                />
+            </div>
+
             {/* Barre de recherche et filtres */}
             <SearchFilterBar
                 categories={menuData.categories.map((c) => ({
@@ -211,9 +227,9 @@ export function MenuLayout({
                 open={showCartDialog}
                 onOpenChange={setShowCartDialog}
                 restaurantId={restaurantId}
-                restaurantSlug={restaurantSlug}  // ← Déjà présent dans tes props
+                restaurantSlug={restaurantSlug}
                 tableId={tableId}
-                tableNumber={tableNumber}        // ← Déjà présent dans tes props
+                tableNumber={tableNumber}
             />
 
             {/* Footer */}
