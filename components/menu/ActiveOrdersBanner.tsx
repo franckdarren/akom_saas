@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Link from 'next/link'
-import { AlertCircle, ChevronRight, Package } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { AlertCircle, ChevronRight, Package, Loader2 } from 'lucide-react'
 import { getActiveOrdersForTable } from '@/lib/actions/order'
 import type { OrderStatus } from '@/app/generated/prisma/client'
 
@@ -25,30 +25,48 @@ interface ActiveOrdersBannerProps {
  * Permet au client de voir rapidement s'il a déjà commandé et d'accéder au tracking
  */
 export function ActiveOrdersBanner({ tableId, tableNumber, restaurantSlug }: ActiveOrdersBannerProps) {
+    const router = useRouter()
     const [orders, setOrders] = useState<ActiveOrder[]>([])
-    const [loading, setLoading] = useState(true)
+    const [isInitialLoading, setIsInitialLoading] = useState(true)
+    const [navigatingToOrderId, setNavigatingToOrderId] = useState<string | null>(null)
 
     useEffect(() => {
-        loadActiveOrders()
+        // Chargement initial
+        loadActiveOrders(true)
         
         // Polling : recharger les commandes toutes les 10 secondes
+        // On passe false pour indiquer que ce n'est pas un chargement initial
         const intervalId = setInterval(() => {
-            loadActiveOrders()
+            loadActiveOrders(false)
         }, 10000) // 10000ms = 10 secondes
 
         // Nettoyer l'intervalle quand le composant est démonté
         return () => clearInterval(intervalId)
     }, [tableId])
 
-    async function loadActiveOrders() {
-        setLoading(true)
+    async function loadActiveOrders(isInitial = false) {
+        // On ne montre le loading que pour le chargement initial
+        // Les rechargements périodiques se font en arrière-plan
+        if (isInitial) {
+            setIsInitialLoading(true)
+        }
+        
         const activeOrders = await getActiveOrdersForTable(tableId)
         setOrders(activeOrders)
-        setLoading(false)
+        
+        if (isInitial) {
+            setIsInitialLoading(false)
+        }
     }
 
-    // Ne rien afficher si pas de commandes actives
-    if (loading || orders.length === 0) {
+    // Fonction pour naviguer vers une commande avec feedback visuel
+    function handleOrderClick(orderId: string) {
+        setNavigatingToOrderId(orderId)
+        router.push(`/r/${restaurantSlug}/t/${tableNumber}/orders/${orderId}`)
+    }
+
+    // Ne rien afficher pendant le chargement initial ou si pas de commandes
+    if (isInitialLoading || orders.length === 0) {
         return null
     }
 
@@ -78,37 +96,46 @@ export function ActiveOrdersBanner({ tableId, tableNumber, restaurantSlug }: Act
 
     return (
         <div className="space-y-2 mb-6">
-            {orders.map((order) => (
-                <Link
-                    key={order.id}
-                    href={`/r/${restaurantSlug}/t/${tableNumber}/orders/${order.id}`}
-                    className={`flex items-center justify-between p-4 rounded-lg border-2 transition-all hover:shadow-md ${getStatusColor(order.status)}`}
-                >
-                    <div className="flex items-center gap-3">
-                        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-white/50 dark:bg-black/20">
-                            <Package className="w-5 h-5" />
-                        </div>
-                        <div>
-                            <div className="flex items-center gap-2">
-                                <span className="font-semibold">
-                                    Commande {order.orderNumber || `#${order.id.slice(0, 8)}`}
-                                </span>
-                                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-white/50 dark:bg-black/20">
-                                    {getStatusLabel(order.status)}
-                                </span>
+            {orders.map((order) => {
+                const isNavigating = navigatingToOrderId === order.id
+                
+                return (
+                    <button
+                        key={order.id}
+                        onClick={() => handleOrderClick(order.id)}
+                        disabled={isNavigating}
+                        className={`w-full flex items-center justify-between p-4 rounded-lg border-2 transition-all hover:shadow-md disabled:opacity-75 disabled:cursor-wait ${getStatusColor(order.status)}`}
+                    >
+                        <div className="flex items-center gap-3">
+                            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-white/50 dark:bg-black/20">
+                                {isNavigating ? (
+                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                ) : (
+                                    <Package className="w-5 h-5" />
+                                )}
                             </div>
-                            <p className="text-sm opacity-90">
-                                {new Intl.NumberFormat('fr-FR', {
-                                    style: 'currency',
-                                    currency: 'XAF',
-                                    minimumFractionDigits: 0,
-                                }).format(order.totalAmount)}
-                            </p>
+                            <div className="text-left">
+                                <div className="flex items-center gap-2">
+                                    <span className="font-semibold">
+                                        Commande {order.orderNumber || `#${order.id.slice(0, 8)}`}
+                                    </span>
+                                    <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-white/50 dark:bg-black/20">
+                                        {getStatusLabel(order.status)}
+                                    </span>
+                                </div>
+                                <p className="text-sm opacity-90">
+                                    {new Intl.NumberFormat('fr-FR', {
+                                        style: 'currency',
+                                        currency: 'XAF',
+                                        minimumFractionDigits: 0,
+                                    }).format(order.totalAmount)}
+                                </p>
+                            </div>
                         </div>
-                    </div>
-                    <ChevronRight className="w-5 h-5 opacity-50" />
-                </Link>
-            ))}
+                        <ChevronRight className={`w-5 h-5 opacity-50 transition-transform ${isNavigating ? 'translate-x-1' : ''}`} />
+                    </button>
+                )
+            })}
 
             {/* Message informatif si plusieurs commandes */}
             {orders.length > 1 && (
