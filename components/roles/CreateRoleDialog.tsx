@@ -68,7 +68,7 @@ export function CreateRoleDialog({
 
                     // Parcourir toutes les permissions pour trouver celles qui correspondent au template
                     Object.values(result.permissions).forEach((categoryPerms) => {
-                        categoryPerms.forEach((perm) => {
+                        (categoryPerms as Permission[]).forEach((perm) => {
                             const matchesTemplate = template.permissions.some(
                                 (tp) => tp.resource === perm.resource && tp.action === perm.action
                             )
