@@ -319,7 +319,7 @@ export async function getRestaurantUsers(restaurantId: string) {
             return { error: 'Non authentifié' }
         }
 
-        // Vérifier que l'utilisateur a accès au restaurant
+        // Vérification simple
         const hasAccess = await prisma.restaurantUser.findUnique({
             where: {
                 userId_restaurantId: {
@@ -327,18 +327,23 @@ export async function getRestaurantUsers(restaurantId: string) {
                     restaurantId: restaurantId,
                 },
             },
+            select: { id: true },
         })
 
         if (!hasAccess) {
             return { error: 'Accès refusé' }
         }
 
-        // Récupérer tous les utilisateurs du restaurant avec leurs rôles
+        // Récupération optimisée
         const restaurantUsers = await prisma.restaurantUser.findMany({
             where: {
                 restaurantId: restaurantId,
             },
-            include: {
+            select: {
+                id: true,
+                userId: true,
+                roleId: true,
+                createdAt: true,
                 customRole: {
                     select: {
                         id: true,
@@ -351,24 +356,23 @@ export async function getRestaurantUsers(restaurantId: string) {
             },
         })
 
-        // Récupérer les emails depuis Supabase Auth
-        const usersWithEmails = await Promise.all(
-            restaurantUsers.map(async (ru) => {
-                // Utiliser l'API admin de Supabase pour récupérer l'email
-                const { data: userData } = await supabase.auth.admin.getUserById(
-                    ru.userId
-                )
+        // Récupérer les emails en batch (plus efficace)
+        const userIds = restaurantUsers.map((ru) => ru.userId)
+        const { data: usersData } = await supabaseAdmin.auth.admin.listUsers()
 
-                return {
-                    id: ru.id,
-                    userId: ru.userId,
-                    email: userData.user?.email || 'Email inconnu',
-                    roleId: ru.roleId,
-                    roleName: ru.customRole?.name || 'Aucun rôle',
-                    createdAt: ru.createdAt.toISOString(),
-                }
-            })
+        // Créer un map pour un accès O(1)
+        const emailMap = new Map(
+            usersData.users.map((u) => [u.id, u.email || 'Email inconnu'])
         )
+
+        const usersWithEmails = restaurantUsers.map((ru) => ({
+            id: ru.id,
+            userId: ru.userId,
+            email: emailMap.get(ru.userId) || 'Email inconnu',
+            roleId: ru.roleId,
+            roleName: ru.customRole?.name || 'Aucun rôle',
+            createdAt: ru.createdAt.toISOString(),
+        }))
 
         return { success: true, users: usersWithEmails }
     } catch (error) {

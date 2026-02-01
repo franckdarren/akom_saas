@@ -2,51 +2,92 @@
 'use client'
 
 import { useRestaurant } from '@/lib/hooks/use-restaurant'
-import { useState, useEffect } from 'react'
-import { hasPermission } from '@/lib/actions/roles'
+import { useState, useEffect, useCallback } from 'react'
+import { getUserPermissions } from '@/lib/actions/roles'
+
+interface PermissionsCache {
+    [key: string]: boolean
+}
 
 interface UsePermissionsReturn {
-    canCreate: (resource: string) => Promise<boolean>
-    canRead: (resource: string) => Promise<boolean>
-    canUpdate: (resource: string) => Promise<boolean>
-    canDelete: (resource: string) => Promise<boolean>
-    canManage: (resource: string) => Promise<boolean>
+    canCreate: (resource: string) => boolean
+    canRead: (resource: string) => boolean
+    canUpdate: (resource: string) => boolean
+    canDelete: (resource: string) => boolean
+    canManage: (resource: string) => boolean
     loading: boolean
-    // Helpers pour les cas courants
     isAdmin: boolean
+    permissions: string[] // Liste de toutes les permissions
 }
 
 export function usePermissions(): UsePermissionsReturn {
     const { currentRestaurant, isSuperAdmin } = useRestaurant()
     const [loading, setLoading] = useState(true)
+    const [permissionsCache, setPermissionsCache] = useState<PermissionsCache>({})
+    const [permissions, setPermissions] = useState<string[]>([])
 
-    // Le SuperAdmin a tous les droits
-    const isSuperAdminUser = isSuperAdmin
-
+    // Charger toutes les permissions une seule fois
     useEffect(() => {
-        // Une fois que le restaurant est chargé, on n'est plus en loading
-        if (currentRestaurant || isSuperAdminUser) {
-            setLoading(false)
-        }
-    }, [currentRestaurant, isSuperAdminUser])
+        async function loadPermissions() {
+            if (!currentRestaurant) {
+                setLoading(false)
+                return
+            }
 
-    async function checkPermission(
-        resource: string,
-        action: string
-    ): Promise<boolean> {
+            // SuperAdmin a tous les droits
+            if (isSuperAdmin) {
+                setPermissionsCache({ '*': true })
+                setLoading(false)
+                return
+            }
+
+            setLoading(true)
+
+            try {
+                const result = await getUserPermissions(currentRestaurant.id)
+
+                if (result.permissions) {
+                    // Créer un cache de permissions pour un accès O(1)
+                    const cache: PermissionsCache = {}
+                    const permList: string[] = []
+
+                    result.permissions.forEach((perm) => {
+                        const key = `${perm.resource}:${perm.action}`
+                        cache[key] = true
+                        permList.push(key)
+
+                        // Si la permission est "manage", elle donne accès à toutes les actions
+                        if (perm.action === 'manage') {
+                            cache[`${perm.resource}:create`] = true
+                            cache[`${perm.resource}:read`] = true
+                            cache[`${perm.resource}:update`] = true
+                            cache[`${perm.resource}:delete`] = true
+                        }
+                    })
+
+                    setPermissionsCache(cache)
+                    setPermissions(permList)
+                }
+            } catch (error) {
+                console.error('Erreur chargement permissions:', error)
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        loadPermissions()
+    }, [currentRestaurant, isSuperAdmin])
+
+    // Fonction helper pour vérifier une permission
+    const checkPermission = useCallback((resource: string, action: string): boolean => {
         // SuperAdmin a tous les droits
-        if (isSuperAdminUser) return true
+        if (isSuperAdmin || permissionsCache['*']) return true
 
-        // Si pas de restaurant sélectionné, pas de permissions
-        if (!currentRestaurant) return false
-
-        try {
-            return await hasPermission(currentRestaurant.id, resource, action)
-        } catch (error) {
-            console.error('Erreur vérification permission:', error)
-            return false
-        }
-    }
+        // Vérifier la permission exacte ou manage
+        return permissionsCache[`${resource}:${action}`] ||
+            permissionsCache[`${resource}:manage`] ||
+            false
+    }, [isSuperAdmin, permissionsCache])
 
     return {
         canCreate: (resource: string) => checkPermission(resource, 'create'),
@@ -55,6 +96,7 @@ export function usePermissions(): UsePermissionsReturn {
         canDelete: (resource: string) => checkPermission(resource, 'delete'),
         canManage: (resource: string) => checkPermission(resource, 'manage'),
         loading,
-        isAdmin: isSuperAdminUser || currentRestaurant?.role === 'admin',
+        isAdmin: isSuperAdmin || permissionsCache['users:manage'] || false,
+        permissions,
     }
 }

@@ -72,13 +72,31 @@ export async function hasPermission(
 // Récupérer toutes les permissions disponibles
 // ============================================================
 
+let permissionsCache: any = null
+let cacheTimestamp: number = 0
+const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
+
 export async function getAllPermissions() {
     try {
+        // Vérifier le cache
+        const now = Date.now()
+        if (permissionsCache && (now - cacheTimestamp) < CACHE_DURATION) {
+            return { success: true, permissions: permissionsCache }
+        }
+
         const permissions = await prisma.permission.findMany({
+            select: {
+                id: true,
+                resource: true,
+                action: true,
+                name: true,
+                description: true,
+                category: true,
+            },
             orderBy: [{ category: 'asc' }, { name: 'asc' }],
         })
 
-        // Regrouper par catégorie pour faciliter l'affichage
+        // Regrouper par catégorie
         const grouped = permissions.reduce((acc, perm) => {
             if (!acc[perm.category]) {
                 acc[perm.category] = []
@@ -86,6 +104,10 @@ export async function getAllPermissions() {
             acc[perm.category].push(perm)
             return acc
         }, {} as Record<string, typeof permissions>)
+
+        // Mettre en cache
+        permissionsCache = grouped
+        cacheTimestamp = now
 
         return { success: true, permissions: grouped }
     } catch (error) {
@@ -100,21 +122,53 @@ export async function getAllPermissions() {
 
 export async function getRestaurantRoles(restaurantId: string) {
     try {
-        // Vérifier l'accès au restaurant
-        const hasAccess = await hasPermission(restaurantId, 'roles', 'read')
+        const supabase = await createClient()
+        const {
+            data: { user },
+        } = await supabase.auth.getUser()
+
+        if (!user) {
+            return { error: 'Non authentifié' }
+        }
+
+        // Vérification simple sans charger toutes les permissions
+        const hasAccess = await prisma.restaurantUser.findUnique({
+            where: {
+                userId_restaurantId: {
+                    userId: user.id,
+                    restaurantId: restaurantId,
+                },
+            },
+            select: { id: true },
+        })
+
         if (!hasAccess) {
             return { error: 'Accès refusé' }
         }
 
+        // Requête optimisée - on charge uniquement ce qui est nécessaire pour l'affichage
         const roles = await prisma.role.findMany({
             where: {
                 restaurantId,
                 isActive: true,
             },
-            include: {
+            select: {
+                id: true,
+                name: true,
+                description: true,
+                isSystem: true,
+                isActive: true,
                 permissions: {
-                    include: {
-                        permission: true,
+                    select: {
+                        permission: {
+                            select: {
+                                id: true,
+                                name: true,
+                                category: true,
+                                resource: true,
+                                action: true,
+                            },
+                        },
                     },
                 },
                 _count: {
@@ -375,5 +429,65 @@ export async function assignRoleToUser(
     } catch (error) {
         console.error('Erreur assignation rôle:', error)
         return { error: 'Erreur lors de l\'assignation du rôle' }
+    }
+}
+
+// ============================================================
+// Récupère TOUTES les permissions en une seule requête
+// ============================================================
+export async function getUserPermissions(restaurantId: string) {
+    try {
+        const supabase = await createClient()
+        const {
+            data: { user },
+        } = await supabase.auth.getUser()
+
+        if (!user) {
+            return { permissions: [] }
+        }
+
+        // Une seule requête pour tout récupérer
+        const restaurantUser = await prisma.restaurantUser.findUnique({
+            where: {
+                userId_restaurantId: {
+                    userId: user.id,
+                    restaurantId: restaurantId,
+                },
+            },
+            include: {
+                customRole: {
+                    include: {
+                        permissions: {
+                            include: {
+                                permission: {
+                                    select: {
+                                        resource: true,
+                                        action: true,
+                                        name: true,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        })
+
+        if (!restaurantUser?.customRole) {
+            return { permissions: [] }
+        }
+
+        const permissions = restaurantUser.customRole.permissions.map(
+            (rp) => ({
+                resource: rp.permission.resource,
+                action: rp.permission.action,
+                name: rp.permission.name,
+            })
+        )
+
+        return { success: true, permissions }
+    } catch (error) {
+        console.error('Erreur getUserPermissions:', error)
+        return { permissions: [] }
     }
 }

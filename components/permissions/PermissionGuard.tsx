@@ -1,7 +1,7 @@
 // components/permissions/PermissionGuard.tsx
 'use client'
 
-import { ReactNode, useEffect, useState } from 'react'
+import { ReactNode } from 'react'
 import { usePermissions } from '@/lib/hooks/use-permissions'
 
 interface PermissionGuardProps {
@@ -20,38 +20,9 @@ export function PermissionGuard({
     showLoading = false,
 }: PermissionGuardProps) {
     const permissions = usePermissions()
-    const [hasAccess, setHasAccess] = useState<boolean | null>(null)
-
-    useEffect(() => {
-        async function checkAccess() {
-            let result = false
-
-            switch (action) {
-                case 'create':
-                    result = await permissions.canCreate(resource)
-                    break
-                case 'read':
-                    result = await permissions.canRead(resource)
-                    break
-                case 'update':
-                    result = await permissions.canUpdate(resource)
-                    break
-                case 'delete':
-                    result = await permissions.canDelete(resource)
-                    break
-                case 'manage':
-                    result = await permissions.canManage(resource)
-                    break
-            }
-
-            setHasAccess(result)
-        }
-
-        checkAccess()
-    }, [resource, action, permissions])
 
     // Pendant le chargement
-    if (hasAccess === null) {
+    if (permissions.loading) {
         if (showLoading) {
             return (
                 <div className="flex items-center justify-center p-4">
@@ -62,11 +33,29 @@ export function PermissionGuard({
         return null
     }
 
-    // Si pas d'accès
+    // Vérification de permission (maintenant instantanée)
+    let hasAccess = false
+    switch (action) {
+        case 'create':
+            hasAccess = permissions.canCreate(resource)
+            break
+        case 'read':
+            hasAccess = permissions.canRead(resource)
+            break
+        case 'update':
+            hasAccess = permissions.canUpdate(resource)
+            break
+        case 'delete':
+            hasAccess = permissions.canDelete(resource)
+            break
+        case 'manage':
+            hasAccess = permissions.canManage(resource)
+            break
+    }
+
     if (!hasAccess) {
         return <>{fallback}</>
     }
 
-    // Si accès autorisé
     return <>{children}</>
 }
