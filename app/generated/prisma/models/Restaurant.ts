@@ -232,6 +232,7 @@ export type RestaurantWhereInput = {
   stockMovements?: Prisma.StockMovementListRelationFilter
   dailyStats?: Prisma.DailyStatsListRelationFilter
   supportTickets?: Prisma.SupportTicketListRelationFilter
+  roles?: Prisma.RoleListRelationFilter
 }
 
 export type RestaurantOrderByWithRelationInput = {
@@ -255,6 +256,7 @@ export type RestaurantOrderByWithRelationInput = {
   stockMovements?: Prisma.StockMovementOrderByRelationAggregateInput
   dailyStats?: Prisma.DailyStatsOrderByRelationAggregateInput
   supportTickets?: Prisma.SupportTicketOrderByRelationAggregateInput
+  roles?: Prisma.RoleOrderByRelationAggregateInput
 }
 
 export type RestaurantWhereUniqueInput = Prisma.AtLeast<{
@@ -281,6 +283,7 @@ export type RestaurantWhereUniqueInput = Prisma.AtLeast<{
   stockMovements?: Prisma.StockMovementListRelationFilter
   dailyStats?: Prisma.DailyStatsListRelationFilter
   supportTickets?: Prisma.SupportTicketListRelationFilter
+  roles?: Prisma.RoleListRelationFilter
 }, "id" | "slug">
 
 export type RestaurantOrderByWithAggregationInput = {
@@ -336,6 +339,7 @@ export type RestaurantCreateInput = {
   stockMovements?: Prisma.StockMovementCreateNestedManyWithoutRestaurantInput
   dailyStats?: Prisma.DailyStatsCreateNestedManyWithoutRestaurantInput
   supportTickets?: Prisma.SupportTicketCreateNestedManyWithoutRestaurantInput
+  roles?: Prisma.RoleCreateNestedManyWithoutRestaurantInput
 }
 
 export type RestaurantUncheckedCreateInput = {
@@ -359,6 +363,7 @@ export type RestaurantUncheckedCreateInput = {
   stockMovements?: Prisma.StockMovementUncheckedCreateNestedManyWithoutRestaurantInput
   dailyStats?: Prisma.DailyStatsUncheckedCreateNestedManyWithoutRestaurantInput
   supportTickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRestaurantInput
+  roles?: Prisma.RoleUncheckedCreateNestedManyWithoutRestaurantInput
 }
 
 export type RestaurantUpdateInput = {
@@ -382,6 +387,7 @@ export type RestaurantUpdateInput = {
   stockMovements?: Prisma.StockMovementUpdateManyWithoutRestaurantNestedInput
   dailyStats?: Prisma.DailyStatsUpdateManyWithoutRestaurantNestedInput
   supportTickets?: Prisma.SupportTicketUpdateManyWithoutRestaurantNestedInput
+  roles?: Prisma.RoleUpdateManyWithoutRestaurantNestedInput
 }
 
 export type RestaurantUncheckedUpdateInput = {
@@ -405,6 +411,7 @@ export type RestaurantUncheckedUpdateInput = {
   stockMovements?: Prisma.StockMovementUncheckedUpdateManyWithoutRestaurantNestedInput
   dailyStats?: Prisma.DailyStatsUncheckedUpdateManyWithoutRestaurantNestedInput
   supportTickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRestaurantNestedInput
+  roles?: Prisma.RoleUncheckedUpdateManyWithoutRestaurantNestedInput
 }
 
 export type RestaurantCreateManyInput = {
@@ -653,6 +660,20 @@ export type RestaurantUpdateOneWithoutDailyStatsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.RestaurantUpdateToOneWithWhereWithoutDailyStatsInput, Prisma.RestaurantUpdateWithoutDailyStatsInput>, Prisma.RestaurantUncheckedUpdateWithoutDailyStatsInput>
 }
 
+export type RestaurantCreateNestedOneWithoutRolesInput = {
+  create?: Prisma.XOR<Prisma.RestaurantCreateWithoutRolesInput, Prisma.RestaurantUncheckedCreateWithoutRolesInput>
+  connectOrCreate?: Prisma.RestaurantCreateOrConnectWithoutRolesInput
+  connect?: Prisma.RestaurantWhereUniqueInput
+}
+
+export type RestaurantUpdateOneRequiredWithoutRolesNestedInput = {
+  create?: Prisma.XOR<Prisma.RestaurantCreateWithoutRolesInput, Prisma.RestaurantUncheckedCreateWithoutRolesInput>
+  connectOrCreate?: Prisma.RestaurantCreateOrConnectWithoutRolesInput
+  upsert?: Prisma.RestaurantUpsertWithoutRolesInput
+  connect?: Prisma.RestaurantWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.RestaurantUpdateToOneWithWhereWithoutRolesInput, Prisma.RestaurantUpdateWithoutRolesInput>, Prisma.RestaurantUncheckedUpdateWithoutRolesInput>
+}
+
 export type RestaurantCreateWithoutUsersInput = {
   id?: string
   name: string
@@ -673,6 +694,7 @@ export type RestaurantCreateWithoutUsersInput = {
   stockMovements?: Prisma.StockMovementCreateNestedManyWithoutRestaurantInput
   dailyStats?: Prisma.DailyStatsCreateNestedManyWithoutRestaurantInput
   supportTickets?: Prisma.SupportTicketCreateNestedManyWithoutRestaurantInput
+  roles?: Prisma.RoleCreateNestedManyWithoutRestaurantInput
 }
 
 export type RestaurantUncheckedCreateWithoutUsersInput = {
@@ -695,6 +717,7 @@ export type RestaurantUncheckedCreateWithoutUsersInput = {
   stockMovements?: Prisma.StockMovementUncheckedCreateNestedManyWithoutRestaurantInput
   dailyStats?: Prisma.DailyStatsUncheckedCreateNestedManyWithoutRestaurantInput
   supportTickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRestaurantInput
+  roles?: Prisma.RoleUncheckedCreateNestedManyWithoutRestaurantInput
 }
 
 export type RestaurantCreateOrConnectWithoutUsersInput = {
@@ -733,6 +756,7 @@ export type RestaurantUpdateWithoutUsersInput = {
   stockMovements?: Prisma.StockMovementUpdateManyWithoutRestaurantNestedInput
   dailyStats?: Prisma.DailyStatsUpdateManyWithoutRestaurantNestedInput
   supportTickets?: Prisma.SupportTicketUpdateManyWithoutRestaurantNestedInput
+  roles?: Prisma.RoleUpdateManyWithoutRestaurantNestedInput
 }
 
 export type RestaurantUncheckedUpdateWithoutUsersInput = {
@@ -755,6 +779,7 @@ export type RestaurantUncheckedUpdateWithoutUsersInput = {
   stockMovements?: Prisma.StockMovementUncheckedUpdateManyWithoutRestaurantNestedInput
   dailyStats?: Prisma.DailyStatsUncheckedUpdateManyWithoutRestaurantNestedInput
   supportTickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRestaurantNestedInput
+  roles?: Prisma.RoleUncheckedUpdateManyWithoutRestaurantNestedInput
 }
 
 export type RestaurantCreateWithoutTablesInput = {
@@ -777,6 +802,7 @@ export type RestaurantCreateWithoutTablesInput = {
   stockMovements?: Prisma.StockMovementCreateNestedManyWithoutRestaurantInput
   dailyStats?: Prisma.DailyStatsCreateNestedManyWithoutRestaurantInput
   supportTickets?: Prisma.SupportTicketCreateNestedManyWithoutRestaurantInput
+  roles?: Prisma.RoleCreateNestedManyWithoutRestaurantInput
 }
 
 export type RestaurantUncheckedCreateWithoutTablesInput = {
@@ -799,6 +825,7 @@ export type RestaurantUncheckedCreateWithoutTablesInput = {
   stockMovements?: Prisma.StockMovementUncheckedCreateNestedManyWithoutRestaurantInput
   dailyStats?: Prisma.DailyStatsUncheckedCreateNestedManyWithoutRestaurantInput
   supportTickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRestaurantInput
+  roles?: Prisma.RoleUncheckedCreateNestedManyWithoutRestaurantInput
 }
 
 export type RestaurantCreateOrConnectWithoutTablesInput = {
@@ -837,6 +864,7 @@ export type RestaurantUpdateWithoutTablesInput = {
   stockMovements?: Prisma.StockMovementUpdateManyWithoutRestaurantNestedInput
   dailyStats?: Prisma.DailyStatsUpdateManyWithoutRestaurantNestedInput
   supportTickets?: Prisma.SupportTicketUpdateManyWithoutRestaurantNestedInput
+  roles?: Prisma.RoleUpdateManyWithoutRestaurantNestedInput
 }
 
 export type RestaurantUncheckedUpdateWithoutTablesInput = {
@@ -859,6 +887,7 @@ export type RestaurantUncheckedUpdateWithoutTablesInput = {
   stockMovements?: Prisma.StockMovementUncheckedUpdateManyWithoutRestaurantNestedInput
   dailyStats?: Prisma.DailyStatsUncheckedUpdateManyWithoutRestaurantNestedInput
   supportTickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRestaurantNestedInput
+  roles?: Prisma.RoleUncheckedUpdateManyWithoutRestaurantNestedInput
 }
 
 export type RestaurantCreateWithoutCategoriesInput = {
@@ -881,6 +910,7 @@ export type RestaurantCreateWithoutCategoriesInput = {
   stockMovements?: Prisma.StockMovementCreateNestedManyWithoutRestaurantInput
   dailyStats?: Prisma.DailyStatsCreateNestedManyWithoutRestaurantInput
   supportTickets?: Prisma.SupportTicketCreateNestedManyWithoutRestaurantInput
+  roles?: Prisma.RoleCreateNestedManyWithoutRestaurantInput
 }
 
 export type RestaurantUncheckedCreateWithoutCategoriesInput = {
@@ -903,6 +933,7 @@ export type RestaurantUncheckedCreateWithoutCategoriesInput = {
   stockMovements?: Prisma.StockMovementUncheckedCreateNestedManyWithoutRestaurantInput
   dailyStats?: Prisma.DailyStatsUncheckedCreateNestedManyWithoutRestaurantInput
   supportTickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRestaurantInput
+  roles?: Prisma.RoleUncheckedCreateNestedManyWithoutRestaurantInput
 }
 
 export type RestaurantCreateOrConnectWithoutCategoriesInput = {
@@ -941,6 +972,7 @@ export type RestaurantUpdateWithoutCategoriesInput = {
   stockMovements?: Prisma.StockMovementUpdateManyWithoutRestaurantNestedInput
   dailyStats?: Prisma.DailyStatsUpdateManyWithoutRestaurantNestedInput
   supportTickets?: Prisma.SupportTicketUpdateManyWithoutRestaurantNestedInput
+  roles?: Prisma.RoleUpdateManyWithoutRestaurantNestedInput
 }
 
 export type RestaurantUncheckedUpdateWithoutCategoriesInput = {
@@ -963,6 +995,7 @@ export type RestaurantUncheckedUpdateWithoutCategoriesInput = {
   stockMovements?: Prisma.StockMovementUncheckedUpdateManyWithoutRestaurantNestedInput
   dailyStats?: Prisma.DailyStatsUncheckedUpdateManyWithoutRestaurantNestedInput
   supportTickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRestaurantNestedInput
+  roles?: Prisma.RoleUncheckedUpdateManyWithoutRestaurantNestedInput
 }
 
 export type RestaurantCreateWithoutProductsInput = {
@@ -985,6 +1018,7 @@ export type RestaurantCreateWithoutProductsInput = {
   stockMovements?: Prisma.StockMovementCreateNestedManyWithoutRestaurantInput
   dailyStats?: Prisma.DailyStatsCreateNestedManyWithoutRestaurantInput
   supportTickets?: Prisma.SupportTicketCreateNestedManyWithoutRestaurantInput
+  roles?: Prisma.RoleCreateNestedManyWithoutRestaurantInput
 }
 
 export type RestaurantUncheckedCreateWithoutProductsInput = {
@@ -1007,6 +1041,7 @@ export type RestaurantUncheckedCreateWithoutProductsInput = {
   stockMovements?: Prisma.StockMovementUncheckedCreateNestedManyWithoutRestaurantInput
   dailyStats?: Prisma.DailyStatsUncheckedCreateNestedManyWithoutRestaurantInput
   supportTickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRestaurantInput
+  roles?: Prisma.RoleUncheckedCreateNestedManyWithoutRestaurantInput
 }
 
 export type RestaurantCreateOrConnectWithoutProductsInput = {
@@ -1045,6 +1080,7 @@ export type RestaurantUpdateWithoutProductsInput = {
   stockMovements?: Prisma.StockMovementUpdateManyWithoutRestaurantNestedInput
   dailyStats?: Prisma.DailyStatsUpdateManyWithoutRestaurantNestedInput
   supportTickets?: Prisma.SupportTicketUpdateManyWithoutRestaurantNestedInput
+  roles?: Prisma.RoleUpdateManyWithoutRestaurantNestedInput
 }
 
 export type RestaurantUncheckedUpdateWithoutProductsInput = {
@@ -1067,6 +1103,7 @@ export type RestaurantUncheckedUpdateWithoutProductsInput = {
   stockMovements?: Prisma.StockMovementUncheckedUpdateManyWithoutRestaurantNestedInput
   dailyStats?: Prisma.DailyStatsUncheckedUpdateManyWithoutRestaurantNestedInput
   supportTickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRestaurantNestedInput
+  roles?: Prisma.RoleUncheckedUpdateManyWithoutRestaurantNestedInput
 }
 
 export type RestaurantCreateWithoutStocksInput = {
@@ -1089,6 +1126,7 @@ export type RestaurantCreateWithoutStocksInput = {
   stockMovements?: Prisma.StockMovementCreateNestedManyWithoutRestaurantInput
   dailyStats?: Prisma.DailyStatsCreateNestedManyWithoutRestaurantInput
   supportTickets?: Prisma.SupportTicketCreateNestedManyWithoutRestaurantInput
+  roles?: Prisma.RoleCreateNestedManyWithoutRestaurantInput
 }
 
 export type RestaurantUncheckedCreateWithoutStocksInput = {
@@ -1111,6 +1149,7 @@ export type RestaurantUncheckedCreateWithoutStocksInput = {
   stockMovements?: Prisma.StockMovementUncheckedCreateNestedManyWithoutRestaurantInput
   dailyStats?: Prisma.DailyStatsUncheckedCreateNestedManyWithoutRestaurantInput
   supportTickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRestaurantInput
+  roles?: Prisma.RoleUncheckedCreateNestedManyWithoutRestaurantInput
 }
 
 export type RestaurantCreateOrConnectWithoutStocksInput = {
@@ -1149,6 +1188,7 @@ export type RestaurantUpdateWithoutStocksInput = {
   stockMovements?: Prisma.StockMovementUpdateManyWithoutRestaurantNestedInput
   dailyStats?: Prisma.DailyStatsUpdateManyWithoutRestaurantNestedInput
   supportTickets?: Prisma.SupportTicketUpdateManyWithoutRestaurantNestedInput
+  roles?: Prisma.RoleUpdateManyWithoutRestaurantNestedInput
 }
 
 export type RestaurantUncheckedUpdateWithoutStocksInput = {
@@ -1171,6 +1211,7 @@ export type RestaurantUncheckedUpdateWithoutStocksInput = {
   stockMovements?: Prisma.StockMovementUncheckedUpdateManyWithoutRestaurantNestedInput
   dailyStats?: Prisma.DailyStatsUncheckedUpdateManyWithoutRestaurantNestedInput
   supportTickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRestaurantNestedInput
+  roles?: Prisma.RoleUncheckedUpdateManyWithoutRestaurantNestedInput
 }
 
 export type RestaurantCreateWithoutOrdersInput = {
@@ -1193,6 +1234,7 @@ export type RestaurantCreateWithoutOrdersInput = {
   stockMovements?: Prisma.StockMovementCreateNestedManyWithoutRestaurantInput
   dailyStats?: Prisma.DailyStatsCreateNestedManyWithoutRestaurantInput
   supportTickets?: Prisma.SupportTicketCreateNestedManyWithoutRestaurantInput
+  roles?: Prisma.RoleCreateNestedManyWithoutRestaurantInput
 }
 
 export type RestaurantUncheckedCreateWithoutOrdersInput = {
@@ -1215,6 +1257,7 @@ export type RestaurantUncheckedCreateWithoutOrdersInput = {
   stockMovements?: Prisma.StockMovementUncheckedCreateNestedManyWithoutRestaurantInput
   dailyStats?: Prisma.DailyStatsUncheckedCreateNestedManyWithoutRestaurantInput
   supportTickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRestaurantInput
+  roles?: Prisma.RoleUncheckedCreateNestedManyWithoutRestaurantInput
 }
 
 export type RestaurantCreateOrConnectWithoutOrdersInput = {
@@ -1253,6 +1296,7 @@ export type RestaurantUpdateWithoutOrdersInput = {
   stockMovements?: Prisma.StockMovementUpdateManyWithoutRestaurantNestedInput
   dailyStats?: Prisma.DailyStatsUpdateManyWithoutRestaurantNestedInput
   supportTickets?: Prisma.SupportTicketUpdateManyWithoutRestaurantNestedInput
+  roles?: Prisma.RoleUpdateManyWithoutRestaurantNestedInput
 }
 
 export type RestaurantUncheckedUpdateWithoutOrdersInput = {
@@ -1275,6 +1319,7 @@ export type RestaurantUncheckedUpdateWithoutOrdersInput = {
   stockMovements?: Prisma.StockMovementUncheckedUpdateManyWithoutRestaurantNestedInput
   dailyStats?: Prisma.DailyStatsUncheckedUpdateManyWithoutRestaurantNestedInput
   supportTickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRestaurantNestedInput
+  roles?: Prisma.RoleUncheckedUpdateManyWithoutRestaurantNestedInput
 }
 
 export type RestaurantCreateWithoutPaymentsInput = {
@@ -1297,6 +1342,7 @@ export type RestaurantCreateWithoutPaymentsInput = {
   stockMovements?: Prisma.StockMovementCreateNestedManyWithoutRestaurantInput
   dailyStats?: Prisma.DailyStatsCreateNestedManyWithoutRestaurantInput
   supportTickets?: Prisma.SupportTicketCreateNestedManyWithoutRestaurantInput
+  roles?: Prisma.RoleCreateNestedManyWithoutRestaurantInput
 }
 
 export type RestaurantUncheckedCreateWithoutPaymentsInput = {
@@ -1319,6 +1365,7 @@ export type RestaurantUncheckedCreateWithoutPaymentsInput = {
   stockMovements?: Prisma.StockMovementUncheckedCreateNestedManyWithoutRestaurantInput
   dailyStats?: Prisma.DailyStatsUncheckedCreateNestedManyWithoutRestaurantInput
   supportTickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRestaurantInput
+  roles?: Prisma.RoleUncheckedCreateNestedManyWithoutRestaurantInput
 }
 
 export type RestaurantCreateOrConnectWithoutPaymentsInput = {
@@ -1357,6 +1404,7 @@ export type RestaurantUpdateWithoutPaymentsInput = {
   stockMovements?: Prisma.StockMovementUpdateManyWithoutRestaurantNestedInput
   dailyStats?: Prisma.DailyStatsUpdateManyWithoutRestaurantNestedInput
   supportTickets?: Prisma.SupportTicketUpdateManyWithoutRestaurantNestedInput
+  roles?: Prisma.RoleUpdateManyWithoutRestaurantNestedInput
 }
 
 export type RestaurantUncheckedUpdateWithoutPaymentsInput = {
@@ -1379,6 +1427,7 @@ export type RestaurantUncheckedUpdateWithoutPaymentsInput = {
   stockMovements?: Prisma.StockMovementUncheckedUpdateManyWithoutRestaurantNestedInput
   dailyStats?: Prisma.DailyStatsUncheckedUpdateManyWithoutRestaurantNestedInput
   supportTickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRestaurantNestedInput
+  roles?: Prisma.RoleUncheckedUpdateManyWithoutRestaurantNestedInput
 }
 
 export type RestaurantCreateWithoutStockMovementsInput = {
@@ -1401,6 +1450,7 @@ export type RestaurantCreateWithoutStockMovementsInput = {
   payments?: Prisma.PaymentCreateNestedManyWithoutRestaurantInput
   dailyStats?: Prisma.DailyStatsCreateNestedManyWithoutRestaurantInput
   supportTickets?: Prisma.SupportTicketCreateNestedManyWithoutRestaurantInput
+  roles?: Prisma.RoleCreateNestedManyWithoutRestaurantInput
 }
 
 export type RestaurantUncheckedCreateWithoutStockMovementsInput = {
@@ -1423,6 +1473,7 @@ export type RestaurantUncheckedCreateWithoutStockMovementsInput = {
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutRestaurantInput
   dailyStats?: Prisma.DailyStatsUncheckedCreateNestedManyWithoutRestaurantInput
   supportTickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRestaurantInput
+  roles?: Prisma.RoleUncheckedCreateNestedManyWithoutRestaurantInput
 }
 
 export type RestaurantCreateOrConnectWithoutStockMovementsInput = {
@@ -1461,6 +1512,7 @@ export type RestaurantUpdateWithoutStockMovementsInput = {
   payments?: Prisma.PaymentUpdateManyWithoutRestaurantNestedInput
   dailyStats?: Prisma.DailyStatsUpdateManyWithoutRestaurantNestedInput
   supportTickets?: Prisma.SupportTicketUpdateManyWithoutRestaurantNestedInput
+  roles?: Prisma.RoleUpdateManyWithoutRestaurantNestedInput
 }
 
 export type RestaurantUncheckedUpdateWithoutStockMovementsInput = {
@@ -1483,6 +1535,7 @@ export type RestaurantUncheckedUpdateWithoutStockMovementsInput = {
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutRestaurantNestedInput
   dailyStats?: Prisma.DailyStatsUncheckedUpdateManyWithoutRestaurantNestedInput
   supportTickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRestaurantNestedInput
+  roles?: Prisma.RoleUncheckedUpdateManyWithoutRestaurantNestedInput
 }
 
 export type RestaurantCreateWithoutSupportTicketsInput = {
@@ -1505,6 +1558,7 @@ export type RestaurantCreateWithoutSupportTicketsInput = {
   payments?: Prisma.PaymentCreateNestedManyWithoutRestaurantInput
   stockMovements?: Prisma.StockMovementCreateNestedManyWithoutRestaurantInput
   dailyStats?: Prisma.DailyStatsCreateNestedManyWithoutRestaurantInput
+  roles?: Prisma.RoleCreateNestedManyWithoutRestaurantInput
 }
 
 export type RestaurantUncheckedCreateWithoutSupportTicketsInput = {
@@ -1527,6 +1581,7 @@ export type RestaurantUncheckedCreateWithoutSupportTicketsInput = {
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutRestaurantInput
   stockMovements?: Prisma.StockMovementUncheckedCreateNestedManyWithoutRestaurantInput
   dailyStats?: Prisma.DailyStatsUncheckedCreateNestedManyWithoutRestaurantInput
+  roles?: Prisma.RoleUncheckedCreateNestedManyWithoutRestaurantInput
 }
 
 export type RestaurantCreateOrConnectWithoutSupportTicketsInput = {
@@ -1565,6 +1620,7 @@ export type RestaurantUpdateWithoutSupportTicketsInput = {
   payments?: Prisma.PaymentUpdateManyWithoutRestaurantNestedInput
   stockMovements?: Prisma.StockMovementUpdateManyWithoutRestaurantNestedInput
   dailyStats?: Prisma.DailyStatsUpdateManyWithoutRestaurantNestedInput
+  roles?: Prisma.RoleUpdateManyWithoutRestaurantNestedInput
 }
 
 export type RestaurantUncheckedUpdateWithoutSupportTicketsInput = {
@@ -1587,6 +1643,7 @@ export type RestaurantUncheckedUpdateWithoutSupportTicketsInput = {
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutRestaurantNestedInput
   stockMovements?: Prisma.StockMovementUncheckedUpdateManyWithoutRestaurantNestedInput
   dailyStats?: Prisma.DailyStatsUncheckedUpdateManyWithoutRestaurantNestedInput
+  roles?: Prisma.RoleUncheckedUpdateManyWithoutRestaurantNestedInput
 }
 
 export type RestaurantCreateWithoutDailyStatsInput = {
@@ -1609,6 +1666,7 @@ export type RestaurantCreateWithoutDailyStatsInput = {
   payments?: Prisma.PaymentCreateNestedManyWithoutRestaurantInput
   stockMovements?: Prisma.StockMovementCreateNestedManyWithoutRestaurantInput
   supportTickets?: Prisma.SupportTicketCreateNestedManyWithoutRestaurantInput
+  roles?: Prisma.RoleCreateNestedManyWithoutRestaurantInput
 }
 
 export type RestaurantUncheckedCreateWithoutDailyStatsInput = {
@@ -1631,6 +1689,7 @@ export type RestaurantUncheckedCreateWithoutDailyStatsInput = {
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutRestaurantInput
   stockMovements?: Prisma.StockMovementUncheckedCreateNestedManyWithoutRestaurantInput
   supportTickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRestaurantInput
+  roles?: Prisma.RoleUncheckedCreateNestedManyWithoutRestaurantInput
 }
 
 export type RestaurantCreateOrConnectWithoutDailyStatsInput = {
@@ -1669,6 +1728,7 @@ export type RestaurantUpdateWithoutDailyStatsInput = {
   payments?: Prisma.PaymentUpdateManyWithoutRestaurantNestedInput
   stockMovements?: Prisma.StockMovementUpdateManyWithoutRestaurantNestedInput
   supportTickets?: Prisma.SupportTicketUpdateManyWithoutRestaurantNestedInput
+  roles?: Prisma.RoleUpdateManyWithoutRestaurantNestedInput
 }
 
 export type RestaurantUncheckedUpdateWithoutDailyStatsInput = {
@@ -1691,6 +1751,115 @@ export type RestaurantUncheckedUpdateWithoutDailyStatsInput = {
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutRestaurantNestedInput
   stockMovements?: Prisma.StockMovementUncheckedUpdateManyWithoutRestaurantNestedInput
   supportTickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRestaurantNestedInput
+  roles?: Prisma.RoleUncheckedUpdateManyWithoutRestaurantNestedInput
+}
+
+export type RestaurantCreateWithoutRolesInput = {
+  id?: string
+  name: string
+  slug: string
+  phone?: string | null
+  address?: string | null
+  logoUrl?: string | null
+  coverImageUrl?: string | null
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  users?: Prisma.RestaurantUserCreateNestedManyWithoutRestaurantInput
+  tables?: Prisma.TableCreateNestedManyWithoutRestaurantInput
+  categories?: Prisma.CategoryCreateNestedManyWithoutRestaurantInput
+  products?: Prisma.ProductCreateNestedManyWithoutRestaurantInput
+  stocks?: Prisma.StockCreateNestedManyWithoutRestaurantInput
+  orders?: Prisma.OrderCreateNestedManyWithoutRestaurantInput
+  payments?: Prisma.PaymentCreateNestedManyWithoutRestaurantInput
+  stockMovements?: Prisma.StockMovementCreateNestedManyWithoutRestaurantInput
+  dailyStats?: Prisma.DailyStatsCreateNestedManyWithoutRestaurantInput
+  supportTickets?: Prisma.SupportTicketCreateNestedManyWithoutRestaurantInput
+}
+
+export type RestaurantUncheckedCreateWithoutRolesInput = {
+  id?: string
+  name: string
+  slug: string
+  phone?: string | null
+  address?: string | null
+  logoUrl?: string | null
+  coverImageUrl?: string | null
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  users?: Prisma.RestaurantUserUncheckedCreateNestedManyWithoutRestaurantInput
+  tables?: Prisma.TableUncheckedCreateNestedManyWithoutRestaurantInput
+  categories?: Prisma.CategoryUncheckedCreateNestedManyWithoutRestaurantInput
+  products?: Prisma.ProductUncheckedCreateNestedManyWithoutRestaurantInput
+  stocks?: Prisma.StockUncheckedCreateNestedManyWithoutRestaurantInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutRestaurantInput
+  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutRestaurantInput
+  stockMovements?: Prisma.StockMovementUncheckedCreateNestedManyWithoutRestaurantInput
+  dailyStats?: Prisma.DailyStatsUncheckedCreateNestedManyWithoutRestaurantInput
+  supportTickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRestaurantInput
+}
+
+export type RestaurantCreateOrConnectWithoutRolesInput = {
+  where: Prisma.RestaurantWhereUniqueInput
+  create: Prisma.XOR<Prisma.RestaurantCreateWithoutRolesInput, Prisma.RestaurantUncheckedCreateWithoutRolesInput>
+}
+
+export type RestaurantUpsertWithoutRolesInput = {
+  update: Prisma.XOR<Prisma.RestaurantUpdateWithoutRolesInput, Prisma.RestaurantUncheckedUpdateWithoutRolesInput>
+  create: Prisma.XOR<Prisma.RestaurantCreateWithoutRolesInput, Prisma.RestaurantUncheckedCreateWithoutRolesInput>
+  where?: Prisma.RestaurantWhereInput
+}
+
+export type RestaurantUpdateToOneWithWhereWithoutRolesInput = {
+  where?: Prisma.RestaurantWhereInput
+  data: Prisma.XOR<Prisma.RestaurantUpdateWithoutRolesInput, Prisma.RestaurantUncheckedUpdateWithoutRolesInput>
+}
+
+export type RestaurantUpdateWithoutRolesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  users?: Prisma.RestaurantUserUpdateManyWithoutRestaurantNestedInput
+  tables?: Prisma.TableUpdateManyWithoutRestaurantNestedInput
+  categories?: Prisma.CategoryUpdateManyWithoutRestaurantNestedInput
+  products?: Prisma.ProductUpdateManyWithoutRestaurantNestedInput
+  stocks?: Prisma.StockUpdateManyWithoutRestaurantNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutRestaurantNestedInput
+  payments?: Prisma.PaymentUpdateManyWithoutRestaurantNestedInput
+  stockMovements?: Prisma.StockMovementUpdateManyWithoutRestaurantNestedInput
+  dailyStats?: Prisma.DailyStatsUpdateManyWithoutRestaurantNestedInput
+  supportTickets?: Prisma.SupportTicketUpdateManyWithoutRestaurantNestedInput
+}
+
+export type RestaurantUncheckedUpdateWithoutRolesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  users?: Prisma.RestaurantUserUncheckedUpdateManyWithoutRestaurantNestedInput
+  tables?: Prisma.TableUncheckedUpdateManyWithoutRestaurantNestedInput
+  categories?: Prisma.CategoryUncheckedUpdateManyWithoutRestaurantNestedInput
+  products?: Prisma.ProductUncheckedUpdateManyWithoutRestaurantNestedInput
+  stocks?: Prisma.StockUncheckedUpdateManyWithoutRestaurantNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutRestaurantNestedInput
+  payments?: Prisma.PaymentUncheckedUpdateManyWithoutRestaurantNestedInput
+  stockMovements?: Prisma.StockMovementUncheckedUpdateManyWithoutRestaurantNestedInput
+  dailyStats?: Prisma.DailyStatsUncheckedUpdateManyWithoutRestaurantNestedInput
+  supportTickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRestaurantNestedInput
 }
 
 
@@ -1709,6 +1878,7 @@ export type RestaurantCountOutputType = {
   stockMovements: number
   dailyStats: number
   supportTickets: number
+  roles: number
 }
 
 export type RestaurantCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1722,6 +1892,7 @@ export type RestaurantCountOutputTypeSelect<ExtArgs extends runtime.Types.Extens
   stockMovements?: boolean | RestaurantCountOutputTypeCountStockMovementsArgs
   dailyStats?: boolean | RestaurantCountOutputTypeCountDailyStatsArgs
   supportTickets?: boolean | RestaurantCountOutputTypeCountSupportTicketsArgs
+  roles?: boolean | RestaurantCountOutputTypeCountRolesArgs
 }
 
 /**
@@ -1804,6 +1975,13 @@ export type RestaurantCountOutputTypeCountSupportTicketsArgs<ExtArgs extends run
   where?: Prisma.SupportTicketWhereInput
 }
 
+/**
+ * RestaurantCountOutputType without action
+ */
+export type RestaurantCountOutputTypeCountRolesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.RoleWhereInput
+}
+
 
 export type RestaurantSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1826,6 +2004,7 @@ export type RestaurantSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   stockMovements?: boolean | Prisma.Restaurant$stockMovementsArgs<ExtArgs>
   dailyStats?: boolean | Prisma.Restaurant$dailyStatsArgs<ExtArgs>
   supportTickets?: boolean | Prisma.Restaurant$supportTicketsArgs<ExtArgs>
+  roles?: boolean | Prisma.Restaurant$rolesArgs<ExtArgs>
   _count?: boolean | Prisma.RestaurantCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["restaurant"]>
 
@@ -1880,6 +2059,7 @@ export type RestaurantInclude<ExtArgs extends runtime.Types.Extensions.InternalA
   stockMovements?: boolean | Prisma.Restaurant$stockMovementsArgs<ExtArgs>
   dailyStats?: boolean | Prisma.Restaurant$dailyStatsArgs<ExtArgs>
   supportTickets?: boolean | Prisma.Restaurant$supportTicketsArgs<ExtArgs>
+  roles?: boolean | Prisma.Restaurant$rolesArgs<ExtArgs>
   _count?: boolean | Prisma.RestaurantCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type RestaurantIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -1898,6 +2078,7 @@ export type $RestaurantPayload<ExtArgs extends runtime.Types.Extensions.Internal
     stockMovements: Prisma.$StockMovementPayload<ExtArgs>[]
     dailyStats: Prisma.$DailyStatsPayload<ExtArgs>[]
     supportTickets: Prisma.$SupportTicketPayload<ExtArgs>[]
+    roles: Prisma.$RolePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -2314,6 +2495,7 @@ export interface Prisma__RestaurantClient<T, Null = never, ExtArgs extends runti
   stockMovements<T extends Prisma.Restaurant$stockMovementsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Restaurant$stockMovementsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$StockMovementPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   dailyStats<T extends Prisma.Restaurant$dailyStatsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Restaurant$dailyStatsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DailyStatsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   supportTickets<T extends Prisma.Restaurant$supportTicketsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Restaurant$supportTicketsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SupportTicketPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  roles<T extends Prisma.Restaurant$rolesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Restaurant$rolesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RolePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2978,6 +3160,30 @@ export type Restaurant$supportTicketsArgs<ExtArgs extends runtime.Types.Extensio
   take?: number
   skip?: number
   distinct?: Prisma.SupportTicketScalarFieldEnum | Prisma.SupportTicketScalarFieldEnum[]
+}
+
+/**
+ * Restaurant.roles
+ */
+export type Restaurant$rolesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Role
+   */
+  select?: Prisma.RoleSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Role
+   */
+  omit?: Prisma.RoleOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RoleInclude<ExtArgs> | null
+  where?: Prisma.RoleWhereInput
+  orderBy?: Prisma.RoleOrderByWithRelationInput | Prisma.RoleOrderByWithRelationInput[]
+  cursor?: Prisma.RoleWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.RoleScalarFieldEnum | Prisma.RoleScalarFieldEnum[]
 }
 
 /**

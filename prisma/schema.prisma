@@ -87,6 +87,33 @@ enum LogLevel {
   @@map("log_level")
 }
 
+enum PermissionResource {
+  restaurants
+  users
+  menu
+  categories
+  products
+  tables
+  orders
+  stocks
+  payments
+  stats
+  roles
+
+  @@map("permission_resource")
+}
+
+enum PermissionAction {
+  create
+  read
+  update
+  delete
+  manage  // Accès complet à la ressource
+
+  @@map("permission_action")
+}
+
+
 // ============================================================
 // MODELS
 // ============================================================
@@ -114,6 +141,7 @@ model Restaurant {
   stockMovements StockMovement[]
   dailyStats     DailyStats[]
   supportTickets SupportTicket[]
+  roles          Role[]  
 
   @@map("restaurants")
 }
@@ -122,11 +150,13 @@ model RestaurantUser {
   id           String   @id @default(uuid()) @db.Uuid
   userId       String   @map("user_id") @db.Uuid
   restaurantId String   @map("restaurant_id") @db.Uuid
-  role         UserRole
+  role         UserRole?
   createdAt    DateTime @default(now()) @map("created_at")
+  roleId       String?  @map("role_id") @db.Uuid
 
   // Relations
   restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  customRole Role?      @relation(fields: [roleId], references: [id], onDelete: SetNull)
 
   @@unique([userId, restaurantId])
   @@index([userId])
@@ -372,3 +402,57 @@ model SystemLog {
   @@index([action])
   @@map("system_logs")
 }
+
+
+model Role {
+  id           String   @id @default(uuid()) @db.Uuid
+  restaurantId String   @map("restaurant_id") @db.Uuid
+  name         String
+  description  String?
+  isSystem     Boolean  @default(false) @map("is_system") // true pour admin et kitchen
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  restaurant     Restaurant       @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  permissions    RolePermission[]
+  restaurantUsers RestaurantUser[]
+
+  @@unique([restaurantId, name])
+  @@index([restaurantId, isActive])
+  @@map("roles")
+}
+
+model Permission {
+  id          String             @id @default(uuid()) @db.Uuid
+  resource    PermissionResource
+  action      PermissionAction
+  name        String             // Nom lisible: "Créer des produits"
+  description String?            // Description détaillée
+  category    String             // Pour regrouper dans l'UI: "Menu", "Commandes", etc.
+  isSystem    Boolean            @default(true) @map("is_system")
+
+  // Relations
+  rolePermissions RolePermission[]
+
+  @@unique([resource, action])
+  @@index([category])
+  @@map("permissions")
+}
+
+model RolePermission {
+  id           String   @id @default(uuid()) @db.Uuid
+  roleId       String   @map("role_id") @db.Uuid
+  permissionId String   @map("permission_id") @db.Uuid
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  // Relations
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@index([roleId])
+  @@map("role_permissions")
+}
+

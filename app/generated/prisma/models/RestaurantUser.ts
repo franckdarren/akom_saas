@@ -30,6 +30,7 @@ export type RestaurantUserMinAggregateOutputType = {
   restaurantId: string | null
   role: $Enums.UserRole | null
   createdAt: Date | null
+  roleId: string | null
 }
 
 export type RestaurantUserMaxAggregateOutputType = {
@@ -38,6 +39,7 @@ export type RestaurantUserMaxAggregateOutputType = {
   restaurantId: string | null
   role: $Enums.UserRole | null
   createdAt: Date | null
+  roleId: string | null
 }
 
 export type RestaurantUserCountAggregateOutputType = {
@@ -46,6 +48,7 @@ export type RestaurantUserCountAggregateOutputType = {
   restaurantId: number
   role: number
   createdAt: number
+  roleId: number
   _all: number
 }
 
@@ -56,6 +59,7 @@ export type RestaurantUserMinAggregateInputType = {
   restaurantId?: true
   role?: true
   createdAt?: true
+  roleId?: true
 }
 
 export type RestaurantUserMaxAggregateInputType = {
@@ -64,6 +68,7 @@ export type RestaurantUserMaxAggregateInputType = {
   restaurantId?: true
   role?: true
   createdAt?: true
+  roleId?: true
 }
 
 export type RestaurantUserCountAggregateInputType = {
@@ -72,6 +77,7 @@ export type RestaurantUserCountAggregateInputType = {
   restaurantId?: true
   role?: true
   createdAt?: true
+  roleId?: true
   _all?: true
 }
 
@@ -151,8 +157,9 @@ export type RestaurantUserGroupByOutputType = {
   id: string
   userId: string
   restaurantId: string
-  role: $Enums.UserRole
+  role: $Enums.UserRole | null
   createdAt: Date
+  roleId: string | null
   _count: RestaurantUserCountAggregateOutputType | null
   _min: RestaurantUserMinAggregateOutputType | null
   _max: RestaurantUserMaxAggregateOutputType | null
@@ -180,18 +187,22 @@ export type RestaurantUserWhereInput = {
   id?: Prisma.UuidFilter<"RestaurantUser"> | string
   userId?: Prisma.UuidFilter<"RestaurantUser"> | string
   restaurantId?: Prisma.UuidFilter<"RestaurantUser"> | string
-  role?: Prisma.EnumUserRoleFilter<"RestaurantUser"> | $Enums.UserRole
+  role?: Prisma.EnumUserRoleNullableFilter<"RestaurantUser"> | $Enums.UserRole | null
   createdAt?: Prisma.DateTimeFilter<"RestaurantUser"> | Date | string
+  roleId?: Prisma.UuidNullableFilter<"RestaurantUser"> | string | null
   restaurant?: Prisma.XOR<Prisma.RestaurantScalarRelationFilter, Prisma.RestaurantWhereInput>
+  customRole?: Prisma.XOR<Prisma.RoleNullableScalarRelationFilter, Prisma.RoleWhereInput> | null
 }
 
 export type RestaurantUserOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   restaurantId?: Prisma.SortOrder
-  role?: Prisma.SortOrder
+  role?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  roleId?: Prisma.SortOrderInput | Prisma.SortOrder
   restaurant?: Prisma.RestaurantOrderByWithRelationInput
+  customRole?: Prisma.RoleOrderByWithRelationInput
 }
 
 export type RestaurantUserWhereUniqueInput = Prisma.AtLeast<{
@@ -202,17 +213,20 @@ export type RestaurantUserWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.RestaurantUserWhereInput | Prisma.RestaurantUserWhereInput[]
   userId?: Prisma.UuidFilter<"RestaurantUser"> | string
   restaurantId?: Prisma.UuidFilter<"RestaurantUser"> | string
-  role?: Prisma.EnumUserRoleFilter<"RestaurantUser"> | $Enums.UserRole
+  role?: Prisma.EnumUserRoleNullableFilter<"RestaurantUser"> | $Enums.UserRole | null
   createdAt?: Prisma.DateTimeFilter<"RestaurantUser"> | Date | string
+  roleId?: Prisma.UuidNullableFilter<"RestaurantUser"> | string | null
   restaurant?: Prisma.XOR<Prisma.RestaurantScalarRelationFilter, Prisma.RestaurantWhereInput>
+  customRole?: Prisma.XOR<Prisma.RoleNullableScalarRelationFilter, Prisma.RoleWhereInput> | null
 }, "id" | "userId_restaurantId">
 
 export type RestaurantUserOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   restaurantId?: Prisma.SortOrder
-  role?: Prisma.SortOrder
+  role?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  roleId?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.RestaurantUserCountOrderByAggregateInput
   _max?: Prisma.RestaurantUserMaxOrderByAggregateInput
   _min?: Prisma.RestaurantUserMinOrderByAggregateInput
@@ -225,54 +239,60 @@ export type RestaurantUserScalarWhereWithAggregatesInput = {
   id?: Prisma.UuidWithAggregatesFilter<"RestaurantUser"> | string
   userId?: Prisma.UuidWithAggregatesFilter<"RestaurantUser"> | string
   restaurantId?: Prisma.UuidWithAggregatesFilter<"RestaurantUser"> | string
-  role?: Prisma.EnumUserRoleWithAggregatesFilter<"RestaurantUser"> | $Enums.UserRole
+  role?: Prisma.EnumUserRoleNullableWithAggregatesFilter<"RestaurantUser"> | $Enums.UserRole | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"RestaurantUser"> | Date | string
+  roleId?: Prisma.UuidNullableWithAggregatesFilter<"RestaurantUser"> | string | null
 }
 
 export type RestaurantUserCreateInput = {
   id?: string
   userId: string
-  role: $Enums.UserRole
+  role?: $Enums.UserRole | null
   createdAt?: Date | string
   restaurant: Prisma.RestaurantCreateNestedOneWithoutUsersInput
+  customRole?: Prisma.RoleCreateNestedOneWithoutRestaurantUsersInput
 }
 
 export type RestaurantUserUncheckedCreateInput = {
   id?: string
   userId: string
   restaurantId: string
-  role: $Enums.UserRole
+  role?: $Enums.UserRole | null
   createdAt?: Date | string
+  roleId?: string | null
 }
 
 export type RestaurantUserUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  role?: Prisma.NullableEnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   restaurant?: Prisma.RestaurantUpdateOneRequiredWithoutUsersNestedInput
+  customRole?: Prisma.RoleUpdateOneWithoutRestaurantUsersNestedInput
 }
 
 export type RestaurantUserUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   restaurantId?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  role?: Prisma.NullableEnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  roleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type RestaurantUserCreateManyInput = {
   id?: string
   userId: string
   restaurantId: string
-  role: $Enums.UserRole
+  role?: $Enums.UserRole | null
   createdAt?: Date | string
+  roleId?: string | null
 }
 
 export type RestaurantUserUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  role?: Prisma.NullableEnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -280,8 +300,9 @@ export type RestaurantUserUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   restaurantId?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  role?: Prisma.NullableEnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  roleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type RestaurantUserListRelationFilter = {
@@ -305,6 +326,7 @@ export type RestaurantUserCountOrderByAggregateInput = {
   restaurantId?: Prisma.SortOrder
   role?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  roleId?: Prisma.SortOrder
 }
 
 export type RestaurantUserMaxOrderByAggregateInput = {
@@ -313,6 +335,7 @@ export type RestaurantUserMaxOrderByAggregateInput = {
   restaurantId?: Prisma.SortOrder
   role?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  roleId?: Prisma.SortOrder
 }
 
 export type RestaurantUserMinOrderByAggregateInput = {
@@ -321,6 +344,7 @@ export type RestaurantUserMinOrderByAggregateInput = {
   restaurantId?: Prisma.SortOrder
   role?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  roleId?: Prisma.SortOrder
 }
 
 export type RestaurantUserCreateNestedManyWithoutRestaurantInput = {
@@ -365,22 +389,66 @@ export type RestaurantUserUncheckedUpdateManyWithoutRestaurantNestedInput = {
   deleteMany?: Prisma.RestaurantUserScalarWhereInput | Prisma.RestaurantUserScalarWhereInput[]
 }
 
-export type EnumUserRoleFieldUpdateOperationsInput = {
-  set?: $Enums.UserRole
+export type NullableEnumUserRoleFieldUpdateOperationsInput = {
+  set?: $Enums.UserRole | null
+}
+
+export type RestaurantUserCreateNestedManyWithoutCustomRoleInput = {
+  create?: Prisma.XOR<Prisma.RestaurantUserCreateWithoutCustomRoleInput, Prisma.RestaurantUserUncheckedCreateWithoutCustomRoleInput> | Prisma.RestaurantUserCreateWithoutCustomRoleInput[] | Prisma.RestaurantUserUncheckedCreateWithoutCustomRoleInput[]
+  connectOrCreate?: Prisma.RestaurantUserCreateOrConnectWithoutCustomRoleInput | Prisma.RestaurantUserCreateOrConnectWithoutCustomRoleInput[]
+  createMany?: Prisma.RestaurantUserCreateManyCustomRoleInputEnvelope
+  connect?: Prisma.RestaurantUserWhereUniqueInput | Prisma.RestaurantUserWhereUniqueInput[]
+}
+
+export type RestaurantUserUncheckedCreateNestedManyWithoutCustomRoleInput = {
+  create?: Prisma.XOR<Prisma.RestaurantUserCreateWithoutCustomRoleInput, Prisma.RestaurantUserUncheckedCreateWithoutCustomRoleInput> | Prisma.RestaurantUserCreateWithoutCustomRoleInput[] | Prisma.RestaurantUserUncheckedCreateWithoutCustomRoleInput[]
+  connectOrCreate?: Prisma.RestaurantUserCreateOrConnectWithoutCustomRoleInput | Prisma.RestaurantUserCreateOrConnectWithoutCustomRoleInput[]
+  createMany?: Prisma.RestaurantUserCreateManyCustomRoleInputEnvelope
+  connect?: Prisma.RestaurantUserWhereUniqueInput | Prisma.RestaurantUserWhereUniqueInput[]
+}
+
+export type RestaurantUserUpdateManyWithoutCustomRoleNestedInput = {
+  create?: Prisma.XOR<Prisma.RestaurantUserCreateWithoutCustomRoleInput, Prisma.RestaurantUserUncheckedCreateWithoutCustomRoleInput> | Prisma.RestaurantUserCreateWithoutCustomRoleInput[] | Prisma.RestaurantUserUncheckedCreateWithoutCustomRoleInput[]
+  connectOrCreate?: Prisma.RestaurantUserCreateOrConnectWithoutCustomRoleInput | Prisma.RestaurantUserCreateOrConnectWithoutCustomRoleInput[]
+  upsert?: Prisma.RestaurantUserUpsertWithWhereUniqueWithoutCustomRoleInput | Prisma.RestaurantUserUpsertWithWhereUniqueWithoutCustomRoleInput[]
+  createMany?: Prisma.RestaurantUserCreateManyCustomRoleInputEnvelope
+  set?: Prisma.RestaurantUserWhereUniqueInput | Prisma.RestaurantUserWhereUniqueInput[]
+  disconnect?: Prisma.RestaurantUserWhereUniqueInput | Prisma.RestaurantUserWhereUniqueInput[]
+  delete?: Prisma.RestaurantUserWhereUniqueInput | Prisma.RestaurantUserWhereUniqueInput[]
+  connect?: Prisma.RestaurantUserWhereUniqueInput | Prisma.RestaurantUserWhereUniqueInput[]
+  update?: Prisma.RestaurantUserUpdateWithWhereUniqueWithoutCustomRoleInput | Prisma.RestaurantUserUpdateWithWhereUniqueWithoutCustomRoleInput[]
+  updateMany?: Prisma.RestaurantUserUpdateManyWithWhereWithoutCustomRoleInput | Prisma.RestaurantUserUpdateManyWithWhereWithoutCustomRoleInput[]
+  deleteMany?: Prisma.RestaurantUserScalarWhereInput | Prisma.RestaurantUserScalarWhereInput[]
+}
+
+export type RestaurantUserUncheckedUpdateManyWithoutCustomRoleNestedInput = {
+  create?: Prisma.XOR<Prisma.RestaurantUserCreateWithoutCustomRoleInput, Prisma.RestaurantUserUncheckedCreateWithoutCustomRoleInput> | Prisma.RestaurantUserCreateWithoutCustomRoleInput[] | Prisma.RestaurantUserUncheckedCreateWithoutCustomRoleInput[]
+  connectOrCreate?: Prisma.RestaurantUserCreateOrConnectWithoutCustomRoleInput | Prisma.RestaurantUserCreateOrConnectWithoutCustomRoleInput[]
+  upsert?: Prisma.RestaurantUserUpsertWithWhereUniqueWithoutCustomRoleInput | Prisma.RestaurantUserUpsertWithWhereUniqueWithoutCustomRoleInput[]
+  createMany?: Prisma.RestaurantUserCreateManyCustomRoleInputEnvelope
+  set?: Prisma.RestaurantUserWhereUniqueInput | Prisma.RestaurantUserWhereUniqueInput[]
+  disconnect?: Prisma.RestaurantUserWhereUniqueInput | Prisma.RestaurantUserWhereUniqueInput[]
+  delete?: Prisma.RestaurantUserWhereUniqueInput | Prisma.RestaurantUserWhereUniqueInput[]
+  connect?: Prisma.RestaurantUserWhereUniqueInput | Prisma.RestaurantUserWhereUniqueInput[]
+  update?: Prisma.RestaurantUserUpdateWithWhereUniqueWithoutCustomRoleInput | Prisma.RestaurantUserUpdateWithWhereUniqueWithoutCustomRoleInput[]
+  updateMany?: Prisma.RestaurantUserUpdateManyWithWhereWithoutCustomRoleInput | Prisma.RestaurantUserUpdateManyWithWhereWithoutCustomRoleInput[]
+  deleteMany?: Prisma.RestaurantUserScalarWhereInput | Prisma.RestaurantUserScalarWhereInput[]
 }
 
 export type RestaurantUserCreateWithoutRestaurantInput = {
   id?: string
   userId: string
-  role: $Enums.UserRole
+  role?: $Enums.UserRole | null
   createdAt?: Date | string
+  customRole?: Prisma.RoleCreateNestedOneWithoutRestaurantUsersInput
 }
 
 export type RestaurantUserUncheckedCreateWithoutRestaurantInput = {
   id?: string
   userId: string
-  role: $Enums.UserRole
+  role?: $Enums.UserRole | null
   createdAt?: Date | string
+  roleId?: string | null
 }
 
 export type RestaurantUserCreateOrConnectWithoutRestaurantInput = {
@@ -416,35 +484,114 @@ export type RestaurantUserScalarWhereInput = {
   id?: Prisma.UuidFilter<"RestaurantUser"> | string
   userId?: Prisma.UuidFilter<"RestaurantUser"> | string
   restaurantId?: Prisma.UuidFilter<"RestaurantUser"> | string
-  role?: Prisma.EnumUserRoleFilter<"RestaurantUser"> | $Enums.UserRole
+  role?: Prisma.EnumUserRoleNullableFilter<"RestaurantUser"> | $Enums.UserRole | null
   createdAt?: Prisma.DateTimeFilter<"RestaurantUser"> | Date | string
+  roleId?: Prisma.UuidNullableFilter<"RestaurantUser"> | string | null
+}
+
+export type RestaurantUserCreateWithoutCustomRoleInput = {
+  id?: string
+  userId: string
+  role?: $Enums.UserRole | null
+  createdAt?: Date | string
+  restaurant: Prisma.RestaurantCreateNestedOneWithoutUsersInput
+}
+
+export type RestaurantUserUncheckedCreateWithoutCustomRoleInput = {
+  id?: string
+  userId: string
+  restaurantId: string
+  role?: $Enums.UserRole | null
+  createdAt?: Date | string
+}
+
+export type RestaurantUserCreateOrConnectWithoutCustomRoleInput = {
+  where: Prisma.RestaurantUserWhereUniqueInput
+  create: Prisma.XOR<Prisma.RestaurantUserCreateWithoutCustomRoleInput, Prisma.RestaurantUserUncheckedCreateWithoutCustomRoleInput>
+}
+
+export type RestaurantUserCreateManyCustomRoleInputEnvelope = {
+  data: Prisma.RestaurantUserCreateManyCustomRoleInput | Prisma.RestaurantUserCreateManyCustomRoleInput[]
+  skipDuplicates?: boolean
+}
+
+export type RestaurantUserUpsertWithWhereUniqueWithoutCustomRoleInput = {
+  where: Prisma.RestaurantUserWhereUniqueInput
+  update: Prisma.XOR<Prisma.RestaurantUserUpdateWithoutCustomRoleInput, Prisma.RestaurantUserUncheckedUpdateWithoutCustomRoleInput>
+  create: Prisma.XOR<Prisma.RestaurantUserCreateWithoutCustomRoleInput, Prisma.RestaurantUserUncheckedCreateWithoutCustomRoleInput>
+}
+
+export type RestaurantUserUpdateWithWhereUniqueWithoutCustomRoleInput = {
+  where: Prisma.RestaurantUserWhereUniqueInput
+  data: Prisma.XOR<Prisma.RestaurantUserUpdateWithoutCustomRoleInput, Prisma.RestaurantUserUncheckedUpdateWithoutCustomRoleInput>
+}
+
+export type RestaurantUserUpdateManyWithWhereWithoutCustomRoleInput = {
+  where: Prisma.RestaurantUserScalarWhereInput
+  data: Prisma.XOR<Prisma.RestaurantUserUpdateManyMutationInput, Prisma.RestaurantUserUncheckedUpdateManyWithoutCustomRoleInput>
 }
 
 export type RestaurantUserCreateManyRestaurantInput = {
   id?: string
   userId: string
-  role: $Enums.UserRole
+  role?: $Enums.UserRole | null
   createdAt?: Date | string
+  roleId?: string | null
 }
 
 export type RestaurantUserUpdateWithoutRestaurantInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  role?: Prisma.NullableEnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  customRole?: Prisma.RoleUpdateOneWithoutRestaurantUsersNestedInput
 }
 
 export type RestaurantUserUncheckedUpdateWithoutRestaurantInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  role?: Prisma.NullableEnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  roleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type RestaurantUserUncheckedUpdateManyWithoutRestaurantInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  role?: Prisma.NullableEnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  roleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+}
+
+export type RestaurantUserCreateManyCustomRoleInput = {
+  id?: string
+  userId: string
+  restaurantId: string
+  role?: $Enums.UserRole | null
+  createdAt?: Date | string
+}
+
+export type RestaurantUserUpdateWithoutCustomRoleInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.NullableEnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  restaurant?: Prisma.RestaurantUpdateOneRequiredWithoutUsersNestedInput
+}
+
+export type RestaurantUserUncheckedUpdateWithoutCustomRoleInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantId?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.NullableEnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type RestaurantUserUncheckedUpdateManyWithoutCustomRoleInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantId?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.NullableEnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -456,7 +603,9 @@ export type RestaurantUserSelect<ExtArgs extends runtime.Types.Extensions.Intern
   restaurantId?: boolean
   role?: boolean
   createdAt?: boolean
+  roleId?: boolean
   restaurant?: boolean | Prisma.RestaurantDefaultArgs<ExtArgs>
+  customRole?: boolean | Prisma.RestaurantUser$customRoleArgs<ExtArgs>
 }, ExtArgs["result"]["restaurantUser"]>
 
 export type RestaurantUserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -465,7 +614,9 @@ export type RestaurantUserSelectCreateManyAndReturn<ExtArgs extends runtime.Type
   restaurantId?: boolean
   role?: boolean
   createdAt?: boolean
+  roleId?: boolean
   restaurant?: boolean | Prisma.RestaurantDefaultArgs<ExtArgs>
+  customRole?: boolean | Prisma.RestaurantUser$customRoleArgs<ExtArgs>
 }, ExtArgs["result"]["restaurantUser"]>
 
 export type RestaurantUserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -474,7 +625,9 @@ export type RestaurantUserSelectUpdateManyAndReturn<ExtArgs extends runtime.Type
   restaurantId?: boolean
   role?: boolean
   createdAt?: boolean
+  roleId?: boolean
   restaurant?: boolean | Prisma.RestaurantDefaultArgs<ExtArgs>
+  customRole?: boolean | Prisma.RestaurantUser$customRoleArgs<ExtArgs>
 }, ExtArgs["result"]["restaurantUser"]>
 
 export type RestaurantUserSelectScalar = {
@@ -483,30 +636,36 @@ export type RestaurantUserSelectScalar = {
   restaurantId?: boolean
   role?: boolean
   createdAt?: boolean
+  roleId?: boolean
 }
 
-export type RestaurantUserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "restaurantId" | "role" | "createdAt", ExtArgs["result"]["restaurantUser"]>
+export type RestaurantUserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "restaurantId" | "role" | "createdAt" | "roleId", ExtArgs["result"]["restaurantUser"]>
 export type RestaurantUserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   restaurant?: boolean | Prisma.RestaurantDefaultArgs<ExtArgs>
+  customRole?: boolean | Prisma.RestaurantUser$customRoleArgs<ExtArgs>
 }
 export type RestaurantUserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   restaurant?: boolean | Prisma.RestaurantDefaultArgs<ExtArgs>
+  customRole?: boolean | Prisma.RestaurantUser$customRoleArgs<ExtArgs>
 }
 export type RestaurantUserIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   restaurant?: boolean | Prisma.RestaurantDefaultArgs<ExtArgs>
+  customRole?: boolean | Prisma.RestaurantUser$customRoleArgs<ExtArgs>
 }
 
 export type $RestaurantUserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "RestaurantUser"
   objects: {
     restaurant: Prisma.$RestaurantPayload<ExtArgs>
+    customRole: Prisma.$RolePayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     userId: string
     restaurantId: string
-    role: $Enums.UserRole
+    role: $Enums.UserRole | null
     createdAt: Date
+    roleId: string | null
   }, ExtArgs["result"]["restaurantUser"]>
   composites: {}
 }
@@ -902,6 +1061,7 @@ readonly fields: RestaurantUserFieldRefs;
 export interface Prisma__RestaurantUserClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   restaurant<T extends Prisma.RestaurantDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RestaurantDefaultArgs<ExtArgs>>): Prisma.Prisma__RestaurantClient<runtime.Types.Result.GetResult<Prisma.$RestaurantPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  customRole<T extends Prisma.RestaurantUser$customRoleArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RestaurantUser$customRoleArgs<ExtArgs>>): Prisma.Prisma__RoleClient<runtime.Types.Result.GetResult<Prisma.$RolePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -936,6 +1096,7 @@ export interface RestaurantUserFieldRefs {
   readonly restaurantId: Prisma.FieldRef<"RestaurantUser", 'String'>
   readonly role: Prisma.FieldRef<"RestaurantUser", 'UserRole'>
   readonly createdAt: Prisma.FieldRef<"RestaurantUser", 'DateTime'>
+  readonly roleId: Prisma.FieldRef<"RestaurantUser", 'String'>
 }
     
 
@@ -1329,6 +1490,25 @@ export type RestaurantUserDeleteManyArgs<ExtArgs extends runtime.Types.Extension
    * Limit how many RestaurantUsers to delete.
    */
   limit?: number
+}
+
+/**
+ * RestaurantUser.customRole
+ */
+export type RestaurantUser$customRoleArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Role
+   */
+  select?: Prisma.RoleSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Role
+   */
+  omit?: Prisma.RoleOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RoleInclude<ExtArgs> | null
+  where?: Prisma.RoleWhereInput
 }
 
 /**

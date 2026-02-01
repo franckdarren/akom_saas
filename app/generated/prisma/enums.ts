@@ -92,3 +92,31 @@ export const LogLevel = {
 } as const
 
 export type LogLevel = (typeof LogLevel)[keyof typeof LogLevel]
+
+
+export const PermissionResource = {
+  restaurants: 'restaurants',
+  users: 'users',
+  menu: 'menu',
+  categories: 'categories',
+  products: 'products',
+  tables: 'tables',
+  orders: 'orders',
+  stocks: 'stocks',
+  payments: 'payments',
+  stats: 'stats',
+  roles: 'roles'
+} as const
+
+export type PermissionResource = (typeof PermissionResource)[keyof typeof PermissionResource]
+
+
+export const PermissionAction = {
+  create: 'create',
+  read: 'read',
+  update: 'update',
+  delete: 'delete',
+  manage: 'manage'
+} as const
+
+export type PermissionAction = (typeof PermissionAction)[keyof typeof PermissionAction]

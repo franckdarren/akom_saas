@@ -64,7 +64,10 @@ export const ModelName = {
   SupportTicket: 'SupportTicket',
   TicketMessage: 'TicketMessage',
   DailyStats: 'DailyStats',
-  SystemLog: 'SystemLog'
+  SystemLog: 'SystemLog',
+  Role: 'Role',
+  Permission: 'Permission',
+  RolePermission: 'RolePermission'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -104,7 +107,8 @@ export const RestaurantUserScalarFieldEnum = {
   userId: 'userId',
   restaurantId: 'restaurantId',
   role: 'role',
-  createdAt: 'createdAt'
+  createdAt: 'createdAt',
+  roleId: 'roleId'
 } as const
 
 export type RestaurantUserScalarFieldEnum = (typeof RestaurantUserScalarFieldEnum)[keyof typeof RestaurantUserScalarFieldEnum]
@@ -280,6 +284,43 @@ export const SystemLogScalarFieldEnum = {
 } as const
 
 export type SystemLogScalarFieldEnum = (typeof SystemLogScalarFieldEnum)[keyof typeof SystemLogScalarFieldEnum]
+
+
+export const RoleScalarFieldEnum = {
+  id: 'id',
+  restaurantId: 'restaurantId',
+  name: 'name',
+  description: 'description',
+  isSystem: 'isSystem',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RoleScalarFieldEnum = (typeof RoleScalarFieldEnum)[keyof typeof RoleScalarFieldEnum]
+
+
+export const PermissionScalarFieldEnum = {
+  id: 'id',
+  resource: 'resource',
+  action: 'action',
+  name: 'name',
+  description: 'description',
+  category: 'category',
+  isSystem: 'isSystem'
+} as const
+
+export type PermissionScalarFieldEnum = (typeof PermissionScalarFieldEnum)[keyof typeof PermissionScalarFieldEnum]
+
+
+export const RolePermissionScalarFieldEnum = {
+  id: 'id',
+  roleId: 'roleId',
+  permissionId: 'permissionId',
+  createdAt: 'createdAt'
+} as const
+
+export type RolePermissionScalarFieldEnum = (typeof RolePermissionScalarFieldEnum)[keyof typeof RolePermissionScalarFieldEnum]
 
 
 export const SortOrder = {

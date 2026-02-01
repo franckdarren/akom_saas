@@ -18,6 +18,7 @@ import { Plus, Zap } from 'lucide-react'
 import { ProductsList } from './products-list'
 import { QuickCreateProductDialog } from './quick-create-product-dialog'
 import { getUserRole } from "@/lib/actions/auth"
+import { PermissionGuard } from '@/components/permissions/PermissionGuard'
 
 export default async function ProductsPage() {
     const supabase = await createClient()
@@ -103,23 +104,26 @@ export default async function ProductsPage() {
                         </p>
                     </div>
                     <div className="flex gap-2">
-                        <QuickCreateProductDialog categories={categories}>
-                            <Button variant="outline">
-                                <Zap className="mr-2 h-4 w-4" />
-                                Création rapide
-                            </Button>
-                        </QuickCreateProductDialog>
-                        <Link href="/dashboard/menu/products/new">
-                            <Button>
-                                <Plus className="mr-2 h-4 w-4" />
-                                Nouveau produit
-                            </Button>
-                        </Link>
+                        {/* Seuls les utilisateurs avec la permission "products.create" verront ce bouton */}
+                        <PermissionGuard resource="products" action="create">
+                            <QuickCreateProductDialog categories={categories}>
+                                <Button variant="outline">
+                                    <Zap className="mr-2 h-4 w-4" />
+                                    Création rapide
+                                </Button>
+                            </QuickCreateProductDialog>
+                            <Link href="/dashboard/menu/products/new">
+                                <Button>
+                                    <Plus className="mr-2 h-4 w-4" />
+                                    Nouveau produit
+                                </Button>
+                            </Link>
+                        </PermissionGuard>
                     </div>
                 </div>
 
                 <ProductsList products={products} />
-            </div>
+            </div >
         </>
     )
 }
