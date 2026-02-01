@@ -89,12 +89,12 @@ export function UsersList() {
             userToDelete.userId
         )
 
-        if (result.error) {
-            toast.error(result.error)
-        } else {
+        if (result.success) {
             toast.success('Utilisateur retiré avec succès')
             setUsers(users.filter((u) => u.id !== userToDelete.id))
             setUserToDelete(null)
+        } else {
+            toast.error('Erreur lors du retrait de l\'utilisateur')
         }
 
         setIsDeleting(false)
