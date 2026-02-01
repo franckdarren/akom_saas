@@ -16,7 +16,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
@@ -66,7 +65,6 @@ export function CreateRoleDialog({
                 if (template) {
                     const templatePermissionIds: string[] = []
 
-                    // Parcourir toutes les permissions pour trouver celles qui correspondent au template
                     Object.values(result.permissions).forEach((categoryPerms) => {
                         (categoryPerms as Permission[]).forEach((perm) => {
                             const matchesTemplate = template.permissions.some(
@@ -113,18 +111,15 @@ export function CreateRoleDialog({
         const categoryPermissions = permissionsByCategory[category] || []
         const categoryPermissionIds = categoryPermissions.map((p) => p.id)
 
-        // Vérifier si toutes les permissions de cette catégorie sont sélectionnées
         const allSelected = categoryPermissionIds.every((id) =>
             selectedPermissions.includes(id)
         )
 
         if (allSelected) {
-            // Tout désélectionner
             setSelectedPermissions((prev) =>
                 prev.filter((id) => !categoryPermissionIds.includes(id))
             )
         } else {
-            // Tout sélectionner
             setSelectedPermissions((prev) => [
                 ...prev.filter((id) => !categoryPermissionIds.includes(id)),
                 ...categoryPermissionIds,
@@ -135,18 +130,15 @@ export function CreateRoleDialog({
     function isCategorySelected(category: string) {
         const categoryPermissions = permissionsByCategory[category] || []
         const categoryPermissionIds = categoryPermissions.map((p) => p.id)
-
         return categoryPermissionIds.every((id) => selectedPermissions.includes(id))
     }
 
     function isCategoryPartiallySelected(category: string) {
         const categoryPermissions = permissionsByCategory[category] || []
         const categoryPermissionIds = categoryPermissions.map((p) => p.id)
-
         const selectedCount = categoryPermissionIds.filter((id) =>
             selectedPermissions.includes(id)
         ).length
-
         return selectedCount > 0 && selectedCount < categoryPermissionIds.length
     }
 
@@ -188,18 +180,23 @@ export function CreateRoleDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-3xl max-h-[90vh]">
+            {/* 
+                Utilisation d'un DialogContent sans max-height fixe 
+                Le contenu scrollera naturellement avec overflow-y-auto
+            */}
+            <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col">
                 <DialogHeader>
                     <DialogTitle>Créer un nouveau rôle</DialogTitle>
                     <DialogDescription>
-                        Définissez un rôle personnalisé avec les permissions adaptées à
-                        votre organisation
+                        Définissez un rôle personnalisé avec les permissions adaptées à votre organisation
                     </DialogDescription>
                 </DialogHeader>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <ScrollArea className="max-h-[calc(90vh-200px)] pr-4">
-                        <div className="space-y-6">
+                {/* Form avec scroll naturel */}
+                <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+                    {/* Contenu scrollable - le navigateur gère le scroll naturellement */}
+                    <div className="flex-1 overflow-y-auto px-1 -mx-1">
+                        <div className="space-y-6 py-4">
                             {/* Informations de base */}
                             <div className="space-y-4">
                                 <div className="space-y-2">
@@ -212,6 +209,7 @@ export function CreateRoleDialog({
                                         onChange={(e) => setName(e.target.value)}
                                         placeholder="Ex: Serveur, Gérant de salle, Chef de cuisine..."
                                         required
+                                        disabled={loading}
                                     />
                                     <p className="text-xs text-muted-foreground">
                                         Choisissez un nom descriptif qui reflète la fonction de ce rôle
@@ -226,6 +224,7 @@ export function CreateRoleDialog({
                                         onChange={(e) => setDescription(e.target.value)}
                                         placeholder="Décrivez les responsabilités de ce rôle..."
                                         rows={3}
+                                        disabled={loading}
                                     />
                                 </div>
                             </div>
@@ -235,14 +234,9 @@ export function CreateRoleDialog({
                                 <div className="flex items-start gap-2 p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
                                     <Info className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
                                     <div className="text-sm text-blue-900 dark:text-blue-100">
-                                        <p className="font-medium mb-1">
-                                            Sélectionnez les permissions
-                                        </p>
+                                        <p className="font-medium mb-1">Sélectionnez les permissions</p>
                                         <p className="text-blue-700 dark:text-blue-300">
-                                            Les permissions déterminent ce que les utilisateurs avec ce
-                                            rôle peuvent faire dans le restaurant. Vous pouvez
-                                            sélectionner des catégories entières ou des permissions
-                                            individuelles.
+                                            Les permissions déterminent ce que les utilisateurs avec ce rôle peuvent faire dans le restaurant.
                                         </p>
                                     </div>
                                 </div>
@@ -259,34 +253,24 @@ export function CreateRoleDialog({
                                                     key={category}
                                                     className="space-y-3 p-4 rounded-lg border bg-card"
                                                 >
-                                                    {/* Header de catégorie avec sélection globale */}
+                                                    {/* Header de catégorie */}
                                                     <div className="flex items-center gap-3">
                                                         <Checkbox
                                                             checked={isCategorySelected(category)}
                                                             onCheckedChange={() => toggleCategory(category)}
-                                                            className={
-                                                                isCategoryPartiallySelected(category)
-                                                                    ? 'data-[state=checked]:bg-primary/50'
-                                                                    : ''
-                                                            }
+                                                            disabled={loading}
                                                         />
                                                         <div className="flex-1">
                                                             <div className="flex items-center gap-2">
                                                                 <Badge variant="secondary">{category}</Badge>
                                                                 <span className="text-sm text-muted-foreground">
-                                                                    {
-                                                                        permissions.filter((p) =>
-                                                                            selectedPermissions.includes(p.id)
-                                                                        ).length
-                                                                    }{' '}
-                                                                    / {permissions.length} sélectionnée
-                                                                    {permissions.length > 1 ? 's' : ''}
+                                                                    {permissions.filter((p) => selectedPermissions.includes(p.id)).length} / {permissions.length}
                                                                 </span>
                                                             </div>
                                                         </div>
                                                     </div>
 
-                                                    {/* Liste des permissions de la catégorie */}
+                                                    {/* Liste des permissions */}
                                                     <div className="space-y-2 ml-8">
                                                         {permissions.map((permission) => (
                                                             <div
@@ -294,27 +278,25 @@ export function CreateRoleDialog({
                                                                 className="flex items-start gap-3 p-2 rounded hover:bg-muted/50 transition-colors"
                                                             >
                                                                 <Checkbox
-                                                                    checked={selectedPermissions.includes(
-                                                                        permission.id
-                                                                    )}
-                                                                    onCheckedChange={() =>
-                                                                        togglePermission(permission.id)
-                                                                    }
+                                                                    id={`perm-${permission.id}`}
+                                                                    checked={selectedPermissions.includes(permission.id)}
+                                                                    onCheckedChange={() => togglePermission(permission.id)}
+                                                                    disabled={loading}
                                                                     className="mt-0.5"
                                                                 />
-                                                                <div className="flex-1 min-w-0">
-                                                                    <Label
-                                                                        htmlFor={permission.id}
-                                                                        className="text-sm font-medium cursor-pointer"
-                                                                    >
+                                                                <label
+                                                                    htmlFor={`perm-${permission.id}`}
+                                                                    className="flex-1 min-w-0 cursor-pointer"
+                                                                >
+                                                                    <div className="text-sm font-medium">
                                                                         {permission.name}
-                                                                    </Label>
+                                                                    </div>
                                                                     {permission.description && (
                                                                         <p className="text-xs text-muted-foreground mt-1">
                                                                             {permission.description}
                                                                         </p>
                                                                     )}
-                                                                </div>
+                                                                </label>
                                                             </div>
                                                         ))}
                                                     </div>
@@ -325,37 +307,30 @@ export function CreateRoleDialog({
                                 )}
                             </div>
 
-                            {/* Résumé des permissions sélectionnées */}
+                            {/* Résumé */}
                             {selectedPermissions.length > 0 && (
                                 <div className="p-4 bg-muted/50 rounded-lg border">
                                     <p className="text-sm font-medium mb-2">
-                                        Résumé : {selectedPermissions.length} permission
-                                        {selectedPermissions.length > 1 ? 's' : ''} sélectionnée
-                                        {selectedPermissions.length > 1 ? 's' : ''}
+                                        Résumé : {selectedPermissions.length} permission{selectedPermissions.length > 1 ? 's' : ''} sélectionnée{selectedPermissions.length > 1 ? 's' : ''}
                                     </p>
                                     <div className="flex flex-wrap gap-2">
-                                        {Object.entries(permissionsByCategory).map(
-                                            ([category, permissions]) => {
-                                                const selectedInCategory = permissions.filter((p) =>
-                                                    selectedPermissions.includes(p.id)
-                                                ).length
-
-                                                if (selectedInCategory === 0) return null
-
-                                                return (
-                                                    <Badge key={category} variant="outline">
-                                                        {category}: {selectedInCategory}
-                                                    </Badge>
-                                                )
-                                            }
-                                        )}
+                                        {Object.entries(permissionsByCategory).map(([category, permissions]) => {
+                                            const count = permissions.filter((p) => selectedPermissions.includes(p.id)).length
+                                            if (count === 0) return null
+                                            return (
+                                                <Badge key={category} variant="outline">
+                                                    {category}: {count}
+                                                </Badge>
+                                            )
+                                        })}
                                     </div>
                                 </div>
                             )}
                         </div>
-                    </ScrollArea>
+                    </div>
 
-                    <DialogFooter>
+                    {/* Footer fixe */}
+                    <DialogFooter className="mt-4">
                         <Button
                             type="button"
                             variant="outline"

@@ -176,7 +176,7 @@ export function EditRoleDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-3xl max-h-[90vh]">
+            <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col">
                 <DialogHeader>
                     <DialogTitle>Modifier le rôle : {role.name}</DialogTitle>
                     <DialogDescription>
@@ -184,9 +184,10 @@ export function EditRoleDialog({
                     </DialogDescription>
                 </DialogHeader>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <ScrollArea className="max-h-[calc(90vh-200px)] pr-4">
-                        <div className="space-y-6">
+                <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+                    {/* Contenu scrollable naturellement */}
+                    <div className="flex-1 overflow-y-auto px-1 -mx-1">
+                        <div className="space-y-6 py-4">
                             {/* Informations de base */}
                             <div className="space-y-4">
                                 <div className="space-y-2">
@@ -312,9 +313,9 @@ export function EditRoleDialog({
                                 )}
                             </div>
                         </div>
-                    </ScrollArea>
+                    </div>
 
-                    <DialogFooter>
+                    <DialogFooter className="mt-4">
                         <Button
                             type="button"
                             variant="outline"
