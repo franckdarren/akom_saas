@@ -1,5 +1,8 @@
 // app/(dashboard)/dashboard/users/page.tsx
 import { Suspense } from 'react'
+import { Separator } from '@/components/ui/separator'
+import { SidebarTrigger } from '@/components/ui/sidebar'
+import prisma from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import {
@@ -11,6 +14,7 @@ import {
     BreadcrumbPage,
 } from '@/components/ui/breadcrumb'
 import { TeamManagementTabs } from '@/components/users/TeamManagementTabs'
+import { getUserRole } from "@/lib/actions/auth"
 
 export default async function UsersPage() {
     const supabase = await createClient()
@@ -18,45 +22,70 @@ export default async function UsersPage() {
         data: { user },
     } = await supabase.auth.getUser()
 
+    const userRole = await getUserRole()
+
     if (!user) {
         redirect('/login')
     }
 
+    const restaurantUser = await prisma.restaurantUser.findFirst({
+        where: { userId: user.id },
+    })
+
+    if (!restaurantUser) {
+        redirect('/onboarding')
+    }
+
     return (
-        <div className="flex flex-col gap-6 p-6">
-            {/* Breadcrumb */}
-            <Breadcrumb>
-                <BreadcrumbList>
-                    <BreadcrumbItem>
-                        <BreadcrumbLink href="/dashboard">Tableau de bord</BreadcrumbLink>
-                    </BreadcrumbItem>
-                    <BreadcrumbSeparator />
-                    <BreadcrumbItem>
-                        <BreadcrumbPage>Gestion de l'équipe</BreadcrumbPage>
-                    </BreadcrumbItem>
-                </BreadcrumbList>
-            </Breadcrumb>
+        <>
+        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+                <SidebarTrigger className="-ml-1" />
+                <Separator orientation="vertical" className="mr-2 h-4" />
+                <div className="flex justify-between w-full">
+                    <Breadcrumb>
+                        <BreadcrumbList>
+                            <BreadcrumbItem>
+                                <BreadcrumbLink href="/dashboard">Configuration</BreadcrumbLink>
+                            </BreadcrumbItem>
+                            <BreadcrumbSeparator />
+                            <BreadcrumbItem>
+                                <BreadcrumbPage>Gestion de l'équipe</BreadcrumbPage>
+                            </BreadcrumbItem>
+                        </BreadcrumbList>
+                    </Breadcrumb>
+                </div>
+                <div className="border-black text-right leading-tight text-sm">
+                    {
+                        userRole === "admin" && <p className="truncate font-medium">Administrateur</p>
+                    }
+                    {
+                        userRole === "kitchen" && <p className="truncate font-medium">Cuisine</p>
+                    }
+                    <p className="text-muted-foreground truncate text-xs">{user.email}</p>
+                </div>
+            </header>
+            <div className="flex flex-col gap-6 p-6">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight">
+                        Gestion de l'équipe
+                    </h1>
+                    <p className="text-muted-foreground mt-2">
+                        Gérez les membres de votre équipe, leurs rôles et permissions
+                    </p>
+                </div>
 
-            {/* Header */}
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight">
-                    Gestion de l'équipe
-                </h1>
-                <p className="text-muted-foreground mt-2">
-                    Gérez les membres de votre équipe, leurs rôles et permissions
-                </p>
+                {/* Tabs avec contenu */}
+                <Suspense
+                    fallback={
+                        <div className="flex items-center justify-center p-12">
+                            <div className="text-muted-foreground">Chargement...</div>
+                        </div>
+                    }
+                >
+                    <TeamManagementTabs />
+                </Suspense>
             </div>
+        </>
 
-            {/* Tabs avec contenu */}
-            <Suspense
-                fallback={
-                    <div className="flex items-center justify-center p-12">
-                        <div className="text-muted-foreground">Chargement...</div>
-                    </div>
-                }
-            >
-                <TeamManagementTabs />
-            </Suspense>
-        </div>
     )
 }
