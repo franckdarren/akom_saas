@@ -1,4 +1,3 @@
-// components/users/InviteUserDialog.tsx
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -37,6 +36,12 @@ interface Role {
     name: string
     description: string | null
     isSystem: boolean
+    isActive?: boolean // au cas où certaines sources ne l’envoient pas
+}
+
+interface GetRestaurantRolesResult {
+    roles?: Role[]
+    error?: string
 }
 
 export function InviteUserDialog({
@@ -56,16 +61,17 @@ export function InviteUserDialog({
             if (!currentRestaurant) return
 
             setLoadingRoles(true)
-            const result = await getRestaurantRoles(currentRestaurant.id)
+            const result: GetRestaurantRolesResult = await getRestaurantRoles(currentRestaurant.id)
 
             if (result.error) {
                 toast.error(result.error)
             } else if (result.roles) {
-                const activeRoles = result.roles.filter((r) => r.isActive)
+                // Typage explicite ici pour TypeScript
+                const activeRoles = result.roles.filter((r: Role) => r.isActive)
                 setRoles(activeRoles)
 
                 // Sélectionner automatiquement le rôle "Cuisine" par défaut si disponible
-                const defaultRole = activeRoles.find((r) => r.name === 'Cuisine')
+                const defaultRole = activeRoles.find((r: Role) => r.name === 'Cuisine')
                 if (defaultRole) {
                     setSelectedRoleId(defaultRole.id)
                 } else if (activeRoles.length > 0) {
