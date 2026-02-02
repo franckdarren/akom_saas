@@ -3,17 +3,31 @@ import { NextRequest, NextResponse } from 'next/server'
 import { logOrderFailed } from '@/lib/actions/logs'
 import prisma from '@/lib/prisma'
 
+// ============================================================
+// TYPES
+// ============================================================
+
+// Chaque item envoyé par le client
 interface OrderItem {
     productId: string
     quantity: number
 }
 
+// Corps de la requête POST pour créer une commande
 interface CreateOrderRequest {
     restaurantId: string
     tableId: string
     items: OrderItem[]
     customerName?: string
     notes?: string
+}
+
+// Typage pour les produits récupérés depuis Prisma, avec le stock inclus
+type ProductWithStock = {
+    id: string
+    name: string
+    price: number
+    stock: { quantity: number } | null
 }
 
 // ============================================================
@@ -32,26 +46,21 @@ export async function GET(request: NextRequest) {
             )
         }
 
+        // On récupère toutes les commandes pour le restaurant
         const orders = await prisma.order.findMany({
-            where: {
-                restaurantId,
-            },
+            where: { restaurantId },
             include: {
                 orderItems: {
-                    include: {
-                        product: true,
-                    },
+                    include: { product: true },
                 },
                 table: true,
             },
-            orderBy: {
-                createdAt: 'desc',
-            },
+            orderBy: { createdAt: 'desc' },
         })
 
         return NextResponse.json({ orders })
     } catch (error) {
-        console.error('Erreur récupération commandes:', error)
+        console.error('💥 [API] Erreur récupération commandes:', error)
         return NextResponse.json(
             { error: 'Erreur lors de la récupération des commandes' },
             { status: 500 }
@@ -69,82 +78,49 @@ export async function POST(request: NextRequest) {
 
         console.log('============================================')
         console.log('🔍 [API] POST /api/orders')
-        console.log('📝 [API] Restaurant:', body.restaurantId)
-        console.log('📝 [API] Table:', body.tableId)
-        console.log('📝 [API] Items:', body.items?.length)
+        console.log('📝 Restaurant:', body.restaurantId)
+        console.log('📝 Table:', body.tableId)
+        console.log('📝 Nombre d’items:', body.items?.length)
         console.log('============================================')
 
-        // Validation basique des données reçues
+        // Validation basique des données
         if (!body.restaurantId || !body.tableId || !body.items || body.items.length === 0) {
             console.log('❌ [API] Données manquantes')
-            return NextResponse.json(
-                { error: 'Données manquantes' },
-                { status: 400 }
-            )
+            return NextResponse.json({ error: 'Données manquantes' }, { status: 400 })
         }
 
-        // ✨ AJOUT CRUCIAL : Récupérer le restaurant avec son slug
-        // Nous avons besoin du slug pour construire l'URL contextuelle
+        // Vérifier que le restaurant existe et est actif
         const restaurant = await prisma.restaurant.findUnique({
-            where: {
-                id: body.restaurantId,
-                isActive: true,
-            },
-            select: {
-                id: true,
-                name: true,
-                slug: true, // ← Le slug est essentiel pour l'URL
-            },
+            where: { id: body.restaurantId, isActive: true },
+            select: { id: true, name: true, slug: true },
         })
 
         if (!restaurant) {
             console.log('❌ [API] Restaurant non trouvé ou inactif')
-            return NextResponse.json(
-                { error: 'Restaurant non trouvé ou inactif' },
-                { status: 404 }
-            )
+            return NextResponse.json({ error: 'Restaurant non trouvé ou inactif' }, { status: 404 })
         }
 
-        // Vérifier que la table existe et appartient bien à ce restaurant
-        // La vérification du restaurantId garantit qu'on ne peut pas créer
-        // une commande pour une table d'un autre restaurant
+        // Vérifier que la table existe et appartient bien au restaurant
         const table = await prisma.table.findFirst({
-            where: {
-                id: body.tableId,
-                restaurantId: body.restaurantId,
-                isActive: true,
-            },
-            select: {
-                id: true,
-                number: true, // ← Le numéro est nécessaire pour l'URL
-            },
+            where: { id: body.tableId, restaurantId: body.restaurantId, isActive: true },
+            select: { id: true, number: true },
         })
 
         if (!table) {
             console.log('❌ [API] Table non trouvée ou inactive')
-            return NextResponse.json(
-                { error: 'Table non trouvée ou inactive' },
-                { status: 404 }
-            )
+            return NextResponse.json({ error: 'Table non trouvée ou inactive' }, { status: 404 })
         }
 
-        // Récupérer les informations des produits commandés
-        // Nous utilisons un "in" pour récupérer tous les produits en une seule requête
-        const productIds = body.items.map((item) => item.productId)
-        const products = await prisma.product.findMany({
-            where: {
-                id: { in: productIds },
-                restaurantId: body.restaurantId,
-                isAvailable: true,
-            },
-            include: {
-                stock: true,
-            },
+        // Récupérer tous les produits commandés
+        const productIds: string[] = body.items.map((item) => item.productId)
+        const products: ProductWithStock[] = await prisma.product.findMany({
+            where: { id: { in: productIds }, restaurantId: body.restaurantId, isAvailable: true },
+            include: { stock: true },
         })
 
-        // Vérifier que tous les produits commandés existent et sont disponibles
+        // Vérifier que tous les produits existent
         if (products.length !== body.items.length) {
-            console.log('❌ [API] Certains produits introuvables')
+            console.log('❌ [API] Certains produits introuvables ou indisponibles')
             return NextResponse.json(
                 { error: 'Certains produits sont introuvables ou indisponibles' },
                 { status: 400 }
@@ -152,9 +128,8 @@ export async function POST(request: NextRequest) {
         }
 
         // Vérifier le stock pour chaque produit
-        // Cette vérification empêche de commander plus que ce qui est en stock
         for (const item of body.items) {
-            const product = products.find((p) => p.id === item.productId)
+            const product = products.find((p: ProductWithStock) => p.id === item.productId)
             if (!product) continue
 
             if (product.stock && product.stock.quantity < item.quantity) {
@@ -166,19 +141,15 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        // Calculer le montant total de la commande
-        // Nous utilisons les prix stockés en base de données, pas ceux envoyés par le client
-        // Cela empêche toute manipulation malveillante des prix
-        const totalAmount = body.items.reduce((sum, item) => {
-            const product = products.find((p) => p.id === item.productId)!
+        // Calcul du montant total en utilisant les prix de la base
+        const totalAmount = body.items.reduce((sum: number, item) => {
+            const product = products.find((p: ProductWithStock) => p.id === item.productId)!
             return sum + product.price * item.quantity
         }, 0)
 
-        console.log('💰 [API] Montant total calculé:', totalAmount)
+        console.log('💰 Montant total calculé:', totalAmount)
 
-        // Générer un numéro de commande unique
-        // Format : #001, #002, #003, etc.
-        // Ce numéro est lisible et facile à communiquer entre le client et le personnel
+        // Générer le numéro de commande lisible
         const lastOrder = await prisma.order.findFirst({
             where: { restaurantId: body.restaurantId },
             orderBy: { createdAt: 'desc' },
@@ -191,11 +162,9 @@ export async function POST(request: NextRequest) {
             orderNumber = `#${String(lastNumber + 1).padStart(3, '0')}`
         }
 
-        console.log('🔢 [API] Numéro de commande généré:', orderNumber)
+        console.log('🔢 Numéro de commande généré:', orderNumber)
 
-        // Créer la commande avec tous ses items dans une seule transaction
-        // L'utilisation de "include" nous permet de récupérer immédiatement
-        // les données créées sans faire de requête supplémentaire
+        // Créer la commande avec tous les items
         const order = await prisma.order.create({
             data: {
                 restaurantId: body.restaurantId,
@@ -207,7 +176,7 @@ export async function POST(request: NextRequest) {
                 totalAmount,
                 orderItems: {
                     create: body.items.map((item) => {
-                        const product = products.find((p) => p.id === item.productId)!
+                        const product = products.find((p: ProductWithStock) => p.id === item.productId)!
                         return {
                             productId: item.productId,
                             productName: product.name,
@@ -217,22 +186,16 @@ export async function POST(request: NextRequest) {
                     }),
                 },
             },
-            include: {
-                orderItems: true,
-            },
+            include: { orderItems: true },
         })
 
-        console.log('✅ [API] Commande créée:', order.id, order.orderNumber)
+        console.log('✅ Commande créée:', order.id, order.orderNumber)
 
-        // ✨ AJOUT CRUCIAL : Construire l'URL contextuelle de tracking
-        // Cette URL encode toutes les informations nécessaires : restaurant, table, commande
-        // Le client pourra revenir au menu facilement grâce à cette structure
+        // Construire l'URL de tracking
         const trackingUrl = `/r/${restaurant.slug}/t/${table.number}/orders/${order.id}`
-        
-        console.log('🔗 [API] URL de tracking générée:', trackingUrl)
+        console.log('🔗 URL de tracking:', trackingUrl)
 
-        // Retourner toutes les informations nécessaires au client
-        // L'URL de tracking est le plus important car c'est là que le client sera redirigé
+        // Retourner toutes les infos au client
         return NextResponse.json({
             success: true,
             order: {
@@ -242,24 +205,16 @@ export async function POST(request: NextRequest) {
                 totalAmount: order.totalAmount,
                 status: order.status,
             },
-            // ✨ NOUVEAU : Contexte complet pour la navigation
             restaurant: {
                 slug: restaurant.slug,
                 name: restaurant.name,
             },
-            table: {
-                number: table.number,
-            },
-            // ✨ NOUVEAU : URL de redirection contextuelle
-            trackingUrl: trackingUrl,
+            table: { number: table.number },
+            trackingUrl,
         })
-
     } catch (error) {
-        console.error('💥 [API] Erreur création commande:', error)
-        
-        // Logger l'échec pour le monitoring (si vous avez un système de logs)
+        console.error('💥 Erreur création commande:', error)
         await logOrderFailed(error instanceof Error ? error.message : 'Erreur inconnue')
-        
         return NextResponse.json(
             { error: 'Erreur lors de la création de la commande' },
             { status: 500 }
