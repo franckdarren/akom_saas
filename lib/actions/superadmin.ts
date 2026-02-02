@@ -11,6 +11,7 @@ import type {
     Restaurant,
     RestaurantUser,
 } from '@prisma/client'
+import type { RestaurantDetails } from '@/types/restaurant'
 
 // ============================================================
 // TYPES
@@ -127,7 +128,9 @@ export async function getAllRestaurants(): Promise<
 // DÉTAILS D'UN RESTAURANT
 // ============================================================
 
-export async function getRestaurantDetails(restaurantId: string) {
+export async function getRestaurantDetails(
+    restaurantId: string
+): Promise<RestaurantDetails> {
     await verifySuperAdmin()
 
     const restaurant = await prisma.restaurant.findUnique({
@@ -157,6 +160,7 @@ export async function getRestaurantDetails(restaurantId: string) {
 
     const [totalOrders, totalRevenue, ordersThisMonth] = await Promise.all([
         prisma.order.count({ where: { restaurantId } }),
+
         prisma.order.aggregate({
             where: {
                 restaurantId,
@@ -164,6 +168,7 @@ export async function getRestaurantDetails(restaurantId: string) {
             },
             _sum: { totalAmount: true },
         }),
+
         prisma.order.count({
             where: {
                 restaurantId,
