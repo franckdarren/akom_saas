@@ -2,8 +2,20 @@
 
 import { createClient } from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
-import type { SystemLog, LogLevel } from '@prisma/client'
+import type { LogLevel } from '@prisma/client' // ✅ On ne met que ce qui existe
 import { isSuperAdminEmail } from '@/lib/utils/permissions'
+
+// ============================================================
+// TYPES
+// ============================================================
+
+export interface LogsStats {
+    total: number
+    errors: number
+    warnings: number
+    criticals: number
+    last24hCount: number
+}
 
 // ============================================================
 // CRÉER UN LOG
@@ -14,14 +26,14 @@ export async function createLog(
     action: string,
     message: string,
     metadata?: Record<string, unknown>
-): Promise<SystemLog | void> {
+): Promise<void> {
     try {
         const supabase = await createClient()
         const {
             data: { user },
         } = await supabase.auth.getUser()
 
-        return prisma.systemLog.create({
+        await prisma.systemLog.create({
             data: {
                 level,
                 action,
@@ -39,10 +51,7 @@ export async function createLog(
 // RÉCUPÉRER LES LOGS (SuperAdmin)
 // ============================================================
 
-export async function getLogs(
-    level?: LogLevel,
-    limit = 100
-): Promise<SystemLog[]> {
+export async function getLogs(level?: LogLevel, limit = 100) {
     const supabase = await createClient()
     const {
         data: { user },
@@ -60,16 +69,8 @@ export async function getLogs(
 }
 
 // ============================================================
-// STATS LOGS
+// STATISTIQUES DES LOGS
 // ============================================================
-
-export interface LogsStats {
-    total: number
-    errors: number
-    warnings: number
-    criticals: number
-    last24hCount: number
-}
 
 export async function getLogsStats(): Promise<LogsStats> {
     const supabase = await createClient()
@@ -83,27 +84,20 @@ export async function getLogsStats(): Promise<LogsStats> {
 
     const last24h = new Date(Date.now() - 24 * 60 * 60 * 1000)
 
-    const [total, errors, warnings, criticals, last24hCount] = await Promise.all([
-        prisma.systemLog.count(),
-        prisma.systemLog.count({ where: { level: 'error' } }),
-        prisma.systemLog.count({ where: { level: 'warning' } }),
-        prisma.systemLog.count({ where: { level: 'critical' } }),
-        prisma.systemLog.count({
-            where: { createdAt: { gte: last24h } },
-        }),
-    ])
+    const [total, errors, warnings, criticals, last24hCount] =
+        await Promise.all([
+            prisma.systemLog.count(),
+            prisma.systemLog.count({ where: { level: 'error' } }),
+            prisma.systemLog.count({ where: { level: 'warning' } }),
+            prisma.systemLog.count({ where: { level: 'critical' } }),
+            prisma.systemLog.count({ where: { createdAt: { gte: last24h } } }),
+        ])
 
-    return {
-        total,
-        errors,
-        warnings,
-        criticals,
-        last24hCount,
-    }
+    return { total, errors, warnings, criticals, last24hCount }
 }
 
 // ============================================================
-// HELPERS
+// HELPERS SPÉCIFIQUES
 // ============================================================
 
 export async function logRestaurantCreated(restaurantId: string, name: string) {
@@ -128,9 +122,14 @@ export async function logRestaurantActivated(restaurantId: string, name: string)
 }
 
 export async function logOrderFailed(error: string) {
-    return createLog('error', 'order_failed', 'Erreur lors de la création de commande', { error })
+    return createLog('error', 'order_failed', 'Erreur lors de la création de commande', {
+        error,
+    })
 }
 
 export async function logPaymentFailed(orderId: string, error: string) {
-    return createLog('critical', 'payment_failed', 'Échec de paiement', { orderId, error })
+    return createLog('critical', 'payment_failed', 'Échec de paiement', {
+        orderId,
+        error,
+    })
 }
