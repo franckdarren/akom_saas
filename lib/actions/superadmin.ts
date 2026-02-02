@@ -1,9 +1,35 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { logRestaurantDeactivated, logRestaurantActivated } from '@/lib/actions/logs'
 import prisma from '@/lib/prisma'
 import { isSuperAdminEmail } from '@/lib/utils/permissions'
+import {
+    logRestaurantActivated,
+    logRestaurantDeactivated,
+} from '@/lib/actions/logs'
+import type {
+    Restaurant,
+    RestaurantUser,
+} from '@prisma/client'
+
+// ============================================================
+// TYPES
+// ============================================================
+
+export interface PlatformStats {
+    totalRestaurants: number
+    activeRestaurants: number
+    totalUsers: number
+    totalOrders: number
+    totalRevenue: number
+    ordersToday: number
+}
+
+export interface ActivityDay {
+    date: string
+    orders: number
+    revenue: number
+}
 
 // ============================================================
 // VÉRIFICATION SUPERADMIN
@@ -11,13 +37,15 @@ import { isSuperAdminEmail } from '@/lib/utils/permissions'
 
 async function verifySuperAdmin() {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const {
+        data: { user },
+    } = await supabase.auth.getUser()
 
     if (!user) {
         throw new Error('Non authentifié')
     }
 
-    if (!isSuperAdminEmail(user.email || '')) {
+    if (!isSuperAdminEmail(user.email ?? '')) {
         throw new Error('Accès refusé : SuperAdmin uniquement')
     }
 
@@ -28,7 +56,7 @@ async function verifySuperAdmin() {
 // STATISTIQUES GLOBALES PLATEFORME
 // ============================================================
 
-export async function getPlatformStats() {
+export async function getPlatformStats(): Promise<PlatformStats> {
     await verifySuperAdmin()
 
     const [
@@ -39,27 +67,14 @@ export async function getPlatformStats() {
         totalRevenue,
         ordersToday,
     ] = await Promise.all([
-        // Total restaurants
         prisma.restaurant.count(),
-
-        // Restaurants actifs
-        prisma.restaurant.count({
-            where: { isActive: true },
-        }),
-
-        // Total utilisateurs
+        prisma.restaurant.count({ where: { isActive: true } }),
         prisma.restaurantUser.count(),
-
-        // Total commandes
         prisma.order.count(),
-
-        // Revenu total (somme de tous les total_amount)
         prisma.order.aggregate({
             _sum: { totalAmount: true },
             where: { status: { in: ['delivered', 'ready'] } },
         }),
-
-        // Commandes aujourd'hui
         prisma.order.count({
             where: {
                 createdAt: {
@@ -74,7 +89,7 @@ export async function getPlatformStats() {
         activeRestaurants,
         totalUsers,
         totalOrders,
-        totalRevenue: totalRevenue._sum.totalAmount || 0,
+        totalRevenue: totalRevenue._sum.totalAmount ?? 0,
         ordersToday,
     }
 }
@@ -83,10 +98,18 @@ export async function getPlatformStats() {
 // LISTE DE TOUS LES RESTAURANTS
 // ============================================================
 
-export async function getAllRestaurants() {
+export async function getAllRestaurants(): Promise<
+    (Restaurant & {
+        _count: {
+            users: number
+            orders: number
+            products: number
+        }
+    })[]
+> {
     await verifySuperAdmin()
 
-    const restaurants = await prisma.restaurant.findMany({
+    return prisma.restaurant.findMany({
         include: {
             _count: {
                 select: {
@@ -98,8 +121,6 @@ export async function getAllRestaurants() {
         },
         orderBy: { createdAt: 'desc' },
     })
-
-    return restaurants
 }
 
 // ============================================================
@@ -134,12 +155,8 @@ export async function getRestaurantDetails(restaurantId: string) {
         throw new Error('Restaurant introuvable')
     }
 
-    // Stats du restaurant
     const [totalOrders, totalRevenue, ordersThisMonth] = await Promise.all([
-        prisma.order.count({
-            where: { restaurantId },
-        }),
-
+        prisma.order.count({ where: { restaurantId } }),
         prisma.order.aggregate({
             where: {
                 restaurantId,
@@ -147,12 +164,15 @@ export async function getRestaurantDetails(restaurantId: string) {
             },
             _sum: { totalAmount: true },
         }),
-
         prisma.order.count({
             where: {
                 restaurantId,
                 createdAt: {
-                    gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+                    gte: new Date(
+                        new Date().getFullYear(),
+                        new Date().getMonth(),
+                        1
+                    ),
                 },
             },
         }),
@@ -162,7 +182,7 @@ export async function getRestaurantDetails(restaurantId: string) {
         ...restaurant,
         stats: {
             totalOrders,
-            totalRevenue: totalRevenue._sum.totalAmount || 0,
+            totalRevenue: totalRevenue._sum.totalAmount ?? 0,
             ordersThisMonth,
         },
     }
@@ -172,31 +192,29 @@ export async function getRestaurantDetails(restaurantId: string) {
 // ACTIVER / DÉSACTIVER UN RESTAURANT
 // ============================================================
 
-export async function toggleRestaurantStatus(restaurantId: string) {
+export async function toggleRestaurantStatus(
+    restaurantId: string
+): Promise<{ success?: true; error?: string }> {
     await verifySuperAdmin()
 
     const restaurant = await prisma.restaurant.findUnique({
         where: { id: restaurantId },
-        select: { isActive: true },
+        select: { isActive: true, name: true },
     })
 
     if (!restaurant) {
         return { error: 'Restaurant introuvable' }
     }
 
-    // 1. On met à jour le restaurant et on récupère la nouvelle valeur
     const updatedRestaurant = await prisma.restaurant.update({
         where: { id: restaurantId },
         data: { isActive: !restaurant.isActive },
-    });
-    const { name } = await prisma.restaurant.findUniqueOrThrow({
-        where: { id: restaurantId },
-        select: { name: true },
-    });
+    })
+
     if (!updatedRestaurant.isActive) {
-        await logRestaurantDeactivated(restaurantId, name);
+        await logRestaurantDeactivated(restaurantId, restaurant.name)
     } else {
-        await logRestaurantActivated(restaurantId, name);
+        await logRestaurantActivated(restaurantId, restaurant.name)
     }
 
     return { success: true }
@@ -206,10 +224,18 @@ export async function toggleRestaurantStatus(restaurantId: string) {
 // LISTE DE TOUS LES UTILISATEURS
 // ============================================================
 
-export async function getAllUsers() {
+export async function getAllUsers(): Promise<
+    (RestaurantUser & {
+        restaurant: {
+            id: string
+            name: string
+            slug: string
+        }
+    })[]
+> {
     await verifySuperAdmin()
 
-    const users = await prisma.restaurantUser.findMany({
+    return prisma.restaurantUser.findMany({
         include: {
             restaurant: {
                 select: {
@@ -221,40 +247,47 @@ export async function getAllUsers() {
         },
         orderBy: { createdAt: 'desc' },
     })
-
-    return users
 }
 
 // ============================================================
 // RECHERCHER UN UTILISATEUR
 // ============================================================
 
-export async function searchUser(query: string) {
+export async function searchUser(
+    query: string
+): Promise<
+    (RestaurantUser & {
+        restaurant: {
+            id: string
+            name: string
+            slug: string
+        }
+    })[]
+> {
     await verifySuperAdmin()
 
-    // Si la query ressemble à un UUID, chercher par userId exact
-    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(query)
+    const isUuid =
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+            query
+        )
 
-    const users = await prisma.restaurantUser.findMany({
+    return prisma.restaurantUser.findMany({
         where: {
             OR: [
-                // Si UUID, recherche exacte par userId
                 ...(isUuid ? [{ userId: query }] : []),
-                // Recherche par nom de restaurant
                 {
                     restaurant: {
                         name: {
                             contains: query,
-                            mode: 'insensitive' as const
+                            mode: 'insensitive',
                         },
                     },
                 },
-                // Recherche par slug de restaurant
                 {
                     restaurant: {
                         slug: {
                             contains: query,
-                            mode: 'insensitive' as const
+                            mode: 'insensitive',
                         },
                     },
                 },
@@ -272,19 +305,17 @@ export async function searchUser(query: string) {
         orderBy: { createdAt: 'desc' },
         take: 50,
     })
-
-    return users
 }
 
 // ============================================================
 // STATISTIQUES D'ACTIVITÉ (7 derniers jours)
 // ============================================================
 
-export async function getActivityStats() {
+export async function getActivityStats(): Promise<ActivityDay[]> {
     await verifySuperAdmin()
 
     const days = 7
-    const stats = []
+    const stats: ActivityDay[] = []
 
     for (let i = days - 1; i >= 0; i--) {
         const date = new Date()
@@ -317,7 +348,7 @@ export async function getActivityStats() {
         stats.push({
             date: date.toISOString().split('T')[0],
             orders: ordersCount,
-            revenue: revenue._sum.totalAmount || 0,
+            revenue: revenue._sum.totalAmount ?? 0,
         })
     }
 
@@ -328,10 +359,12 @@ export async function getActivityStats() {
 // TOP 5 RESTAURANTS PAR COMMANDES
 // ============================================================
 
-export async function getTopRestaurants() {
+export async function getTopRestaurants(): Promise<
+    (Restaurant & { _count: { orders: number } })[]
+> {
     await verifySuperAdmin()
 
-    const restaurants = await prisma.restaurant.findMany({
+    return prisma.restaurant.findMany({
         include: {
             _count: {
                 select: { orders: true },
@@ -344,6 +377,4 @@ export async function getTopRestaurants() {
         },
         take: 5,
     })
-
-    return restaurants
 }
