@@ -1,5 +1,6 @@
 import { PERMISSIONS, type SystemRole, type Permission } from '@/types/auth'
 
+
 /*************************************************************
  * Liste des emails SuperAdmin (TOI)
  ************************************************************/

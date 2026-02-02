@@ -1,3 +1,5 @@
+'use client'
+
 import { getRestaurantDetails } from '@/lib/actions/superadmin'
 import { formatDate, formatNumber, formatPrice } from '@/lib/utils/format'
 import { getRoleBadge } from '@/lib/utils/permissions'
@@ -19,16 +21,64 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ToggleRestaurantStatus } from '@/components/superadmin/ToggleRestaurantStatus'
-import { ArrowLeft, Building2, Users, ShoppingCart, TrendingUp } from 'lucide-react'
+import { ArrowLeft, Building2, ShoppingCart, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
+import { SystemRole } from '@/types/auth'
+
+// ----------------------------
+// Typage des utilisateurs et restaurant
+// ----------------------------
+
+export type RestaurantUserType = {
+    id: string
+    userId: string
+    role: string // admin, kitchen, manager, delivery, etc.
+    createdAt: Date
+}
+
+export type RestaurantDetailsType = {
+    id: string
+    name: string
+    slug: string
+    phone?: string | null
+    address?: string | null
+    isActive: boolean
+    createdAt: string
+    _count: {
+        products: number
+        tables: number
+        orders: number
+    }
+    stats: {
+        totalOrders: number
+        totalRevenue: number
+        ordersThisMonth: number
+    }
+    users: RestaurantUserType[]
+}
+
+// ----------------------------
+// Props
+// ----------------------------
 
 interface PageProps {
     params: Promise<{ id: string }>
 }
 
+
 export default async function RestaurantDetailsPage({ params }: PageProps) {
     const { id } = await params
-    const restaurant = await getRestaurantDetails(id)
+    const restaurantRaw = await getRestaurantDetails(id)
+    const restaurant: RestaurantDetailsType = {
+        ...restaurantRaw,
+        createdAt: restaurantRaw.createdAt instanceof Date
+            ? restaurantRaw.createdAt.toISOString()
+            : restaurantRaw.createdAt,
+        users: restaurantRaw.users.map((user: any) => ({
+            ...user,
+            role: user.role ?? '',
+        })),
+    }
 
     return (
         <div className="space-y-6">
@@ -92,7 +142,7 @@ export default async function RestaurantDetailsPage({ params }: PageProps) {
                                 Créé le
                             </div>
                             <div className="font-medium">
-                                {formatDate(restaurant.createdAt)}
+                                {formatDate(new Date(restaurant.createdAt))}
                             </div>
                         </div>
                     </div>
@@ -189,26 +239,24 @@ export default async function RestaurantDetailsPage({ params }: PageProps) {
                                     </TableCell>
                                 </TableRow>
                             ) : (
-                                restaurant.users.map((user) => (
-                                    <TableRow key={user.id}>
-                                        <TableCell className="font-mono text-sm">
-                                            {user.userId.slice(0, 8)}...
-                                        </TableCell>
-                                        <TableCell>
-                                            <Badge
-                                                className={
-                                                    getRoleBadge(user.role as 'admin' | 'kitchen')
-                                                        .color
-                                                }
-                                            >
-                                                {getRoleBadge(user.role as 'admin' | 'kitchen').label}
-                                            </Badge>
-                                        </TableCell>
-                                        <TableCell className="text-zinc-600 dark:text-zinc-400">
-                                            {formatDate(user.createdAt)}
-                                        </TableCell>
-                                    </TableRow>
-                                ))
+                                restaurant.users.map((user: RestaurantUserType) => {
+                                    const roleBadge = getRoleBadge(user.role as SystemRole)
+                                    return (
+                                        <TableRow key={user.id}>
+                                            <TableCell className="font-mono text-sm">
+                                                {user.userId.slice(0, 8)}...
+                                            </TableCell>
+                                            <TableCell>
+                                                <Badge className={roleBadge.color}>
+                                                    {roleBadge.label}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell className="text-zinc-600 dark:text-zinc-400">
+                                                {formatDate(user.createdAt)}
+                                            </TableCell>
+                                        </TableRow>
+                                    )
+                                })
                             )}
                         </TableBody>
                     </Table>
