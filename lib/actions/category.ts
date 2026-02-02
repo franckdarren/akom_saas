@@ -10,10 +10,14 @@ interface CategoryData {
   description?: string
 }
 
+// -----------------------------
+// Typage correct du callback tx
+// -----------------------------
+type PrismaTx = Parameters<Parameters<typeof prisma.$transaction>[0]>[0]
+
 // ============================================================
 // Récupérer le restaurant de l'utilisateur connecté
 // ============================================================
-
 async function getCurrentRestaurantId() {
   const supabase = await createClient()
   const {
@@ -35,7 +39,6 @@ async function getCurrentRestaurantId() {
 // ============================================================
 // Créer une catégorie
 // ============================================================
-
 export async function createCategory(data: CategoryData) {
   try {
     const restaurantId = await getCurrentRestaurantId()
@@ -66,7 +69,6 @@ export async function createCategory(data: CategoryData) {
 // ============================================================
 // Modifier une catégorie
 // ============================================================
-
 export async function updateCategory(id: string, data: CategoryData) {
   try {
     const restaurantId = await getCurrentRestaurantId()
@@ -90,7 +92,6 @@ export async function updateCategory(id: string, data: CategoryData) {
 // ============================================================
 // Changer le statut d'une catégorie
 // ============================================================
-
 export async function toggleCategoryStatus(id: string) {
   try {
     const restaurantId = await getCurrentRestaurantId()
@@ -118,7 +119,6 @@ export async function toggleCategoryStatus(id: string) {
 // ============================================================
 // Supprimer une catégorie
 // ============================================================
-
 export async function deleteCategory(id: string) {
   try {
     const restaurantId = await getCurrentRestaurantId()
@@ -140,9 +140,9 @@ export async function deleteCategory(id: string) {
 
     if (!deletedCategory) return { error: 'Catégorie introuvable' }
 
-    // Transaction Prisma compatible Prisma 7.2
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: PrismaTx) => {
       await tx.category.delete({ where: { id, restaurantId } })
+
       await tx.category.updateMany({
         where: {
           restaurantId,
@@ -161,32 +161,28 @@ export async function deleteCategory(id: string) {
 }
 
 // ============================================================
-// Réordonner les catégories
+// Réorganiser les catégories
 // ============================================================
-
 export async function reorderCategories(categoryIds: string[]) {
   try {
     const restaurantId = await getCurrentRestaurantId()
 
     const categories = await prisma.category.findMany({
-      where: {
-        id: { in: categoryIds },
-        restaurantId,
-      },
+      where: { id: { in: categoryIds }, restaurantId },
     })
 
     if (categories.length !== categoryIds.length) {
       return { error: 'Certaines catégories sont invalides' }
     }
 
-    await prisma.$transaction(
-      categoryIds.map((categoryId, index) =>
-        prisma.category.update({
-          where: { id: categoryId },
-          data: { position: index + 1 },
+    await prisma.$transaction(async (tx: PrismaTx) => {
+      for (let i = 0; i < categoryIds.length; i++) {
+        await tx.category.update({
+          where: { id: categoryIds[i] },
+          data: { position: i + 1 },
         })
-      )
-    )
+      }
+    })
 
     revalidatePath('/dashboard/menu/categories')
     return { success: true }
@@ -199,7 +195,6 @@ export async function reorderCategories(categoryIds: string[]) {
 // ============================================================
 // Déplacer une catégorie vers le haut
 // ============================================================
-
 export async function moveCategoryUp(categoryId: string) {
   try {
     const restaurantId = await getCurrentRestaurantId()
@@ -213,15 +208,12 @@ export async function moveCategoryUp(categoryId: string) {
     if (category.position <= 1) return { success: true }
 
     const categoryAbove = await prisma.category.findFirst({
-      where: {
-        restaurantId,
-        position: category.position - 1,
-      },
+      where: { restaurantId, position: category.position - 1 },
     })
 
     if (!categoryAbove) return { error: 'Aucune catégorie au-dessus' }
 
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: PrismaTx) => {
       await tx.category.update({
         where: { id: categoryId },
         data: { position: category.position - 1 },
@@ -243,7 +235,6 @@ export async function moveCategoryUp(categoryId: string) {
 // ============================================================
 // Déplacer une catégorie vers le bas
 // ============================================================
-
 export async function moveCategoryDown(categoryId: string) {
   try {
     const restaurantId = await getCurrentRestaurantId()
@@ -256,15 +247,12 @@ export async function moveCategoryDown(categoryId: string) {
     if (!category) return { error: 'Catégorie introuvable' }
 
     const categoryBelow = await prisma.category.findFirst({
-      where: {
-        restaurantId,
-        position: category.position + 1,
-      },
+      where: { restaurantId, position: category.position + 1 },
     })
 
     if (!categoryBelow) return { success: true }
 
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: PrismaTx) => {
       await tx.category.update({
         where: { id: categoryId },
         data: { position: category.position + 1 },
