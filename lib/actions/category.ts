@@ -1,6 +1,7 @@
 // lib/actions/category.ts
 'use server'
 
+import { Prisma } from '@prisma/client'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
@@ -137,12 +138,10 @@ export async function toggleCategoryStatus(id: string) {
 // ============================================================
 // Supprimer une catégorie
 // ============================================================
-
 export async function deleteCategory(id: string) {
     try {
         const restaurantId = await getCurrentRestaurantId()
 
-        // Vérifier qu'il n'y a pas de produits liés
         const productsCount = await prisma.product.count({
             where: { categoryId: id },
         })
@@ -153,7 +152,6 @@ export async function deleteCategory(id: string) {
             }
         }
 
-        // Récupérer la position de la catégorie supprimée
         const deletedCategory = await prisma.category.findUnique({
             where: { id, restaurantId },
             select: { position: true },
@@ -163,8 +161,8 @@ export async function deleteCategory(id: string) {
             return { error: 'Catégorie introuvable' }
         }
 
-        // Supprimer la catégorie et réorganiser les positions dans une transaction
-        await prisma.$transaction(async (tx) => {
+        // Transaction avec typage correct
+        await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
             await tx.category.delete({
                 where: { id, restaurantId },
             })
@@ -174,9 +172,7 @@ export async function deleteCategory(id: string) {
                     restaurantId,
                     position: { gt: deletedCategory.position },
                 },
-                data: {
-                    position: { decrement: 1 },
-                },
+                data: { position: { decrement: 1 } },
             })
         })
 
@@ -188,8 +184,9 @@ export async function deleteCategory(id: string) {
     }
 }
 
-// Les autres fonctions (reorderCategories, moveCategoryUp, moveCategoryDown) 
-// restent inchangées car elles ne modifient que les positions
+// ============================================================
+// Réorganiser les catégories
+// ============================================================
 export async function reorderCategories(categoryIds: string[]) {
     try {
         const restaurantId = await getCurrentRestaurantId()
@@ -205,14 +202,15 @@ export async function reorderCategories(categoryIds: string[]) {
             return { error: 'Certaines catégories sont invalides' }
         }
 
-        await prisma.$transaction(
-            categoryIds.map((categoryId, index) =>
-                prisma.category.update({
-                    where: { id: categoryId },
-                    data: { position: index + 1 },
+        // Transaction avec typage correct
+        await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+            for (let i = 0; i < categoryIds.length; i++) {
+                await tx.category.update({
+                    where: { id: categoryIds[i] },
+                    data: { position: i + 1 },
                 })
-            )
-        )
+            }
+        })
 
         revalidatePath('/dashboard/menu/categories')
         return { success: true }
@@ -222,6 +220,9 @@ export async function reorderCategories(categoryIds: string[]) {
     }
 }
 
+// ============================================================
+// Déplacer catégorie vers le haut
+// ============================================================
 export async function moveCategoryUp(categoryId: string) {
     try {
         const restaurantId = await getCurrentRestaurantId()
@@ -235,9 +236,7 @@ export async function moveCategoryUp(categoryId: string) {
             return { error: 'Catégorie introuvable' }
         }
 
-        if (category.position <= 1) {
-            return { success: true }
-        }
+        if (category.position <= 1) return { success: true }
 
         const categoryAbove = await prisma.category.findFirst({
             where: {
@@ -250,16 +249,16 @@ export async function moveCategoryUp(categoryId: string) {
             return { error: 'Aucune catégorie au-dessus' }
         }
 
-        await prisma.$transaction([
-            prisma.category.update({
+        await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+            await tx.category.update({
                 where: { id: categoryId },
                 data: { position: category.position - 1 },
-            }),
-            prisma.category.update({
+            })
+            await tx.category.update({
                 where: { id: categoryAbove.id },
                 data: { position: categoryAbove.position + 1 },
-            }),
-        ])
+            })
+        })
 
         revalidatePath('/dashboard/menu/categories')
         return { success: true }
@@ -269,6 +268,9 @@ export async function moveCategoryUp(categoryId: string) {
     }
 }
 
+// ============================================================
+// Déplacer catégorie vers le bas
+// ============================================================
 export async function moveCategoryDown(categoryId: string) {
     try {
         const restaurantId = await getCurrentRestaurantId()
@@ -289,20 +291,18 @@ export async function moveCategoryDown(categoryId: string) {
             },
         })
 
-        if (!categoryBelow) {
-            return { success: true }
-        }
+        if (!categoryBelow) return { success: true }
 
-        await prisma.$transaction([
-            prisma.category.update({
+        await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+            await tx.category.update({
                 where: { id: categoryId },
                 data: { position: category.position + 1 },
-            }),
-            prisma.category.update({
+            })
+            await tx.category.update({
                 where: { id: categoryBelow.id },
                 data: { position: categoryBelow.position - 1 },
-            }),
-        ])
+            })
+        })
 
         revalidatePath('/dashboard/menu/categories')
         return { success: true }
