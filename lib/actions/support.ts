@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
 import { isSuperAdminEmail } from '@/lib/utils/permissions'
-import { TicketStatus, TicketPriority } from '../../app/generated/prisma/client'
+import type { TicketStatus, TicketPriority } from '@prisma/client'
 
 // ============================================================
 // HELPERS
