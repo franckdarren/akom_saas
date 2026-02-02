@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRestaurant } from '@/lib/hooks/use-restaurant'
-import { inviteUserToRestaurant } from '@/lib/actions/user'
+import { inviteUserToRestaurant } from '@/lib/actions/invitation'
 import { getRestaurantRoles } from '@/lib/actions/roles'
 import {
     Dialog,
