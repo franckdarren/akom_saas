@@ -1,3 +1,5 @@
+'use client'
+
 import {
     getStatsByPeriod,
     getRestaurantsComparison,
@@ -24,14 +26,50 @@ import { StatsChart } from '@/components/superadmin/StatsChart'
 import { ExportStatsButton } from '@/components/superadmin/ExportStatsButton'
 import { TrendingUp, Package, Activity } from 'lucide-react'
 
+// ----------------------------
+// Typage des données
+// ----------------------------
+
+export type TopRestaurant = {
+    id: string
+    name: string
+    ordersCount: number
+    revenue: number
+}
+
+export type TopProduct = {
+    productName: string
+    totalQuantity: number
+    totalRevenue: number
+}
+
+export type RealTimeStats = {
+    ordersLast24h: number
+    revenueLast24h: number
+    activeRestaurants: number
+}
+
+// monthlyStats dépend de ton StatsChart, je mets any ici mais tu peux le typer plus tard
+export type MonthlyStats = any[]
+
+
 export default async function StatsPage() {
-    const [monthlyStats, topRestaurants, topProducts, realTimeStats] =
-        await Promise.all([
-            getStatsByPeriod('month'),
-            getRestaurantsComparison(10),
-            getTopProducts(10),
-            getRealTimeStats(),
-        ])
+    const [
+        monthlyStats,
+        topRestaurants,
+        topProducts,
+        realTimeStats,
+    ]: [
+        MonthlyStats,
+        TopRestaurant[],
+        TopProduct[],
+        RealTimeStats
+    ] = await Promise.all([
+        getStatsByPeriod('month'),
+        getRestaurantsComparison(10),
+        getTopProducts(10),
+        getRealTimeStats(),
+    ])
 
     return (
         <div className="space-y-8">
@@ -136,11 +174,9 @@ export default async function StatsPage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {topRestaurants.map((restaurant, index) => (
+                            {topRestaurants.map((restaurant: TopRestaurant, index) => (
                                 <TableRow key={restaurant.id}>
-                                    <TableCell className="font-medium">
-                                        {index + 1}
-                                    </TableCell>
+                                    <TableCell className="font-medium">{index + 1}</TableCell>
                                     <TableCell>{restaurant.name}</TableCell>
                                     <TableCell className="text-right">
                                         {formatNumber(restaurant.ordersCount)}
@@ -178,11 +214,9 @@ export default async function StatsPage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {topProducts.map((product, index) => (
+                            {topProducts.map((product: TopProduct, index) => (
                                 <TableRow key={index}>
-                                    <TableCell className="font-medium">
-                                        {index + 1}
-                                    </TableCell>
+                                    <TableCell className="font-medium">{index + 1}</TableCell>
                                     <TableCell>{product.productName}</TableCell>
                                     <TableCell className="text-right">
                                         {formatNumber(product.totalQuantity)}
