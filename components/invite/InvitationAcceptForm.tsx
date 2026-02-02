@@ -3,15 +3,13 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { signIn, signUp } from '@/lib/actions/auth'
-import { acceptInvitation } from '@/lib/actions/invitation'
+import { acceptInvitationWithAuth } from '@/lib/actions/invitation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { toast } from 'sonner'
-import { Loader2, LogIn, UserPlus, Info } from 'lucide-react'
+import { Loader2, UserPlus, Info, Lock } from 'lucide-react'
 
 interface InvitationAcceptFormProps {
     token: string
@@ -28,61 +26,11 @@ export function InvitationAcceptForm({
     const [isLoading, setIsLoading] = useState(false)
     const [password, setPassword] = useState('')
     const [confirmPassword, setConfirmPassword] = useState('')
-    const [activeTab, setActiveTab] = useState<'signin' | 'signup'>('signin')
 
-    async function handleSignIn(e: React.FormEvent) {
+    async function handleSubmit(e: React.FormEvent) {
         e.preventDefault()
 
-        if (!password) {
-            toast.error('Veuillez entrer votre mot de passe')
-            return
-        }
-
-        setIsLoading(true)
-
-        try {
-            // Étape 1 : Se connecter
-            const signInResult = await signIn({ email, password })
-
-            if (!signInResult.success) {
-                toast.error('Erreur de connexion', {
-                    description: signInResult.error || signInResult.message,
-                })
-                setIsLoading(false)
-                return
-            }
-
-            // Étape 2 : Accepter l'invitation automatiquement
-            const acceptResult = await acceptInvitation(token)
-
-            if (acceptResult.success) {
-                toast.success('Bienvenue !', {
-                    description: acceptResult.message,
-                })
-
-                // IMPORTANT : Redirection directe vers le dashboard
-                // Pas de passage par /onboarding ou /restaurants/new
-                router.push('/dashboard')
-                router.refresh()
-            } else {
-                toast.error('Erreur', {
-                    description: acceptResult.error || acceptResult.message,
-                })
-                setIsLoading(false)
-            }
-        } catch (error) {
-            console.error('Erreur lors de la connexion:', error)
-            toast.error('Une erreur est survenue', {
-                description: 'Impossible de se connecter. Veuillez réessayer.',
-            })
-            setIsLoading(false)
-        }
-    }
-
-    async function handleSignUp(e: React.FormEvent) {
-        e.preventDefault()
-
-        // Validations côté client
+        // Validations
         if (!password) {
             toast.error('Veuillez entrer un mot de passe')
             return
@@ -101,42 +49,27 @@ export function InvitationAcceptForm({
         setIsLoading(true)
 
         try {
-            // Étape 1 : Créer le compte
-            const signUpResult = await signUp({
+            const result = await acceptInvitationWithAuth(
+                token,
                 email,
                 password,
-                confirmPassword,
-            })
+                true // Toujours nouveau compte
+            )
 
-            if (!signUpResult.success) {
-                toast.error('Erreur lors de la création du compte', {
-                    description: signUpResult.error || signUpResult.message,
+            if (result.success && result.shouldRedirect) {
+                toast.success('Bienvenue !', {
+                    description: `Votre compte a été créé et vous avez rejoint ${restaurantName}`,
                 })
-                setIsLoading(false)
-                return
-            }
-
-            // Étape 2 : Accepter l'invitation automatiquement
-            const acceptResult = await acceptInvitation(token)
-
-            if (acceptResult.success) {
-                toast.success('Compte créé avec succès !', {
-                    description: `Vous avez rejoint ${restaurantName}`,
-                })
-
-                // IMPORTANT : Redirection directe vers le dashboard
-                // Le système sait déjà que l'utilisateur appartient à un restaurant
-                // grâce à l'acceptation de l'invitation
-                router.push('/dashboard')
+                router.push(result.shouldRedirect)
                 router.refresh()
             } else {
                 toast.error('Erreur', {
-                    description: acceptResult.error || acceptResult.message,
+                    description: result.error || result.message,
                 })
                 setIsLoading(false)
             }
         } catch (error) {
-            console.error('Erreur lors de l\'inscription:', error)
+            console.error('Erreur:', error)
             toast.error('Une erreur est survenue', {
                 description: 'Impossible de créer le compte. Veuillez réessayer.',
             })
@@ -148,7 +81,7 @@ export function InvitationAcceptForm({
         <div className="space-y-6">
             {/* Email (lecture seule) */}
             <div className="space-y-2">
-                <Label htmlFor="email">Email invité</Label>
+                <Label htmlFor="email">Votre email</Label>
                 <Input
                     id="email"
                     type="email"
@@ -157,158 +90,95 @@ export function InvitationAcceptForm({
                     className="bg-muted"
                 />
                 <p className="text-xs text-muted-foreground">
-                    Vous devez utiliser cet email pour accepter l'invitation
+                    Cet email sera utilisé pour votre compte Akôm
                 </p>
             </div>
 
-            {/* Information importante */}
+            {/* Information */}
             <Alert>
                 <Info className="h-4 w-4" />
                 <AlertDescription>
-                    {activeTab === 'signin' ? (
-                        <>
-                            Vous avez déjà un compte Akôm ? Connectez-vous avec le même email
-                            pour rejoindre automatiquement <strong>{restaurantName}</strong>.
-                        </>
-                    ) : (
-                        <>
-                            Pas encore de compte ? Créez-en un maintenant et vous serez
-                            automatiquement ajouté à <strong>{restaurantName}</strong>.
-                        </>
-                    )}
+                    Créez votre compte Akôm pour rejoindre{' '}
+                    <strong>{restaurantName}</strong>. Vous pourrez accéder au
+                    dashboard dès que votre mot de passe sera configuré.
                 </AlertDescription>
             </Alert>
 
-            {/* Onglets connexion / inscription */}
-            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'signin' | 'signup')}>
-                <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="signin">
-                        J'ai déjà un compte
-                    </TabsTrigger>
-                    <TabsTrigger value="signup">
-                        Créer un compte
-                    </TabsTrigger>
-                </TabsList>
-
-                {/* Onglet Connexion */}
-                <TabsContent value="signin">
-                    <form onSubmit={handleSignIn} className="space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="signin-password">
-                                Mot de passe <span className="text-destructive">*</span>
-                            </Label>
-                            <Input
-                                id="signin-password"
-                                type="password"
-                                placeholder="Entrez votre mot de passe"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                disabled={isLoading}
-                                required
-                                autoFocus
-                            />
+            {/* Formulaire de création de compte */}
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                    <Label htmlFor="password">
+                        <div className="flex items-center gap-2">
+                            <Lock className="h-4 w-4" />
+                            Mot de passe <span className="text-destructive">*</span>
                         </div>
+                    </Label>
+                    <Input
+                        id="password"
+                        type="password"
+                        placeholder="Choisissez un mot de passe sécurisé"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        disabled={isLoading}
+                        required
+                        autoFocus
+                    />
+                    <p className="text-xs text-muted-foreground">
+                        Minimum 6 caractères
+                    </p>
+                </div>
 
-                        <Button type="submit" className="w-full" disabled={isLoading}>
-                            {isLoading ? (
-                                <>
-                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                    Connexion en cours...
-                                </>
-                            ) : (
-                                <>
-                                    <LogIn className="h-4 w-4" />
-                                    Se connecter et rejoindre
-                                </>
-                            )}
-                        </Button>
-
-                        <div className="text-xs text-center text-muted-foreground pt-2">
-                            Après connexion, vous rejoindrez automatiquement {restaurantName}
+                <div className="space-y-2">
+                    <Label htmlFor="confirm-password">
+                        <div className="flex items-center gap-2">
+                            <Lock className="h-4 w-4" />
+                            Confirmer le mot de passe <span className="text-destructive">*</span>
                         </div>
-                    </form>
-                </TabsContent>
+                    </Label>
+                    <Input
+                        id="confirm-password"
+                        type="password"
+                        placeholder="Confirmez votre mot de passe"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        disabled={isLoading}
+                        required
+                    />
+                </div>
 
-                {/* Onglet Inscription */}
-                <TabsContent value="signup">
-                    <form onSubmit={handleSignUp} className="space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="signup-password">
-                                Mot de passe <span className="text-destructive">*</span>
-                            </Label>
-                            <Input
-                                id="signup-password"
-                                type="password"
-                                placeholder="Choisissez un mot de passe"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                disabled={isLoading}
-                                required
-                                autoFocus
-                            />
-                            <p className="text-xs text-muted-foreground">
-                                Minimum 6 caractères
-                            </p>
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="confirm-password">
-                                Confirmer le mot de passe <span className="text-destructive">*</span>
-                            </Label>
-                            <Input
-                                id="confirm-password"
-                                type="password"
-                                placeholder="Confirmez votre mot de passe"
-                                value={confirmPassword}
-                                onChange={(e) => setConfirmPassword(e.target.value)}
-                                disabled={isLoading}
-                                required
-                            />
-                        </div>
-
-                        <Button type="submit" className="w-full" disabled={isLoading}>
-                            {isLoading ? (
-                                <>
-                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                    Création en cours...
-                                </>
-                            ) : (
-                                <>
-                                    <UserPlus className="h-4 w-4" />
-                                    Créer mon compte et rejoindre
-                                </>
-                            )}
-                        </Button>
-
-                        <div className="text-xs text-center text-muted-foreground pt-2">
-                            Après inscription, vous rejoindrez automatiquement {restaurantName}
-                        </div>
-                    </form>
-                </TabsContent>
-            </Tabs>
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                    {isLoading ? (
+                        <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Création du compte...
+                        </>
+                    ) : (
+                        <>
+                            <UserPlus className="h-4 w-4" />
+                            Créer mon compte et rejoindre {restaurantName}
+                        </>
+                    )}
+                </Button>
+            </form>
 
             {/* Explication du processus */}
             <div className="rounded-lg border bg-muted/50 p-4 space-y-3">
                 <h4 className="text-sm font-medium flex items-center gap-2">
                     <Info className="h-4 w-4" />
-                    Comment ça fonctionne ?
+                    Ce qui va se passer ensuite
                 </h4>
                 <ol className="text-xs text-muted-foreground space-y-2 list-decimal list-inside">
-                    <li>
-                        {activeTab === 'signin'
-                            ? 'Connectez-vous avec votre mot de passe'
-                            : 'Créez votre compte Akôm avec un mot de passe sécurisé'}
-                    </li>
+                    <li>Votre compte Akôm sera créé avec l'email {email}</li>
                     <li>
                         Vous serez automatiquement ajouté à <strong>{restaurantName}</strong>
                     </li>
-                    <li>
-                        Vous accéderez directement au dashboard de votre restaurant
-                    </li>
-                    <li>
-                        Vous pourrez commencer à travailler immédiatement
-                    </li>
+                    <li>Vous accéderez directement au dashboard de votre restaurant</li>
+                    <li>Vous pourrez commencer à travailler immédiatement</li>
                 </ol>
+                <p className="text-xs text-muted-foreground pt-2 border-t">
+                    💡 <strong>Astuce :</strong> Notez bien votre mot de passe, vous en
+                    aurez besoin pour vos prochaines connexions.
+                </p>
             </div>
         </div>
     )

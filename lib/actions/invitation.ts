@@ -5,6 +5,8 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
 import { randomBytes } from 'crypto'
+import { sendInvitationEmail as sendEmail } from '@/lib/email/send-invitation'
+import { signUp, signIn } from './auth'
 
 // ============================================================
 // TYPES
@@ -15,9 +17,9 @@ type ActionResult = {
     message: string
     error?: string
     invitationId?: string
+    shouldRedirect?: string
 }
 
-// Type pour les permissions liées à un rôle personnalisé
 type RolePermission = {
     permission: {
         resource: string
@@ -25,12 +27,10 @@ type RolePermission = {
     }
 }
 
-// Type pour un rôle personnalisé complet
 type CustomRoleWithPermissions = {
     permissions: RolePermission[]
 }
 
-// Type pour l'utilisateur avec son rôle personnalisé
 type RestaurantUserWithRole = {
     customRole?: CustomRoleWithPermissions | null
 }
@@ -58,17 +58,22 @@ async function sendInvitationEmail(
 ) {
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
     const invitationLink = `${baseUrl}/invite/accept?token=${token}`
+    const expiresAt = getExpirationDate()
 
+    // MODE DÉVELOPPEMENT : Logger dans la console
     console.log('='.repeat(80))
-    console.log('📧 INVITATION ENVOYÉE')
+    console.log('📧 EMAIL D\'INVITATION')
+    console.log('='.repeat(80))
     console.log(`À           : ${email}`)
     console.log(`Restaurant  : ${restaurantName}`)
     console.log(`Rôle        : ${roleName}`)
     console.log(`Invité par  : ${inviterEmail}`)
     console.log(`Lien        : ${invitationLink}`)
-    console.log(`Expire le   : ${getExpirationDate().toLocaleDateString('fr-FR')}`)
+    console.log(`Expire le   : ${expiresAt.toLocaleDateString('fr-FR')}`)
     console.log('='.repeat(80))
 
+    // Pour le MVP, retourner true sans envoyer d'email
+    // L'admin copiera le lien manuellement
     return true
 }
 
@@ -95,7 +100,7 @@ export async function inviteUserToRestaurant(
             }
         }
 
-        // Vérifier que l'utilisateur est admin du restaurant
+        // Vérifier que l'utilisateur a les permissions
         const inviterRole = await prisma.restaurantUser.findFirst({
             where: { userId: user.id, restaurantId },
             include: {
@@ -113,7 +118,6 @@ export async function inviteUserToRestaurant(
             }
         }
 
-        // Vérifier que l'utilisateur a la permission d'inviter
         const canInvite = inviterRole.customRole?.permissions?.some(
             (rp: RolePermission) =>
                 rp.permission.resource === 'users' && rp.permission.action === 'create'
@@ -139,7 +143,7 @@ export async function inviteUserToRestaurant(
 
         const normalizedEmail = email.toLowerCase().trim()
 
-        // Vérifier que le rôle existe et appartient au restaurant
+        // Vérifier que le rôle existe
         const role = await prisma.role.findFirst({
             where: { id: roleId, restaurantId, isActive: true },
         })
@@ -152,19 +156,19 @@ export async function inviteUserToRestaurant(
             }
         }
 
-        // Vérifier si l'utilisateur est déjà membre
-        const existingMember = await prisma.$queryRaw<Array<{ count: bigint }>>`
-      SELECT COUNT(*) as count
-      FROM restaurant_users ru
-      INNER JOIN auth.users u ON u.id = ru.user_id
-      WHERE LOWER(u.email) = ${normalizedEmail}
-        AND ru.restaurant_id = ${restaurantId}::uuid
-    `
-        if (Number(existingMember[0]?.count) > 0) {
+        // Bloquer si l'utilisateur existe déjà dans la plateforme
+        const existingUser = await prisma.$queryRaw<Array<{ exists: boolean }>>`
+            SELECT EXISTS (
+                SELECT 1 FROM auth.users 
+                WHERE LOWER(email) = ${normalizedEmail}
+            ) as exists
+        `
+
+        if (existingUser[0]?.exists) {
             return {
                 success: false,
-                message: 'Utilisateur déjà membre',
-                error: 'Cette personne fait déjà partie de votre restaurant',
+                message: 'Utilisateur déjà inscrit',
+                error: 'Cette personne a déjà un compte sur Akôm. Pour ajouter des utilisateurs existants, veuillez contacter le support.',
             }
         }
 
@@ -215,7 +219,11 @@ export async function inviteUserToRestaurant(
         )
 
         revalidatePath('/dashboard/users')
-        return { success: true, message: 'Invitation envoyée avec succès', invitationId: invitation.id }
+        return {
+            success: true,
+            message: 'Invitation envoyée avec succès',
+            invitationId: invitation.id,
+        }
     } catch (error) {
         console.error("Erreur lors de l'invitation:", error)
         return {
@@ -226,28 +234,215 @@ export async function inviteUserToRestaurant(
     }
 }
 
+// ============================================================
+// ACCEPTER UNE INVITATION AVEC AUTHENTIFICATION
+// Cette fonction gère tout le processus : authentification + acceptation
+// ============================================================
+
+export async function acceptInvitationWithAuth(
+    token: string,
+    email: string,
+    password: string,
+    isNewAccount: boolean
+): Promise<ActionResult> {
+    try {
+        // Étape 1 : Vérifier que l'invitation existe et est valide
+        const invitation = await prisma.invitation.findUnique({
+            where: { token },
+            include: {
+                restaurant: {
+                    select: {
+                        id: true,
+                        name: true,
+                    },
+                },
+                role: {
+                    select: {
+                        id: true,
+                        name: true,
+                    },
+                },
+            },
+        })
+
+        if (!invitation || invitation.status !== 'pending') {
+            return {
+                success: false,
+                message: 'Invitation invalide',
+                error: "Cette invitation n'est pas valide ou a déjà été utilisée",
+            }
+        }
+
+        if (new Date() > invitation.expiresAt) {
+            await prisma.invitation.update({
+                where: { id: invitation.id },
+                data: { status: 'expired' },
+            })
+            return {
+                success: false,
+                message: 'Invitation expirée',
+                error: 'Cette invitation a expiré',
+            }
+        }
+
+        // Étape 2 : Authentifier ou créer le compte
+        // Important : On utilise les fonctions modifiées qui ne redirigent plus automatiquement
+        let authResult
+        if (isNewAccount) {
+            authResult = await signUp({
+                email,
+                password,
+                confirmPassword: password,
+            })
+        } else {
+            authResult = await signIn({
+                email,
+                password,
+            })
+        }
+
+        if (!authResult.success) {
+            return {
+                success: false,
+                message: authResult.message,
+                error: authResult.error,
+            }
+        }
+
+        // Étape 3 : Récupérer l'utilisateur maintenant authentifié
+        const supabase = await createClient()
+        const {
+            data: { user },
+        } = await supabase.auth.getUser()
+
+        if (!user) {
+            return {
+                success: false,
+                message: "Erreur d'authentification",
+                error: "Impossible de récupérer les informations utilisateur",
+            }
+        }
+
+        // Vérifier que l'email correspond
+        if (user.email?.toLowerCase() !== invitation.email) {
+            return {
+                success: false,
+                message: 'Email non correspondant',
+                error: 'Cette invitation est pour un autre email',
+            }
+        }
+
+        // Étape 4 : Vérifier si déjà membre (ne devrait pas arriver, mais par sécurité)
+        const existingMembership = await prisma.restaurantUser.findFirst({
+            where: {
+                userId: user.id,
+                restaurantId: invitation.restaurantId,
+            },
+        })
+
+        if (!existingMembership) {
+            // Étape 5 : Ajouter au restaurant ET marquer l'invitation comme acceptée
+            // en une seule transaction pour garantir la cohérence
+            await prisma.$transaction([
+                prisma.restaurantUser.create({
+                    data: {
+                        userId: user.id,
+                        restaurantId: invitation.restaurantId,
+                        roleId: invitation.roleId,
+                    },
+                }),
+                prisma.invitation.update({
+                    where: { id: invitation.id },
+                    data: {
+                        status: 'accepted',
+                        acceptedAt: new Date(),
+                    },
+                }),
+            ])
+        } else {
+            // Juste marquer l'invitation comme acceptée
+            await prisma.invitation.update({
+                where: { id: invitation.id },
+                data: {
+                    status: 'accepted',
+                    acceptedAt: new Date(),
+                },
+            })
+        }
+
+        // Étape 6 : Revalider le cache et retourner le succès avec l'URL de redirection
+        revalidatePath('/dashboard')
+        revalidatePath('/', 'layout')
+
+        return {
+            success: true,
+            message: `Bienvenue dans ${invitation.restaurant.name} !`,
+            shouldRedirect: '/dashboard',
+        }
+    } catch (error) {
+        console.error('Erreur acceptation invitation:', error)
+        return {
+            success: false,
+            message: "Erreur lors de l'acceptation",
+            error: error instanceof Error ? error.message : 'Erreur inconnue',
+        }
+    }
+}
 
 // ============================================================
-// ACCEPT
+// ACCEPTER UNE INVITATION (pour utilisateur déjà connecté)
 // ============================================================
 
 export async function acceptInvitation(token: string): Promise<ActionResult> {
     try {
         const supabase = await createClient()
-        const { data: { user } } = await supabase.auth.getUser()
+        const {
+            data: { user },
+        } = await supabase.auth.getUser()
 
-        if (!user) return { success: false, message: 'Utilisateur non connecté', error: 'Vous devez être connecté pour accepter une invitation' }
+        if (!user) {
+            return {
+                success: false,
+                message: 'Utilisateur non connecté',
+                error: "Vous devez être connecté pour accepter une invitation",
+            }
+        }
 
-        const invitation = await prisma.invitation.findUnique({ where: { token } })
-        if (!invitation || invitation.status !== 'pending') return { success: false, message: 'Invitation invalide ou déjà utilisée' }
+        const invitation = await prisma.invitation.findUnique({
+            where: { token },
+            include: {
+                restaurant: {
+                    select: {
+                        name: true,
+                    },
+                },
+            },
+        })
+
+        if (!invitation || invitation.status !== 'pending') {
+            return {
+                success: false,
+                message: 'Invitation invalide ou déjà utilisée',
+            }
+        }
 
         if (new Date() > invitation.expiresAt) {
-            await prisma.invitation.update({ where: { id: invitation.id }, data: { status: 'expired' } })
-            return { success: false, message: 'Invitation expirée' }
+            await prisma.invitation.update({
+                where: { id: invitation.id },
+                data: { status: 'expired' },
+            })
+            return {
+                success: false,
+                message: 'Invitation expirée',
+            }
         }
 
         if (user.email?.toLowerCase() !== invitation.email) {
-            return { success: false, message: 'Email non correspondant', error: 'Cette invitation est destinée à une autre adresse email' }
+            return {
+                success: false,
+                message: 'Email non correspondant',
+                error: 'Cette invitation est destinée à une autre adresse email',
+            }
         }
 
         const existingMember = await prisma.restaurantUser.findFirst({
@@ -270,40 +465,84 @@ export async function acceptInvitation(token: string): Promise<ActionResult> {
         })
 
         revalidatePath('/dashboard')
-        return { success: true, message: 'Invitation acceptée' }
+        return {
+            success: true,
+            message: `Vous avez rejoint ${invitation.restaurant.name}`,
+        }
     } catch (error) {
         console.error('Erreur acceptInvitation:', error)
-        return { success: false, message: 'Erreur lors de l\'acceptation de l\'invitation', error: error instanceof Error ? error.message : 'Erreur inconnue' }
+        return {
+            success: false,
+            message: "Erreur lors de l'acceptation de l'invitation",
+            error: error instanceof Error ? error.message : 'Erreur inconnue',
+        }
     }
 }
 
-
 // ============================================================
-// RESEND
+// RENVOYER UNE INVITATION
 // ============================================================
 
 export async function resendInvitation(invitationId: string): Promise<ActionResult> {
     try {
         const supabase = await createClient()
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) return { success: false, message: 'Non authentifié', error: 'Vous devez être connecté' }
+        const {
+            data: { user },
+        } = await supabase.auth.getUser()
+
+        if (!user) {
+            return {
+                success: false,
+                message: 'Non authentifié',
+                error: 'Vous devez être connecté',
+            }
+        }
 
         const invitation = await prisma.invitation.findUnique({
             where: { id: invitationId },
-            include: { restaurant: { select: { name: true } }, role: { select: { name: true } } },
+            include: {
+                restaurant: { select: { name: true } },
+                role: { select: { name: true } },
+            },
         })
-        if (!invitation) return { success: false, message: 'Invitation introuvable' }
 
-        const inviterRole = await prisma.restaurantUser.findFirst({
+        if (!invitation) {
+            return {
+                success: false,
+                message: 'Invitation introuvable',
+            }
+        }
+
+        const inviterRole = (await prisma.restaurantUser.findFirst({
             where: { userId: user.id, restaurantId: invitation.restaurantId },
-            include: { customRole: { include: { permissions: { include: { permission: true } } } } },
-        }) as RestaurantUserWithRole
-        if (!inviterRole) return { success: false, message: 'Accès refusé', error: "Vous n'appartenez pas à ce restaurant" }
+            include: {
+                customRole: {
+                    include: { permissions: { include: { permission: true } } },
+                },
+            },
+        })) as RestaurantUserWithRole
 
-        const canInvite = inviterRole.customRole?.permissions?.some(
-            (rp: RolePermission) => rp.permission.resource === 'users' && rp.permission.action === 'create'
-        ) ?? false
-        if (!canInvite) return { success: false, message: 'Accès refusé', error: "Vous n'avez pas la permission d'inviter des utilisateurs" }
+        if (!inviterRole) {
+            return {
+                success: false,
+                message: 'Accès refusé',
+                error: "Vous n'appartenez pas à ce restaurant",
+            }
+        }
+
+        const canInvite =
+            inviterRole.customRole?.permissions?.some(
+                (rp: RolePermission) =>
+                    rp.permission.resource === 'users' && rp.permission.action === 'create'
+            ) ?? false
+
+        if (!canInvite) {
+            return {
+                success: false,
+                message: 'Accès refusé',
+                error: "Vous n'avez pas la permission d'inviter des utilisateurs",
+            }
+        }
 
         const token = generateInvitationToken()
         const expiresAt = getExpirationDate()
@@ -313,44 +552,163 @@ export async function resendInvitation(invitationId: string): Promise<ActionResu
             data: { token, expiresAt, status: 'pending' },
         })
 
-        await sendInvitationEmail(invitation.email, token, invitation.restaurant.name, user.email || 'Un administrateur', invitation.role.name)
+        await sendInvitationEmail(
+            invitation.email,
+            token,
+            invitation.restaurant.name,
+            user.email || 'Un administrateur',
+            invitation.role.name
+        )
+
         revalidatePath('/dashboard/users')
-        return { success: true, message: 'Invitation renvoyée avec succès' }
+        return {
+            success: true,
+            message: 'Invitation renvoyée avec succès',
+        }
     } catch (error) {
         console.error('Erreur resendInvitation:', error)
-        return { success: false, message: 'Erreur lors du renvoi de l\'invitation', error: error instanceof Error ? error.message : 'Erreur inconnue' }
+        return {
+            success: false,
+            message: "Erreur lors du renvoi de l'invitation",
+            error: error instanceof Error ? error.message : 'Erreur inconnue',
+        }
     }
 }
 
 // ============================================================
-// REVOKE INVITATIONS
+// RÉVOQUER UNE INVITATION
 // ============================================================
 
 export async function revokeInvitation(invitationId: string): Promise<ActionResult> {
     try {
         const supabase = await createClient()
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) return { success: false, message: 'Non authentifié', error: 'Vous devez être connecté' }
+        const {
+            data: { user },
+        } = await supabase.auth.getUser()
 
-        const invitation = await prisma.invitation.findUnique({ where: { id: invitationId } })
-        if (!invitation) return { success: false, message: 'Invitation introuvable' }
+        if (!user) {
+            return {
+                success: false,
+                message: 'Non authentifié',
+                error: 'Vous devez être connecté',
+            }
+        }
 
-        const inviterRole = await prisma.restaurantUser.findFirst({
+        const invitation = await prisma.invitation.findUnique({
+            where: { id: invitationId },
+        })
+
+        if (!invitation) {
+            return {
+                success: false,
+                message: 'Invitation introuvable',
+            }
+        }
+
+        const inviterRole = (await prisma.restaurantUser.findFirst({
             where: { userId: user.id, restaurantId: invitation.restaurantId },
-            include: { customRole: { include: { permissions: { include: { permission: true } } } } },
-        }) as RestaurantUserWithRole
-        if (!inviterRole) return { success: false, message: 'Accès refusé', error: "Vous n'appartenez pas à ce restaurant" }
+            include: {
+                customRole: {
+                    include: { permissions: { include: { permission: true } } },
+                },
+            },
+        })) as RestaurantUserWithRole
 
-        const canInvite = inviterRole.customRole?.permissions?.some(
-            (rp: RolePermission) => rp.permission.resource === 'users' && rp.permission.action === 'create'
-        ) ?? false
-        if (!canInvite) return { success: false, message: 'Accès refusé', error: "Vous n'avez pas la permission d'inviter des utilisateurs" }
+        if (!inviterRole) {
+            return {
+                success: false,
+                message: 'Accès refusé',
+                error: "Vous n'appartenez pas à ce restaurant",
+            }
+        }
 
-        await prisma.invitation.update({ where: { id: invitationId }, data: { status: 'revoked' } })
+        const canDelete =
+            inviterRole.customRole?.permissions?.some(
+                (rp: RolePermission) =>
+                    rp.permission.resource === 'users' && rp.permission.action === 'delete'
+            ) ?? false
+
+        if (!canDelete) {
+            return {
+                success: false,
+                message: 'Accès refusé',
+                error: "Vous n'avez pas la permission de révoquer des invitations",
+            }
+        }
+
+        if (invitation.status !== 'pending') {
+            return {
+                success: false,
+                message: 'Cette invitation ne peut plus être révoquée',
+            }
+        }
+
+        await prisma.invitation.update({
+            where: { id: invitationId },
+            data: { status: 'revoked' },
+        })
+
         revalidatePath('/dashboard/users')
-        return { success: true, message: 'Invitation révoquée' }
+        return {
+            success: true,
+            message: 'Invitation révoquée',
+        }
     } catch (error) {
         console.error('Erreur revokeInvitation:', error)
-        return { success: false, message: 'Erreur lors de la révocation de l\'invitation', error: error instanceof Error ? error.message : 'Erreur inconnue' }
+        return {
+            success: false,
+            message: "Erreur lors de la révocation de l'invitation",
+            error: error instanceof Error ? error.message : 'Erreur inconnue',
+        }
+    }
+}
+
+// ============================================================
+// RÉCUPÉRER LES INVITATIONS D'UN RESTAURANT
+// ============================================================
+
+export async function getRestaurantInvitations(restaurantId: string) {
+    try {
+        const supabase = await createClient()
+        const {
+            data: { user },
+        } = await supabase.auth.getUser()
+
+        if (!user) {
+            return []
+        }
+
+        // Vérifier l'accès au restaurant
+        const hasAccess = await prisma.restaurantUser.findFirst({
+            where: {
+                userId: user.id,
+                restaurantId: restaurantId,
+            },
+        })
+
+        if (!hasAccess) {
+            return []
+        }
+
+        const invitations = await prisma.invitation.findMany({
+            where: {
+                restaurantId,
+            },
+            include: {
+                role: {
+                    select: {
+                        name: true,
+                    },
+                },
+            },
+            orderBy: {
+                createdAt: 'desc',
+            },
+        })
+
+        return invitations
+    } catch (error) {
+        console.error('Erreur lors de la récupération des invitations:', error)
+        return []
     }
 }

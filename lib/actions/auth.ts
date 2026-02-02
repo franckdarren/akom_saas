@@ -98,8 +98,11 @@ export async function signUp(data: RegisterInput): Promise<ActionResult> {
         email: authData.user.email || '',
     })
 
-    revalidatePath('/', 'layout')
-    redirect(redirectUrl)
+    // Retourne juste le succès sans rediriger
+    return {
+        success: true,
+        message: 'Compte créé avec succès',
+    }
 }
 
 
@@ -147,8 +150,11 @@ export async function signIn(data: LoginInput): Promise<ActionResult> {
         email: authData.user.email || '',
     })
 
-    revalidatePath('/', 'layout')
-    redirect(redirectUrl)
+    // Retourne juste le succès sans rediriger
+    return {
+        success: true,
+        message: 'Connexion réussie',
+    }
 }
 
 

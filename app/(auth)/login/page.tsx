@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Loader2 } from "lucide-react"
 import { translateAuthError } from '@/lib/translate/auth-error-messages'
+import { toast } from 'sonner'
 
 
 export default function LoginPage() {
@@ -27,11 +28,18 @@ export default function LoginPage() {
 
         const result = await signIn({ email, password })
 
+        if (result.success) {
+            toast.success('Connexion réussie')
+            router.push('/dashboard')
+            router.refresh()
+        } else {
+            toast.error(result.message)
+        }
         if (!result.success) {
             setError(translateAuthError(result.error || result.message))
             setLoading(false)
         }
-        // La redirection est gérée par la Server Action
+
     }
 
     return (
