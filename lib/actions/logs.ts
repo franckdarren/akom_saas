@@ -14,14 +14,14 @@ export async function createLog(
     action: string,
     message: string,
     metadata?: Record<string, unknown>
-): Promise<void> {
+): Promise<SystemLog | void> {
     try {
         const supabase = await createClient()
         const {
             data: { user },
         } = await supabase.auth.getUser()
 
-        await prisma.systemLog.create({
+        return prisma.systemLog.create({
             data: {
                 level,
                 action,
@@ -31,7 +31,6 @@ export async function createLog(
             },
         })
     } catch (error) {
-        // Ne pas bloquer l'app si le log échoue
         console.error('Erreur création log:', error)
     }
 }
@@ -84,16 +83,15 @@ export async function getLogsStats(): Promise<LogsStats> {
 
     const last24h = new Date(Date.now() - 24 * 60 * 60 * 1000)
 
-    const [total, errors, warnings, criticals, last24hCount] =
-        await Promise.all([
-            prisma.systemLog.count(),
-            prisma.systemLog.count({ where: { level: 'error' } }),
-            prisma.systemLog.count({ where: { level: 'warning' } }),
-            prisma.systemLog.count({ where: { level: 'critical' } }),
-            prisma.systemLog.count({
-                where: { createdAt: { gte: last24h } },
-            }),
-        ])
+    const [total, errors, warnings, criticals, last24hCount] = await Promise.all([
+        prisma.systemLog.count(),
+        prisma.systemLog.count({ where: { level: 'error' } }),
+        prisma.systemLog.count({ where: { level: 'warning' } }),
+        prisma.systemLog.count({ where: { level: 'critical' } }),
+        prisma.systemLog.count({
+            where: { createdAt: { gte: last24h } },
+        }),
+    ])
 
     return {
         total,
@@ -108,52 +106,31 @@ export async function getLogsStats(): Promise<LogsStats> {
 // HELPERS
 // ============================================================
 
-export async function logRestaurantCreated(
-    restaurantId: string,
-    name: string
-) {
+export async function logRestaurantCreated(restaurantId: string, name: string) {
     return createLog('info', 'restaurant_created', `Nouveau restaurant créé : ${name}`, {
         restaurantId,
         name,
     })
 }
 
-export async function logRestaurantDeactivated(
-    restaurantId: string,
-    name: string
-) {
-    return createLog(
-        'warning',
-        'restaurant_deactivated',
-        `Restaurant désactivé : ${name}`,
-        { restaurantId, name }
-    )
+export async function logRestaurantDeactivated(restaurantId: string, name: string) {
+    return createLog('warning', 'restaurant_deactivated', `Restaurant désactivé : ${name}`, {
+        restaurantId,
+        name,
+    })
 }
 
-export async function logRestaurantActivated(
-    restaurantId: string,
-    name: string
-) {
-    return createLog(
-        'warning',
-        'restaurant_activated',
-        `Restaurant activé : ${name}`,
-        { restaurantId, name }
-    )
+export async function logRestaurantActivated(restaurantId: string, name: string) {
+    return createLog('warning', 'restaurant_activated', `Restaurant activé : ${name}`, {
+        restaurantId,
+        name,
+    })
 }
 
 export async function logOrderFailed(error: string) {
-    return createLog(
-        'error',
-        'order_failed',
-        'Erreur lors de la création de commande',
-        { error }
-    )
+    return createLog('error', 'order_failed', 'Erreur lors de la création de commande', { error })
 }
 
 export async function logPaymentFailed(orderId: string, error: string) {
-    return createLog('critical', 'payment_failed', 'Échec de paiement', {
-        orderId,
-        error,
-    })
+    return createLog('critical', 'payment_failed', 'Échec de paiement', { orderId, error })
 }
