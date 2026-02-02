@@ -59,7 +59,7 @@ export function InvitationAcceptForm({
                 toast.success('Bienvenue !', {
                     description: acceptResult.message,
                 })
-                
+
                 // IMPORTANT : Redirection directe vers le dashboard
                 // Pas de passage par /onboarding ou /restaurants/new
                 router.push('/dashboard')
@@ -123,7 +123,7 @@ export function InvitationAcceptForm({
                 toast.success('Compte créé avec succès !', {
                     description: `Vous avez rejoint ${restaurantName}`,
                 })
-                
+
                 // IMPORTANT : Redirection directe vers le dashboard
                 // Le système sait déjà que l'utilisateur appartient à un restaurant
                 // grâce à l'acceptation de l'invitation
@@ -295,8 +295,8 @@ export function InvitationAcceptForm({
                 </h4>
                 <ol className="text-xs text-muted-foreground space-y-2 list-decimal list-inside">
                     <li>
-                        {activeTab === 'signin' 
-                            ? 'Connectez-vous avec votre mot de passe' 
+                        {activeTab === 'signin'
+                            ? 'Connectez-vous avec votre mot de passe'
                             : 'Créez votre compte Akôm avec un mot de passe sécurisé'}
                     </li>
                     <li>
