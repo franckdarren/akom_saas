@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge'
 // Définir un type local correspondant à ton enum Prisma
 type OrderStatus = 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled'
 
+
 interface OrderStatusBadgeProps {
     status: OrderStatus
 }
