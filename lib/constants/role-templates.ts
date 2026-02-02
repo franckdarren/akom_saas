@@ -1,6 +1,6 @@
 // lib/constants/role-templates.ts
 
-import type { PermissionResource, PermissionAction } from '@/app/generated/prisma/client'
+import type { PermissionResource, PermissionAction } from '@prisma/client'
 
 export interface RoleTemplate {
     id: string

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { AlertCircle, ChevronRight, Package, Loader2 } from 'lucide-react'
 import { getActiveOrdersForTable } from '@/lib/actions/order'
-import type { OrderStatus } from '@/app/generated/prisma/client'
+import type { OrderStatus } from '@prisma/client'
 
 interface ActiveOrder {
     id: string

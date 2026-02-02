@@ -1,6 +1,6 @@
 // components/kitchen/OrderStatusBadge.tsx
 import { Badge } from '@/components/ui/badge'
-import type { OrderStatus } from '@/app/generated/prisma/client'
+import type { OrderStatus } from '@prisma/client'
 
 interface OrderStatusBadgeProps {
     status: OrderStatus
