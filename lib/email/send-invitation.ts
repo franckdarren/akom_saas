@@ -1,4 +1,7 @@
 // lib/email/send-invitation.ts
+export const runtime = 'nodejs'
+
+
 import { Resend } from 'resend'
 import { InvitationEmail } from '@/emails/invitation-email'
 
@@ -24,11 +27,11 @@ export async function sendInvitationEmail({
 }: SendInvitationEmailParams) {
     try {
         // Formater la date d'expiration en français
-        const formattedExpiresAt = expiresAt.toLocaleDateString('fr-FR', {
+        const formattedExpiresAt = new Date(expiresAt).toLocaleDateString('fr-FR', {
             weekday: 'long',
-            year: 'numeric',
-            month: 'long',
             day: 'numeric',
+            month: 'long',
+            year: 'numeric',
         })
 
         // Envoyer l'email

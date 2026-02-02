@@ -34,6 +34,14 @@ export function InvitationEmail({
 }: InvitationEmailProps) {
     const previewText = `${inviterName} vous invite à rejoindre ${restaurantName} sur Akôm`
 
+    // Formater la date en français lisible
+    const formattedExpiresAt = new Date(expiresAt).toLocaleDateString('fr-FR', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+    })
+
     return (
         <Html>
             <Head />
@@ -98,7 +106,7 @@ export function InvitationEmail({
 
                         {/* Informations importantes */}
                         <Text style={smallText}>
-                            ⏰ Cette invitation expire le <strong>{expiresAt}</strong>.
+                            ⏰ Cette invitation expire le <strong>{formattedExpiresAt}</strong>.
                         </Text>
 
                         <Text style={smallText}>

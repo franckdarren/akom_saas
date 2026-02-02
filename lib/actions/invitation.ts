@@ -49,33 +49,33 @@ function getExpirationDate(): Date {
     return expiresAt
 }
 
-async function sendInvitationEmail(
-    email: string,
-    token: string,
-    restaurantName: string,
-    inviterEmail: string,
-    roleName: string
-) {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-    const invitationLink = `${baseUrl}/invite/accept?token=${token}`
-    const expiresAt = getExpirationDate()
+// async function sendInvitationEmail(
+//     email: string,
+//     token: string,
+//     restaurantName: string,
+//     inviterEmail: string,
+//     roleName: string
+// ) {
+//     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+//     const invitationLink = `${baseUrl}/invite/accept?token=${token}`
+//     const expiresAt = getExpirationDate()
 
-    // MODE DÉVELOPPEMENT : Logger dans la console
-    console.log('='.repeat(80))
-    console.log('📧 EMAIL D\'INVITATION')
-    console.log('='.repeat(80))
-    console.log(`À           : ${email}`)
-    console.log(`Restaurant  : ${restaurantName}`)
-    console.log(`Rôle        : ${roleName}`)
-    console.log(`Invité par  : ${inviterEmail}`)
-    console.log(`Lien        : ${invitationLink}`)
-    console.log(`Expire le   : ${expiresAt.toLocaleDateString('fr-FR')}`)
-    console.log('='.repeat(80))
+//     // MODE DÉVELOPPEMENT : Logger dans la console
+//     console.log('='.repeat(80))
+//     console.log('📧 EMAIL D\'INVITATION')
+//     console.log('='.repeat(80))
+//     console.log(`À           : ${email}`)
+//     console.log(`Restaurant  : ${restaurantName}`)
+//     console.log(`Rôle        : ${roleName}`)
+//     console.log(`Invité par  : ${inviterEmail}`)
+//     console.log(`Lien        : ${invitationLink}`)
+//     console.log(`Expire le   : ${expiresAt.toLocaleDateString('fr-FR')}`)
+//     console.log('='.repeat(80))
 
-    // Pour le MVP, retourner true sans envoyer d'email
-    // L'admin copiera le lien manuellement
-    return true
-}
+//     // Pour le MVP, retourner true sans envoyer d'email
+//     // L'admin copiera le lien manuellement
+//     return true
+// }
 
 // ============================================================
 // INVITER UN UTILISATEUR
@@ -210,13 +210,25 @@ export async function inviteUserToRestaurant(
             },
         })
 
-        await sendInvitationEmail(
-            normalizedEmail,
-            token,
-            restaurant.name,
-            user.email || 'Un administrateur',
-            role.name
-        )
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL!
+        const invitationLink = `${baseUrl}/invite/accept?token=${token}`
+
+        await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/emails/invitation`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                to: normalizedEmail,
+                restaurantName: restaurant.name,
+                roleName: role.name,
+                inviterName: user.email || 'Un administrateur',
+                invitationLink,
+                expiresAt,
+            }),
+        })
+
+
 
         revalidatePath('/dashboard/users')
         return {
@@ -552,13 +564,25 @@ export async function resendInvitation(invitationId: string): Promise<ActionResu
             data: { token, expiresAt, status: 'pending' },
         })
 
-        await sendInvitationEmail(
-            invitation.email,
-            token,
-            invitation.restaurant.name,
-            user.email || 'Un administrateur',
-            invitation.role.name
-        )
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL!
+        const invitationLink = `${baseUrl}/invite/accept?token=${token}`
+
+        await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/emails/invitation`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                to: invitation.email,
+            restaurantName: invitation.restaurant.name,
+            roleName: invitation.role.name,
+            inviterName: user.email || 'Un administrateur',
+            invitationLink,
+            expiresAt,
+            }),
+        })
+
+
 
         revalidatePath('/dashboard/users')
         return {
