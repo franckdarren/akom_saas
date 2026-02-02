@@ -1,4 +1,4 @@
-// app/invite/accept/page.tsx
+// app/(public)/invite/accept/page.tsx
 import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
@@ -155,7 +155,7 @@ async function AcceptInvitationContent({ token }: { token: string }) {
     }
 
     // === CAS UTILISATEUR CONNECTÉ ===
-    
+
     if (user) {
         // Cas 4 : Email non correspondant
         if (user.email?.toLowerCase() !== invitation.email) {
@@ -236,7 +236,7 @@ async function AcceptInvitationContent({ token }: { token: string }) {
     }
 
     // === CAS UTILISATEUR NON CONNECTÉ ===
-    
+
     // Cas 6 : Afficher le formulaire de connexion/inscription
     return (
         <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background via-background to-muted">
