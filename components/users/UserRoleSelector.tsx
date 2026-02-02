@@ -1,4 +1,3 @@
-// components/users/UserRoleSelector.tsx
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -26,9 +25,15 @@ interface Role {
     id: string
     name: string
     isSystem: boolean
+    isActive?: boolean // ajouté pour éviter les problèmes TS
     _count: {
         restaurantUsers: number
     }
+}
+
+interface GetRestaurantRolesResult {
+    roles?: Role[]
+    error?: string
 }
 
 export function UserRoleSelector({
@@ -46,13 +51,14 @@ export function UserRoleSelector({
         async function loadRoles() {
             if (!currentRestaurant) return
 
-            const result = await getRestaurantRoles(currentRestaurant.id)
+            const result: GetRestaurantRolesResult = await getRestaurantRoles(currentRestaurant.id)
 
             if (result.error) {
                 toast.error(result.error)
             } else if (result.roles) {
-                // Ne garder que les rôles actifs
-                setRoles(result.roles.filter((r) => r.isActive))
+                // Typage explicite de `r` pour éviter l'erreur TS
+                const activeRoles = result.roles.filter((r: Role) => r.isActive)
+                setRoles(activeRoles)
             }
 
             setLoading(false)
