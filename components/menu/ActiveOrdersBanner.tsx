@@ -4,7 +4,9 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { AlertCircle, ChevronRight, Package, Loader2 } from 'lucide-react'
 import { getActiveOrdersForTable } from '@/lib/actions/order'
-import type { OrderStatus } from '@prisma/client'
+
+// Définir un type local correspondant à l'enum Prisma
+type OrderStatus = 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled'
 
 interface ActiveOrder {
     id: string
@@ -31,46 +33,25 @@ export function ActiveOrdersBanner({ tableId, tableNumber, restaurantSlug }: Act
     const [navigatingToOrderId, setNavigatingToOrderId] = useState<string | null>(null)
 
     useEffect(() => {
-        // Chargement initial
         loadActiveOrders(true)
-        
-        // Polling : recharger les commandes toutes les 10 secondes
-        // On passe false pour indiquer que ce n'est pas un chargement initial
-        const intervalId = setInterval(() => {
-            loadActiveOrders(false)
-        }, 10000) // 10000ms = 10 secondes
-
-        // Nettoyer l'intervalle quand le composant est démonté
+        const intervalId = setInterval(() => loadActiveOrders(false), 10000)
         return () => clearInterval(intervalId)
     }, [tableId])
 
     async function loadActiveOrders(isInitial = false) {
-        // On ne montre le loading que pour le chargement initial
-        // Les rechargements périodiques se font en arrière-plan
-        if (isInitial) {
-            setIsInitialLoading(true)
-        }
-        
+        if (isInitial) setIsInitialLoading(true)
         const activeOrders = await getActiveOrdersForTable(tableId)
         setOrders(activeOrders)
-        
-        if (isInitial) {
-            setIsInitialLoading(false)
-        }
+        if (isInitial) setIsInitialLoading(false)
     }
 
-    // Fonction pour naviguer vers une commande avec feedback visuel
     function handleOrderClick(orderId: string) {
         setNavigatingToOrderId(orderId)
         router.push(`/r/${restaurantSlug}/t/${tableNumber}/orders/${orderId}`)
     }
 
-    // Ne rien afficher pendant le chargement initial ou si pas de commandes
-    if (isInitialLoading || orders.length === 0) {
-        return null
-    }
+    if (isInitialLoading || orders.length === 0) return null
 
-    // Fonction pour traduire le statut en français
     const getStatusLabel = (status: OrderStatus) => {
         const labels: Record<OrderStatus, string> = {
             pending: 'En attente',
@@ -82,7 +63,6 @@ export function ActiveOrdersBanner({ tableId, tableNumber, restaurantSlug }: Act
         return labels[status]
     }
 
-    // Fonction pour obtenir la couleur selon le statut
     const getStatusColor = (status: OrderStatus) => {
         const colors: Record<OrderStatus, string> = {
             pending: 'bg-yellow-50 border-yellow-200 text-yellow-800 dark:bg-yellow-900/20 dark:border-yellow-800 dark:text-yellow-200',
@@ -98,7 +78,7 @@ export function ActiveOrdersBanner({ tableId, tableNumber, restaurantSlug }: Act
         <div className="space-y-2 mb-6">
             {orders.map((order) => {
                 const isNavigating = navigatingToOrderId === order.id
-                
+
                 return (
                     <button
                         key={order.id}
@@ -108,11 +88,7 @@ export function ActiveOrdersBanner({ tableId, tableNumber, restaurantSlug }: Act
                     >
                         <div className="flex items-center gap-3">
                             <div className="flex items-center justify-center w-10 h-10 rounded-full bg-white/50 dark:bg-black/20">
-                                {isNavigating ? (
-                                    <Loader2 className="w-5 h-5 animate-spin" />
-                                ) : (
-                                    <Package className="w-5 h-5" />
-                                )}
+                                {isNavigating ? <Loader2 className="w-5 h-5 animate-spin" /> : <Package className="w-5 h-5" />}
                             </div>
                             <div className="text-left">
                                 <div className="flex items-center gap-2">
@@ -137,7 +113,6 @@ export function ActiveOrdersBanner({ tableId, tableNumber, restaurantSlug }: Act
                 )
             })}
 
-            {/* Message informatif si plusieurs commandes */}
             {orders.length > 1 && (
                 <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg text-blue-800 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-200">
                     <AlertCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
