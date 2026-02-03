@@ -24,6 +24,14 @@ export interface PlatformStats {
     totalOrders: number
     totalRevenue: number
     ordersToday: number
+
+    // 🆕 ABONNEMENTS
+    activeSubscriptions: number
+    trialSubscriptions: number
+    expiredSubscriptions: number
+    pendingPayments: number
+    subscriptionRevenue: number
+    monthlySubscriptionRevenue: number
 }
 
 export interface ActivityDay {
@@ -60,6 +68,12 @@ async function verifySuperAdmin() {
 export async function getPlatformStats(): Promise<PlatformStats> {
     await verifySuperAdmin()
 
+    const startOfMonth = new Date(
+        new Date().getFullYear(),
+        new Date().getMonth(),
+        1
+    )
+
     const [
         totalRestaurants,
         activeRestaurants,
@@ -67,21 +81,66 @@ export async function getPlatformStats(): Promise<PlatformStats> {
         totalOrders,
         totalRevenue,
         ordersToday,
+
+        activeSubscriptions,
+        trialSubscriptions,
+        expiredSubscriptions,
+        pendingPayments,
+
+        subscriptionRevenue,
+        monthlySubscriptionRevenue,
     ] = await Promise.all([
+        // Restaurants
         prisma.restaurant.count(),
         prisma.restaurant.count({ where: { isActive: true } }),
+
+        // Utilisateurs
         prisma.restaurantUser.count(),
+
+        // Commandes
         prisma.order.count(),
+
         prisma.order.aggregate({
             _sum: { totalAmount: true },
             where: { status: { in: ['delivered', 'ready'] } },
         }),
+
         prisma.order.count({
             where: {
                 createdAt: {
                     gte: new Date(new Date().setHours(0, 0, 0, 0)),
                 },
             },
+        }),
+
+        // 🆕 ABONNEMENTS
+        prisma.subscription.count({
+            where: { status: { in: ['trial', 'active'] } },
+        }),
+
+        prisma.subscription.count({
+            where: { status: 'trial' },
+        }),
+
+        prisma.subscription.count({
+            where: { status: { in: ['expired', 'cancelled'] } },
+        }),
+
+        prisma.subscriptionPayment.count({
+            where: { status: 'pending' },
+        }),
+
+        prisma.subscriptionPayment.aggregate({
+            where: { status: 'confirmed' },
+            _sum: { amount: true },
+        }),
+
+        prisma.subscriptionPayment.aggregate({
+            where: {
+                status: 'confirmed',
+                createdAt: { gte: startOfMonth },
+            },
+            _sum: { amount: true },
         }),
     ])
 
@@ -92,8 +151,18 @@ export async function getPlatformStats(): Promise<PlatformStats> {
         totalOrders,
         totalRevenue: totalRevenue._sum.totalAmount ?? 0,
         ordersToday,
+
+        // 🆕 Abonnements
+        activeSubscriptions,
+        trialSubscriptions,
+        expiredSubscriptions,
+        pendingPayments,
+        subscriptionRevenue: subscriptionRevenue._sum.amount ?? 0,
+        monthlySubscriptionRevenue:
+            monthlySubscriptionRevenue._sum.amount ?? 0,
     }
 }
+
 
 // ============================================================
 // LISTE DE TOUS LES RESTAURANTS

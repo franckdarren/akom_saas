@@ -1,9 +1,10 @@
+// app/superadmin/page.tsx
 import {
     getPlatformStats,
     getActivityStats,
     getTopRestaurants,
 } from '@/lib/actions/superadmin'
-import { formatPrice, formatNumber } from '@/lib/utils/format'
+
 import {
     Card,
     CardContent,
@@ -11,6 +12,7 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card'
+
 import {
     Table,
     TableBody,
@@ -19,14 +21,21 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table'
+
 import { Badge } from '@/components/ui/badge'
+
 import {
     Building2,
     Users,
     ShoppingCart,
     TrendingUp,
+    CreditCard,
+    Clock,
+    CheckCircle2,
     Calendar,
 } from 'lucide-react'
+
+import { formatNumber, formatPrice } from '@/lib/utils/format'
 import Link from 'next/link'
 
 export default async function SuperAdminDashboard() {
@@ -37,114 +46,82 @@ export default async function SuperAdminDashboard() {
     ])
 
     return (
-        <div className="space-y-8">
-            {/* Header */}
+        <div className="space-y-10">
+            {/* ================= HEADER ================= */}
             <div>
-                <h1 className="text-3xl font-bold pb-2">SuperAdmin Dashboard</h1>
-                <p className="text-zinc-600 dark:text-zinc-400">
-                    Vue d'ensemble de la plateforme Akôm
+                <h1 className="text-3xl font-bold">SuperAdmin Dashboard</h1>
+                <p className="text-zinc-600 dark:text-zinc-400 mt-1">
+                    Vue globale de la plateforme Akôm
                 </p>
             </div>
 
-            {/* Stats Cards */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {/* Total Restaurants */}
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <CardTitle className="text-sm font-medium">
-                            Restaurants
-                        </CardTitle>
-                        <Building2 className="h-4 w-4 text-zinc-600 dark:text-zinc-400" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">
-                            {formatNumber(stats.totalRestaurants)}
-                        </div>
-                        <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                            {stats.activeRestaurants} actifs
-                        </p>
-                    </CardContent>
-                </Card>
+            {/* ================= KPI GLOBAL ================= */}
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <StatCard
+                    title="Restaurants"
+                    value={stats.totalRestaurants}
+                    subtitle={`${stats.activeRestaurants} actifs`}
+                    icon={<Building2 />}
+                />
 
-                {/* Total Users */}
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <CardTitle className="text-sm font-medium">
-                            Utilisateurs
-                        </CardTitle>
-                        <Users className="h-4 w-4 text-zinc-600 dark:text-zinc-400" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">
-                            {formatNumber(stats.totalUsers)}
-                        </div>
-                        <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                            Total utilisateurs
-                        </p>
-                    </CardContent>
-                </Card>
+                <StatCard
+                    title="Utilisateurs"
+                    value={stats.totalUsers}
+                    icon={<Users />}
+                />
 
-                {/* Total Orders */}
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <CardTitle className="text-sm font-medium">
-                            Commandes
-                        </CardTitle>
-                        <ShoppingCart className="h-4 w-4 text-zinc-600 dark:text-zinc-400" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">
-                            {formatNumber(stats.totalOrders)}
-                        </div>
-                        <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                            {stats.ordersToday} aujourd'hui
-                        </p>
-                    </CardContent>
-                </Card>
+                <StatCard
+                    title="Commandes"
+                    value={stats.totalOrders}
+                    subtitle={`${stats.ordersToday} aujourd'hui`}
+                    icon={<ShoppingCart />}
+                />
 
-                {/* Total Revenue */}
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <CardTitle className="text-sm font-medium">
-                            Revenu Total
-                        </CardTitle>
-                        <TrendingUp className="h-4 w-4 text-zinc-600 dark:text-zinc-400" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">
-                            {formatPrice(stats.totalRevenue)}
-                        </div>
-                        <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                            Tous restaurants confondus
-                        </p>
-                    </CardContent>
-                </Card>
-
-                {/* Activity Today */}
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <CardTitle className="text-sm font-medium">
-                            Aujourd'hui
-                        </CardTitle>
-                        <Calendar className="h-4 w-4 text-zinc-600 dark:text-zinc-400" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">
-                            {formatNumber(stats.ordersToday)}
-                        </div>
-                        <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                            Nouvelles commandes
-                        </p>
-                    </CardContent>
-                </Card>
+                <StatCard
+                    title="Revenus commandes"
+                    value={formatPrice(stats.totalRevenue)}
+                    icon={<TrendingUp />}
+                />
             </div>
 
-            {/* Activity Chart (simple version) */}
+            {/* ================= ABONNEMENTS ================= */}
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <StatCard
+                    title="Abonnements actifs"
+                    value={stats.activeSubscriptions}
+                    subtitle={`${stats.trialSubscriptions} en essai`}
+                    icon={<CheckCircle2 className="text-green-600" />}
+                />
+
+                <StatCard
+                    title="Abonnements expirés"
+                    value={stats.expiredSubscriptions}
+                    icon={<Clock className="text-red-600" />}
+                />
+
+                <StatCard
+                    title="Paiements en attente"
+                    value={stats.pendingPayments}
+                    icon={<Clock className="text-orange-600" />}
+                />
+
+                <StatCard
+                    title="Revenus abonnements (mois)"
+                    value={formatPrice(stats.monthlySubscriptionRevenue)}
+                    subtitle={new Date().toLocaleDateString('fr-FR', {
+                        month: 'long',
+                        year: 'numeric',
+                    })}
+                    icon={<CreditCard className="text-blue-600" />}
+                />
+            </div>
+
+            {/* ================= ACTIVITÉ 7 JOURS ================= */}
             <Card>
                 <CardHeader>
                     <CardTitle>Activité des 7 derniers jours</CardTitle>
                     <CardDescription>
-                        Commandes et revenus par jour
+                        Commandes et revenus journaliers
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -161,6 +138,7 @@ export default async function SuperAdminDashboard() {
                                         month: 'short',
                                     })}
                                 </span>
+
                                 <div className="flex items-center gap-4">
                                     <span className="text-sm font-medium">
                                         {formatNumber(day.orders)} commandes
@@ -175,12 +153,12 @@ export default async function SuperAdminDashboard() {
                 </CardContent>
             </Card>
 
-            {/* Top Restaurants */}
+            {/* ================= TOP RESTAURANTS ================= */}
             <Card>
                 <CardHeader>
                     <CardTitle>Top 5 Restaurants</CardTitle>
                     <CardDescription>
-                        Par nombre de commandes
+                        Classés par nombre de commandes
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -195,6 +173,7 @@ export default async function SuperAdminDashboard() {
                                 </TableHead>
                             </TableRow>
                         </TableHeader>
+
                         <TableBody>
                             {topRestaurants.map((restaurant) => (
                                 <TableRow key={restaurant.id}>
@@ -206,22 +185,21 @@ export default async function SuperAdminDashboard() {
                                             {restaurant.name}
                                         </Link>
                                     </TableCell>
+
                                     <TableCell className="text-zinc-600 dark:text-zinc-400">
                                         {restaurant.slug}
                                     </TableCell>
+
                                     <TableCell>
                                         <Badge
                                             variant={
-                                                restaurant.isActive
-                                                    ? 'default'
-                                                    : 'outline'
+                                                restaurant.isActive ? 'default' : 'outline'
                                             }
                                         >
-                                            {restaurant.isActive
-                                                ? 'Actif'
-                                                : 'Inactif'}
+                                            {restaurant.isActive ? 'Actif' : 'Inactif'}
                                         </Badge>
                                     </TableCell>
+
                                     <TableCell className="text-right font-medium">
                                         {formatNumber(restaurant._count.orders)}
                                     </TableCell>
@@ -232,5 +210,40 @@ export default async function SuperAdminDashboard() {
                 </CardContent>
             </Card>
         </div>
+    )
+}
+
+/* ================= COMPONENT ================= */
+
+function StatCard({
+    title,
+    value,
+    subtitle,
+    icon,
+}: {
+    title: string
+    value: string | number
+    subtitle?: string
+    icon: React.ReactNode
+}) {
+    return (
+        <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium">
+                    {title}
+                </CardTitle>
+                <div className="h-4 w-4 text-zinc-600">{icon}</div>
+            </CardHeader>
+            <CardContent>
+                <div className="text-2xl font-bold">
+                    {typeof value === 'number' ? formatNumber(value) : value}
+                </div>
+                {subtitle && (
+                    <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1">
+                        {subtitle}
+                    </p>
+                )}
+            </CardContent>
+        </Card>
     )
 }

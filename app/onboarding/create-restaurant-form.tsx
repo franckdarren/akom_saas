@@ -28,11 +28,6 @@ export function CreateRestaurantForm() {
         }
 
         const result = await createRestaurant(data)
-
-        if (result?.error) {
-            setError(result.error)
-            setIsLoading(false)
-        }
         // la redirection se fait automatiquement dans l'action
     }
 

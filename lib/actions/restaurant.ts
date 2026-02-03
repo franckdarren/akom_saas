@@ -18,7 +18,7 @@ interface CreateRestaurantData {
 }
 
 // ============================================================
-// CREER UN RESTAURANT 
+// CRÉER UN RESTAURANT (SaaS flow complet)
 // ============================================================
 
 export async function createRestaurant(data: CreateRestaurantData) {
@@ -28,22 +28,20 @@ export async function createRestaurant(data: CreateRestaurantData) {
     } = await supabase.auth.getUser()
 
     if (!user) {
-        return { error: 'Non authentifié' }
+        throw new Error('Non authentifié')
     }
 
     if (!data.name || data.name.trim().length === 0) {
-        return { error: 'Le nom du restaurant est obligatoire' }
+        throw new Error('Le nom du restaurant est obligatoire')
     }
 
-    // ✅ Formater le nom AVANT de générer le slug
-    // Cela garantit que le slug sera basé sur le nom formaté
     const formattedName = formatRestaurantName(data.name)
     const slug = await generateUniqueSlug(formattedName)
 
     await prisma.$transaction(async (tx) => {
         const restaurant = await tx.restaurant.create({
             data: {
-                name: formattedName, // ✅ Utiliser le nom formaté
+                name: formattedName,
                 slug,
                 phone: data.phone?.trim() || null,
                 address: data.address?.trim() || null,
@@ -55,18 +53,50 @@ export async function createRestaurant(data: CreateRestaurantData) {
             data: {
                 userId: user.id,
                 restaurantId: restaurant.id,
-                role: 'admin',
+                role: 'admin', // ou UserRole.admin si enum Prisma
             },
         })
 
-        // Logger la création avec le nom formaté
+        // ✅ ABONNEMENT D'ESSAI (14 jours)
+        const trialStartsAt = new Date()
+        const trialEndsAt = new Date()
+        trialEndsAt.setDate(trialEndsAt.getDate() + 14)
+
+        await tx.subscription.create({
+            data: {
+                restaurantId: restaurant.id,
+
+                // ENUMS
+                plan: 'starter',
+                status: 'trial',
+
+                // DATES
+                trialStartsAt,
+                trialEndsAt,
+
+                // PRIX & CYCLE
+                monthlyPrice: 15000, // FCFA – starter
+                billingCycle: 1,
+
+                // LIMITES
+                maxUsers: 3,
+                maxTables: 10,
+
+                // FEATURES
+                hasStockManagement: false,
+                hasAdvancedStats: false,
+                hasDataExport: false,
+                hasMobilePayment: false,
+                hasMultiRestaurants: false,
+            },
+        })
+
         await logRestaurantCreated(restaurant.id, restaurant.name)
     })
 
     revalidatePath('/dashboard')
     redirect('/dashboard')
 }
-
 
 
 // ============================================================
@@ -402,7 +432,7 @@ export async function updateRestaurantSettings(
         // ✅ Formater le nom avant la mise à jour
         // Cela garantit la cohérence avec la création
         const formattedName = formatRestaurantName(parsed.data.name)
-        
+
         // Mettre à jour le restaurant
         const restaurant = await prisma.restaurant.update({
             where: { id: restaurantId },

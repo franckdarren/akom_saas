@@ -1,131 +1,153 @@
-import { getAllRestaurants } from '@/lib/actions/superadmin'
-import { formatDate, formatNumber } from '@/lib/utils/format'
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card'
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table'
+// app/superadmin/restaurants/page.tsx
+import prisma from '@/lib/prisma'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { ExternalLink } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card'
+import { formatPrice } from '@/lib/subscription/config'
 import Link from 'next/link'
+import { ExternalLink } from 'lucide-react'
 
-export default async function RestaurantsListPage() {
-    const restaurants = await getAllRestaurants()
+export default async function RestaurantsPage() {
+    const restaurants = await prisma.restaurant.findMany({
+        include: {
+            subscription: true,
+            _count: {
+                select: {
+                    tables: true,
+                    products: true,
+                    orders: true,
+                },
+            },
+        },
+        orderBy: { createdAt: 'desc' },
+    })
 
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-3xl font-bold">Restaurants</h1>
-                    <p className="text-zinc-600 dark:text-zinc-400">
-                        Tous les restaurants de la plateforme
-                    </p>
-                </div>
-                <div className="text-sm text-zinc-600 dark:text-zinc-400">
-                    Total : {formatNumber(restaurants.length)}
-                </div>
+            <div>
+                <h1 className="text-3xl font-bold">Tous les Restaurants</h1>
+                <p className="text-gray-600 mt-1">
+                    {restaurants.length} restaurant{restaurants.length > 1 ? 's' : ''}{' '}
+                    inscrit{restaurants.length > 1 ? 's' : ''}
+                </p>
             </div>
 
-            {/* Table */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>Liste complète</CardTitle>
-                    <CardDescription>
-                        Gérer et consulter tous les restaurants
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Restaurant</TableHead>
-                                <TableHead>Statut</TableHead>
-                                <TableHead>Utilisateurs</TableHead>
-                                <TableHead>Produits</TableHead>
-                                <TableHead>Commandes</TableHead>
-                                <TableHead>Créé le</TableHead>
-                                <TableHead className="text-right">Actions</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {restaurants.length === 0 ? (
-                                <TableRow>
-                                    <TableCell
-                                        colSpan={7}
-                                        className="text-center text-zinc-600 dark:text-zinc-400"
-                                    >
-                                        Aucun restaurant
-                                    </TableCell>
-                                </TableRow>
-                            ) : (
-                                restaurants.map((restaurant) => (
-                                    <TableRow key={restaurant.id}>
-                                        <TableCell>
-                                            <div>
-                                                <div className="font-medium">
-                                                    {restaurant.name}
-                                                </div>
-                                                <div className="text-sm text-zinc-600 dark:text-zinc-400">
-                                                    {restaurant.slug}
-                                                </div>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell>
+            {/* Liste */}
+            <div className="grid gap-4">
+                {restaurants.map((restaurant) => {
+                    const sub = restaurant.subscription
+                    const now = new Date()
+                    let isActive = false
+                    let daysRemaining = 0
+
+                    if (sub) {
+                        if (sub.status === 'trial') {
+                            isActive = new Date(sub.trialEndsAt) > now
+                            daysRemaining = Math.ceil(
+                                (new Date(sub.trialEndsAt).getTime() - now.getTime()) /
+                                (1000 * 60 * 60 * 24)
+                            )
+                        } else if (sub.status === 'active' && sub.currentPeriodEnd) {
+                            isActive = new Date(sub.currentPeriodEnd) > now
+                            daysRemaining = Math.ceil(
+                                (new Date(sub.currentPeriodEnd).getTime() - now.getTime()) /
+                                (1000 * 60 * 60 * 24)
+                            )
+                        }
+                    }
+
+                    return (
+                        <Card key={restaurant.id}>
+                            <CardContent className="p-6">
+                                <div className="flex items-start justify-between">
+                                    <div className="flex-1">
+                                        <div className="flex items-center gap-3 mb-2">
+                                            <h3 className="text-lg font-semibold">
+                                                {restaurant.name}
+                                            </h3>
                                             <Badge
                                                 variant={
-                                                    restaurant.isActive
+                                                    isActive
                                                         ? 'default'
-                                                        : 'outline'
+                                                        : sub?.status === 'trial'
+                                                            ? 'secondary'
+                                                            : 'destructive'
                                                 }
                                             >
-                                                {restaurant.isActive ? 'Actif' : 'Inactif'}
+                                                {!sub && 'Pas d\'abonnement'}
+                                                {sub?.status === 'trial' &&
+                                                    (isActive ? 'Essai actif' : 'Essai expiré')}
+                                                {sub?.status === 'active' &&
+                                                    (isActive ? 'Actif' : 'Expiré')}
+                                                {sub?.status === 'suspended' && 'Suspendu'}
+                                                {sub?.status === 'cancelled' && 'Annulé'}
                                             </Badge>
-                                        </TableCell>
-                                        <TableCell>
-                                            {formatNumber(restaurant._count.users)}
-                                        </TableCell>
-                                        <TableCell>
-                                            {formatNumber(restaurant._count.products)}
-                                        </TableCell>
-                                        <TableCell>
-                                            {formatNumber(restaurant._count.orders)}
-                                        </TableCell>
-                                        <TableCell className="text-zinc-600 dark:text-zinc-400">
-                                            {formatDate(restaurant.createdAt)}
-                                        </TableCell>
-                                        <TableCell className="text-right">
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                asChild
-                                            >
-                                                <Link
-                                                    href={`/superadmin/restaurants/${restaurant.id}`}
-                                                >
-                                                    <ExternalLink className="h-4 w-4" />
-                                                    Voir
-                                                </Link>
-                                            </Button>
-                                        </TableCell>
-                                    </TableRow>
-                                ))
-                            )}
-                        </TableBody>
-                    </Table>
-                </CardContent>
-            </Card>
+                                            {sub && (
+                                                <Badge variant="outline" className="capitalize">
+                                                    {sub.plan}
+                                                </Badge>
+                                            )}
+                                        </div>
+
+                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 text-sm">
+                                            <div>
+                                                <p className="text-gray-600">Tables</p>
+                                                <p className="font-medium">{restaurant._count.tables}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-gray-600">Produits</p>
+                                                <p className="font-medium">
+                                                    {restaurant._count.products}
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <p className="text-gray-600">Commandes</p>
+                                                <p className="font-medium">{restaurant._count.orders}</p>
+                                            </div>
+                                            {sub && (
+                                                <div>
+                                                    <p className="text-gray-600">Jours restants</p>
+                                                    <p className="font-medium">
+                                                        {isActive ? daysRemaining : 0} jours
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {sub && (
+                                            <div className="mt-4 flex items-center gap-6 text-sm">
+                                                <div>
+                                                    <span className="text-gray-600">Prix : </span>
+                                                    <span className="font-medium">
+                                                        {formatPrice(sub.monthlyPrice)}/mois
+                                                    </span>
+                                                </div>
+                                                <div>
+                                                    <span className="text-gray-600">Créé le : </span>
+                                                    <span className="font-medium">
+                                                        {new Date(restaurant.createdAt).toLocaleDateString(
+                                                            'fr-FR'
+                                                        )}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <Link
+                                        href={`/r/${restaurant.slug}`}
+                                        target="_blank"
+                                        className="text-purple-600 hover:text-purple-700 flex items-center gap-1 text-sm"
+                                    >
+                                        Voir le site
+                                        <ExternalLink className="h-4 w-4" />
+                                    </Link>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )
+                })}
+            </div>
         </div>
     )
 }
