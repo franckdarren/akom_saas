@@ -18,6 +18,7 @@ import {
     Settings,
     Crown,
     Building2,
+    CalendarSync,
     LogOut,
 } from "lucide-react"
 
@@ -32,6 +33,7 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
+
     SidebarRail,
 } from "@/components/ui/sidebar"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -91,6 +93,7 @@ export function AppSidebar({ user, role, restaurantName, restaurantLogoUrl, onSi
                     { title: "Commandes", href: "/dashboard/orders", icon: ShoppingCart },
                     { title: "Stocks", href: "/dashboard/stocks", icon: Package },
                     { title: "Paiements", href: "/dashboard/payments", icon: CreditCard },
+                    { title: "Abonnements", href: "/dashboard/subscription", icon: CalendarSync },
                 ],
             },
             {

@@ -102,7 +102,7 @@ export function PaymentForm({
 
             // 3. Succès
             toast.success('Paiement soumis avec succès', {
-                description: 'Votre paiement est en cours de validation (max 24h)',
+                description: 'Paiement en cours de validation (max 24h)',
             })
 
             // Rediriger vers la page abonnement
@@ -184,7 +184,7 @@ export function PaymentForm({
 
                     {/* Notes optionnelles */}
                     <div>
-                        <Label htmlFor="notes">Notes (optionnel)</Label>
+                        <Label htmlFor="notes" className="mb-1">Notes (optionnel)</Label>
                         <Textarea
                             id="notes"
                             value={notes}
