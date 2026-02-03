@@ -14,7 +14,8 @@ import {
     BreadcrumbPage,
 } from '@/components/ui/breadcrumb'
 import { TeamManagementTabs } from '@/components/users/TeamManagementTabs'
-import { getUserRole } from "@/lib/actions/auth"
+import { InvitationsSection } from '@/components/users/InvitationsSection'
+import { getUserRole } from '@/lib/actions/auth'
 
 export default async function UsersPage() {
     const supabase = await createClient()
@@ -38,7 +39,7 @@ export default async function UsersPage() {
 
     return (
         <>
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
                 <SidebarTrigger className="-ml-1" />
                 <Separator orientation="vertical" className="mr-2 h-4" />
                 <div className="flex justify-between w-full">
@@ -55,15 +56,16 @@ export default async function UsersPage() {
                     </Breadcrumb>
                 </div>
                 <div className="border-black text-right leading-tight text-sm">
-                    {
-                        userRole === "admin" && <p className="truncate font-medium">Administrateur</p>
-                    }
-                    {
-                        userRole === "kitchen" && <p className="truncate font-medium">Cuisine</p>
-                    }
+                    {userRole === 'admin' && (
+                        <p className="truncate font-medium">Administrateur</p>
+                    )}
+                    {userRole === 'kitchen' && (
+                        <p className="truncate font-medium">Cuisine</p>
+                    )}
                     <p className="text-muted-foreground truncate text-xs">{user.email}</p>
                 </div>
             </header>
+
             <div className="flex flex-col gap-6 p-6">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">
@@ -82,10 +84,17 @@ export default async function UsersPage() {
                         </div>
                     }
                 >
-                    <TeamManagementTabs />
+                    <TeamManagementTabs>
+                        {/* 
+                            InvitationsSection est un Server Component.
+                            En le passant comme children ici, il sera re-rendu 
+                            par Next.js à chaque router.refresh() — données fraîches 
+                            sans useEffect ni fetch client-side.
+                        */}
+                        <InvitationsSection />
+                    </TeamManagementTabs>
                 </Suspense>
             </div>
         </>
-
     )
 }

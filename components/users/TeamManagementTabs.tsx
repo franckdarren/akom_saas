@@ -9,8 +9,17 @@ import { InviteUserButton } from './InviteUserButton'
 import { CreateRoleButton } from '@/components/roles/CreateRoleButton'
 import { PermissionGuard } from '@/components/permissions/PermissionGuard'
 import { Users, Shield } from 'lucide-react'
+import type { ReactNode } from 'react'
 
-export function TeamManagementTabs() {
+interface TeamManagementTabsProps {
+    /**
+     * Slot server-side : la page passe <InvitationsSection /> ici.
+     * Il est affiché sous UsersList dans le tab "Membres".
+     */
+    children?: ReactNode
+}
+
+export function TeamManagementTabs({ children }: TeamManagementTabsProps) {
     const [activeTab, setActiveTab] = useState('members')
 
     return (
@@ -47,7 +56,11 @@ export function TeamManagementTabs() {
 
             {/* Contenu de l'onglet Membres */}
             <TabsContent value="members" className="space-y-4">
+                {/* Liste des membres actifs */}
                 <UsersList />
+
+                {/* Liste des invitations — rendu server-side via children */}
+                {children}
             </TabsContent>
 
             {/* Contenu de l'onglet Rôles */}

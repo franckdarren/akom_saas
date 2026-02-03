@@ -110,7 +110,7 @@ export function UsersList() {
 
     if (loading) {
         return (
-            <Card>
+            <Table>
                 <CardHeader>
                     <div className="h-6 w-48 bg-muted animate-pulse rounded" />
                 </CardHeader>
@@ -127,13 +127,13 @@ export function UsersList() {
                         ))}
                     </div>
                 </CardContent>
-            </Card>
+            </Table>
         )
     }
 
     if (users.length === 0) {
         return (
-            <Card>
+            <Table>
                 <CardContent className="flex flex-col items-center justify-center p-12">
                     <Shield className="h-12 w-12 text-muted-foreground mb-4" />
                     <h3 className="font-semibold text-lg mb-2">Aucun membre</h3>
@@ -141,21 +141,21 @@ export function UsersList() {
                         Commencez par inviter des membres à rejoindre votre équipe
                     </p>
                 </CardContent>
-            </Card>
+            </Table>
         )
     }
 
     return (
         <>
-            <Card>
-                <CardHeader>
-                    <CardTitle>Membres de l'équipe</CardTitle>
-                    <CardDescription>
+            <div>
+                <div className='mb-3'>
+                    <h3 className="text-base font-semibold">Membres de l'équipe</h3>
+                    <p className="text-sm text-muted-foreground">
                         {users.length} membre{users.length > 1 ? 's' : ''} dans votre
                         restaurant
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
+                    </p>
+                </div>
+                <div>
                     <Table>
                         <TableHeader>
                             <TableRow>
@@ -177,7 +177,7 @@ export function UsersList() {
                                             </Avatar>
                                             <div>
                                                 <div className="font-medium">{user.email}</div>
-                                                <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                                <div className="flex items-center gap-1 text-muted-foreground">
                                                     <Mail className="h-3 w-3" />
                                                     {user.email}
                                                 </div>
@@ -233,8 +233,8 @@ export function UsersList() {
                             ))}
                         </TableBody>
                     </Table>
-                </CardContent>
-            </Card>
+                </div>
+            </div>
 
             {/* Dialog de confirmation de suppression */}
             <AlertDialog
