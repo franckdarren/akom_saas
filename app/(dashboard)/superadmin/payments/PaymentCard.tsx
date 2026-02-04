@@ -149,7 +149,7 @@ export function PaymentCard({ payment }: PaymentCardProps) {
                         {formatPrice(payment.amount)}
                       </DialogDescription>
                     </DialogHeader>
-                    <div className="relative h-[600px]">
+                    <div className="relative h-150">
                       <Image
                         src={payment.proofUrl}
                         alt="Preuve de paiement"
