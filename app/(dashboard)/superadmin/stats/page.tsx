@@ -10,7 +10,17 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { StatsChart } from '@/components/superadmin/StatsChart' // client component
 import { ExportStatsButton } from '@/components/superadmin/ExportStatsButton' // client component
 import { TrendingUp, Package, Activity } from 'lucide-react'
-
+import {
+    Breadcrumb,
+    BreadcrumbList,
+    BreadcrumbItem,
+    BreadcrumbLink,
+    BreadcrumbSeparator,
+    BreadcrumbPage,
+} from '@/components/ui/breadcrumb'
+import { Suspense } from 'react'
+import { Separator } from '@/components/ui/separator'
+import { SidebarTrigger } from '@/components/ui/sidebar'
 
 
 // Typage
@@ -28,122 +38,146 @@ export default async function StatsPage() {
     ])
 
     return (
-        <div className="space-y-8">
+        <>
             {/* Header */}
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-3xl font-bold">Stats Avancées</h1>
-                    <p className="text-zinc-600 dark:text-zinc-400">Analyse détaillée de la plateforme</p>
+            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+                <SidebarTrigger className="-ml-1" />
+                <Separator orientation="vertical" className="mr-2 h-4" />
+                <div className="flex justify-between w-full">
+                    <Breadcrumb>
+                        <BreadcrumbList>
+                            <BreadcrumbItem>
+                                <BreadcrumbLink href="/superadmin">Administration</BreadcrumbLink>
+                            </BreadcrumbItem>
+                            <BreadcrumbSeparator />
+                            <BreadcrumbItem>
+                                <BreadcrumbPage>Statistiques</BreadcrumbPage>
+                            </BreadcrumbItem>
+                        </BreadcrumbList>
+                    </Breadcrumb>
                 </div>
-                <ExportStatsButton period="month" />
+            </header>
+
+            <div className='flex flex-col gap-6 p-6'>
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight">Stats Avancées</h1>
+                    <p className="text-muted-foreground mt-2">
+                        Analyse détaillée de la plateforme
+                    </p>
+                </div>
+                {/* <ExportStatsButton period="month" /> */}
+
+                {/* Stats Temps Réel */}
+                <div className="grid gap-4 md:grid-cols-3">
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between pb-2">
+                            <CardTitle className="text-sm font-medium">Dernières 24h</CardTitle>
+                            <Activity className="h-4 w-4 text-zinc-600 dark:text-zinc-400" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{formatNumber(realTimeStats.ordersLast24h)}</div>
+                            <p className="text-xs text-zinc-600 dark:text-zinc-400">Commandes</p>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between pb-2">
+                            <CardTitle className="text-sm font-medium">Revenu 24h</CardTitle>
+                            <TrendingUp className="h-4 w-4 text-zinc-600 dark:text-zinc-400" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{formatPrice(realTimeStats.revenueLast24h)}</div>
+                            <p className="text-xs text-zinc-600 dark:text-zinc-400">Chiffre d'affaires</p>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between pb-2">
+                            <CardTitle className="text-sm font-medium">Restaurants Actifs</CardTitle>
+                            <Package className="h-4 w-4 text-zinc-600 dark:text-zinc-400" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{formatNumber(realTimeStats.activeRestaurants)}</div>
+                            <p className="text-xs text-zinc-600 dark:text-zinc-400">Avec commandes récentes</p>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* Graphique */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Évolution Mensuelle</CardTitle>
+                        <CardDescription>Commandes et revenus des 12 derniers mois</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <StatsChart data={monthlyStats} />
+                    </CardContent>
+                </Card>
+
+                {/* Top Restaurants */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Top 10 Restaurants</CardTitle>
+                        <CardDescription>Classement par nombre de commandes</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>#</TableHead>
+                                    <TableHead>Restaurant</TableHead>
+                                    <TableHead className="text-right">Commandes</TableHead>
+                                    <TableHead className="text-right">Revenu</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {topRestaurants.map((r, i) => (
+                                    <TableRow key={r.id}>
+                                        <TableCell className="font-medium">{i + 1}</TableCell>
+                                        <TableCell>{r.name}</TableCell>
+                                        <TableCell className="text-right">{formatNumber(r.ordersCount)}</TableCell>
+                                        <TableCell className="text-right font-medium text-green-600">{formatPrice(r.revenue)}</TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </CardContent>
+                </Card>
+
+                {/* Top Produits */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Top 10 Produits</CardTitle>
+                        <CardDescription>Produits les plus vendus (tous restaurants)</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>#</TableHead>
+                                    <TableHead>Produit</TableHead>
+                                    <TableHead className="text-right">Quantité</TableHead>
+                                    <TableHead className="text-right">Revenu</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {topProducts.map((p, i) => (
+                                    <TableRow key={i}>
+                                        <TableCell className="font-medium">{i + 1}</TableCell>
+                                        <TableCell>{p.productName}</TableCell>
+                                        <TableCell className="text-right">{formatNumber(p.totalQuantity)}</TableCell>
+                                        <TableCell className="text-right font-medium text-green-600">{formatPrice(p.totalRevenue)}</TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </CardContent>
+                </Card>
+
             </div>
 
-            {/* Stats Temps Réel */}
-            <div className="grid gap-4 md:grid-cols-3">
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <CardTitle className="text-sm font-medium">Dernières 24h</CardTitle>
-                        <Activity className="h-4 w-4 text-zinc-600 dark:text-zinc-400" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{formatNumber(realTimeStats.ordersLast24h)}</div>
-                        <p className="text-xs text-zinc-600 dark:text-zinc-400">Commandes</p>
-                    </CardContent>
-                </Card>
 
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <CardTitle className="text-sm font-medium">Revenu 24h</CardTitle>
-                        <TrendingUp className="h-4 w-4 text-zinc-600 dark:text-zinc-400" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{formatPrice(realTimeStats.revenueLast24h)}</div>
-                        <p className="text-xs text-zinc-600 dark:text-zinc-400">Chiffre d'affaires</p>
-                    </CardContent>
-                </Card>
 
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <CardTitle className="text-sm font-medium">Restaurants Actifs</CardTitle>
-                        <Package className="h-4 w-4 text-zinc-600 dark:text-zinc-400" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{formatNumber(realTimeStats.activeRestaurants)}</div>
-                        <p className="text-xs text-zinc-600 dark:text-zinc-400">Avec commandes récentes</p>
-                    </CardContent>
-                </Card>
-            </div>
-
-            {/* Graphique */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>Évolution Mensuelle</CardTitle>
-                    <CardDescription>Commandes et revenus des 12 derniers mois</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <StatsChart data={monthlyStats} />
-                </CardContent>
-            </Card>
-
-            {/* Top Restaurants */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>Top 10 Restaurants</CardTitle>
-                    <CardDescription>Classement par nombre de commandes</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>#</TableHead>
-                                <TableHead>Restaurant</TableHead>
-                                <TableHead className="text-right">Commandes</TableHead>
-                                <TableHead className="text-right">Revenu</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {topRestaurants.map((r, i) => (
-                                <TableRow key={r.id}>
-                                    <TableCell className="font-medium">{i + 1}</TableCell>
-                                    <TableCell>{r.name}</TableCell>
-                                    <TableCell className="text-right">{formatNumber(r.ordersCount)}</TableCell>
-                                    <TableCell className="text-right font-medium text-green-600">{formatPrice(r.revenue)}</TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </CardContent>
-            </Card>
-
-            {/* Top Produits */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>Top 10 Produits</CardTitle>
-                    <CardDescription>Produits les plus vendus (tous restaurants)</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>#</TableHead>
-                                <TableHead>Produit</TableHead>
-                                <TableHead className="text-right">Quantité</TableHead>
-                                <TableHead className="text-right">Revenu</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {topProducts.map((p, i) => (
-                                <TableRow key={i}>
-                                    <TableCell className="font-medium">{i + 1}</TableCell>
-                                    <TableCell>{p.productName}</TableCell>
-                                    <TableCell className="text-right">{formatNumber(p.totalQuantity)}</TableCell>
-                                    <TableCell className="text-right font-medium text-green-600">{formatPrice(p.totalRevenue)}</TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </CardContent>
-            </Card>
-        </div>
+        </>
     )
 }
