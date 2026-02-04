@@ -27,6 +27,11 @@ export default async function DashboardPage() {
 
     const userRole = await getUserRole()
 
+    // Si SuperAdmin, rediriger vers /superadmin
+    if (userRole === "superadmin") {
+        redirect("/superadmin")
+    }
+
     // Récupérer les statistiques selon le rôle
     let stats: {
         totalOrders?: number

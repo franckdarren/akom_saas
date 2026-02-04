@@ -20,6 +20,9 @@ import {
     Building2,
     CalendarSync,
     LogOut,
+    MessageSquare,
+    FileText,
+    CircleDollarSign,
 } from "lucide-react"
 
 import {
@@ -40,6 +43,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { useRestaurant } from "@/lib/hooks/use-restaurant"
+import { sign } from "crypto"
 
 type UserRole = "admin" | "kitchen" | "superadmin"
 
@@ -137,12 +141,9 @@ export function AppSidebar({ user, role, restaurantName, restaurantLogoUrl, onSi
                     { title: "Restaurants", href: "/superadmin/restaurants", icon: Building2 },
                     { title: "Utilisateurs", href: "/superadmin/users", icon: Users },
                     { title: "Statistiques", href: "/superadmin/stats", icon: BarChart3 },
-                ],
-            },
-            {
-                title: "Système",
-                items: [
-                    { title: "Paramètres", href: "/superadmin/settings", icon: Settings },
+                    { title: "Support", href: "/superadmin/support", icon: MessageSquare },
+                    { title: "Logs", href: "/superadmin/logs", icon: FileText },
+                    { title: "Abonnements", href: "/superadmin/payments", icon: CircleDollarSign },
                 ],
             },
         ],

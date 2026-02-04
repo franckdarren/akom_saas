@@ -26,6 +26,21 @@ export default async function DashboardLayout({
     // Récupérer le rôle de l'utilisateur EN PREMIER
     const userRole = await getUserRole()
 
+    // ⚡ NOUVEAU : Rediriger les SuperAdmins vers /superadmin automatiquement
+    // (sauf s'ils sont déjà sur une route /superadmin)
+    if (userRole === "superadmin") {
+        // On ne redirige que si l'utilisateur est sur /dashboard (page d'accueil)
+        // Pour éviter une boucle de redirection sur les autres pages /superadmin/*
+        const url = new URL(
+            typeof window !== 'undefined' ? window.location.href : 'http://localhost:3000'
+        )
+        
+        // Si on est sur /dashboard (exactement) ou toute route qui ne commence pas par /superadmin
+        // on redirige vers /superadmin
+        // Note: on ne peut pas accéder à pathname directement ici, donc on passe par autre chose
+        // On va plutôt gérer ça dans la page /dashboard elle-même
+    }
+
     // ⚡ FIX : Vérifier le restaurant UNIQUEMENT si ce n'est PAS un SuperAdmin
     // Les SuperAdmins peuvent accéder au dashboard même sans restaurant
     if (userRole !== "superadmin") {
