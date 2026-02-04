@@ -11,7 +11,9 @@ import type {
     Restaurant,
     RestaurantUser,
 } from '@prisma/client'
-import type { RestaurantDetails } from '@/types/restaurant'
+import { isSuperAdmin } from './auth'
+import { notFound } from 'next/navigation'
+import { RestaurantDetails } from '@/types/restaurant'
 
 // ============================================================
 // TYPES
@@ -177,7 +179,7 @@ export async function getAllRestaurants(): Promise<
         }
     })[]
 > {
-    await verifySuperAdmin()
+    await isSuperAdmin()
 
     return prisma.restaurant.findMany({
         include: {
@@ -198,9 +200,14 @@ export async function getAllRestaurants(): Promise<
 // ============================================================
 
 export async function getRestaurantDetails(
-    restaurantId: string
+    restaurantId?: string
 ): Promise<RestaurantDetails> {
     await verifySuperAdmin()
+
+    // 🔒 1. Sécurisation ABSOLUE du paramètre
+    if (!restaurantId || typeof restaurantId !== 'string') {
+        notFound()
+    }
 
     const restaurant = await prisma.restaurant.findUnique({
         where: { id: restaurantId },
@@ -223,30 +230,35 @@ export async function getRestaurantDetails(
         },
     })
 
+    // 🔒 2. Gestion correcte du 404 App Router
     if (!restaurant) {
-        throw new Error('Restaurant introuvable')
+        notFound()
     }
 
+    // 🔥 3. Dates calculées UNE SEULE FOIS
+    const now = new Date()
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+
     const [totalOrders, totalRevenue, ordersThisMonth] = await Promise.all([
-        prisma.order.count({ where: { restaurantId } }),
+        prisma.order.count({
+            where: { restaurantId },
+        }),
 
         prisma.order.aggregate({
             where: {
                 restaurantId,
                 status: { in: ['delivered', 'ready'] },
             },
-            _sum: { totalAmount: true },
+            _sum: {
+                totalAmount: true,
+            },
         }),
 
         prisma.order.count({
             where: {
                 restaurantId,
                 createdAt: {
-                    gte: new Date(
-                        new Date().getFullYear(),
-                        new Date().getMonth(),
-                        1
-                    ),
+                    gte: startOfMonth,
                 },
             },
         }),
@@ -261,6 +273,7 @@ export async function getRestaurantDetails(
         },
     }
 }
+
 
 // ============================================================
 // ACTIVER / DÉSACTIVER UN RESTAURANT
