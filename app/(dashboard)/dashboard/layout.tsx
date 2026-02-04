@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server"
 import { signOut, getUserRole } from "@/lib/actions/auth"
 import { AppSidebar } from "../components/app-sidebar"
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
-import { RestaurantProvider } from "@/lib/hooks/use-restaurant" // 🆕 Import
+import { RestaurantProvider } from "@/lib/hooks/use-restaurant"
 import prisma from "@/lib/prisma"
 
 export default async function DashboardLayout({
@@ -23,39 +23,41 @@ export default async function DashboardLayout({
         redirect("/login")
     }
 
-    // Vérifier si l'utilisateur a au moins un restaurant
-    const hasRestaurant = await prisma.restaurantUser.findFirst({
-        where: { userId: user.id },
-    })
-
-    // Si pas de restaurant, rediriger vers l'onboarding
-    if (!hasRestaurant) {
-        redirect("/onboarding")
-    }
-
-    // Récupérer le rôle de l'utilisateur
+    // Récupérer le rôle de l'utilisateur EN PREMIER
     const userRole = await getUserRole()
 
+    // ⚡ FIX : Vérifier le restaurant UNIQUEMENT si ce n'est PAS un SuperAdmin
+    // Les SuperAdmins peuvent accéder au dashboard même sans restaurant
+    if (userRole !== "superadmin") {
+        const hasRestaurant = await prisma.restaurantUser.findFirst({
+            where: { userId: user.id },
+        })
 
-    // Récupérer les infos du restaurant actuel
-const restaurantUser = userRole !== "superadmin" 
-    ? await prisma.restaurantUser.findFirst({
-        where: { userId: user.id },
-        include: {
-            restaurant: {
-                select: { 
-                    id: true,
-                    name: true,
-                    logoUrl: true
+        // Si pas de restaurant ET pas SuperAdmin, rediriger vers l'onboarding
+        if (!hasRestaurant) {
+            redirect("/onboarding")
+        }
+    }
+
+    // Récupérer les infos du restaurant actuel (seulement si pas SuperAdmin)
+    const restaurantUser = userRole !== "superadmin" 
+        ? await prisma.restaurantUser.findFirst({
+            where: { userId: user.id },
+            include: {
+                restaurant: {
+                    select: { 
+                        id: true,
+                        name: true,
+                        logoUrl: true
+                    },
                 },
             },
-        },
-    })
-    : null
+        })
+        : null
 
-const restaurantName = restaurantUser?.restaurant.name
-const restaurantId = restaurantUser?.restaurant.id
-const restaurantLogoUrl = restaurantUser?.restaurant.logoUrl
+    const restaurantName = restaurantUser?.restaurant.name
+    const restaurantId = restaurantUser?.restaurant.id
+    const restaurantLogoUrl = restaurantUser?.restaurant.logoUrl
 
     // Server action pour déconnexion
     async function handleSignOut() {

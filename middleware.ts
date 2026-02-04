@@ -116,65 +116,73 @@ export async function middleware(request: NextRequest) {
 
     if (user && pathname.startsWith('/dashboard') && !isSubscriptionExempt) {
 
-        // Les SuperAdmins bypassent toujours la vérification d'abonnement.
-        // Ils doivent pouvoir accéder au dashboard même sans restaurant.
+        // VÉRIFICATION SUPERADMIN EN PREMIER
+        // Les SuperAdmins bypassent TOUTES les vérifications (restaurant + abonnement).
+        // On doit vérifier ça AVANT de toucher à restaurant_users pour éviter
+        // de rediriger un SuperAdmin vers /onboarding s'il n'a pas de restaurant.
         const superAdminEmails = (process.env.SUPER_ADMIN_EMAILS || '').split(',')
         const isSuperAdmin = superAdmins(user.email, superAdminEmails)
 
-        if (!isSuperAdmin) {
-            // Étape 1 : on récupère le restaurant de l'utilisateur.
-            // On utilise Supabase directement (pas Prisma) car le
-            // middleware tourne en Edge Runtime où Prisma n'est pas dispo.
-            const { data: restaurantUser } = await supabase
-                .from('restaurant_users')
-                .select('restaurant_id')
-                .eq('user_id', user.id)
-                .single()
+        if (isSuperAdmin) {
+            // SuperAdmin détecté → on laisse passer sans aucune autre vérification
+            return supabaseResponse
+        }
 
-            // Si l'utilisateur n'a aucun restaurant, on le pousse
-            // vers l'onboarding pour en créer un.
-            if (!restaurantUser) {
-                if (!pathname.startsWith('/onboarding')) {
-                    const url = request.nextUrl.clone()
-                    url.pathname = '/onboarding'
-                    return NextResponse.redirect(url)
-                }
-                // S'il est déjà sur /onboarding, on le laisse passer
-                return supabaseResponse
-            }
+        // À partir d'ici, on sait que l'utilisateur N'EST PAS SuperAdmin.
+        // On peut donc vérifier le restaurant et l'abonnement normalement.
 
-            // Étape 2 : on récupère l'abonnement lié au restaurant.
-            const { data: subscription } = await supabase
-                .from('subscriptions')
-                .select('status, trial_ends_at, current_period_end')
-                .eq('restaurant_id', restaurantUser.restaurant_id)
-                .single()
+        // Étape 1 : on récupère le restaurant de l'utilisateur.
+        // On utilise Supabase directement (pas Prisma) car le
+        // middleware tourne en Edge Runtime où Prisma n'est pas dispo.
+        const { data: restaurantUser } = await supabase
+            .from('restaurant_users')
+            .select('restaurant_id')
+            .eq('user_id', user.id)
+            .single()
 
-            // Étape 3 : on détermine si l'abonnement est encore valable.
-            // La logique est simple :
-            //   - Si status = 'trial'  → on compare avec trial_ends_at
-            //   - Si status = 'active' → on compare avec current_period_end
-            //   - Sinon (expired/suspended/cancelled) → c'est inactif
-            const now = new Date()
-            let isActive = false
-
-            if (subscription) {
-                if (subscription.status === 'trial') {
-                    isActive = new Date(subscription.trial_ends_at) > now
-                } else if (subscription.status === 'active' && subscription.current_period_end) {
-                    isActive = new Date(subscription.current_period_end) > now
-                }
-                // Les autres statuts (expired, suspended, cancelled)
-                // laissent isActive à false par défaut.
-            }
-
-            // Étape 4 : si l'abonnement n'est plus actif, on redirige
-            // vers la page "expiré" où l'utilisateur peut renouveler.
-            if (!isActive) {
+        // Si l'utilisateur n'a aucun restaurant, on le pousse
+        // vers l'onboarding pour en créer un.
+        if (!restaurantUser) {
+            if (!pathname.startsWith('/onboarding')) {
                 const url = request.nextUrl.clone()
-                url.pathname = '/dashboard/subscription/expired'
+                url.pathname = '/onboarding'
                 return NextResponse.redirect(url)
             }
+            // S'il est déjà sur /onboarding, on le laisse passer
+            return supabaseResponse
+        }
+
+        // Étape 2 : on récupère l'abonnement lié au restaurant.
+        const { data: subscription } = await supabase
+            .from('subscriptions')
+            .select('status, trial_ends_at, current_period_end')
+            .eq('restaurant_id', restaurantUser.restaurant_id)
+            .single()
+
+        // Étape 3 : on détermine si l'abonnement est encore valable.
+        // La logique est simple :
+        //   - Si status = 'trial'  → on compare avec trial_ends_at
+        //   - Si status = 'active' → on compare avec current_period_end
+        //   - Sinon (expired/suspended/cancelled) → c'est inactif
+        const now = new Date()
+        let isActive = false
+
+        if (subscription) {
+            if (subscription.status === 'trial') {
+                isActive = new Date(subscription.trial_ends_at) > now
+            } else if (subscription.status === 'active' && subscription.current_period_end) {
+                isActive = new Date(subscription.current_period_end) > now
+            }
+            // Les autres statuts (expired, suspended, cancelled)
+            // laissent isActive à false par défaut.
+        }
+
+        // Étape 4 : si l'abonnement n'est plus actif, on redirige
+        // vers la page "expiré" où l'utilisateur peut renouveler.
+        if (!isActive) {
+            const url = request.nextUrl.clone()
+            url.pathname = '/dashboard/subscription/expired'
+            return NextResponse.redirect(url)
         }
     }
 
