@@ -168,16 +168,16 @@ export function AppSidebar({ user, role, restaurantName, restaurantLogoUrl, onSi
         <Sidebar>
             <SidebarHeader className="border-b px-6 py-4">
                 <Link href="/dashboard" className="flex items-center gap-2">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg text-primary-foreground">
-                        {restaurantLogoUrl && (
+                    {restaurantLogoUrl && (
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg text-primary-foreground">
                             <Image
                                 src={restaurantLogoUrl}
                                 width={50}
                                 height={50}
                                 alt="logo"
                             />
-                        )}
-                    </div>
+                        </div>
+                    )}
                     <div className="flex flex-col">
                         <span className="font-semibold text-lg">{restaurantName}</span>
                     </div>
