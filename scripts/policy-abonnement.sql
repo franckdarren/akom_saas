@@ -1,58 +1,67 @@
 -- ============================================================
--- ACTIVER RLS SUR LES NOUVELLES TABLES
+-- CONFIGURATION COMPLÈTE : PERMISSIONS + RLS
 -- ============================================================
+BEGIN;
+-- Étape 1 : Accorder les permissions de base
+GRANT SELECT ON subscriptions TO authenticated;
+GRANT SELECT ON subscription_payments TO authenticated;
+-- Toutes les opérations d'écriture restent réservées au service_role
+GRANT ALL ON subscriptions TO service_role;
+GRANT ALL ON subscription_payments TO service_role;
+-- Étape 2 : Activer le RLS
 ALTER TABLE subscriptions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE subscription_payments ENABLE ROW LEVEL SECURITY;
--- ============================================================
--- POLICIES - SUBSCRIPTIONS
--- ============================================================
--- Les utilisateurs peuvent voir leur propre abonnement
-CREATE POLICY "Users can view their subscription" ON subscriptions FOR
-SELECT USING (
+-- Étape 3 : Supprimer toutes les anciennes policies
+DO $$
+DECLARE r RECORD;
+BEGIN FOR r IN (
+    SELECT policyname
+    FROM pg_policies
+    WHERE tablename = 'subscriptions'
+) LOOP EXECUTE 'DROP POLICY IF EXISTS ' || quote_ident(r.policyname) || ' ON subscriptions';
+END LOOP;
+FOR r IN (
+    SELECT policyname
+    FROM pg_policies
+    WHERE tablename = 'subscription_payments'
+) LOOP EXECUTE 'DROP POLICY IF EXISTS ' || quote_ident(r.policyname) || ' ON subscription_payments';
+END LOOP;
+END $$;
+-- Étape 4 : Créer les policies RLS correctes pour SUBSCRIPTIONS
+-- Policy SELECT : Les utilisateurs peuvent voir leur propre abonnement
+CREATE POLICY "authenticated_select_own_subscription" ON subscriptions FOR
+SELECT TO authenticated USING (
         restaurant_id IN (
             SELECT restaurant_id
             FROM restaurant_users
             WHERE user_id = auth.uid()
         )
     );
--- Les utilisateurs peuvent mettre à jour leur abonnement (changement de plan)
-CREATE POLICY "Users can update their subscription" ON subscriptions FOR
-UPDATE USING (
+-- Policy SELECT : service_role peut tout voir
+CREATE POLICY "service_role_select_all_subscriptions" ON subscriptions FOR
+SELECT TO service_role USING (true);
+-- Policy INSERT : Seul service_role peut créer
+CREATE POLICY "service_role_insert_subscription" ON subscriptions FOR
+INSERT TO service_role WITH CHECK (true);
+-- Policy UPDATE : Seul service_role peut modifier
+CREATE POLICY "service_role_update_subscription" ON subscriptions FOR
+UPDATE TO service_role USING (true) WITH CHECK (true);
+-- Policy DELETE : Seul service_role peut supprimer
+CREATE POLICY "service_role_delete_subscription" ON subscriptions FOR DELETE TO service_role USING (true);
+-- Étape 5 : Créer les policies RLS pour SUBSCRIPTION_PAYMENTS
+CREATE POLICY "authenticated_select_own_payments" ON subscription_payments FOR
+SELECT TO authenticated USING (
         restaurant_id IN (
             SELECT restaurant_id
             FROM restaurant_users
             WHERE user_id = auth.uid()
         )
     );
--- Les abonnements sont créés automatiquement (via service_role)
--- Pas de policy INSERT pour les utilisateurs normaux
--- ============================================================
--- POLICIES - SUBSCRIPTION_PAYMENTS
--- ============================================================
--- Les utilisateurs peuvent voir leurs paiements
-CREATE POLICY "Users can view their payments" ON subscription_payments FOR
-SELECT USING (
-        restaurant_id IN (
-            SELECT restaurant_id
-            FROM restaurant_users
-            WHERE user_id = auth.uid()
-        )
-    );
--- Les utilisateurs peuvent créer des paiements (demandes)
-CREATE POLICY "Users can create payments" ON subscription_payments FOR
-INSERT WITH CHECK (
-        restaurant_id IN (
-            SELECT restaurant_id
-            FROM restaurant_users
-            WHERE user_id = auth.uid()
-        )
-    );
--- Les utilisateurs peuvent mettre à jour leurs paiements (ajouter preuve)
-CREATE POLICY "Users can update their payments" ON subscription_payments FOR
-UPDATE USING (
-        restaurant_id IN (
-            SELECT restaurant_id
-            FROM restaurant_users
-            WHERE user_id = auth.uid()
-        )
-    );
+CREATE POLICY "service_role_select_all_payments" ON subscription_payments FOR
+SELECT TO service_role USING (true);
+CREATE POLICY "service_role_insert_payment" ON subscription_payments FOR
+INSERT TO service_role WITH CHECK (true);
+CREATE POLICY "service_role_update_payment" ON subscription_payments FOR
+UPDATE TO service_role USING (true) WITH CHECK (true);
+CREATE POLICY "service_role_delete_payment" ON subscription_payments FOR DELETE TO service_role USING (true);
+COMMIT;

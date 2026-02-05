@@ -9,6 +9,7 @@ import { generateUniqueSlug } from '@/lib/actions/slug'
 import { restaurantSettingsSchema, type RestaurantSettingsInput } from '@/lib/validations/restaurant'
 import { logRestaurantCreated } from '@/lib/actions/logs'
 import { formatRestaurantName } from '@/lib/utils/format-text'
+import { PLAN_CONFIGS } from '@/lib/subscription/config'
 
 
 interface CreateRestaurantData {
@@ -28,20 +29,23 @@ export async function createRestaurant(data: CreateRestaurantData) {
     } = await supabase.auth.getUser()
 
     if (!user) {
-        throw new Error('Non authentifié')
+        return { error: 'Non authentifié' }
     }
 
     if (!data.name || data.name.trim().length === 0) {
-        throw new Error('Le nom du restaurant est obligatoire')
+        return { error: 'Le nom du restaurant est obligatoire' }
     }
 
-    const formattedName = formatRestaurantName(data.name)
-    const slug = await generateUniqueSlug(formattedName)
+    const slug = await generateUniqueSlug(data.name)
+    const config = PLAN_CONFIGS['business']
+    const now = new Date()
+    const trialEnd = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000) // 14 jours d'essai
 
     await prisma.$transaction(async (tx) => {
+        // Créer le restaurant
         const restaurant = await tx.restaurant.create({
             data: {
-                name: formattedName,
+                name: data.name.trim(),
                 slug,
                 phone: data.phone?.trim() || null,
                 address: data.address?.trim() || null,
@@ -49,49 +53,34 @@ export async function createRestaurant(data: CreateRestaurantData) {
             },
         })
 
+        // Créer le lien utilisateur-restaurant (admin)
         await tx.restaurantUser.create({
             data: {
                 userId: user.id,
                 restaurantId: restaurant.id,
-                role: 'admin', // ou UserRole.admin si enum Prisma
+                role: 'admin',
             },
         })
 
-        // ✅ ABONNEMENT D'ESSAI (14 jours)
-        const trialStartsAt = new Date()
-        const trialEndsAt = new Date()
-        trialEndsAt.setDate(trialEndsAt.getDate() + 14)
-
+        // NOUVEAU : Créer automatiquement l'abonnement d'essai
         await tx.subscription.create({
             data: {
                 restaurantId: restaurant.id,
-
-                // ENUMS
-                plan: 'starter',
+                plan: 'business',
                 status: 'trial',
-
-                // DATES
-                trialStartsAt,
-                trialEndsAt,
-
-                // PRIX & CYCLE
-                monthlyPrice: 15000, // FCFA – starter
+                trialStartsAt: now,
+                trialEndsAt: trialEnd,
+                monthlyPrice: config.monthlyPrice,
                 billingCycle: 1,
-
-                // LIMITES
-                maxUsers: 3,
-                maxTables: 10,
-
-                // FEATURES
-                hasStockManagement: false,
-                hasAdvancedStats: false,
-                hasDataExport: false,
-                hasMobilePayment: false,
-                hasMultiRestaurants: false,
+                maxTables: config.maxTables,
+                maxUsers: config.maxUsers,
+                hasStockManagement: config.hasStockManagement,
+                hasAdvancedStats: config.hasAdvancedStats,
+                hasDataExport: config.hasDataExport,
+                hasMobilePayment: config.hasMobilePayment,
+                hasMultiRestaurants: config.hasMultiRestaurants,
             },
         })
-
-        await logRestaurantCreated(restaurant.id, restaurant.name)
     })
 
     revalidatePath('/dashboard')

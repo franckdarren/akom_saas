@@ -141,22 +141,61 @@ export async function isSubscriptionActive(
             },
         })
 
+        // Si pas d'abonnement, retourner false
         if (!subscription) return false
 
         const now = new Date()
 
+        // Cas 1 : Période d'essai
         if (subscription.status === 'trial') {
-            return now < subscription.trialEndsAt
+            // Conversion explicite en Date si nécessaire
+            const trialEnd = new Date(subscription.trialEndsAt)
+            return now < trialEnd
         }
 
-        if (
-            subscription.status === 'active' &&
-            subscription.currentPeriodEnd
-        ) {
-            return now < subscription.currentPeriodEnd
+        // Cas 2 : Abonnement actif
+        if (subscription.status === 'active') {
+            // Vérifier que currentPeriodEnd existe
+            if (!subscription.currentPeriodEnd) {
+                console.warn(
+                    `⚠️ Abonnement actif sans currentPeriodEnd pour restaurant ${restaurantId}`
+                )
+                return false
+            }
+
+            // Conversion explicite en Date
+            const periodEnd = new Date(subscription.currentPeriodEnd)
+            
+            // Vérification que la date est valide
+            if (isNaN(periodEnd.getTime())) {
+                console.error(
+                    `❌ Date invalide pour currentPeriodEnd: ${subscription.currentPeriodEnd}`
+                )
+                return false
+            }
+
+            // Comparaison avec debug optionnel
+            const isActive = now < periodEnd
+            
+            // Debug utile en développement
+            console.log(`🔍 Vérification abonnement ${restaurantId}:`, {
+                status: subscription.status,
+                now: now.toISOString(),
+                periodEnd: periodEnd.toISOString(),
+                isActive,
+                daysRemaining: Math.ceil((periodEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+            })
+
+            return isActive
         }
 
+        // Cas 3 : Tous les autres statuts (expired, suspended, cancelled)
+        // → Retourner false explicitement
+        console.log(
+            `❌ Abonnement ${restaurantId} avec statut ${subscription.status} → accès refusé`
+        )
         return false
+
     } catch (error) {
         console.error('Erreur vérification abonnement:', error)
         return false
@@ -368,21 +407,26 @@ export async function getDaysRemaining(
     restaurantId: string
 ): Promise<number | null> {
     try {
-        // On utilise ensureSubscription pour être cohérent :
-        // même ici, on garantit que l'abonnement existe.
         const subscription = await ensureSubscription(restaurantId)
-
         const now = new Date()
         let endDate: Date
 
         if (subscription.status === 'trial') {
-            endDate = subscription.trialEndsAt
+            // Conversion explicite
+            endDate = new Date(subscription.trialEndsAt)
         } else if (
             subscription.status === 'active' &&
             subscription.currentPeriodEnd
         ) {
-            endDate = subscription.currentPeriodEnd
+            // Conversion explicite
+            endDate = new Date(subscription.currentPeriodEnd)
         } else {
+            return 0
+        }
+
+        // Vérifier que la date est valide
+        if (isNaN(endDate.getTime())) {
+            console.error('Date invalide dans getDaysRemaining')
             return 0
         }
 
