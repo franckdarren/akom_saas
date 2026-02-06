@@ -1,5 +1,6 @@
-// app/cookies/page.tsx
+// app/cookies/page.tsx (VERSION CORRIGÉE - Sans event handlers)
 import type { Metadata } from 'next'
+import { CookiePreferencesButton, CookiePreferencesLink } from '@/components/gdpr/CookiePreferencesActions'
 
 export const metadata: Metadata = {
     title: 'Politique de Cookies - Akôm',
@@ -141,23 +142,13 @@ export default function CookiesPage() {
                             <h3 className="font-semibold text-gray-900 mb-2">
                                 Via notre outil de gestion des cookies
                             </h3>
-                            <p className="mb-2">
+                            <p className="mb-3">
                                 Vous pouvez à tout moment modifier vos préférences en cliquant sur le bouton
                                 "Paramètres des cookies" situé en bas à droite de votre écran, ou en utilisant
                                 le lien suivant :
                             </p>
-                            <button
-                                onClick={() => {
-                                    // Réinitialiser les préférences pour rouvrir le banner
-                                    if (typeof window !== 'undefined') {
-                                        localStorage.removeItem('cookie-consent')
-                                        window.location.reload()
-                                    }
-                                }}
-                                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-                            >
-                                Modifier mes préférences cookies
-                            </button>
+                            {/* ✅ Utilisation du Client Component au lieu d'un onClick direct */}
+                            <CookiePreferencesButton variant="primary" size="md" />
                         </div>
 
                         <div>
@@ -332,17 +323,8 @@ export default function CookiesPage() {
                                 Conditions d'utilisation
                             </a>
                         </div>
-                        <button
-                            onClick={() => {
-                                if (typeof window !== 'undefined') {
-                                    localStorage.removeItem('cookie-consent')
-                                    window.location.reload()
-                                }
-                            }}
-                            className="text-sm text-gray-600 hover:text-gray-900 underline"
-                        >
-                            Modifier mes préférences
-                        </button>
+                        {/* ✅ Utilisation du Client Component link au lieu d'un onClick direct */}
+                        <CookiePreferencesLink />
                     </div>
                 </div>
             </div>
