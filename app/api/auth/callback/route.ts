@@ -1,29 +1,41 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
+import prisma from '@/lib/prisma'
+import { isSuperAdminEmail } from '@/lib/utils/permissions'
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
     const { searchParams, origin } = new URL(request.url)
     const code = searchParams.get('code')
     const next = searchParams.get('next') ?? '/dashboard'
 
     if (code) {
         const supabase = await createClient()
-        const { error } = await supabase.auth.exchangeCodeForSession(code)
-
-        if (!error) {
-            const forwardedHost = request.headers.get('x-forwarded-host')
-            const isLocalEnv = process.env.NODE_ENV === 'development'
-
-            if (isLocalEnv) {
-                return NextResponse.redirect(`${origin}${next}`)
-            } else if (forwardedHost) {
-                return NextResponse.redirect(`https://${forwardedHost}${next}`)
+        const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+        
+        if (!error && data?.user) {
+            // Déterminer la destination
+            let redirectUrl = `${origin}/dashboard`
+            
+            if (isSuperAdminEmail(data.user.email || '')) {
+                redirectUrl = `${origin}/superadmin`
             } else {
-                return NextResponse.redirect(`${origin}${next}`)
+                const restaurantUser = await prisma.restaurantUser.findFirst({
+                    where: { userId: data.user.id }
+                })
+                
+                if (!restaurantUser) {
+                    redirectUrl = `${origin}/onboarding`
+                }
             }
+            
+            // ✅ Ajouter un paramètre de succès pour afficher un message
+            const finalUrl = new URL(redirectUrl)
+            finalUrl.searchParams.set('verified', 'true')
+            
+            return NextResponse.redirect(finalUrl.toString())
         }
     }
 
-    // Rediriger vers une page d'erreur si le code est invalide
-    return NextResponse.redirect(`${origin}/login?error=auth_failed`)
+    return NextResponse.redirect(`${origin}/login?error=Impossible de confirmer votre email`)
 }

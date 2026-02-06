@@ -10,6 +10,8 @@ import { Label } from '@/components/ui/label'
 import { Loader2 } from "lucide-react"
 import { Checkbox } from '@/components/ui/checkbox'
 import { Eye, EyeOff } from 'lucide-react'
+import { toast } from 'sonner'
+
 
 
 
@@ -35,8 +37,22 @@ export default function RegisterPage() {
         if (!result.success) {
             setError(result.error || result.message)
             setLoading(false)
+            return
         }
-        // La redirection est gérée par la Server Action
+
+        // ✅ Petit feedback visuel avant la redirection
+        // (si tu utilises shadcn/ui toast par exemple)
+        toast.success('Compte créé avec succès !')
+
+
+        // ✅ Rediriger vers dashboard - le middleware décidera de la destination finale
+        // Petit délai pour que l'utilisateur voie le message
+        setTimeout(() => {
+            router.push('/dashboard')
+        }, 500)
+
+        // Alternative plus explicite si tu préfères :
+        // router.push('/onboarding')
     }
 
     return (

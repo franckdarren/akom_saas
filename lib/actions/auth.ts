@@ -56,7 +56,6 @@ async function getRedirectUrl(user: { id: string; email: string }): Promise<stri
 // ============================================================
 
 export async function signUp(data: RegisterInput): Promise<ActionResult> {
-    // Validation
     const parsed = registerSchema.safeParse(data)
     if (!parsed.success) {
         return {
@@ -92,13 +91,10 @@ export async function signUp(data: RegisterInput): Promise<ActionResult> {
         }
     }
 
-    // ✅ FIX : Déterminer la redirection selon le type d'utilisateur
-    const redirectUrl = await getRedirectUrl({
-        id: authData.user.id,
-        email: authData.user.email || '',
-    })
+    // ✅ Revalider pour que le middleware détecte la nouvelle session
+    revalidatePath('/', 'layout')
 
-    // Retourne juste le succès sans rediriger
+    // ✅ Juste retourner le succès - le middleware s'occupera du reste
     return {
         success: true,
         message: 'Compte créé avec succès',
