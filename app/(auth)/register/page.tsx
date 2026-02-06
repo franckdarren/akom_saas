@@ -9,12 +9,16 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Loader2 } from "lucide-react"
 import { Checkbox } from '@/components/ui/checkbox'
+import { Eye, EyeOff } from 'lucide-react'
+
 
 
 export default function RegisterPage() {
     const router = useRouter()
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
+    const [showPassword, setShowPassword] = useState(false)
+
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault()
@@ -62,32 +66,81 @@ export default function RegisterPage() {
 
                 {/* Password */}
                 <div>
-                    <Label htmlFor="password" className='pb-1'>Mot de passe</Label>
-                    <Input
-                        id="password"
-                        name="password"
-                        type="password"
-                        autoComplete="new-password"
-                        required
-                        placeholder="••••••••"
-                    />
+                    <Label htmlFor="password" className="pb-1">
+                        Mot de passe
+                    </Label>
+
+                    <div className="relative">
+                        <Input
+                            id="password"
+                            name="password"
+                            type={showPassword ? 'text' : 'password'}
+                            autoComplete="new-password"
+                            required
+                            placeholder="••••••••"
+                            className="pr-10"
+                        />
+
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                            aria-label={
+                                showPassword
+                                    ? 'Masquer le mot de passe'
+                                    : 'Afficher le mot de passe'
+                            }
+                        >
+                            {showPassword ? (
+                                <EyeOff className="h-4 w-4" />
+                            ) : (
+                                <Eye className="h-4 w-4" />
+                            )}
+                        </button>
+                    </div>
+
                     <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
                         Minimum 6 caractères
                     </p>
                 </div>
 
+
                 {/* Confirm Password */}
                 <div>
-                    <Label htmlFor="confirmPassword" className='pb-1'>Confirmer le mot de passe</Label>
-                    <Input
-                        id="confirmPassword"
-                        name="confirmPassword"
-                        type="password"
-                        autoComplete="new-password"
-                        required
-                        placeholder="••••••••"
-                    />
+                    <Label htmlFor="confirmPassword" className="pb-1">
+                        Confirmer le mot de passe
+                    </Label>
+
+                    <div className="relative">
+                        <Input
+                            id="confirmPassword"
+                            name="confirmPassword"
+                            type={showPassword ? 'text' : 'password'}
+                            autoComplete="new-password"
+                            required
+                            placeholder="••••••••"
+                            className="pr-10"
+                        />
+
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                            aria-label={
+                                showPassword
+                                    ? 'Masquer le mot de passe'
+                                    : 'Afficher le mot de passe'
+                            }
+                        >
+                            {showPassword ? (
+                                <EyeOff className="h-4 w-4" />
+                            ) : (
+                                <Eye className="h-4 w-4" />
+                            )}
+                        </button>
+                    </div>
                 </div>
+
 
                 {/* Error Message */}
                 {error && (
