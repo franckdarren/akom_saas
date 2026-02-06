@@ -8,7 +8,7 @@ export default function LegalLayout({
 }) {
     return (
         <div className="min-h-screen">
-            <header className="border-b">
+            <header className="border-b px-4">
                 <div className="container py-4">
                     <Link href="/" className="text-lg font-bold">
                         Akôm
@@ -18,8 +18,8 @@ export default function LegalLayout({
 
             <main>{children}</main>
 
-            <footer className="border-t mt-12">
-                <div className="container py-8 text-center text-sm text-muted-foreground">
+            <footer className="border-t mt-12 border">
+                <div className="container py-8 text-center text-sm text-muted-foreground mx-auto">
                     <p>&copy; {new Date().getFullYear()} Akôm. Tous droits réservés.</p>
                 </div>
             </footer>
