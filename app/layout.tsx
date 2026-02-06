@@ -3,6 +3,9 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner"
 import { ThemeProvider } from "@/components/providers/theme-provider";
+import { CookieConsent } from '@/components/gdpr/CookieConsent'
+// import { GoogleAnalytics } from '@/components/analytics/AnalyticsScripts'
+
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,6 +40,13 @@ export default function RootLayout({
         >
           <Toaster position="top-right" />
           {children}
+          {/* Bannière RGPD - s'affiche uniquement si nécessaire */}
+          <CookieConsent />
+
+          {/* Analytics - chargé uniquement si l'utilisateur a accepté */}
+          {/* {process.env.NEXT_PUBLIC_GA_ID && (
+            <GoogleAnalytics measurementId={process.env.NEXT_PUBLIC_GA_ID} />
+          )} */}
         </ThemeProvider>
       </body>
     </html>
