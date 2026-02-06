@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Loader2 } from "lucide-react"
+import { Checkbox } from '@/components/ui/checkbox'
 
 
 export default function RegisterPage() {
@@ -94,6 +95,21 @@ export default function RegisterPage() {
                         <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
                     </div>
                 )}
+
+                {/* Accepter la politique de confidentialité */}
+                <div className="flex items-start gap-2 mt-4">
+                    <Checkbox id="terms" required />
+                    <label htmlFor="terms" className="text-sm text-muted-foreground">
+                        En créant un compte, j'accepte les{' '}
+                        <Link
+                            href="/legal/privacy"
+                            className="text-primary hover:underline"
+                            target="_blank"
+                        >
+                            conditions d'utilisation et la politique de confidentialité
+                        </Link>
+                    </label>
+                </div>
 
                 {/* Submit Button */}
                 <Button
