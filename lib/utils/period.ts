@@ -6,61 +6,74 @@ import type { TimePeriod, PeriodRange, CustomPeriod } from '@/types/stats'
  * Calcule la plage de dates selon la période sélectionnée
  * Inclut aussi la période précédente pour comparaison
  ************************************************************/
-export function getPeriodRange(
-    period: TimePeriod,
-    customPeriod?: CustomPeriod
-): PeriodRange {
-    const now = new Date()
+/**
+ * Fournit des plages start/end en UTC (0:00:00.000 -> 23:59:59.999 UTC)
+ * Durée "week" = 7 jours inclusifs, "month" = 30 jours inclusifs.
+ */
+export function getPeriodRange(period: TimePeriod, customPeriod?: CustomPeriod): PeriodRange {
+  const now = new Date()
 
-    switch (period) {
-        case 'today': {
-            const startDate = startOfDay(now)
-            const endDate = endOfDay(now)
-            const previousStartDate = startOfDay(subDays(now, 1))
-            const previousEndDate = endOfDay(subDays(now, 1))
+  // utility helpers (UTC)
+  const startOfUtcDay = (d: Date) => {
+    const r = new Date(d)
+    r.setUTCFullYear(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate())
+    r.setUTCHours(0, 0, 0, 0)
+    return r
+  }
+  const endOfUtcDay = (d: Date) => {
+    const r = new Date(d)
+    r.setUTCFullYear(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate())
+    r.setUTCHours(23, 59, 59, 999)
+    return r
+  }
+  const subUtcDays = (d: Date, days: number) => {
+    const r = new Date(d)
+    r.setUTCDate(r.getUTCDate() - days)
+    return r
+  }
 
-            return { startDate, endDate, previousStartDate, previousEndDate }
-        }
-
-        case 'week': {
-            const startDate = startOfWeek(now, { weekStartsOn: 1 }) // Lundi
-            const endDate = endOfWeek(now, { weekStartsOn: 1 })
-            const previousStartDate = startOfWeek(subDays(now, 7), { weekStartsOn: 1 })
-            const previousEndDate = endOfWeek(subDays(now, 7), { weekStartsOn: 1 })
-
-            return { startDate, endDate, previousStartDate, previousEndDate }
-        }
-
-        case 'month': {
-            const startDate = startOfMonth(now)
-            const endDate = endOfMonth(now)
-            const previousStartDate = startOfMonth(subDays(startDate, 1))
-            const previousEndDate = endOfMonth(subDays(startDate, 1))
-
-            return { startDate, endDate, previousStartDate, previousEndDate }
-        }
-
-        case 'custom': {
-            if (!customPeriod) {
-                throw new Error('Custom period requires startDate and endDate')
-            }
-
-            const startDate = startOfDay(customPeriod.startDate)
-            const endDate = endOfDay(customPeriod.endDate)
-
-            // Période précédente = même durée avant
-            const durationDays = Math.ceil(
-                (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
-            )
-            const previousEndDate = startOfDay(subDays(startDate, 1))
-            const previousStartDate = subDays(previousEndDate, durationDays - 1)
-
-            return { startDate, endDate, previousStartDate, previousEndDate }
-        }
-
-        default:
-            throw new Error(`Unknown period: ${period}`)
+  switch (period) {
+    case 'today': {
+      const startDate = startOfUtcDay(now)
+      const endDate = endOfUtcDay(now)
+      const previousStartDate = startOfUtcDay(subUtcDays(now, 1))
+      const previousEndDate = endOfUtcDay(subUtcDays(now, 1))
+      return { startDate, endDate, previousStartDate, previousEndDate }
     }
+
+    case 'week': {
+      const duration = 7
+      const startDate = startOfUtcDay(subUtcDays(now, duration - 1))
+      const endDate = endOfUtcDay(now)
+      const previousEndDate = endOfUtcDay(subUtcDays(startDate, 1))
+      const previousStartDate = startOfUtcDay(subUtcDays(startDate, duration))
+      return { startDate, endDate, previousStartDate, previousEndDate }
+    }
+
+    case 'month': {
+      const duration = 30
+      const startDate = startOfUtcDay(subUtcDays(now, duration - 1))
+      const endDate = endOfUtcDay(now)
+      const previousEndDate = endOfUtcDay(subUtcDays(startDate, 1))
+      const previousStartDate = startOfUtcDay(subUtcDays(startDate, duration))
+      return { startDate, endDate, previousStartDate, previousEndDate }
+    }
+
+    case 'custom': {
+      if (!customPeriod) throw new Error('Custom period requires startDate and endDate')
+      const startDate = startOfUtcDay(new Date(customPeriod.startDate))
+      const endDate = endOfUtcDay(new Date(customPeriod.endDate))
+
+      // durée incluant les 2 bornes
+      const durationDays = Math.round((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1
+      const previousEndDate = endOfUtcDay(subUtcDays(startDate, 1))
+      const previousStartDate = startOfUtcDay(subUtcDays(previousEndDate, durationDays - 1))
+      return { startDate, endDate, previousStartDate, previousEndDate }
+    }
+
+    default:
+      throw new Error(`Unknown period: ${period}`)
+  }
 }
 
 /*************************************************************

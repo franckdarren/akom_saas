@@ -69,6 +69,12 @@ export default function DashboardPage() {
         setLoading(true)
         try {
             const data = await getDashboardStats(period)
+            console.log('📊 Stats reçues:', data)
+            console.log('📈 Revenue:', data.revenue)
+            console.log('🛒 Orders:', data.orders)
+            console.log('📦 Stock alerts:', data.stockAlerts)
+            console.log('🏆 Top products:', data.topProducts)
+            console.log('📊 Category sales:', data.categorySales)
             setStats(data)
         } catch (error) {
             console.error("Erreur chargement stats:", error)

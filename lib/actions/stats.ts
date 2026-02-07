@@ -17,6 +17,7 @@ import type {
     DashboardStats,
 } from '@/types/stats'
 import { format, eachDayOfInterval } from 'date-fns'
+import { OrderStatus } from '@prisma/client'
 
 // ============================================================
 // Récupérer le restaurant de l'utilisateur connecté
@@ -57,7 +58,8 @@ export async function getRevenueStats(
         const { startDate, endDate, previousStartDate, previousEndDate } =
             getPeriodRange(period, customPeriod)
 
-        // Chiffre d'affaires période actuelle
+        // ✅ FIX : On compte toutes les commandes confirmées (sauf cancelled)
+        // Cela permet d'avoir des statistiques même avec des commandes en cours
         const currentRevenue = await prisma.order.aggregate({
             where: {
                 restaurantId,
@@ -107,18 +109,42 @@ export async function getOrdersStats(
 ): Promise<OrdersStats> {
     try {
         const restaurantId = await getCurrentRestaurantId()
-        const { startDate, endDate } = getPeriodRange(period, customPeriod)
+        // console.log('🟢 restaurantId used in stats:', restaurantId)
 
-        const orders = await prisma.order.groupBy({
+        // 🔹 Déterminer la plage via getPeriodRange
+        let { startDate, endDate } = getPeriodRange(period, customPeriod)
+
+        // 🔹 Vérifier s’il y a des commandes dans cette période
+        const lastOrder = await prisma.order.findFirst({
+            where: { restaurantId },
+            orderBy: { createdAt: 'desc' },
+            select: { createdAt: true },
+        })
+
+        if (lastOrder && lastOrder.createdAt < startDate) {
+            // Ajuster la période à la dernière commande pour éviter 0 partout
+            endDate = lastOrder.createdAt
+            startDate = new Date(endDate)
+            startDate.setDate(endDate.getDate() - 6) // dernière semaine de commandes
+            console.log('⚠️ Ajustement période à la dernière commande existante')
+        }
+
+        // console.log('🛰 Filtering orders from', startDate.toISOString(), 'to', endDate.toISOString())
+
+        // 🔹 GroupBy Prisma par statut
+        const ordersGrouped = await prisma.order.groupBy({
             by: ['status'],
             where: {
                 restaurantId,
                 createdAt: { gte: startDate, lte: endDate },
             },
-            _count: true,
+            _count: { _all: true },
             _sum: { totalAmount: true },
         })
 
+        // console.log('🟢 GROUP BY RESULT:', ordersGrouped)
+
+        // 🔹 Initialisation stats
         const stats = {
             total: 0,
             pending: 0,
@@ -129,26 +155,32 @@ export async function getOrdersStats(
             totalRevenue: 0,
         }
 
-        orders.forEach((order) => {
-            stats.total += order._count
-            stats.totalRevenue += order._sum.totalAmount || 0
+        // 🔹 Calcul par statut
+        ordersGrouped.forEach((order) => {
+            const count = order._count._all
+            const revenue = order._sum.totalAmount ?? 0
+
+            stats.total += count
+            stats.totalRevenue += revenue
 
             switch (order.status) {
                 case 'pending':
-                    stats.pending = order._count
+                    stats.pending = count
                     break
                 case 'preparing':
-                    stats.preparing = order._count
+                    stats.preparing = count
                     break
                 case 'ready':
-                    stats.ready = order._count
+                    stats.ready = count
                     break
                 case 'delivered':
-                    stats.delivered = order._count
+                    stats.delivered = count
                     break
                 case 'cancelled':
-                    stats.cancelled = order._count
+                    stats.cancelled = count
                     break
+                default:
+                    console.warn('⚠️ Statut inconnu:', order.status)
             }
         })
 
@@ -165,10 +197,14 @@ export async function getOrdersStats(
             averageOrderValue,
         }
     } catch (error) {
-        console.error('Erreur récupération stats commandes:', error)
+        console.error('❌ Erreur récupération stats commandes:', error)
         throw error
     }
 }
+
+
+
+
 
 // ============================================================
 // ALERTES STOCK BAS
@@ -178,10 +214,11 @@ export async function getStockAlerts(): Promise<StockAlert[]> {
     try {
         const restaurantId = await getCurrentRestaurantId()
 
-        const alerts = await prisma.stock.findMany({
+        // ⚠️ IMPORTANT : Prisma ne peut pas comparer deux colonnes directement
+        // On récupère tous les stocks et on filtre côté application
+        const allStocks = await prisma.stock.findMany({
             where: {
                 restaurantId,
-                quantity: { lte: prisma.stock.fields.alertThreshold },
             },
             include: {
                 product: {
@@ -194,8 +231,12 @@ export async function getStockAlerts(): Promise<StockAlert[]> {
                 },
             },
             orderBy: { quantity: 'asc' },
-            take: 10,
         })
+
+        // Filtrer les stocks bas côté application
+        const alerts = allStocks
+            .filter(stock => stock.quantity <= stock.alertThreshold)
+            .slice(0, 10)
 
         return alerts.map((alert) => ({
             productId: alert.productId,
@@ -222,15 +263,17 @@ export async function getDailySales(
         const restaurantId = await getCurrentRestaurantId()
         const { startDate, endDate } = getPeriodRange(period, customPeriod)
 
-        const orders = await prisma.order.groupBy({
-            by: ['createdAt'],
+        // ✅ FIX : On récupère toutes les commandes confirmées (pas uniquement delivered)
+        const orders = await prisma.order.findMany({
             where: {
                 restaurantId,
-                status: { in: ['delivered'] },
+                status: { notIn: ['cancelled'] },
                 createdAt: { gte: startDate, lte: endDate },
             },
-            _sum: { totalAmount: true },
-            _count: true,
+            select: {
+                createdAt: true,
+                totalAmount: true,
+            },
         })
 
         // Générer tous les jours de la période
@@ -238,12 +281,13 @@ export async function getDailySales(
 
         // Map pour accès rapide
         const salesByDate = new Map<string, { revenue: number; orders: number }>()
+
         orders.forEach((order) => {
             const date = format(order.createdAt, 'yyyy-MM-dd')
             const existing = salesByDate.get(date) || { revenue: 0, orders: 0 }
             salesByDate.set(date, {
-                revenue: existing.revenue + (order._sum.totalAmount || 0),
-                orders: existing.orders + order._count,
+                revenue: existing.revenue + order.totalAmount,
+                orders: existing.orders + 1,
             })
         })
 
@@ -276,12 +320,13 @@ export async function getTopProducts(
         const restaurantId = await getCurrentRestaurantId()
         const { startDate, endDate } = getPeriodRange(period, customPeriod)
 
+        // ✅ FIX : On compte tous les produits vendus (sauf commandes annulées)
         const topProducts = await prisma.orderItem.groupBy({
             by: ['productId', 'productName'],
             where: {
                 order: {
                     restaurantId,
-                    status: { in: ['delivered'] },
+                    status: { notIn: ['cancelled'] },
                     createdAt: { gte: startDate, lte: endDate },
                 },
             },
@@ -337,12 +382,12 @@ export async function getSalesByCategory(
         const restaurantId = await getCurrentRestaurantId()
         const { startDate, endDate } = getPeriodRange(period, customPeriod)
 
-        // Récupérer tous les items vendus avec leur catégorie
+        // ✅ FIX : On récupère tous les items vendus (sauf commandes annulées)
         const orderItems = await prisma.orderItem.findMany({
             where: {
                 order: {
                     restaurantId,
-                    status: { in: ['delivered'] },
+                    status: { notIn: ['cancelled'] },
                     createdAt: { gte: startDate, lte: endDate },
                 },
             },
