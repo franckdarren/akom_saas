@@ -1,7 +1,19 @@
 'use client'
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip, Legend } from 'recharts'
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card'
+import {
+    Cell,
+    Pie,
+    PieChart,
+    ResponsiveContainer,
+    Tooltip,
+} from 'recharts'
 import { formatPrice } from '@/lib/utils/format'
 import type { CategorySales } from '@/types/stats'
 
@@ -23,18 +35,33 @@ const COLORS = [
 
 export function CategorySalesChart({ data }: CategorySalesChartProps) {
     // Prendre seulement les 8 catégories les plus importantes
-    const topCategories = data.slice(0, 8)
+    const topCategories: CategorySales[] = data.slice(0, 8)
 
     // Si on a plus de 8 catégories, regrouper le reste dans "Autres"
     if (data.length > 8) {
-        const othersRevenue = data.slice(8).reduce((sum, cat) => sum + cat.revenue, 0)
-        const othersCount = data.slice(8).reduce((sum, cat) => sum + cat.ordersCount, 0)
+        const others = data.slice(8)
+
+        const othersRevenue = others.reduce(
+            (sum, cat) => sum + cat.revenue,
+            0
+        )
+
+        const othersCount = others.reduce(
+            (sum, cat) => sum + cat.ordersCount,
+            0
+        )
+
+        const totalRevenue = data.reduce(
+            (sum, cat) => sum + cat.revenue,
+            0
+        )
+
         topCategories.push({
             categoryId: null,
             categoryName: 'Autres',
             revenue: othersRevenue,
             ordersCount: othersCount,
-            percentage: Math.round((othersRevenue / data.reduce((sum, cat) => sum + cat.revenue, 0)) * 100)
+            percentage: Math.round((othersRevenue / totalRevenue) * 100),
         })
     }
 
@@ -46,6 +73,7 @@ export function CategorySalesChart({ data }: CategorySalesChartProps) {
                     Répartition du chiffre d'affaires par type de produit
                 </CardDescription>
             </CardHeader>
+
             <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
                     <PieChart>
@@ -53,37 +81,46 @@ export function CategorySalesChart({ data }: CategorySalesChartProps) {
                             data={topCategories}
                             cx="50%"
                             cy="50%"
-                            labelLine={false}
-                            label={({ categoryName, percentage }) => `${categoryName} (${percentage}%)`}
                             outerRadius={80}
-                            fill="#8884d8"
                             dataKey="revenue"
+                            labelLine={false}
+                            label={({ payload }) =>
+                                `${payload.categoryName} (${payload.percentage}%)`
+                            }
                         >
-                            {topCategories.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            {topCategories.map((_, index) => (
+                                <Cell
+                                    key={`cell-${index}`}
+                                    fill={COLORS[index % COLORS.length]}
+                                />
                             ))}
                         </Pie>
+
                         <Tooltip
                             content={({ active, payload }) => {
                                 if (!active || !payload?.length) return null
-                                const data = payload[0].payload
+
+                                const data =
+                                    payload[0].payload as CategorySales
+
                                 return (
                                     <div className="rounded-lg border bg-background p-3 shadow-sm">
-                                        <div className="grid gap-2">
-                                            <div className="flex flex-col">
-                                                <span className="text-sm font-semibold">
-                                                    {data.categoryName}
-                                                </span>
-                                                <span className="text-lg font-bold text-muted-foreground">
-                                                    {formatPrice(data.revenue)}
-                                                </span>
-                                                <span className="text-xs text-muted-foreground">
-                                                    {data.ordersCount} commande(s)
-                                                </span>
-                                                <span className="text-xs text-muted-foreground font-medium">
-                                                    {data.percentage}% du CA
-                                                </span>
-                                            </div>
+                                        <div className="flex flex-col gap-1">
+                                            <span className="text-sm font-semibold">
+                                                {data.categoryName}
+                                            </span>
+
+                                            <span className="text-lg font-bold text-muted-foreground">
+                                                {formatPrice(data.revenue)}
+                                            </span>
+
+                                            <span className="text-xs text-muted-foreground">
+                                                {data.ordersCount} commande(s)
+                                            </span>
+
+                                            <span className="text-xs font-medium text-muted-foreground">
+                                                {data.percentage}% du CA
+                                            </span>
                                         </div>
                                     </div>
                                 )
