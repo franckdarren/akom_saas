@@ -42,7 +42,7 @@ export default function RegisterPage() {
 
         // ✅ Petit feedback visuel avant la redirection
         // (si tu utilises shadcn/ui toast par exemple)
-        toast.success('Compte créé avec succès !')
+        toast.success('Compte créé avec succès ! Veuillez vérifier votre email pour confirmer votre compte.')
 
 
         // ✅ Rediriger vers dashboard - le middleware décidera de la destination finale
