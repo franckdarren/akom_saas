@@ -69,12 +69,6 @@ export default function DashboardPage() {
         setLoading(true)
         try {
             const data = await getDashboardStats(period)
-            console.log('📊 Stats reçues:', data)
-            console.log('📈 Revenue:', data.revenue)
-            console.log('🛒 Orders:', data.orders)
-            console.log('📦 Stock alerts:', data.stockAlerts)
-            console.log('🏆 Top products:', data.topProducts)
-            console.log('📊 Category sales:', data.categorySales)
             setStats(data)
         } catch (error) {
             console.error("Erreur chargement stats:", error)
@@ -115,7 +109,7 @@ export default function DashboardPage() {
                 <SidebarTrigger className="-ml-1" />
                 <Separator orientation="vertical" className="mr-2 h-4" />
                 <div className="flex justify-between w-full items-center">
-                    <h1 className="text-sm font-medium">Tableau de bord</h1>
+                    <h1 className="text-sm font-medium hidden sm:flex">Tableau de bord</h1>
                     <div className="flex items-center gap-4">
                         <PeriodSelector value={period} onValueChange={setPeriod} />
                         <div className="text-right leading-tight text-sm">

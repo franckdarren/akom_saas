@@ -39,7 +39,7 @@ export function OrdersDistributionChart({ data }: OrdersDistributionChartProps) 
             <CardContent>
                 <div className="flex items-center justify-between">
                     {/* Graphique circulaire */}
-                    <ResponsiveContainer width="50%" height={200}>
+                    <ResponsiveContainer width="75%" height={200}>
                         <PieChart>
                             <Pie
                                 data={chartData}
