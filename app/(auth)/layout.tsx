@@ -10,7 +10,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
                         Akôm
                     </h1>
                     <p className="text-zinc-600 dark:text-zinc-400 mt-2">
-                        Digitalisation de la restauration
+                        Le cœur digital de votre activité commerciale
                     </p>
                 </div>
 

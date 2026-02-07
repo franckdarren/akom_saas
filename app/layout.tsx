@@ -19,7 +19,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Akôm",
-  description: "Akôm - Plateforme SaaS qui permet aux restaurants de digitaliser les commandes via QR code, d’optimiser la communication avec la cuisine et d’améliorer l’expérience client, sans complexité ni coût excessif.",
+  description: "Akôm - Akom est une plateforme de gestion pour les activités commerciales modernes. Elle offre une suite d'outils pour la gestion des ventes, des clients, des produits et des analyses, permettant aux entreprises de digitaliser leurs opérations et d'améliorer leur efficacité.",
 };
 
 export default function RootLayout({
