@@ -180,13 +180,13 @@ export function AppSidebar({ user, role, restaurantName, restaurantLogoUrl, onSi
     return (
         <Sidebar>
             <SidebarHeader className="px-1 py-4 flex-row justify-between items-center">
-                <Link href="/dashboard" className="flex items-center gap-2">
+                <Link href="/dashboard" className="flex items-center gap-1">
                     {restaurantLogoUrl && (
-                        <div className="flex h-8 w-8 items-center justify-center rounded-lg text-primary-foreground">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg text-primary-foreground">
                             <Image
                                 src={restaurantLogoUrl}
-                                width={50}
-                                height={50}
+                                width={100}
+                                height={100}
                                 alt="logo"
                             />
                         </div>
