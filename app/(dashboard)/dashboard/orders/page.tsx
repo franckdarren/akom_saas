@@ -74,7 +74,7 @@ export default function OrdersPage() {
                         </BreadcrumbList>
                     </Breadcrumb>
                 </div>
-                <div className="border-black text-right leading-tight text-sm">
+                <div className="border-black text-right leading-tight text-sm hidden sm:block">
                     {currentRole === 'admin' && (
                         <p className="truncate font-medium">Administrateur</p>
                     )}

@@ -68,7 +68,7 @@ export default async function NewProductPage() {
                         </BreadcrumbList>
                     </Breadcrumb>
                 </div>
-                <div className="border-black text-right leading-tight text-sm">
+                <div className="border-black text-right leading-tight text-sm hidden sm:block">
                     {
                         userRole === "admin" && <p className="truncate font-medium">Administrateur</p>
                     }

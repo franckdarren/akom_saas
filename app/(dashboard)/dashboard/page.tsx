@@ -112,7 +112,7 @@ export default function DashboardPage() {
                     <h1 className="text-sm font-medium hidden sm:flex">Tableau de bord</h1>
                     <div className="flex items-center gap-4">
                         <PeriodSelector value={period} onValueChange={setPeriod} />
-                        <div className="text-right leading-tight text-sm">
+                        <div className="text-right leading-tight text-sm hidden sm:block">
                             <p className="truncate font-medium">Administrateur</p>
                             <p className="text-muted-foreground truncate text-xs">{userEmail}</p>
                         </div>

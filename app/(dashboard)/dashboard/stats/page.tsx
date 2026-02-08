@@ -93,7 +93,7 @@ export default function StatsPage() {
                             </BreadcrumbItem>
                             <BreadcrumbSeparator />
                             <BreadcrumbItem>
-                                <BreadcrumbPage>Paramètres</BreadcrumbPage>
+                                <BreadcrumbPage>Statistiques</BreadcrumbPage>
                             </BreadcrumbItem>
                         </BreadcrumbList>
                     </div>
