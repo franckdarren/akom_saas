@@ -122,7 +122,7 @@ export default function DashboardPage() {
                             value={period} 
                             onValueChange={handlePeriodChange}
                         />
-                        <div className="text-right leading-tight text-sm">
+                        <div className="text-right leading-tight text-sm hidden sm:block">
                             <p className="truncate font-medium">Administrateur</p>
                             <p className="text-muted-foreground truncate text-xs">{userEmail}</p>
                         </div>
