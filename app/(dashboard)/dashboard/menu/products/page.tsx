@@ -84,15 +84,6 @@ export default async function ProductsPage() {
                         </BreadcrumbList>
                     </Breadcrumb>
                 </div>
-                <div className="border-black text-right leading-tight text-sm hidden sm:block">
-                    {
-                        userRole === "admin" && <p className="truncate font-medium">Administrateur</p>
-                    }
-                    {
-                        userRole === "kitchen" && <p className="truncate font-medium">Cuisine</p>
-                    }
-                    <p className="text-muted-foreground truncate text-xs">{user.email}</p>
-                </div>
             </header>
 
             <div className="flex flex-1 flex-col gap-4 p-4">

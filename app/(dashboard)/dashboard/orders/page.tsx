@@ -74,20 +74,6 @@ export default function OrdersPage() {
                         </BreadcrumbList>
                     </Breadcrumb>
                 </div>
-                <div className="border-black text-right leading-tight text-sm hidden sm:block">
-                    {currentRole === 'admin' && (
-                        <p className="truncate font-medium">Administrateur</p>
-                    )}
-                    {currentRole === 'kitchen' && (
-                        <p className="truncate font-medium">Cuisine</p>
-                    )}
-                    {currentRole === 'superadmin' && (
-                        <p className="truncate font-medium">Super Admin</p>
-                    )}
-                    <p className="text-muted-foreground truncate text-xs">
-                        {user?.email}
-                    </p>
-                </div>
             </header>
 
             {/* Contenu principal */}

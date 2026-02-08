@@ -23,6 +23,8 @@ import {
     MessageSquare,
     FileText,
     CircleDollarSign,
+    ChevronUp,
+    ChevronDown,
 } from "lucide-react"
 
 import {
@@ -45,6 +47,15 @@ import { Separator } from "@/components/ui/separator"
 import { useRestaurant } from "@/lib/hooks/use-restaurant"
 import { sign } from "crypto"
 import { DashboardHeader } from "../dashboard/components/DashboardHeader"
+import { User } from "lucide-react"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 
 type UserRole = "admin" | "kitchen" | "superadmin"
@@ -168,7 +179,7 @@ export function AppSidebar({ user, role, restaurantName, restaurantLogoUrl, onSi
 
     return (
         <Sidebar>
-            <SidebarHeader className="border-b px-1 py-4 flex-row justify-between items-center">
+            <SidebarHeader className="px-1 py-4 flex-row justify-between items-center">
                 <Link href="/dashboard" className="flex items-center gap-2">
                     {restaurantLogoUrl && (
                         <div className="flex h-8 w-8 items-center justify-center rounded-lg text-primary-foreground">
@@ -184,7 +195,7 @@ export function AppSidebar({ user, role, restaurantName, restaurantLogoUrl, onSi
                         <span className="font-semibold text-sm">{restaurantName}</span>
                     </div>
                 </Link>
-                <DashboardHeader/>
+                <DashboardHeader />
             </SidebarHeader>
 
             <SidebarContent>
@@ -231,20 +242,63 @@ export function AppSidebar({ user, role, restaurantName, restaurantLogoUrl, onSi
                 ))}
             </SidebarContent>
 
-            <SidebarFooter className="border-t bg-background/50">
-                <SidebarMenu>
-                    {/* Logout */}
-                    <SidebarMenuItem>
-                        <SidebarMenuButton
+            <SidebarFooter className="">
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <button className="flex w-full items-center gap-3 px-3 py-3 text-left hover:bg-muted rounded-md transition">
+                            <Avatar className="h-8 w-8">
+                                <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+                                    {initials}
+                                </AvatarFallback>
+                            </Avatar>
+
+                            <div className="flex-1 min-w-0">
+                                <p className="text-sm font-bold truncate">
+                                    {role}
+                                </p>
+                                <p className="text-sm font-light truncate">
+                                    {user.email}
+                                </p>
+                            </div>
+                            {/* Icône double chevron */}
+                            <span className="flex flex-col gap-2 items-center justify-center text-muted-foreground">
+                                <ChevronUp className="h-3 w-3 -mb-1" />
+                                <ChevronDown className="h-3 w-3 -mt-1" />
+                            </span>
+
+                        </button>
+                    </DropdownMenuTrigger>
+
+                    <DropdownMenuContent
+                        side="top"
+                        align="start"
+                        className="w-56"
+                    >
+                        <DropdownMenuLabel>Mon compte</DropdownMenuLabel>
+
+                        <DropdownMenuItem>
+                            <User className="mr-2 h-4 w-4" />
+                            Profil
+                        </DropdownMenuItem>
+
+                        <DropdownMenuItem>
+                            <Settings className="mr-2 h-4 w-4" />
+                            Paramètres
+                        </DropdownMenuItem>
+
+                        <DropdownMenuSeparator />
+
+                        <DropdownMenuItem
+                            className="text-destructive focus:text-destructive"
                             onClick={onSignOut}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors"
                         >
-                            <LogOut className="h-4 w-4" />
-                            <span className="font-medium">Déconnexion</span>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                </SidebarMenu>
+                            <LogOut className="mr-2 h-4 w-4" />
+                            Déconnexion
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </SidebarFooter>
+
         </Sidebar>
     )
 }

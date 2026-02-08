@@ -93,10 +93,7 @@ export default function DashboardPage() {
                     <Separator orientation="vertical" className="mr-2 h-4" />
                     <div className="flex justify-between w-full">
                         <h1 className="text-sm font-medium my-auto">Interface Cuisine</h1>
-                        <div className="text-right leading-tight text-sm">
-                            <p className="truncate font-medium">Cuisine</p>
-                            <p className="text-muted-foreground truncate text-xs">{userEmail}</p>
-                        </div>
+                        
                     </div>
                 </header>
 
@@ -122,10 +119,6 @@ export default function DashboardPage() {
                             value={period} 
                             onValueChange={handlePeriodChange}
                         />
-                        <div className="text-right leading-tight text-sm hidden sm:block">
-                            <p className="truncate font-medium">Administrateur</p>
-                            <p className="text-muted-foreground truncate text-xs">{userEmail}</p>
-                        </div>
                     </div>
                 </div>
             </header>
