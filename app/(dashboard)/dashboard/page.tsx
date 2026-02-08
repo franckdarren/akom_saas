@@ -16,12 +16,13 @@ import { RecentOrdersCard } from "@/components/stats/recent-orders-card"
 import { PeriodSelector } from "@/components/stats/period-selector"
 import { getDashboardStats } from "@/lib/actions/stats"
 import { DollarSign, ShoppingCart, TrendingUp, Users } from "lucide-react"
-import type { DashboardStats, TimePeriod } from "@/types/stats"
+import type { DashboardStats, TimePeriod, CustomPeriod } from "@/types/stats"
 
 export default function DashboardPage() {
     const [userRole, setUserRole] = useState<string | null>(null)
     const [userEmail, setUserEmail] = useState<string>("")
     const [period, setPeriod] = useState<TimePeriod>('week')
+    const [customPeriod, setCustomPeriod] = useState<CustomPeriod | undefined>()
     const [stats, setStats] = useState<DashboardStats | null>(null)
     const [loading, setLoading] = useState(true)
 
@@ -63,18 +64,24 @@ export default function DashboardPage() {
         if (userRole === "admin") {
             loadStats()
         }
-    }, [period, userRole])
+    }, [period, customPeriod, userRole])
 
     async function loadStats() {
         setLoading(true)
         try {
-            const data = await getDashboardStats(period)
+            const data = await getDashboardStats(period, customPeriod)
             setStats(data)
         } catch (error) {
             console.error("Erreur chargement stats:", error)
         } finally {
             setLoading(false)
         }
+    }
+
+    // Handler pour le changement de période
+    function handlePeriodChange(newPeriod: TimePeriod, newCustomPeriod?: CustomPeriod) {
+        setPeriod(newPeriod)
+        setCustomPeriod(newCustomPeriod)
     }
 
     // Interface pour le rôle Kitchen (simplifiée)
@@ -109,10 +116,13 @@ export default function DashboardPage() {
                 <SidebarTrigger className="-ml-1" />
                 <Separator orientation="vertical" className="mr-2 h-4" />
                 <div className="flex justify-between w-full items-center">
-                    <h1 className="text-sm font-medium hidden sm:flex">Tableau de bord</h1>
+                    <h1 className="text-sm font-medium">Tableau de bord</h1>
                     <div className="flex items-center gap-4">
-                        <PeriodSelector value={period} onValueChange={setPeriod} />
-                        <div className="text-right leading-tight text-sm hidden sm:block">
+                        <PeriodSelector 
+                            value={period} 
+                            onValueChange={handlePeriodChange}
+                        />
+                        <div className="text-right leading-tight text-sm">
                             <p className="truncate font-medium">Administrateur</p>
                             <p className="text-muted-foreground truncate text-xs">{userEmail}</p>
                         </div>
