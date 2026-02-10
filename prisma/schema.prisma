@@ -176,6 +176,12 @@ model Restaurant {
   ebillingSharedKey  String?  @map("ebilling_shared_key")
   ebillingConfigured Boolean  @default(false) @map("ebilling_configured")
 
+  // 🆕 NOUVEAUX CHAMPS pour la redistribution
+  bankAccountNumber String? @map("bank_account_number") // IBAN ou numéro de compte
+  bankName          String? @map("bank_name")
+  mobileMoneyNumber String? @map("mobile_money_number") // Numéro Airtel/Moov pour recevoir l'argent
+  mobileMoneyOperator String? @map("mobile_money_operator") // airtel ou moov
+
   // Relations
   users          RestaurantUser[]
   tables         Table[]
@@ -369,14 +375,22 @@ model Payment {
   transactionId String?       @map("transaction_id")
   phoneNumber   String?       @map("phone_number")
   errorMessage  String?       @map("error_message")
+
   createdAt     DateTime      @default(now()) @map("created_at")
   updatedAt     DateTime      @updatedAt @map("updated_at")
 
+// 🆕 NOUVEAUX CHAMPS pour le modèle centralisé
+  metadata      Json?         // Stocke la décomposition : restaurantAmount, akomCommission, fees
+  redistributedAt DateTime?   @map("redistributed_at") // Date de reversement au restaurant
+  redistributionMethod String? @map("redistribution_method") // Comment on a reversé : virement, mobile_money, etc.
+  redistributionRef String?    @map("redistribution_ref") // Référence du virement de redistribution
+  
   // Relations
   restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
   order      Order      @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   @@index([orderId])
+  @@index([restaurantId, redistributedAt])
   @@map("payments")
 }
 

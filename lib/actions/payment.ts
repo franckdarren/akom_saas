@@ -1,166 +1,20 @@
-// lib/actions/payment.ts - VERSION CORRIGÉE
+// lib/actions/payment.ts
 'use server'
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
-import { ebilling, EBillingService } from '@/lib/payment/ebilling'
+import { ebilling } from '@/lib/payment/ebilling'
 import { calculateTransactionFees } from '@/lib/payment/fees'
 
 /**
- * PAIEMENT D'ABONNEMENT AKÔM
+ * NOUVEAU MODÈLE : Paiement centralisé
  * 
- * Ce flux gère le paiement des abonnements mensuels/annuels.
- * L'argent va directement sur le compte Akôm (votre compte eBilling).
- */
-
-interface InitiateSubscriptionPaymentParams {
-    restaurantId: string
-    plan: 'starter' | 'business' | 'premium'
-    billingCycle: 1 | 3 | 6 | 12
-    payerPhone: string
-    payerEmail: string
-    payerName: string
-    operator: 'airtel' | 'moov' | 'card'
-}
-
-export async function initiateSubscriptionPayment(
-    params: InitiateSubscriptionPaymentParams
-) {
-    try {
-        const supabase = await createClient()
-        const {
-            data: { user },
-        } = await supabase.auth.getUser()
-
-        if (!user) {
-            return { error: 'Non authentifié' }
-        }
-
-        const hasAccess = await prisma.restaurantUser.findUnique({
-            where: {
-                userId_restaurantId: {
-                    userId: user.id,
-                    restaurantId: params.restaurantId,
-                },
-            },
-        })
-
-        if (!hasAccess) {
-            return { error: 'Accès refusé' }
-        }
-
-        const subscription = await prisma.subscription.findUnique({
-            where: { restaurantId: params.restaurantId },
-            include: { restaurant: true },
-        })
-
-        if (!subscription) {
-            return { error: 'Abonnement introuvable' }
-        }
-
-        const monthlyPrice = subscription.monthlyPrice
-        const subtotal = monthlyPrice * params.billingCycle
-
-        const { fees, totalToPay } = calculateTransactionFees(
-            subtotal,
-            params.operator
-        )
-
-        const payment = await prisma.subscriptionPayment.create({
-            data: {
-                subscriptionId: subscription.id,
-                restaurantId: params.restaurantId,
-                amount: totalToPay,
-                method: params.operator === 'card' ? 'card' : 'mobile_money',
-                status: 'pending',
-                billingCycle: params.billingCycle,
-                expiresAt: new Date(
-                    Date.now() + params.billingCycle * 30 * 24 * 60 * 60 * 1000
-                ),
-            },
-        })
-
-        const billResult = await ebilling.createBill({
-            payerMsisdn: params.payerPhone,
-            payerEmail: params.payerEmail,
-            payerName: params.payerName,
-            amount: totalToPay,
-            externalReference: payment.id,
-            shortDescription: `Abonnement Akôm ${params.plan} - ${params.billingCycle} mois`,
-            expiryPeriod: 60,
-        })
-
-        if (!billResult.success || !billResult.billId) {
-            await prisma.subscriptionPayment.update({
-                where: { id: payment.id },
-                data: {
-                    status: 'failed',
-                    errorMessage: billResult.error,
-                },
-            })
-
-            return {
-                error: billResult.error || 'Erreur lors de la création de la facture',
-            }
-        }
-
-        await prisma.subscriptionPayment.update({
-            where: { id: payment.id },
-            data: { transactionId: billResult.billId },
-        })
-
-        if (params.operator === 'airtel' || params.operator === 'moov') {
-            const operatorName =
-                params.operator === 'airtel' ? 'airtelmoney' : 'moovmoney4'
-
-            const pushResult = await ebilling.sendUssdPush(
-                billResult.billId,
-                params.payerPhone,
-                operatorName
-            )
-
-            if (!pushResult.success) {
-                return {
-                    error: 'Erreur lors de l\'envoi du push USSD. Veuillez réessayer.',
-                }
-            }
-
-            return {
-                success: true,
-                paymentId: payment.id,
-                billId: billResult.billId,
-                message:
-                    'Un code de confirmation a été envoyé sur votre téléphone. Veuillez entrer votre code PIN pour valider le paiement.',
-            }
-        }
-
-        const callbackUrl = `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/subscription/payment-callback`
-        const paymentUrl = ebilling.getCardPaymentUrl(
-            billResult.billId,
-            callbackUrl
-        )
-
-        return {
-            success: true,
-            paymentId: payment.id,
-            billId: billResult.billId,
-            paymentUrl,
-            message: 'Redirection vers le portail de paiement...',
-        }
-    } catch (error) {
-        console.error('Erreur initiation paiement abonnement:', error)
-        return {
-            error: 'Erreur lors de l\'initiation du paiement',
-        }
-    }
-}
-
-/**
- * PAIEMENT DE COMMANDE CLIENT - VERSION CORRIGÉE
+ * Dans ce modèle, TOUS les paiements (abonnements ET commandes) passent
+ * par le compte eBilling d'Akôm. Vous devenez un agrégateur de paiement.
  * 
- * La différence clé : nous créons une NOUVELLE instance d'EBillingService
- * avec les identifiants du restaurant au lieu d'essayer d'hériter.
+ * L'argent suit ce parcours :
+ * Client → Compte Akôm eBilling → Redistribution aux restaurants
  */
 
 interface InitiateOrderPaymentParams {
@@ -181,8 +35,7 @@ export async function initiateOrderPayment(
                     select: {
                         id: true,
                         name: true,
-                        ebillingUsername: true,
-                        ebillingSharedKey: true,
+                        slug: true,
                     },
                 },
                 table: {
@@ -195,57 +48,94 @@ export async function initiateOrderPayment(
             return { error: 'Commande introuvable' }
         }
 
-        if (
-            !order.restaurant.ebillingUsername ||
-            !order.restaurant.ebillingSharedKey
-        ) {
-            return {
-                error: 'Le restaurant n\'a pas encore configuré les paiements en ligne. Veuillez payer en espèces.',
-            }
-        }
-
         const subtotal = order.totalAmount
 
+        /**
+         * Calcul des frais de transaction
+         * 
+         * Ces frais sont TOUJOURS à la charge du client.
+         * Le restaurant reçoit le montant de sa commande (subtotal).
+         * Vous recevez votre commission.
+         * eBilling prélève ses frais sur le total payé par le client.
+         */
         const { fees, totalToPay } = calculateTransactionFees(
             subtotal,
             params.operator
         )
 
+        /**
+         * NOUVEAU : Calculer la commission Akôm
+         * 
+         * Définissez votre taux de commission ici.
+         * Par exemple, 5% du montant de la commande.
+         * Cette commission vient en PLUS du montant de la commande.
+         */
+        const COMMISSION_RATE = 0.05 // 5%
+        const akomCommission = Math.ceil(subtotal * COMMISSION_RATE)
+        
+        /**
+         * Le montant total que le client paiera est :
+         * - Montant de la commande (va au restaurant)
+         * - Commission Akôm (reste chez vous)
+         * - Frais de transaction (va à eBilling)
+         */
+        const totalWithCommission = subtotal + akomCommission + fees
+
+        /**
+         * IMPORTANT : Mettre à jour le montant de la commande
+         * 
+         * On stocke le montant total que le client paie, mais on garde
+         * aussi trace de la répartition dans les champs séparés.
+         */
         await prisma.order.update({
             where: { id: params.orderId },
-            data: { totalAmount: totalToPay },
-        })
-
-        const payment = await prisma.payment.create({
-            data: {
-                restaurantId: order.restaurantId,
-                orderId: order.id,
-                amount: totalToPay,
-                method: params.operator === 'card' ? 'cash' : 'mobile_money',
-                status: 'pending',
-                timing: 'before_meal',
-                phoneNumber: params.payerPhone,
+            data: { 
+                totalAmount: totalWithCommission,
+                // NOUVEAU CHAMP À AJOUTER : notes pour tracer la décomposition
+                notes: `Montant commande: ${subtotal} FCFA | Commission Akôm: ${akomCommission} FCFA | Frais transaction: ${fees} FCFA`
             },
         })
 
         /**
-         * ✅ CORRECTION ICI : Créer une nouvelle instance avec la config du restaurant
+         * Créer l'enregistrement de paiement
          * 
-         * Au lieu de faire de l'héritage bizarre, on instancie simplement une nouvelle
-         * classe EBillingService en lui passant les identifiants du restaurant .
+         * Le champ amount contient le montant TOTAL payé par le client.
+         * Nous ajouterons plus tard la logique pour tracer combien
+         * revient au restaurant vs combien reste chez Akôm.
          */
-        const restaurantEBilling = new EBillingService({
-            username: order.restaurant.ebillingUsername,
-            sharedKey: order.restaurant.ebillingSharedKey,
+        const payment = await prisma.payment.create({
+            data: {
+                restaurantId: order.restaurantId,
+                orderId: order.id,
+                amount: totalWithCommission,
+                method: params.operator === 'card' ? 'cash' : 'mobile_money',
+                status: 'pending',
+                timing: 'before_meal',
+                phoneNumber: params.payerPhone,
+                // NOUVEAU CHAMP À AJOUTER : metadata pour tracer la décomposition
+                metadata: {
+                    restaurantAmount: subtotal,
+                    akomCommission: akomCommission,
+                    transactionFees: fees,
+                    totalPaid: totalWithCommission,
+                },
+            },
         })
 
-        const billResult = await restaurantEBilling.createBill({
+        /**
+         * ✅ SIMPLIFICATION MAJEURE
+         * 
+         * Puisque tout passe par le compte Akôm, on utilise toujours
+         * la même instance ebilling. Plus besoin de créer des instances
+         * différentes selon le restaurant !
+         */
+        const billResult = await ebilling.createBill({
             payerMsisdn: params.payerPhone,
             payerEmail: 'client@restaurant.com',
             payerName: params.payerName || 'Client',
-            amount: totalToPay,
+            amount: totalWithCommission,
             externalReference: payment.id,
-            shortDescription: `Commande ${order.orderNumber} - Table ${order.table?.number || 'N/A'}`,
+            shortDescription: `${order.restaurant.name} - Commande ${order.orderNumber}`,
             expiryPeriod: 30,
         })
 
@@ -272,7 +162,7 @@ export async function initiateOrderPayment(
             const operatorName =
                 params.operator === 'airtel' ? 'airtelmoney' : 'moovmoney4'
 
-            const pushResult = await restaurantEBilling.sendUssdPush(
+            const pushResult = await ebilling.sendUssdPush(
                 billResult.billId,
                 params.payerPhone,
                 operatorName
@@ -288,13 +178,18 @@ export async function initiateOrderPayment(
                 success: true,
                 paymentId: payment.id,
                 billId: billResult.billId,
-                message:
-                    'Code de confirmation envoyé. Validez le paiement sur votre téléphone.',
+                message: 'Code de confirmation envoyé. Validez le paiement sur votre téléphone.',
+                breakdown: {
+                    orderAmount: subtotal,
+                    commission: akomCommission,
+                    fees: fees,
+                    total: totalWithCommission,
+                },
             }
         }
 
-        const callbackUrl = `${process.env.NEXT_PUBLIC_APP_URL}/r/${order.restaurantId}/order/${order.id}/payment-callback`
-        const paymentUrl = restaurantEBilling.getCardPaymentUrl(
+        const callbackUrl = `${process.env.NEXT_PUBLIC_APP_URL}/r/${order.restaurant.slug}/order/${order.id}/payment-callback`
+        const paymentUrl = ebilling.getCardPaymentUrl(
             billResult.billId,
             callbackUrl
         )
@@ -304,6 +199,12 @@ export async function initiateOrderPayment(
             paymentId: payment.id,
             billId: billResult.billId,
             paymentUrl,
+            breakdown: {
+                orderAmount: subtotal,
+                commission: akomCommission,
+                fees: fees,
+                total: totalWithCommission,
+            },
         }
     } catch (error) {
         console.error('Erreur initiation paiement commande:', error)
