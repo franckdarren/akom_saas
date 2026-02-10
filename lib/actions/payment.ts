@@ -232,7 +232,7 @@ export async function initiateOrderPayment(
          * ✅ CORRECTION ICI : Créer une nouvelle instance avec la config du restaurant
          * 
          * Au lieu de faire de l'héritage bizarre, on instancie simplement une nouvelle
-         * classe EBillingService en lui passant les identifiants du restaurant.
+         * classe EBillingService en lui passant les identifiants du restaurant .
          */
         const restaurantEBilling = new EBillingService({
             username: order.restaurant.ebillingUsername,
