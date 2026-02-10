@@ -615,6 +615,8 @@ model SubscriptionPayment {
   transactionId   String?                     @map("transaction_id") // ID transaction Mobile Money
   phoneNumber     String?                     @map("phone_number")
   provider        String?                     // "airtel" ou "moov"
+
+  errorMessage String? @map("error_message")
   
   // Dates
   paidAt          DateTime?                   @map("paid_at")
