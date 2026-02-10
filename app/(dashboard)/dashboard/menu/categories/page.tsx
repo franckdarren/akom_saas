@@ -31,7 +31,6 @@ export default async function CategoriesPage() {
 
     const userRole = await getUserRole()
 
-
     // Récupérer le restaurant de l'utilisateur
     const restaurantUser = await prisma.restaurantUser.findFirst({
         where: { userId: user.id },
@@ -41,13 +40,17 @@ export default async function CategoriesPage() {
         redirect('/onboarding')
     }
 
-    // Récupérer toutes les catégories
+    // ✅ MODIFICATION : Récupérer les catégories avec le compteur de familles
+    // Cela permet d'afficher "X familles" dans l'UI sans requête supplémentaire
     const categories = await prisma.category.findMany({
         where: { restaurantId: restaurantUser.restaurantId },
         orderBy: { position: 'asc' },
         include: {
             _count: {
-                select: { products: true },
+                select: { 
+                    products: true,
+                    families: true, // ← AJOUT : compteur de familles
+                },
             },
         },
     })
@@ -88,9 +91,10 @@ export default async function CategoriesPage() {
                     </CreateCategoryDialog>
                 </div>
 
+                {/* ✅ PAS DE CHANGEMENT : Le composant CategoriesList reste identique
+                    On lui passe juste les données avec le nouveau compteur families */}
                 <CategoriesList categories={categories} />
             </div>
         </>
     )
 }
-

@@ -180,6 +180,7 @@ model Restaurant {
   users          RestaurantUser[]
   tables         Table[]
   categories     Category[]
+  families       Family[]  
   products       Product[]
   stocks         Stock[]
   orders         Order[]
@@ -243,14 +244,40 @@ model Category {
   // Relations
   restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
   products   Product[]
+  families   Family[] 
 
   @@map("categories")
+}
+
+model Family {
+  id           String   @id @default(uuid()) @db.Uuid
+  restaurantId String   @map("restaurant_id") @db.Uuid
+  categoryId   String   @map("category_id") @db.Uuid
+  name         String
+  description  String?
+  position     Int      @default(0)
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  category   Category   @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  products   Product[]
+
+  // Index pour la performance et l'unicité
+  @@unique([restaurantId, categoryId, name])
+  @@index([restaurantId])
+  @@index([categoryId])
+  @@index([restaurantId, categoryId, position])
+  @@map("families")
 }
 
 model Product {
   id           String   @id @default(uuid()) @db.Uuid
   restaurantId String   @map("restaurant_id") @db.Uuid
   categoryId   String?  @map("category_id") @db.Uuid
+  familyId     String?  @map("family_id") @db.Uuid  
   name         String
   description  String?
   price        Int // Prix en FCFA (entier uniquement)
@@ -262,11 +289,13 @@ model Product {
   // Relations
   restaurant     Restaurant      @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
   category       Category?       @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  family         Family?         @relation(fields: [familyId], references: [id], onDelete: SetNull) 
   stock          Stock?
   orderItems     OrderItem[]
   stockMovements StockMovement[]
 
   @@index([restaurantId, categoryId])
+  @@index([restaurantId, familyId]) 
   @@index([restaurantId, isAvailable])
   @@map("products")
 }

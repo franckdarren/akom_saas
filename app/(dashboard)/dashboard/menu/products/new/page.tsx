@@ -15,7 +15,6 @@ import { SidebarTrigger } from '@/components/ui/sidebar'
 import { ProductForm } from '../product-form'
 import { getUserRole } from "@/lib/actions/auth"
 
-
 export default async function NewProductPage() {
     const supabase = await createClient()
 
@@ -37,14 +36,36 @@ export default async function NewProductPage() {
         redirect('/onboarding')
     }
 
-    // Récupérer les catégories pour le select
-    const categories = await prisma.category.findMany({
-        where: {
-            restaurantId: restaurantUser.restaurantId,
-            isActive: true,
-        },
-        orderBy: { position: 'asc' },
-    })
+    // ✅ OPTIMISATION : On charge les catégories ET les familles en parallèle
+    // avec Promise.all pour améliorer les performances
+    const [categories, families] = await Promise.all([
+        // Récupérer toutes les catégories actives
+        prisma.category.findMany({
+            where: {
+                restaurantId: restaurantUser.restaurantId,
+                isActive: true,
+            },
+            orderBy: { position: 'asc' },
+        }),
+
+        // ✅ NOUVEAU : Récupérer toutes les familles actives du restaurant
+        // On les charge dès le début pour que le ProductForm puisse faire
+        // le filtrage côté client selon la catégorie sélectionnée
+        prisma.family.findMany({
+            where: {
+                restaurantId: restaurantUser.restaurantId,
+                isActive: true,
+            },
+            orderBy: { position: 'asc' },
+            select: {
+                id: true,
+                name: true,
+                categoryId: true, // ← CRUCIAL : permet le filtrage dans ProductForm
+                position: true,
+                isActive: true,
+            },
+        }),
+    ])
 
     return (
         <>
@@ -78,7 +99,20 @@ export default async function NewProductPage() {
                     </p>
                 </div>
 
-                <ProductForm categories={categories} />
+                {/* ✅ MODIFICATION FINALE : On passe les deux tableaux au ProductForm
+                    - categories : pour le premier select (catégorie)
+                    - families : pour le second select (famille, filtré dynamiquement)
+                    
+                    Le ProductForm va automatiquement :
+                    1. Afficher le select catégorie
+                    2. Quand une catégorie est sélectionnée, filtrer les familles
+                       pour ne montrer que celles qui ont categoryId = catégorie sélectionnée
+                    3. Permettre de créer le produit avec ou sans famille
+                */}
+                <ProductForm 
+                    categories={categories} 
+                    families={families}
+                />
             </div>
         </>
     )

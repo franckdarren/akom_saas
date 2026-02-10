@@ -2,7 +2,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import {
     Card,
     CardContent,
@@ -12,6 +12,12 @@ import {
 } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import {
     AlertDialog,
     AlertDialogAction,
@@ -23,109 +29,98 @@ import {
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import {
-    Edit,
-    Trash2,
-    Power,
     ArrowUp,
     ArrowDown,
-    Loader2
+    MoreVertical,
+    FolderTree,
+    Package,
 } from 'lucide-react'
 import {
     toggleCategoryStatus,
     deleteCategory,
     moveCategoryUp,
-    moveCategoryDown
+    moveCategoryDown,
 } from '@/lib/actions/category'
 import { EditCategoryDialog } from './edit-category-dialog'
-import { toast } from "sonner"
+import { toast } from 'sonner'
+
+// ============================================================
+// TYPES
+// ============================================================
 
 type Category = {
     id: string
     name: string
     description: string | null
-    position: number
     isActive: boolean
+    position: number
     _count: {
         products: number
+        families: number // ← AJOUT : compteur de familles
     }
 }
 
-export function CategoriesList({ categories }: { categories: Category[] }) {
-    const router = useRouter()
-    const [loading, setLoading] = useState<string | null>(null)
-    const [deleteTarget, setDeleteTarget] = useState<{
-        id: string
-        name: string
-    } | null>(null)
+interface CategoriesListProps {
+    categories: Category[]
+}
 
-    // Fonctions de réorganisation
-    async function handleMoveUp(categoryId: string, index: number) {
-        if (index === 0) return // Déjà en première position
+// ============================================================
+// COMPOSANT PRINCIPAL
+// ============================================================
 
-        setLoading(`up-${categoryId}`)
-        const result = await moveCategoryUp(categoryId)
+export function CategoriesList({ categories }: CategoriesListProps) {
+    const [isDeleting, setIsDeleting] = useState<string | null>(null)
+    const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null)
 
-        if (result?.error) {
-            toast.error(result.error)
-        } else {
-            toast.success('Catégorie déplacée vers le haut')
-            router.refresh()
-        }
-        setLoading(null)
-    }
-
-    async function handleMoveDown(categoryId: string, index: number) {
-        if (index === categories.length - 1) return // Déjà en dernière position
-
-        setLoading(`down-${categoryId}`)
-        const result = await moveCategoryDown(categoryId)
-
-        if (result?.error) {
-            toast.error(result.error)
-        } else {
-            toast.success('Catégorie déplacée vers le bas')
-            router.refresh()
-        }
-        setLoading(null)
-    }
+    // ============================================================
+    // HANDLERS
+    // ============================================================
 
     async function handleToggleStatus(id: string) {
-        setLoading(`toggle-${id}`)
         const result = await toggleCategoryStatus(id)
-
-        if (result?.error) {
+        if (result.error) {
             toast.error(result.error)
         } else {
-            toast.success("Le statut a été mis à jour.")
-            router.refresh()
+            toast.success('Statut mis à jour')
         }
-        setLoading(null)
     }
 
-    function handleDelete(id: string, name: string) {
-        setDeleteTarget({ id, name })
-    }
+    async function handleDelete(category: Category) {
+        setIsDeleting(category.id)
+        const result = await deleteCategory(category.id)
+        setIsDeleting(null)
+        setCategoryToDelete(null)
 
-    async function confirmDelete() {
-        if (!deleteTarget) return
-
-        setLoading(`delete-${deleteTarget.id}`)
-        const result = await deleteCategory(deleteTarget.id)
-        setLoading(null)
-        setDeleteTarget(null)
-
-        if (result?.error) {
+        if (result.error) {
             toast.error(result.error)
         } else {
-            toast.success("La catégorie a été supprimée avec succès.")
-            router.refresh()
+            toast.success('Catégorie supprimée')
         }
     }
+
+    async function handleMoveUp(id: string) {
+        const result = await moveCategoryUp(id)
+        if (result.error) {
+            toast.error(result.error)
+        }
+    }
+
+    async function handleMoveDown(id: string) {
+        const result = await moveCategoryDown(id)
+        if (result.error) {
+            toast.error(result.error)
+        }
+    }
+
+    // ============================================================
+    // RENDU VIDE
+    // ============================================================
 
     if (categories.length === 0) {
         return (
             <Card>
-                <CardContent className="flex flex-col items-center justify-center py-12">
+                <CardContent className="flex flex-col items-center justify-center py-10">
+                    <Package className="h-12 w-12 text-muted-foreground mb-4" />
                     <p className="text-muted-foreground text-center">
                         Aucune catégorie pour le moment.
                         <br />
@@ -136,158 +131,158 @@ export function CategoriesList({ categories }: { categories: Category[] }) {
         )
     }
 
+    // ============================================================
+    // RENDU PRINCIPAL
+    // ============================================================
+
     return (
         <>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 items-center">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {categories.map((category, index) => (
-                    <Card
-                        key={category.id}
-                        className="hover:shadow-md transition-shadow flex flex-col overflow-hidden h-50">
-                        <CardHeader className="pb-2">
-                            <div className="flex items-center justify-between gap-2 overflow-hidden">
-                                {/* Numéro de position */}
-                                <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 text-primary font-bold text-lg shrink-0">
-                                    {category.position}
-                                </div>
-
-                                {/* Nom */}
+                    <Card key={category.id} className={!category.isActive ? 'opacity-60' : ''}>
+                        <CardHeader>
+                            <div className="flex items-start justify-between">
                                 <div className="flex-1 min-w-0">
-                                    <CardTitle className="truncate text-base">
+                                    <CardTitle className="flex items-center gap-2">
                                         {category.name}
+                                        {!category.isActive && (
+                                            <Badge variant="secondary" className="text-xs">
+                                                Inactif
+                                            </Badge>
+                                        )}
                                     </CardTitle>
+                                    {category.description && (
+                                        <CardDescription className="mt-1.5">
+                                            {category.description}
+                                        </CardDescription>
+                                    )}
                                 </div>
 
-                                {/* Statut */}
-                                <Badge
-                                    variant={category.isActive ? 'default' : 'secondary'}
-                                    className="shrink-0"
-                                >
-                                    {category.isActive ? 'Active' : 'Inactive'}
-                                </Badge>
-                            </div>
+                                {/* Menu actions */}
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                                            <MoreVertical className="h-4 w-4" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <EditCategoryDialog category={category}>
+                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                                Modifier
+                                            </DropdownMenuItem>
+                                        </EditCategoryDialog>
 
-                            {/* Description */}
-                            {category.description && (
-                                <CardDescription
-                                    className="mt-1 line-clamp-2 overflow-hidden text-sm text-muted-foreground">
-                                    {category.description}
-                                </CardDescription>
-                            )}
+                                        <DropdownMenuItem onClick={() => handleToggleStatus(category.id)}>
+                                            {category.isActive ? 'Désactiver' : 'Activer'}
+                                        </DropdownMenuItem>
+
+                                        <DropdownMenuItem
+                                            className="text-destructive"
+                                            onClick={() => setCategoryToDelete(category)}
+                                        >
+                                            Supprimer
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </div>
                         </CardHeader>
 
-                        <CardContent className="mt-auto space-y-2">
-                            {/* Nombre de produits */}
-                            <p className="text-xs text-muted-foreground">
-                                {category._count.products} produit(s)
-                            </p>
-
-                            {/* Actions */}
-                            <div className="flex gap-2 flex-wrap">
-                                {/* Réorganisation */}
-                                <div className="flex gap-1 items-center shrink-0">
-                                    <Button
-                                        variant="outline"
-                                        size="icon-sm"
-                                        onClick={() => handleMoveUp(category.id, index)}
-                                        disabled={index === 0 || loading !== null}
-                                        title="Déplacer vers le haut"
-                                    >
-                                        {loading === `up-${category.id}` ? (
-                                            <Loader2 className="h-4 w-4 animate-spin" />
-                                        ) : (
-                                            <ArrowUp className="h-4 w-4" />
-                                        )}
-                                    </Button>
-
-                                    <Button
-                                        variant="outline"
-                                        size="icon-sm"
-                                        onClick={() => handleMoveDown(category.id, index)}
-                                        disabled={index === categories.length - 1 || loading !== null}
-                                        title="Déplacer vers le bas"
-                                    >
-                                        {loading === `down-${category.id}` ? (
-                                            <Loader2 className="h-4 w-4 animate-spin" />
-                                        ) : (
-                                            <ArrowDown className="h-4 w-4" />
-                                        )}
-                                    </Button>
+                        <CardContent>
+                            {/* Stats produits et familles */}
+                            <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
+                                <div className="flex items-center gap-1">
+                                    <Package className="h-4 w-4" />
+                                    <span>{category._count.products} produit{category._count.products !== 1 ? 's' : ''}</span>
                                 </div>
+                                <div className="flex items-center gap-1">
+                                    <FolderTree className="h-4 w-4" />
+                                    <span>{category._count.families} famille{category._count.families !== 1 ? 's' : ''}</span>
+                                </div>
+                            </div>
 
-                                {/* Autres actions */}
-                                <div className="flex gap-2 ml-auto flex-wrap justify-end">
-                                    <EditCategoryDialog category={category}>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            disabled={loading !== null}
-                                        >
-                                            <Edit className="h-4 w-4" />
-                                        </Button>
-                                    </EditCategoryDialog>
-
+                            {/* Actions principales */}
+                            <div className="flex flex-col gap-2">
+                                {/* ✅ NOUVEAU : Bouton pour gérer les familles */}
+                                <Link href={`/dashboard/menu/categories/${category.id}/families`}>
                                     <Button
                                         variant="outline"
                                         size="sm"
-                                        onClick={() => handleToggleStatus(category.id)}
-                                        disabled={loading !== null}
-                                        title={category.isActive ? 'Désactiver' : 'Activer'}
+                                        className="w-full justify-start"
                                     >
-                                        {loading === `toggle-${category.id}` ? (
-                                            <Loader2 className="h-4 w-4 animate-spin" />
-                                        ) : (
-                                            <Power className="h-4 w-4" />
+                                        <FolderTree className="mr-2 h-4 w-4" />
+                                        Gérer les familles
+                                        {category._count.families > 0 && (
+                                            <Badge variant="secondary" className="ml-auto">
+                                                {category._count.families}
+                                            </Badge>
                                         )}
                                     </Button>
+                                </Link>
 
+                                {/* Boutons de réorganisation */}
+                                <div className="flex gap-2">
                                     <Button
-                                        variant="destructive"
+                                        variant="outline"
                                         size="sm"
-                                        onClick={() => handleDelete(category.id, category.name)}
-                                        disabled={loading !== null || category._count.products > 0}
-                                        title={
-                                            category._count.products > 0
-                                                ? 'Impossible de supprimer : des produits sont liés'
-                                                : 'Supprimer'
-                                        }
+                                        onClick={() => handleMoveUp(category.id)}
+                                        disabled={index === 0}
+                                        className="flex-1"
                                     >
-                                        {loading === `delete-${category.id}` ? (
-                                            <Loader2 className="h-4 w-4 animate-spin" />
-                                        ) : (
-                                            <Trash2 className="h-4 w-4" />
-                                        )}
+                                        <ArrowUp className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handleMoveDown(category.id)}
+                                        disabled={index === categories.length - 1}
+                                        className="flex-1"
+                                    >
+                                        <ArrowDown className="h-4 w-4" />
                                     </Button>
                                 </div>
                             </div>
                         </CardContent>
                     </Card>
-
                 ))}
             </div>
 
-            {/* AlertDialog suppression */}
+            {/* Dialog de confirmation de suppression */}
             <AlertDialog
-                open={!!deleteTarget}
-                onOpenChange={() => setDeleteTarget(null)}
+                open={!!categoryToDelete}
+                onOpenChange={(open) => !open && setCategoryToDelete(null)}
             >
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>
-                            Supprimer la catégorie {deleteTarget?.name} ?
-                        </AlertDialogTitle>
+                        <AlertDialogTitle>Supprimer cette catégorie ?</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Cette action est irréversible. La catégorie sera définitivement supprimée.
+                            {categoryToDelete?._count.products === 0 ? (
+                                <>
+                                    Êtes-vous sûr de vouloir supprimer{' '}
+                                    <strong>{categoryToDelete?.name}</strong> ?
+                                    Cette action est irréversible.
+                                </>
+                            ) : (
+                                <>
+                                    Impossible de supprimer <strong>{categoryToDelete?.name}</strong>.
+                                    <br />
+                                    Cette catégorie contient{' '}
+                                    <strong>{categoryToDelete?._count.products} produit(s)</strong>.
+                                    Veuillez d'abord supprimer ou déplacer ces produits.
+                                </>
+                            )}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
-
                     <AlertDialogFooter>
                         <AlertDialogCancel>Annuler</AlertDialogCancel>
-                        <AlertDialogAction
-                            onClick={confirmDelete}
-                            className="bg-red-600 hover:bg-red-700"
-                        >
-                            Supprimer
-                        </AlertDialogAction>
+                        {categoryToDelete?._count.products === 0 && (
+                            <AlertDialogAction
+                                onClick={() => categoryToDelete && handleDelete(categoryToDelete)}
+                                disabled={!!isDeleting}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                                {isDeleting ? 'Suppression...' : 'Supprimer'}
+                            </AlertDialogAction>
+                        )}
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
