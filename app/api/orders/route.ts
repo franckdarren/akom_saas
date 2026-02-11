@@ -26,46 +26,8 @@ interface CreateOrderRequest {
 type ProductWithStock = {
     id: string
     name: string
-    price: number
+    price: number | null
     stock: { quantity: number } | null
-}
-
-// ============================================================
-// GET - Récupérer toutes les commandes d'un restaurant
-// ============================================================
-
-export async function GET(request: NextRequest) {
-    try {
-        const { searchParams } = request.nextUrl
-        const restaurantId = searchParams.get('restaurantId')
-
-        if (!restaurantId) {
-            return NextResponse.json(
-                { error: 'restaurantId manquant' },
-                { status: 400 }
-            )
-        }
-
-        // On récupère toutes les commandes pour le restaurant
-        const orders = await prisma.order.findMany({
-            where: { restaurantId },
-            include: {
-                orderItems: {
-                    include: { product: true },
-                },
-                table: true,
-            },
-            orderBy: { createdAt: 'desc' },
-        })
-
-        return NextResponse.json({ orders })
-    } catch (error) {
-        console.error('💥 [API] Erreur récupération commandes:', error)
-        return NextResponse.json(
-            { error: 'Erreur lors de la récupération des commandes' },
-            { status: 500 }
-        )
-    }
 }
 
 // ============================================================
@@ -76,27 +38,18 @@ export async function POST(request: NextRequest) {
     try {
         const body: CreateOrderRequest = await request.json()
 
-        console.log('============================================')
-        console.log('🔍 [API] POST /api/orders')
-        console.log('📝 Restaurant:', body.restaurantId)
-        console.log('📝 Table:', body.tableId)
-        console.log('📝 Nombre d’items:', body.items?.length)
-        console.log('============================================')
-
         // Validation basique des données
         if (!body.restaurantId || !body.tableId || !body.items || body.items.length === 0) {
-            console.log('❌ [API] Données manquantes')
             return NextResponse.json({ error: 'Données manquantes' }, { status: 400 })
         }
 
         // Vérifier que le restaurant existe et est actif
         const restaurant = await prisma.restaurant.findUnique({
-            where: { id: body.restaurantId, isActive: true },
+            where: { id: body.restaurantId },
             select: { id: true, name: true, slug: true },
         })
 
         if (!restaurant) {
-            console.log('❌ [API] Restaurant non trouvé ou inactif')
             return NextResponse.json({ error: 'Restaurant non trouvé ou inactif' }, { status: 404 })
         }
 
@@ -107,33 +60,43 @@ export async function POST(request: NextRequest) {
         })
 
         if (!table) {
-            console.log('❌ [API] Table non trouvée ou inactive')
             return NextResponse.json({ error: 'Table non trouvée ou inactive' }, { status: 404 })
         }
 
         // Récupérer tous les produits commandés
         const productIds: string[] = body.items.map((item) => item.productId)
-        const products: ProductWithStock[] = await prisma.product.findMany({
-            where: { id: { in: productIds }, restaurantId: body.restaurantId, isAvailable: true },
+        const productsRaw = await prisma.product.findMany({
+            where: { 
+                id: { in: productIds },
+                restaurantId: body.restaurantId,
+                isAvailable: true,
+                NOT: { price: null } // Exclure produits sans prix
+            },
             include: { stock: true },
         })
 
+        // Caster pour TS
+        const products: ProductWithStock[] = productsRaw.map(p => ({
+            id: p.id,
+            name: p.name,
+            price: p.price!, // "!" car on a filtré les null
+            stock: p.stock,
+        }))
+
         // Vérifier que tous les produits existent
         if (products.length !== body.items.length) {
-            console.log('❌ [API] Certains produits introuvables ou indisponibles')
             return NextResponse.json(
-                { error: 'Certains produits sont introuvables ou indisponibles' },
+                { error: 'Certains produits sont introuvables, indisponibles ou sans prix' },
                 { status: 400 }
             )
         }
 
         // Vérifier le stock pour chaque produit
         for (const item of body.items) {
-            const product = products.find((p: ProductWithStock) => p.id === item.productId)
+            const product = products.find(p => p.id === item.productId)
             if (!product) continue
 
             if (product.stock && product.stock.quantity < item.quantity) {
-                console.log('❌ [API] Stock insuffisant pour:', product.name)
                 return NextResponse.json(
                     { error: `Stock insuffisant pour ${product.name}` },
                     { status: 400 }
@@ -141,13 +104,11 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        // Calcul du montant total en utilisant les prix de la base
+        // Calcul du montant total
         const totalAmount = body.items.reduce((sum: number, item) => {
-            const product = products.find((p: ProductWithStock) => p.id === item.productId)!
-            return sum + product.price * item.quantity
+            const product = products.find(p => p.id === item.productId)!
+            return sum + (product.price ?? 0) * item.quantity
         }, 0)
-
-        console.log('💰 Montant total calculé:', totalAmount)
 
         // Générer le numéro de commande lisible
         const lastOrder = await prisma.order.findFirst({
@@ -162,8 +123,6 @@ export async function POST(request: NextRequest) {
             orderNumber = `#${String(lastNumber + 1).padStart(3, '0')}`
         }
 
-        console.log('🔢 Numéro de commande généré:', orderNumber)
-
         // Créer la commande avec tous les items
         const order = await prisma.order.create({
             data: {
@@ -175,13 +134,13 @@ export async function POST(request: NextRequest) {
                 status: 'pending',
                 totalAmount,
                 orderItems: {
-                    create: body.items.map((item) => {
-                        const product = products.find((p: ProductWithStock) => p.id === item.productId)!
+                    create: body.items.map(item => {
+                        const product = products.find(p => p.id === item.productId)!
                         return {
                             productId: item.productId,
                             productName: product.name,
                             quantity: item.quantity,
-                            unitPrice: product.price,
+                            unitPrice: product.price!, // sûr car on a filtré les null
                         }
                     }),
                 },
@@ -189,11 +148,8 @@ export async function POST(request: NextRequest) {
             include: { orderItems: true },
         })
 
-        console.log('✅ Commande créée:', order.id, order.orderNumber)
-
         // Construire l'URL de tracking
         const trackingUrl = `/r/${restaurant.slug}/t/${table.number}/orders/${order.id}`
-        console.log('🔗 URL de tracking:', trackingUrl)
 
         // Retourner toutes les infos au client
         return NextResponse.json({
