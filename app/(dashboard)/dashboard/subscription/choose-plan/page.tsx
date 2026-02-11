@@ -36,7 +36,7 @@ export default async function ChoosePlanPage() {
     const currentPlan = subscription?.plan
 
     return (
-        <div className="min-h-screen bg-gray-50 py-12 px-4">
+        <div className="min-h-screen bg-muted py-12 px-4">
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="text-center mb-12">
@@ -47,7 +47,7 @@ export default async function ChoosePlanPage() {
                         </Link>
                     </Button>
                     <h1 className="text-4xl font-bold mb-3">Choisissez votre plan</h1>
-                    <p className="text-xl text-gray-600">
+                    <p className="text-xl text-muted-foreground">
                         Sélectionnez l'offre qui correspond le mieux à vos besoins
                     </p>
                 </div>
@@ -76,7 +76,7 @@ export default async function ChoosePlanPage() {
                 </div>
 
                 {/* FAQ rapide */}
-                <div className="bg-white rounded-lg p-8 shadow-sm">
+                <div className="bg-muted rounded-lg p-8 shadow-sm">
                     <h2 className="text-2xl font-bold mb-6 text-center">
                         Questions fréquentes
                     </h2>
@@ -85,7 +85,7 @@ export default async function ChoosePlanPage() {
                             <h3 className="font-semibold mb-2">
                                 Puis-je changer de plan plus tard ?
                             </h3>
-                            <p className="text-gray-600 text-sm">
+                            <p className="text-muted-foreground text-sm">
                                 Oui, vous pouvez changer de plan à tout moment. Le changement
                                 prendra effet à la fin de votre période en cours.
                             </p>
@@ -94,7 +94,7 @@ export default async function ChoosePlanPage() {
                             <h3 className="font-semibold mb-2">
                                 Que se passe-t-il si j'annule ?
                             </h3>
-                            <p className="text-gray-600 text-sm">
+                            <p className="text-muted-foreground text-sm">
                                 Vos données restent sauvegardées pendant 90 jours. Vous pouvez
                                 réactiver votre compte à tout moment durant cette période.
                             </p>
@@ -103,7 +103,7 @@ export default async function ChoosePlanPage() {
                             <h3 className="font-semibold mb-2">
                                 Les prix incluent-ils la TVA ?
                             </h3>
-                            <p className="text-gray-600 text-sm">
+                            <p className="text-muted-foreground text-sm">
                                 Oui, tous nos prix sont TTC (toutes taxes comprises).
                             </p>
                         </div>
@@ -111,7 +111,7 @@ export default async function ChoosePlanPage() {
                             <h3 className="font-semibold mb-2">
                                 Puis-je bénéficier d'une réduction ?
                             </h3>
-                            <p className="text-gray-600 text-sm">
+                            <p className="text-muted-foreground text-sm">
                                 Oui ! En payant pour 3, 6 ou 12 mois d'avance, vous bénéficiez
                                 de réductions allant jusqu'à 20%.
                             </p>

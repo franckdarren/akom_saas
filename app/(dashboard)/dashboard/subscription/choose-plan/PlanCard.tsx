@@ -63,7 +63,7 @@ export function PlanCard({
     return (
         <Card
             className={`relative ${recommended ? 'border-blue-500 border-2 shadow-lg' : ''
-                } ${isCurrent ? 'bg-gray-50' : ''}`}
+                } ${isCurrent ? 'bg-muted' : ''}`}
         >
             {recommended && (
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2">
@@ -84,7 +84,7 @@ export function PlanCard({
                     <div className="text-4xl font-bold">
                         {formatPrice(price)}
                     </div>
-                    <p className="text-sm text-gray-600 mt-1">
+                    <p className="text-sm text-muted-foreground mt-1">
                         pour {billingCycle} mois
                     </p>
                     {savings > 0 && (
