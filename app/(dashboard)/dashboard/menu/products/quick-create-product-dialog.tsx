@@ -1,4 +1,3 @@
-// app/(dashboard)/dashboard/menu/products/quick-create-product-dialog.tsx
 'use client'
 
 import { useState } from 'react'
@@ -23,13 +22,14 @@ import {
 } from '@/components/ui/select'
 import { Loader2 } from 'lucide-react'
 import { createProduct } from '@/lib/actions/product'
-import { toast } from "sonner"
-
+import { toast } from 'sonner'
 
 type Category = {
     id: string
     name: string
 }
+
+type ProductType = 'good' | 'service'
 
 export function QuickCreateProductDialog({
     categories,
@@ -43,14 +43,17 @@ export function QuickCreateProductDialog({
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [selectedCategory, setSelectedCategory] = useState<string>('')
+    const [selectedType, setSelectedType] = useState<ProductType>('good')
+    const [includePrice, setIncludePrice] = useState(true)
 
-    // Réinitialiser l'état quand le dialog se ferme
     function handleOpenChange(newOpen: boolean) {
         setOpen(newOpen)
         if (!newOpen) {
             setIsLoading(false)
             setError(null)
             setSelectedCategory('')
+            setSelectedType('good')
+            setIncludePrice(true)
         }
     }
 
@@ -60,10 +63,15 @@ export function QuickCreateProductDialog({
         setError(null)
 
         const formData = new FormData(e.currentTarget)
+        const name = formData.get('name') as string
+        const price = parseInt(formData.get('price') as string)
+
         const data = {
-            name: formData.get('name') as string,
-            price: parseInt(formData.get('price') as string),
+            name,
+            price,
             categoryId: selectedCategory || undefined,
+            productType: selectedType,
+            includePrice,
         }
 
         const result = await createProduct(data)
@@ -75,12 +83,12 @@ export function QuickCreateProductDialog({
         } else {
             setOpen(false)
             router.refresh()
-                // Reset form
-                ; (e.target as HTMLFormElement).reset()
+            ;(e.target as HTMLFormElement).reset()
             setSelectedCategory('')
+            setSelectedType('good')
+            setIncludePrice(true)
             setIsLoading(false)
             toast.success("Le produit a été créé avec succès.")
-
         }
     }
 
@@ -97,19 +105,15 @@ export function QuickCreateProductDialog({
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
+                    {/* Nom du produit */}
                     <div className="space-y-2">
                         <Label htmlFor="name">
                             Nom du produit <span className="text-red-500">*</span>
                         </Label>
-                        <Input
-                            id="name"
-                            name="name"
-                            placeholder="Ex: Poulet Curry"
-                            required
-                            disabled={isLoading}
-                        />
+                        <Input id="name" name="name" placeholder="Ex: Poulet Curry" required disabled={isLoading} />
                     </div>
 
+                    {/* Prix */}
                     <div className="space-y-2">
                         <Label htmlFor="price">
                             Prix (FCFA) <span className="text-red-500">*</span>
@@ -122,17 +126,44 @@ export function QuickCreateProductDialog({
                             step="25"
                             placeholder="3500"
                             required
-                            disabled={isLoading}
+                            disabled={isLoading || !includePrice}
                         />
                     </div>
 
+                    {/* Inclure le prix */}
+                    <div className="space-y-2 flex items-center gap-2">
+                        <input
+                            type="checkbox"
+                            id="includePrice"
+                            checked={includePrice}
+                            disabled={isLoading}
+                            onChange={(e) => setIncludePrice(e.target.checked)}
+                        />
+                        <Label htmlFor="includePrice">Inclure le prix</Label>
+                    </div>
+
+                    {/* Type de produit */}
                     <div className="space-y-2">
-                        <Label htmlFor="category">Catégorie</Label>
+                        <Label htmlFor="productType">Type de produit</Label>
                         <Select
-                            value={selectedCategory}
-                            onValueChange={setSelectedCategory}
+                            value={selectedType}
+                            onValueChange={(val) => setSelectedType(val as ProductType)}
                             disabled={isLoading}
                         >
+                            <SelectTrigger>
+                                <SelectValue placeholder="Sélectionner le type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="good">Bien (stockable)</SelectItem>
+                                <SelectItem value="service">Service (sans stock)</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    {/* Catégorie */}
+                    <div className="space-y-2">
+                        <Label htmlFor="category">Catégorie</Label>
+                        <Select value={selectedCategory} onValueChange={setSelectedCategory} disabled={isLoading}>
                             <SelectTrigger>
                                 <SelectValue placeholder="Sélectionner une catégorie" />
                             </SelectTrigger>
@@ -147,19 +178,16 @@ export function QuickCreateProductDialog({
                         </Select>
                     </div>
 
+                    {/* Erreur */}
                     {error && (
                         <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-lg text-sm">
                             {error}
                         </div>
                     )}
 
+                    {/* Boutons */}
                     <div className="flex justify-end gap-3">
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => setOpen(false)}
-                            disabled={isLoading}
-                        >
+                        <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={isLoading}>
                             Annuler
                         </Button>
                         <Button type="submit" disabled={isLoading}>
