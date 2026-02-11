@@ -84,7 +84,7 @@ export async function createRestaurant(data: CreateRestaurantData) {
     })
 
     revalidatePath('/dashboard')
-    redirect('/dashboard')
+    redirect('/onboarding/verification')
 }
 
 

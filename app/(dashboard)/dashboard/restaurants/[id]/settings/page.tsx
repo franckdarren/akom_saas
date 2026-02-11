@@ -1,10 +1,9 @@
 // app/dashboard/restaurants/[id]/settings/page.tsx
-import { notFound, redirect } from 'next/navigation'
-import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { getRestaurantDetails } from '@/lib/actions/restaurant'
+import { redirect, notFound } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
+import prisma from '@/lib/prisma'
 import { RestaurantSettingsForm } from './restaurant-settings-form'
+import { VerificationDocumentsForm } from '@/components/restaurant/verification-documents-form'
 import {
     Breadcrumb,
     BreadcrumbItem,
@@ -16,9 +15,9 @@ import {
 import { Separator } from '@/components/ui/separator'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 import { Plus } from 'lucide-react'
-import { getUserRole } from "@/lib/actions/auth"
-import { createClient } from '@/lib/supabase/server'
-
+import { CircuitSheetForm } from '@/components/restaurant/circuit-sheet-form'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { AlertTriangle } from 'lucide-react'
 
 export default async function RestaurantSettingsPage({
     params,
@@ -26,35 +25,48 @@ export default async function RestaurantSettingsPage({
     params: Promise<{ id: string }>
 }) {
     const { id } = await params
-    
     const supabase = await createClient()
-
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
-
-    const userRole = await getUserRole()
+    const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
         redirect('/login')
     }
 
-    // Récupérer les détails du restaurant
-    const result = await getRestaurantDetails(id)
+    // Récupérer le restaurant avec toutes les informations de vérification
+    const restaurant = await prisma.restaurant.findUnique({
+        where: { id },
+        include: {
+            verificationDocuments: true,
+            circuitSheet: true,
+            subscription: {
+                select: { plan: true },
+            },
+        },
+    })
 
-    if (result.error) {
-        if (result.error === 'Non authentifié') {
-            redirect('/login')
-        }
+    if (!restaurant) {
         notFound()
     }
 
-    // Vérification explicite pour TypeScript
-    if (!result.success || !result.restaurant) {
-        notFound()
+    // Vérifier que l'utilisateur a accès à ce restaurant
+    const userRole = await prisma.restaurantUser.findUnique({
+        where: {
+            userId_restaurantId: {
+                userId: user.id,
+                restaurantId: id,
+            },
+        },
+    })
+
+    if (!userRole || userRole.role !== 'admin') {
+        redirect('/dashboard')
     }
 
-    const restaurant = result.restaurant
+    const needsVerification = !restaurant.isVerified
+    const needsCircuitSheet = restaurant.circuitSheet &&
+        !restaurant.circuitSheet.isSubmitted &&
+        (restaurant.subscription?.plan === 'business' ||
+            restaurant.subscription?.plan === 'premium')
 
     return (
         <>
@@ -75,22 +87,53 @@ export default async function RestaurantSettingsPage({
                             </div>
                         </div>
                     </header>
-            <div className="flex flex-1 flex-col gap-4 p-4">
-                {/* Header */}
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h1 className="text-3xl font-bold tracking-tight">
-                            Paramètres du restaurant
-                        </h1>
-                        <p className="text-muted-foreground mt-2">
-                            Gérez les informations et l'apparence de votre restaurant
-                        </p>
-                    </div>
-                </div>
-
-                {/* Formulaire */}
-                <RestaurantSettingsForm restaurant={restaurant} />
+        <div className="flex flex-1 flex-col gap-4 p-4">
+            <div>
+                <h1 className="text-3xl font-bold">Paramètres du restaurant</h1>
+                <p className="text-muted-foreground mt-2">
+                    Gérez les informations et les documents de votre restaurant
+                </p>
             </div>
+
+            {/* Alerte si compte non vérifié */}
+            {needsVerification && (
+                <Alert variant="destructive">
+                <div className="flex items-start space-x-2">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertDescription>
+                        <strong>Compte non vérifié :</strong> Votre menu n'est pas encore accessible
+                        aux clients. Veuillez soumettre vos documents de vérification ci-dessous.
+                    </AlertDescription>
+                    </div>
+                </Alert>
+            )}
+
+            {/* Section 1 : Vérification des documents (si nécessaire) */}
+            {needsVerification && (
+                <>
+                    <VerificationDocumentsForm
+                        restaurantId={restaurant.id}
+                        verificationDocument={restaurant.verificationDocuments}
+                    />
+                    <Separator className="my-8" />
+                </>
+            )}
+
+            {/* Section 2 : Fiche circuit (si Business et non soumise) */}
+            {needsCircuitSheet && (
+                <>
+                    <CircuitSheetForm
+                        restaurantId={restaurant.id}
+                        circuitSheet={restaurant.circuitSheet}
+                        plan={restaurant.subscription?.plan || 'starter'}
+                    />
+                    <Separator className="my-8" />
+                </>
+            )}
+
+            {/* Section 3 : Paramètres classiques du restaurant */}
+            <RestaurantSettingsForm restaurant={restaurant} />
+        </div>
         </>
     )
 }
