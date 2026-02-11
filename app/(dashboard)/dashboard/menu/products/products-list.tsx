@@ -1,69 +1,84 @@
-// app/(dashboard)/dashboard/menu/products/products-list.tsx
 'use client'
 
 import Link from 'next/link'
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
 import Image from 'next/image'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Edit, Trash2, Power, Package } from 'lucide-react'
+import {
+    AlertDialog,
+    AlertDialogContent,
+    AlertDialogHeader,
+    AlertDialogFooter,
+    AlertDialogTitle,
+    AlertDialogDescription,
+    AlertDialogCancel,
+    AlertDialogAction,
+} from '@/components/ui/alert-dialog'
+
+import { Edit, Trash2, Power, Package, Wrench } from 'lucide-react'
 import { toggleProductAvailability, deleteProduct } from '@/lib/actions/product'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { formatPrice } from '@/lib/utils/format'
-import { toast } from "sonner"
+import { toast } from 'sonner'
 
+import {
+    getPriceDisplay,
+    getAvailabilityStatus,
+    PRODUCT_TYPE_LABELS,
+} from '@/types/product'
+
+import type { ProductType } from '@/types/product'
 
 type Product = {
     id: string
     name: string
     description: string | null
-    price: number
+    price: number | null
     imageUrl: string | null
     isAvailable: boolean
     category: { name: string } | null
+    family: { name: string } | null
     stock: { quantity: number } | null
+    productType: ProductType
+    includePrice: boolean
+    hasStock: boolean
 }
 
 export function ProductsList({ products }: { products: Product[] }) {
     const router = useRouter()
+
     const [loading, setLoading] = useState<string | null>(null)
     const [isLoading, setIsLoading] = useState(false)
-
-
-    const [deleteTarget, setDeleteTarget] = useState<{
-        id: string
-        name: string
-    } | null>(null)
+    const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null)
 
     async function handleToggleAvailability(id: string) {
         setLoading(id)
-        await toggleProductAvailability(id)
+
+        const result = await toggleProductAvailability(id)
+
+        if (result?.error) {
+            toast.error(result.error)
+        } else {
+            toast.success('Le produit a été mis à jour avec succès.')
+        }
+
         setLoading(null)
         router.refresh()
-        toast.success("Le produit a été mis à jour avec succès.")
-
     }
 
-    async function handleDelete(id: string, name: string) {
+    function handleDelete(id: string, name: string) {
         setDeleteTarget({ id, name })
     }
 
     async function confirmDelete() {
         if (!deleteTarget) return
+
         setIsLoading(true)
         setLoading(deleteTarget.id)
+
         const result = await deleteProduct(deleteTarget.id)
+
         setLoading(null)
         setIsLoading(false)
 
@@ -72,11 +87,10 @@ export function ProductsList({ products }: { products: Product[] }) {
             return
         }
 
-        toast.success("Le produit a été supprimé avec succès.")
+        toast.success('Le produit a été supprimé avec succès.')
         router.refresh()
         setDeleteTarget(null)
     }
-
 
     if (products.length === 0) {
         return (
@@ -95,109 +109,149 @@ export function ProductsList({ products }: { products: Product[] }) {
     return (
         <>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {products.map((product) => (
-                    <Card key={product.id} className="overflow-hidden hover:shadow-md transition-shadow">
-                        {/* Image du produit */}
-                        <div className="relative h-48 bg-muted">
-                            {product.imageUrl ? (
-                                <Image
-                                    src={product.imageUrl}
-                                    alt={product.name}
-                                    fill
-                                    className="object-contain"
-                                />
-                            ) : (
-                                <div className="flex h-full items-center justify-center">
-                                    <Package className="h-12 w-12 text-muted-foreground" />
-                                </div>
-                            )}
-                        </div>
+                {products.map((product) => {
+                    const availability = getAvailabilityStatus({
+                        isAvailable: product.isAvailable,
+                        hasStock: product.hasStock,
+                        stockQuantity: product.stock?.quantity ?? null,
+                        stockAlertThreshold: 5,
+                        productType: 'good'
+                    })
 
-                        <CardContent className="px-4">
-                            {/* En-tête */}
-                            <div className="flex items-start justify-between mb-2">
-                                <div className="space-y-1 flex-1">
-                                    <h3 className="font-semibold text-lg">{product.name}</h3>
-                                    {product.description && (
-                                        <p className="text-sm text-muted-foreground line-clamp-2">
-                                            {product.description}
-                                        </p>
-                                    )}
-                                </div>
-                                <Badge variant={product.isAvailable ? 'success' : 'destructive'}>
-                                    {product.isAvailable ? 'Disponible' : 'Indisponible'}
-                                </Badge>
-                            </div>
+                    const priceDisplay = getPriceDisplay(product)
 
-                            {/* Informations */}
-                            <div className="space-y-2 mb-4">
-                                <div className="flex items-center justify-between text-sm">
-                                    <span className="text-muted-foreground">Prix</span>
-                                    <span className="font-semibold">{formatPrice(product.price)}</span>
-                                </div>
-
-                                {product.category && (
-                                    <div className="flex items-center justify-between text-sm">
-                                        <span className="text-muted-foreground">Catégorie</span>
-                                        <span>{product.category.name}</span>
+                    return (
+                        <Card
+                            key={product.id}
+                            className="overflow-hidden hover:shadow-md transition-shadow"
+                        >
+                            <div className="relative h-48 bg-muted">
+                                {product.imageUrl ? (
+                                    <Image
+                                        src={product.imageUrl}
+                                        alt={product.name}
+                                        fill
+                                        className="object-contain"
+                                    />
+                                ) : (
+                                    <div className="flex h-full items-center justify-center">
+                                        {product.productType === 'good' ? (
+                                            <Package className="h-12 w-12 text-muted-foreground" />
+                                        ) : (
+                                            <Wrench className="h-12 w-12 text-muted-foreground" />
+                                        )}
                                     </div>
                                 )}
+                            </div>
 
-                                {product.stock && (
+                            <CardContent className="px-4">
+                                <div className="flex items-start justify-between mb-2 gap-2">
+                                    <div className="space-y-1 flex-1 min-w-0">
+                                        <h3 className="font-semibold text-lg truncate">
+                                            {product.name}
+                                        </h3>
+
+                                        {product.description && (
+                                            <p className="text-sm text-muted-foreground line-clamp-2">
+                                                {product.description}
+                                            </p>
+                                        )}
+                                    </div>
+
+                                    <div className="flex flex-col gap-1 shrink-0">
+                                        <Badge
+                                            variant={
+                                                product.productType === 'good'
+                                                    ? 'default'
+                                                    : 'secondary'
+                                            }
+                                        >
+                                            {PRODUCT_TYPE_LABELS[product.productType]}
+                                        </Badge>
+
+
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2 mb-4">
                                     <div className="flex items-center justify-between text-sm">
-                                        <span className="text-muted-foreground">Stock</span>
-                                        <span className={product.stock.quantity < 5 ? 'text-red-500 font-medium' : ''}>
-                                            {product.stock.quantity}
+                                        <span className="text-muted-foreground">Prix</span>
+                                        <span className="font-semibold">
+                                            {priceDisplay.showPrice
+                                                ? `${priceDisplay.label ? priceDisplay.label + ' ' : ''}${priceDisplay.formattedPrice}`
+                                                : priceDisplay.label}
                                         </span>
                                     </div>
-                                )}
-                            </div>
 
-                            {/* Actions */}
-                            <div className="flex gap-2">
-                                <Link href={`/dashboard/menu/products/${product.id}/edit`} className="flex-1">
+                                    {product.category && (
+                                        <div className="flex items-center justify-between text-sm">
+                                            <span className="text-muted-foreground">Catégorie</span>
+                                            <span className="truncate ml-2">
+                                                {product.category.name}
+                                            </span>
+                                        </div>
+                                    )}
+
+                                    {product.family && (
+                                        <div className="flex items-center justify-between text-sm">
+                                            <span className="text-muted-foreground">Famille</span>
+                                            <span className="truncate ml-2">
+                                                {product.family.name}
+                                            </span>
+                                        </div>
+                                    )}
+
+                                    {product.hasStock && product.stock && (
+                                        <div className="flex items-center justify-between text-sm">
+                                            <span className="text-muted-foreground">Stock</span>
+                                            <Badge variant={availability.variant as any}>
+                                                {availability.status}
+                                            </Badge>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="flex gap-2">
+                                    <Link
+                                        href={`/dashboard/menu/products/${product.id}/edit`}
+                                        className="flex-1"
+                                    >
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="w-full"
+                                            disabled={loading === product.id}
+                                        >
+                                            <Edit className="h-4 w-4 mr-2" />
+                                            Modifier
+                                        </Button>
+                                    </Link>
+
                                     <Button
-                                        variant="outline"
                                         size="sm"
-                                        className="w-full"
+                                        onClick={() => handleToggleAvailability(product.id)}
                                         disabled={loading === product.id}
                                     >
-                                        <Edit className="h-4 w-4 mr-2" />
-                                        Modifier
+                                        <Power className="h-4 w-4" />
                                     </Button>
-                                </Link>
 
-                                <Button
-                                    variant="default"
-                                    size="sm"
-                                    onClick={() => handleToggleAvailability(product.id)}
-                                    disabled={loading === product.id}
-                                >
-                                    <Power className="h-4 w-4" />
-                                </Button>
-
-                                <Button
-                                    variant="destructive"
-                                    size="sm"
-                                    onClick={() =>
-                                        handleDelete(
-                                            product.id,
-                                            product.name
-                                        )
-                                    }
-                                    disabled={
-                                        loading === product.id
-                                    }
-                                >
-                                    <Trash2 className="h-4 w-4" />
-                                </Button>
-                            </div>
-                        </CardContent>
-                    </Card>
-                ))}
+                                    <Button
+                                        variant="destructive"
+                                        size="sm"
+                                        onClick={() =>
+                                            handleDelete(product.id, product.name)
+                                        }
+                                        disabled={loading === product.id}
+                                    >
+                                        <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )
+                })}
             </div>
 
-            {/* AlertDialog suppression */}
             <AlertDialog
                 open={!!deleteTarget}
                 onOpenChange={() => setDeleteTarget(null)}
@@ -213,12 +267,12 @@ export function ProductsList({ products }: { products: Product[] }) {
                     </AlertDialogHeader>
 
                     <AlertDialogFooter>
-                        <AlertDialogCancel>
-                            Annuler
-                        </AlertDialogCancel>
+                        <AlertDialogCancel>Annuler</AlertDialogCancel>
+
                         <AlertDialogAction
                             onClick={confirmDelete}
                             className="bg-red-600 hover:bg-red-700"
+                            disabled={isLoading}
                         >
                             Supprimer
                         </AlertDialogAction>

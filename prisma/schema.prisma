@@ -156,6 +156,13 @@ enum SubscriptionPaymentStatus {
   @@map("subscription_payment_status")
 }
 
+enum ProductType {
+  good      // Bien physique avec gestion de stock
+  service   // Prestation de service sans stock
+
+  @@map("product_type")
+}
+
 // ============================================================
 // MODELS
 // ============================================================
@@ -274,29 +281,43 @@ model Family {
 }
 
 model Product {
-  id           String   @id @default(uuid()) @db.Uuid
-  restaurantId String   @map("restaurant_id") @db.Uuid
-  categoryId   String?  @map("category_id") @db.Uuid
-  familyId     String?  @map("family_id") @db.Uuid  
+  id           String      @id @default(uuid()) @db.Uuid
+  restaurantId String      @map("restaurant_id") @db.Uuid
+  categoryId   String?     @map("category_id") @db.Uuid
+  familyId     String?     @map("family_id") @db.Uuid
+  
+  // Informations de base
   name         String
   description  String?
-  price        Int // Prix en FCFA (entier uniquement)
-  imageUrl     String?  @map("image_url")
-  isAvailable  Boolean  @default(true) @map("is_available")
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  
+  // Type et tarification
+  productType  ProductType @default(good) @map("product_type")
+  price        Int?        // Prix en FCFA - NULL si "sur devis"
+  includePrice Boolean     @default(true) @map("include_price")
+  
+  // Gestion de stock
+  hasStock     Boolean     @default(true) @map("has_stock")
+  
+  // Média et disponibilité
+  imageUrl     String?     @map("image_url")
+  isAvailable  Boolean     @default(true) @map("is_available")
+  
+  // Métadonnées
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
 
   // Relations
   restaurant     Restaurant      @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
   category       Category?       @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  family         Family?         @relation(fields: [familyId], references: [id], onDelete: SetNull) 
+  family         Family?         @relation(fields: [familyId], references: [id], onDelete: SetNull)
   stock          Stock?
   orderItems     OrderItem[]
   stockMovements StockMovement[]
 
   @@index([restaurantId, categoryId])
-  @@index([restaurantId, familyId]) 
   @@index([restaurantId, isAvailable])
+  @@index([restaurantId, productType])
+  @@index([restaurantId, hasStock])
   @@map("products")
 }
 

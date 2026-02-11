@@ -33,8 +33,6 @@ export default async function ProductsPage() {
 
     const userRole = await getUserRole()
 
-
-    // Récupérer le restaurant de l'utilisateur
     const restaurantUser = await prisma.restaurantUser.findFirst({
         where: { userId: user.id },
     })
@@ -43,12 +41,15 @@ export default async function ProductsPage() {
         redirect('/onboarding')
     }
 
-    // Récupérer tous les produits avec leurs catégories et stocks
+    // ✅ Récupérer tous les produits avec leurs relations
     const products = await prisma.product.findMany({
         where: { restaurantId: restaurantUser.restaurantId },
         include: {
             category: {
                 select: { name: true },
+            },
+            family: {
+                select: { name: true }, // ← AJOUT : inclure le nom de la famille
             },
             stock: {
                 select: { quantity: true },
@@ -91,18 +92,17 @@ export default async function ProductsPage() {
                     <div>
                         <h1 className="text-3xl font-bold tracking-tight">Produits</h1>
                         <p className="text-muted-foreground mt-2">
-                            Gérez tous les produits de votre menu
+                            Gérez tous vos biens et services
                         </p>
                     </div>
                     <div className="flex gap-2">
-                        {/* Seuls les utilisateurs avec la permission "products.create" verront ce bouton */}
                         <PermissionGuard resource="products" action="create">
-                            <QuickCreateProductDialog categories={categories}>
+                            {/* <QuickCreateProductDialog categories={categories}>
                                 <Button variant="outline">
                                     <Zap className="mr-2 h-4 w-4" />
                                     Création rapide
                                 </Button>
-                            </QuickCreateProductDialog>
+                            </QuickCreateProductDialog> */}
                             <Link href="/dashboard/menu/products/new">
                                 <Button>
                                     <Plus className="mr-2 h-4 w-4" />
@@ -114,7 +114,7 @@ export default async function ProductsPage() {
                 </div>
 
                 <ProductsList products={products} />
-            </div >
+            </div>
         </>
     )
 }
