@@ -3,7 +3,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { initiateOrderPayment } from '@/lib/actions/payment'
+import { initiateSubscriptionPayment } from '@/lib/actions/payment' // ✅ CORRECTION ICI
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
@@ -71,7 +71,8 @@ export function EBillingPaymentForm({
         setSubmitting(true)
 
         try {
-            const result = await initiateOrderPayment ({
+            // ✅ CORRECTION ICI : utiliser initiateSubscriptionPayment
+            const result = await initiateSubscriptionPayment({
                 restaurantId,
                 plan,
                 billingCycle,
@@ -125,14 +126,15 @@ export function EBillingPaymentForm({
                             value={operator}
                             onValueChange={(value: string) => setOperator(value as PaymentOperator)}
                         >
+                            {/* ✅ CORRECTION ICI : retirer la prop id */}
                             <div className="flex items-center space-x-2 border rounded-lg p-4 cursor-pointer hover:bg-muted">
-                                <RadioGroupItem value="airtel" id="airtel" />
+                                <RadioGroupItem value="airtel" label={''} />
                                 <Label htmlFor="airtel" className="flex-1 cursor-pointer">
                                     <div className="flex items-center gap-3">
-                                        <Smartphone clatext-muted-foregroundssName="h-5 w-5 text-red-600" />
+                                        <Smartphone className="h-5 w-5 text-red-600" />
                                         <div>
                                             <p className="font-medium">Airtel Money</p>
-                                            <p className="text-xs text-gray-500">
+                                            <p className="text-xs text-muted-foreground">
                                                 Numéros commençant par 07
                                             </p>
                                         </div>
@@ -141,13 +143,13 @@ export function EBillingPaymentForm({
                             </div>
 
                             <div className="flex items-center space-x-2 border rounded-lg p-4 cursor-pointer hover:bg-muted">
-                                <RadioGroupItem value="moov" id="moov" />
+                                <RadioGroupItem value="moov" label={''} />
                                 <Label htmlFor="moov" className="flex-1 cursor-pointer">
                                     <div className="flex items-center gap-3">
                                         <Smartphone className="h-5 w-5 text-blue-600" />
                                         <div>
                                             <p className="font-medium">Moov Money</p>
-                                            <p className="text-xs text-gray-500">
+                                            <p className="text-xs text-muted-foreground">
                                                 Numéros commençant par 06
                                             </p>
                                         </div>
@@ -156,13 +158,13 @@ export function EBillingPaymentForm({
                             </div>
 
                             <div className="flex items-center space-x-2 border rounded-lg p-4 cursor-pointer hover:bg-muted">
-                                <RadioGroupItem value="card" id="card" />
+                                <RadioGroupItem value="card" label={''} />
                                 <Label htmlFor="card" className="flex-1 cursor-pointer">
                                     <div className="flex items-center gap-3">
-                                        <CreditCard className="h-5 w-5 text-gray-600" />
+                                        <CreditCard className="h-5 w-5 text-muted-foreground" />
                                         <div>
                                             <p className="font-medium">Carte bancaire</p>
-                                            <p className="text-xs text-gray-500">
+                                            <p className="text-xs text-muted-foreground">
                                                 Visa, Mastercard
                                             </p>
                                         </div>
@@ -185,7 +187,7 @@ export function EBillingPaymentForm({
                                 className="mt-1"
                                 required
                             />
-                            <p className="text-xs text-gray-500 mt-1">
+                            <p className="text-xs text-muted-foreground mt-1">
                                 Format : 9 chiffres sans espaces ni indicatif
                             </p>
                         </div>
@@ -194,11 +196,11 @@ export function EBillingPaymentForm({
                     {/* Récapitulatif des frais */}
                     <div className="bg-muted rounded-lg p-4 space-y-2">
                         <div className="flex justify-between text-sm">
-                            <span className="text-gray-600">Montant de l'abonnement</span>
+                            <span className="text-muted-foreground">Montant de l'abonnement</span>
                             <span className="font-medium">{formatPrice(amount)}</span>
                         </div>
                         <div className="flex justify-between text-sm">
-                            <span className="text-gray-600">Frais de transaction</span>
+                            <span className="text-muted-foreground">Frais de transaction</span>
                             <span className="font-medium">{formatPrice(breakdown.transactionFees)}</span>
                         </div>
                         <div className="border-t pt-2 mt-2">
@@ -236,7 +238,7 @@ export function EBillingPaymentForm({
                         )}
                     </Button>
 
-                    <p className="text-xs text-gray-500 text-center">
+                    <p className="text-xs text-muted-foreground text-center">
                         Paiement sécurisé par eBilling. Vos données sont protégées.
                     </p>
                 </form>
