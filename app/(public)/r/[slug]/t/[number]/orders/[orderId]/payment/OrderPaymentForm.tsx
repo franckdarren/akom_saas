@@ -1,9 +1,8 @@
-// app/r/[slug]/order/[orderId]/payment/OrderPaymentForm.tsx
 'use client'
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { initiateOrderPayment } from '@/lib/actions/payment'
+import { initiateOrderPayment, InitiateOrderPaymentResult } from '@/lib/actions/payment'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
@@ -39,14 +38,12 @@ export function OrderPaymentForm({
     const [submitting, setSubmitting] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
-    // Calculer la décomposition complète avec commission Akôm + frais
     const breakdown = calculateCommissionBreakdown(orderAmount, operator)
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setError(null)
 
-        // Validation
         if (!payerName.trim()) {
             setError('Veuillez entrer votre nom')
             return
@@ -54,12 +51,10 @@ export function OrderPaymentForm({
 
         if (operator !== 'card') {
             const cleanPhone = phoneNumber.replace(/\s/g, '')
-            
             if (!cleanPhone.match(/^(06|07)\d{7}$/)) {
                 setError('Numéro invalide. Format : 06XXXXXXX ou 07XXXXXXX')
                 return
             }
-
             if (operator === 'airtel' && !cleanPhone.startsWith('07')) {
                 setError('Les numéros Airtel commencent par 07')
                 return
@@ -73,9 +68,9 @@ export function OrderPaymentForm({
         setSubmitting(true)
 
         try {
-            const result = await initiateOrderPayment({
+            const result: InitiateOrderPaymentResult = await initiateOrderPayment({
                 orderId,
-                payerPhone: phoneNumber.replace(/\s/g, ''),
+                payerPhone: operator !== 'card' ? phoneNumber.replace(/\s/g, '') : undefined,
                 payerName: payerName.trim(),
                 operator,
             })
@@ -84,24 +79,22 @@ export function OrderPaymentForm({
                 throw new Error(result.error || 'Erreur lors de l\'initiation du paiement')
             }
 
-            // Si paiement par carte, rediriger
             if (operator === 'card' && result.paymentUrl) {
                 window.location.href = result.paymentUrl
                 return
             }
 
-            // Si Mobile Money, message de succès
-            toast.success('Code envoyé !', {
-                description: result.message,
-            })
+            // Mobile Money
+            if (result.message) {
+                toast.success('Code envoyé !', { description: result.message })
+            }
 
-            // Rediriger vers page de statut
-            router.push(`/r/${restaurantName.toLowerCase().replace(/\s+/g, '-')}/order/${orderId}/payment-status?paymentId=${result.paymentId}`)
+            router.push(
+                `/r/${restaurantName.toLowerCase().replace(/\s+/g, '-')}/order/${orderId}/payment-status?paymentId=${result.paymentId}`
+            )
         } catch (err) {
             console.error('Erreur paiement:', err)
-            setError(
-                err instanceof Error ? err.message : 'Erreur lors du paiement'
-            )
+            setError(err instanceof Error ? err.message : 'Erreur lors du paiement')
         } finally {
             setSubmitting(false)
         }
@@ -111,9 +104,7 @@ export function OrderPaymentForm({
         <Card>
             <CardHeader>
                 <CardTitle>Payer la commande</CardTitle>
-                <CardDescription>
-                    Commande #{orderNumber}
-                </CardDescription>
+                <CardDescription>Commande #{orderNumber}</CardDescription>
             </CardHeader>
             <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-6">
@@ -131,16 +122,17 @@ export function OrderPaymentForm({
                         />
                     </div>
 
-                    {/* Choix de l'opérateur */}
+                    {/* Mode de paiement */}
                     <div>
                         <Label className="mb-3 block">Mode de paiement</Label>
                         <RadioGroup
                             value={operator}
                             onValueChange={(value) => setOperator(value as PaymentOperator)}
                         >
+                            {/* Airtel */}
                             <div className="flex items-center space-x-2 border rounded-lg p-4 cursor-pointer hover:bg-gray-50">
-                                <RadioGroupItem value="airtel" id="airtel" />
-                                <Label htmlFor="airtel" className="flex-1 cursor-pointer">
+                                <RadioGroupItem value="airtel" label={''} />
+                                <Label className="flex-1 cursor-pointer">
                                     <div className="flex items-center gap-3">
                                         <Smartphone className="h-5 w-5 text-red-600" />
                                         <div>
@@ -151,9 +143,10 @@ export function OrderPaymentForm({
                                 </Label>
                             </div>
 
+                            {/* Moov */}
                             <div className="flex items-center space-x-2 border rounded-lg p-4 cursor-pointer hover:bg-gray-50">
-                                <RadioGroupItem value="moov" id="moov" />
-                                <Label htmlFor="moov" className="flex-1 cursor-pointer">
+                                <RadioGroupItem value="moov" label={''} />
+                                <Label className="flex-1 cursor-pointer">
                                     <div className="flex items-center gap-3">
                                         <Smartphone className="h-5 w-5 text-blue-600" />
                                         <div>
@@ -164,9 +157,10 @@ export function OrderPaymentForm({
                                 </Label>
                             </div>
 
+                            {/* Carte bancaire */}
                             <div className="flex items-center space-x-2 border rounded-lg p-4 cursor-pointer hover:bg-gray-50">
-                                <RadioGroupItem value="card" id="card" />
-                                <Label htmlFor="card" className="flex-1 cursor-pointer">
+                                <RadioGroupItem value="card" label={''} />
+                                <Label className="flex-1 cursor-pointer">
                                     <div className="flex items-center gap-3">
                                         <CreditCard className="h-5 w-5 text-gray-600" />
                                         <div>
@@ -177,9 +171,10 @@ export function OrderPaymentForm({
                                 </Label>
                             </div>
                         </RadioGroup>
+
                     </div>
 
-                    {/* Numéro de téléphone */}
+                    {/* Numéro téléphone Mobile Money */}
                     {operator !== 'card' && (
                         <div>
                             <Label htmlFor="phone">Numéro de téléphone</Label>
@@ -195,7 +190,7 @@ export function OrderPaymentForm({
                         </div>
                     )}
 
-                    {/* Décomposition des frais */}
+                    {/* Détail paiement */}
                     <div className="bg-gray-50 rounded-lg p-4 space-y-2">
                         <h3 className="font-semibold text-sm mb-3">Détail du paiement</h3>
                         <div className="flex justify-between text-sm">
@@ -203,11 +198,11 @@ export function OrderPaymentForm({
                             <span className="font-medium">{formatPrice(breakdown.restaurantAmount)}</span>
                         </div>
                         <div className="flex justify-between text-sm">
-                            <span className="text-gray-600">Frais de service</span>
+                            <span className="text-gray-600">Frais Akôm</span>
                             <span className="font-medium">{formatPrice(breakdown.akomCommission)}</span>
                         </div>
                         <div className="flex justify-between text-sm">
-                            <span className="text-gray-600">Frais de transaction</span>
+                            <span className="text-gray-600">Frais transaction</span>
                             <span className="font-medium">{formatPrice(breakdown.transactionFees)}</span>
                         </div>
                         <div className="border-t pt-2 mt-2">
@@ -226,7 +221,6 @@ export function OrderPaymentForm({
                         </Alert>
                     )}
 
-                    {/* Bouton submit */}
                     <Button
                         type="submit"
                         disabled={submitting || !payerName || (operator !== 'card' && !phoneNumber)}
