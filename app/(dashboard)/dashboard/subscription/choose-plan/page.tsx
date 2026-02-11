@@ -36,7 +36,7 @@ export default async function ChoosePlanPage() {
     const currentPlan = subscription?.plan
 
     return (
-        <div className="min-h-screen bg-muted py-12 px-4">
+        <div className="min-h-screen py-12 px-4">
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="text-center mb-12">
@@ -76,7 +76,7 @@ export default async function ChoosePlanPage() {
                 </div>
 
                 {/* FAQ rapide */}
-                <div className="bg-muted rounded-lg p-8 shadow-sm">
+                <div className="rounded-lg p-8 shadow-sm">
                     <h2 className="text-2xl font-bold mb-6 text-center">
                         Questions fréquentes
                     </h2>

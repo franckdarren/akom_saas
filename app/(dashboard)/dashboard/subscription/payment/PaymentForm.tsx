@@ -131,7 +131,7 @@ export function PaymentForm({
                     {/* Upload de la preuve */}
                     <div>
                         <Label>Preuve de paiement *</Label>
-                        <p className="text-xs text-gray-600 mb-3">
+                        <p className="text-xs text-muted-foreground mb-3">
                             Capture d'écran de la confirmation Mobile Money ou du reçu de
                             virement
                         </p>
@@ -139,10 +139,10 @@ export function PaymentForm({
                         {!preview ? (
                             <label
                                 htmlFor="proof-upload"
-                                className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+                                className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-muted transition-colors"
                             >
-                                <Upload className="h-10 w-10 text-gray-400 mb-2" />
-                                <span className="text-sm text-gray-600">
+                                <Upload className="h-10 w-10 text-muted-foreground mb-2" />
+                                <span className="text-sm text-foreground">
                                     Cliquez pour choisir une image
                                 </span>
                                 <span className="text-xs text-gray-500 mt-1">
@@ -158,7 +158,7 @@ export function PaymentForm({
                             </label>
                         ) : (
                             <div className="relative">
-                                <div className="relative w-full h-64 bg-gray-100 rounded-lg overflow-hidden">
+                                <div className="relative w-full h-64 bg-muted rounded-lg overflow-hidden">
                                     <Image
                                         src={preview}
                                         alt="Aperçu"
@@ -227,7 +227,7 @@ export function PaymentForm({
                         )}
                     </Button>
 
-                    <p className="text-xs text-gray-500 text-center">
+                    <p className="text-xs text-foreground text-center">
                         En soumettant ce paiement, vous acceptez nos conditions générales
                         de vente. Notre équipe validera votre paiement sous 24h.
                     </p>

@@ -112,7 +112,7 @@ export default async function PaymentPage({
     const { subscription } = await getRestaurantSubscription(restaurantId)
 
     return (
-        <div className="min-h-screen bg-gray-50 py-12 px-4">
+        <div className="min-h-screen py-12 px-4">
             <div className="max-w-4xl mx-auto">
                 {/* Header */}
                 <div className="mb-8">
@@ -125,7 +125,7 @@ export default async function PaymentPage({
                     <h1 className="text-3xl font-bold mb-2">
                         Paiement de l'abonnement
                     </h1>
-                    <p className="text-gray-600">{restaurantName}</p>
+                    <p className="text-foreground">{restaurantName}</p>
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-8">
@@ -134,26 +134,26 @@ export default async function PaymentPage({
                     ------------------------------------------------ */}
                     <div className="space-y-6">
                         {/* Récapitulatif de la commande */}
-                        <div className="bg-white rounded-lg p-6 shadow-sm">
+                        <div className="rounded-lg p-6 shadow-sm">
                             <h2 className="text-xl font-semibold mb-4">
                                 Récapitulatif de la commande
                             </h2>
 
                             <div className="space-y-3">
                                 <div className="flex justify-between">
-                                    <span className="text-gray-600">Plan</span>
+                                    <span className="text-muted-foreground">Plan</span>
                                     <span className="font-medium capitalize">
                                         {planConfig.name}
                                     </span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span className="text-gray-600">Durée</span>
+                                    <span className="text-muted-foreground">Durée</span>
                                     <span className="font-medium">
                                         {billingCycle} mois
                                     </span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span className="text-gray-600">
+                                    <span className="text-muted-foreground">
                                         Prix mensuel
                                     </span>
                                     <span className="font-medium">
@@ -176,7 +176,7 @@ export default async function PaymentPage({
 
                                 <div className="border-t pt-3 mt-3">
                                     <div className="flex justify-between text-lg font-bold">
-                                        <span>Total à payer</span>
+                                        <span className='text-muted-foreground'>Total à payer</span>
                                         <span>{formatPrice(amount)}</span>
                                     </div>
                                 </div>
@@ -184,17 +184,17 @@ export default async function PaymentPage({
                         </div>
 
                         {/* Informations bancaires */}
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-                            <h2 className="text-lg font-semibold mb-4 text-blue-900">
+                        <div className="border border-blue-200 rounded-lg p-6">
+                            <h2 className="text-lg font-semibold mb-4 text-foreground">
                                 Informations de paiement
                             </h2>
 
                             <div className="space-y-4 text-sm">
                                 <div>
-                                    <p className="font-medium text-blue-900 mb-1">
+                                    <p className="font-medium text-foreground mb-1">
                                         Mobile Money
                                     </p>
-                                    <div className="bg-white rounded p-3 space-y-1">
+                                    <div className="bg-muted rounded p-3 space-y-1">
                                         <p>
                                             <strong>Airtel Money :</strong> +241
                                             XX XX XX XX
@@ -203,17 +203,17 @@ export default async function PaymentPage({
                                             <strong>Moov Money :</strong> +241 XX
                                             XX XX XX
                                         </p>
-                                        <p className="text-gray-600 text-xs mt-2">
+                                        <p className="text-foreground text-xs mt-2">
                                             Nom du compte : AKOM SAAS
                                         </p>
                                     </div>
                                 </div>
 
                                 <div>
-                                    <p className="font-medium text-blue-900 mb-1">
+                                    <p className="font-medium text-foreground mb-1">
                                         Virement bancaire
                                     </p>
-                                    <div className="bg-white rounded p-3 space-y-1">
+                                    <div className="bg-muted rounded p-3 space-y-1">
                                         <p>
                                             <strong>Banque :</strong> BGFI Bank
                                         </p>
@@ -241,40 +241,40 @@ export default async function PaymentPage({
                         </div>
 
                         {/* Instructions étape par étape */}
-                        <div className="bg-white rounded-lg p-6 shadow-sm">
+                        <div className="rounded-lg p-6 shadow-sm">
                             <h2 className="font-semibold mb-3">
                                 Comment ça marche ?
                             </h2>
-                            <ol className="space-y-2 text-sm text-gray-600">
+                            <ol className="space-y-2 text-sm text-foreground">
                                 <li className="flex gap-2">
-                                    <span className="font-semibold text-gray-900">
+                                    <span className="font-semibold text-foreground">
                                         1.
                                     </span>
                                     Effectuez le paiement via Mobile Money ou
                                     virement bancaire
                                 </li>
                                 <li className="flex gap-2">
-                                    <span className="font-semibold text-gray-900">
+                                    <span className="font-semibold text-foreground">
                                         2.
                                     </span>
                                     Prenez une capture d'écran de la confirmation
                                     de paiement
                                 </li>
                                 <li className="flex gap-2">
-                                    <span className="font-semibold text-gray-900">
+                                    <span className="font-semibold text-foreground">
                                         3.
                                     </span>
                                     Uploadez la preuve via le formulaire
                                     ci-contre
                                 </li>
                                 <li className="flex gap-2">
-                                    <span className="font-semibold text-gray-900">
+                                    <span className="font-semibold text-foreground">
                                         4.
                                     </span>
                                     Notre équipe valide votre paiement sous 24h
                                 </li>
                                 <li className="flex gap-2">
-                                    <span className="font-semibold text-gray-900">
+                                    <span className="font-semibold text-foreground">
                                         5.
                                     </span>
                                     Votre abonnement est activé automatiquement

@@ -184,13 +184,13 @@ export default async function SubscriptionPage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-3">
                                 <div>
-                                    <p className="text-sm text-gray-600">Plan</p>
+                                    <p className="text-sm text-muted-foreground">Plan</p>
                                     <p className="text-lg font-semibold capitalize">
                                         {subscription.plan}
                                     </p>
                                 </div>
                                 <div>
-                                    <p className="text-sm text-gray-600">Prix mensuel</p>
+                                    <p className="text-sm text-muted-foreground">Prix mensuel</p>
                                     <p className="text-lg font-semibold">
                                         {formatPrice(subscription.monthlyPrice)}
                                     </p>
@@ -201,7 +201,7 @@ export default async function SubscriptionPage() {
                                 {subscription.status === 'trial' ? (
                                     <>
                                         <div>
-                                            <p className="text-sm text-gray-600">Date de début</p>
+                                            <p className="text-sm text-muted-foreground">Date de début</p>
                                             <p className="text-lg font-medium flex items-center gap-2">
                                                 <Calendar className="h-4 w-4" />
                                                 {new Date(subscription.trialStartsAt).toLocaleDateString(
@@ -210,7 +210,7 @@ export default async function SubscriptionPage() {
                                             </p>
                                         </div>
                                         <div>
-                                            <p className="text-sm text-gray-600">Fin de l'essai</p>
+                                            <p className="text-sm text-muted-foreground">Fin de l'essai</p>
                                             <p className="text-lg font-medium flex items-center gap-2">
                                                 <Calendar className="h-4 w-4" />
                                                 {new Date(subscription.trialEndsAt).toLocaleDateString(
@@ -223,7 +223,7 @@ export default async function SubscriptionPage() {
                                     <>
                                         {subscription.currentPeriodStart && (
                                             <div>
-                                                <p className="text-sm text-gray-600">
+                                                <p className="text-sm text-muted-foreground">
                                                     Début de période
                                                 </p>
                                                 <p className="text-lg font-medium flex items-center gap-2">
@@ -236,7 +236,7 @@ export default async function SubscriptionPage() {
                                         )}
                                         {subscription.currentPeriodEnd && (
                                             <div>
-                                                <p className="text-sm text-gray-600">
+                                                <p className="text-sm text-muted-foreground">
                                                     Prochaine facturation
                                                 </p>
                                                 <p className="text-lg font-medium flex items-center gap-2">
@@ -254,13 +254,13 @@ export default async function SubscriptionPage() {
 
                         {/* Compte à rebours */}
                         {daysRemaining !== null && daysRemaining >= 0 && (
-                            <div className="bg-gray-50 rounded-lg p-4 text-center">
-                                <p className="text-sm text-gray-600 mb-2">
+                            <div className="bg-muted rounded-lg p-4 text-center">
+                                <p className="text-sm text-muted-foreground mb-2">
                                     {subscription.status === 'trial'
                                         ? 'Jours d\'essai restants'
                                         : 'Jours restants'}
                                 </p>
-                                <p className="text-4xl font-bold text-blue-600">
+                                <p className="text-4xl font-bold text-foreground">
                                     {daysRemaining}
                                 </p>
                                 <p className="text-sm text-gray-500 mt-1">
@@ -358,7 +358,7 @@ export default async function SubscriptionPage() {
                                 {subscription.payments.map((payment) => (
                                     <div
                                         key={payment.id}
-                                        className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+                                        className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted transition-colors"
                                     >
                                         <div className="flex items-center gap-4">
                                             {payment.status === 'confirmed' && (
@@ -375,7 +375,7 @@ export default async function SubscriptionPage() {
                                                 <p className="font-medium">
                                                     {formatPrice(payment.amount)}
                                                 </p>
-                                                <p className="text-sm text-gray-600">
+                                                <p className="text-sm text-muted-foreground">
                                                     {payment.billingCycle} mois •{' '}
                                                     {new Date(payment.createdAt).toLocaleDateString(
                                                         'fr-FR'
