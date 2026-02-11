@@ -163,6 +163,16 @@ enum ProductType {
   @@map("product_type")
 }
 
+enum RestaurantVerificationStatus {
+  pending_documents   // En attente des documents
+  documents_submitted // Documents soumis, en attente validation
+  documents_rejected  // Documents rejetés par le superadmin
+  verified            // Vérifié et actif
+  suspended           // Suspendu (ex: fiche circuit manquante)
+
+  @@map("restaurant_verification_status")
+}
+
 // ============================================================
 // MODELS
 // ============================================================
@@ -183,6 +193,11 @@ model Restaurant {
   ebillingSharedKey  String?  @map("ebilling_shared_key")
   ebillingConfigured Boolean  @default(false) @map("ebilling_configured")
 
+  // ✅ Vérification
+  verificationStatus RestaurantVerificationStatus @default(pending_documents) @map("verification_status")
+  isVerified        Boolean  @default(false) @map("is_verified")
+  
+
   // Relations
   users          RestaurantUser[]
   tables         Table[]
@@ -200,6 +215,13 @@ model Restaurant {
   subscription           Subscription?
   subscriptionPayments   SubscriptionPayment[]
   subscriptionEmailLogs  SubscriptionEmailLog[]
+  verificationDocuments RestaurantVerificationDocument?
+  circuitSheet          RestaurantCircuitSheet?
+  verificationHistory   RestaurantVerificationHistory[]
+
+  @@index([slug])
+  @@index([isActive])
+  @@index([verificationStatus])
 
   @@map("restaurants")
 }
@@ -675,4 +697,107 @@ model SubscriptionEmailLog {
   @@index([subscriptionId, emailType])
   @@index([restaurantId, sentAt])
   @@map("subscription_email_logs")
+}
+
+// ============================================================
+// NOUVEAU MODEL : Documents de vérification
+// ============================================================
+
+model RestaurantVerificationDocument {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  restaurantId String   @unique @map("restaurant_id") @db.Uuid
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  
+  // Photo de profil (obligatoire)
+  profilePhotoUrl        String?   @map("profile_photo_url")
+  profilePhotoUploadedAt DateTime? @map("profile_photo_uploaded_at")
+  
+  // Pièce d'identité (obligatoire)
+  identityDocumentUrl        String?   @map("identity_document_url")
+  identityDocumentType       String?   @map("identity_document_type") // 'cni', 'passport', 'driving_license'
+  identityDocumentUploadedAt DateTime? @map("identity_document_uploaded_at")
+  
+  // Statut de vérification
+  verificationStatus RestaurantVerificationStatus @default(pending_documents) @map("verification_status")
+  
+  // Validation par superadmin
+  verifiedBy String?   @map("verified_by") @db.Uuid
+  verifiedAt DateTime? @map("verified_at")
+  
+  // Rejet
+  rejectionReason String? @map("rejection_reason")
+  rejectedBy      String? @map("rejected_by") @db.Uuid
+  rejectedAt      DateTime? @map("rejected_at")
+  
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([restaurantId])
+  @@index([verificationStatus])
+  @@map("restaurant_verification_documents")
+}
+
+// ============================================================
+// Fiche circuit ( à partir de Business...)
+// ============================================================
+
+model RestaurantCircuitSheet {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  restaurantId String   @unique @map("restaurant_id") @db.Uuid
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  
+  // Document fiche circuit
+  circuitSheetUrl        String?   @map("circuit_sheet_url")
+  circuitSheetUploadedAt DateTime? @map("circuit_sheet_uploaded_at")
+  
+  // Échéance (3 mois après activation Business)
+  deadlineAt DateTime @map("deadline_at")
+  
+  // Statut
+  isSubmitted  Boolean @default(false) @map("is_submitted")
+  isValidated  Boolean @default(false) @map("is_validated")
+  
+  // Validation par superadmin
+  validatedBy String?   @map("validated_by") @db.Uuid
+  validatedAt DateTime? @map("validated_at")
+  
+  // Suspension automatique
+  autoSuspendedAt DateTime? @map("auto_suspended_at")
+  
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([restaurantId])
+  @@index([deadlineAt])
+  @@map("restaurant_circuit_sheets")
+}
+
+// ============================================================
+// Historique des vérifications
+// ============================================================
+
+model RestaurantVerificationHistory {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  restaurantId String   @map("restaurant_id") @db.Uuid
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  
+  // Type d'événement
+  eventType String @map("event_type")
+  
+  // Détails
+  oldStatus RestaurantVerificationStatus? @map("old_status")
+  newStatus RestaurantVerificationStatus? @map("new_status")
+  
+  // Qui a effectué l'action
+  performedBy String? @map("performed_by") @db.Uuid
+  
+  // Commentaire
+  comment String?
+  
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([restaurantId])
+  @@index([eventType])
+  @@index([createdAt(sort: Desc)])
+  @@map("restaurant_verification_history")
 }
