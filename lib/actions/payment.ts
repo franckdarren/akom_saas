@@ -2,19 +2,21 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { createClient } from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
 import { ebilling } from '@/lib/payment/ebilling'
-import { calculateTransactionFees } from '@/lib/payment/fees'
+import { calculateCommissionBreakdown } from '@/lib/payment/fees'
 
 /**
- * NOUVEAU MODÈLE : Paiement centralisé
+ * PAIEMENT DE COMMANDE - MODÈLE CENTRALISÉ
  * 
- * Dans ce modèle, TOUS les paiements (abonnements ET commandes) passent
- * par le compte eBilling d'Akôm. Vous devenez un agrégateur de paiement.
- * 
- * L'argent suit ce parcours :
- * Client → Compte Akôm eBilling → Redistribution aux restaurants
+ * Flux:
+ * 1. Client commande 10 000 FCFA
+ * 2. Système ajoute commission Akôm (5% = 500 FCFA)
+ * 3. Système ajoute frais eBilling (2% de 10 500 = 210 FCFA)
+ * 4. Client paie 10 710 FCFA sur le compte Akôm
+ * 5. Plus tard, Akôm redistribue 10 000 FCFA au restaurant
+ * 6. Akôm garde 500 FCFA de commission
+ * 7. eBilling a déjà pris 210 FCFA
  */
 
 interface InitiateOrderPaymentParams {
@@ -28,6 +30,7 @@ export async function initiateOrderPayment(
     params: InitiateOrderPaymentParams
 ) {
     try {
+        // 1. Récupérer la commande
         const order = await prisma.order.findUnique({
             where: { id: params.orderId },
             include: {
@@ -48,98 +51,59 @@ export async function initiateOrderPayment(
             return { error: 'Commande introuvable' }
         }
 
-        const subtotal = order.totalAmount
+        // 2. Montant de la commande (ce que le restaurant recevra)
+        const orderAmount = order.totalAmount
 
-        /**
-         * Calcul des frais de transaction
-         * 
-         * Ces frais sont TOUJOURS à la charge du client.
-         * Le restaurant reçoit le montant de sa commande (subtotal).
-         * Vous recevez votre commission.
-         * eBilling prélève ses frais sur le total payé par le client.
-         */
-        const { fees, totalToPay } = calculateTransactionFees(
-            subtotal,
+        // 3. Calculer la décomposition complète
+        const breakdown = calculateCommissionBreakdown(
+            orderAmount,
             params.operator
         )
 
-        /**
-         * NOUVEAU : Calculer la commission Akôm
-         * 
-         * Définissez votre taux de commission ici.
-         * Par exemple, 5% du montant de la commande.
-         * Cette commission vient en PLUS du montant de la commande.
-         */
-        const COMMISSION_RATE = 0.05 // 5%
-        const akomCommission = Math.ceil(subtotal * COMMISSION_RATE)
-        
-        /**
-         * Le montant total que le client paiera est :
-         * - Montant de la commande (va au restaurant)
-         * - Commission Akôm (reste chez vous)
-         * - Frais de transaction (va à eBilling)
-         */
-        const totalWithCommission = subtotal + akomCommission + fees
-
-        /**
-         * IMPORTANT : Mettre à jour le montant de la commande
-         * 
-         * On stocke le montant total que le client paie, mais on garde
-         * aussi trace de la répartition dans les champs séparés.
-         */
+        // 4. Mettre à jour le montant total de la commande
+        // (important pour l'affichage au client)
         await prisma.order.update({
             where: { id: params.orderId },
-            data: { 
-                totalAmount: totalWithCommission,
-                // NOUVEAU CHAMP À AJOUTER : notes pour tracer la décomposition
-                notes: `Montant commande: ${subtotal} FCFA | Commission Akôm: ${akomCommission} FCFA | Frais transaction: ${fees} FCFA`
+            data: {
+                totalAmount: breakdown.totalPaid,
+                notes: `Commande: ${breakdown.restaurantAmount} FCFA | Service: ${breakdown.akomCommission} FCFA | Frais: ${breakdown.transactionFees} FCFA`,
             },
         })
 
-        /**
-         * Créer l'enregistrement de paiement
-         * 
-         * Le champ amount contient le montant TOTAL payé par le client.
-         * Nous ajouterons plus tard la logique pour tracer combien
-         * revient au restaurant vs combien reste chez Akôm.
-         */
+        // 5. Créer l'enregistrement de paiement avec metadata
         const payment = await prisma.payment.create({
             data: {
                 restaurantId: order.restaurantId,
                 orderId: order.id,
-                amount: totalWithCommission,
+                amount: breakdown.totalPaid, // Montant TOTAL payé par le client
                 method: params.operator === 'card' ? 'cash' : 'mobile_money',
                 status: 'pending',
                 timing: 'before_meal',
                 phoneNumber: params.payerPhone,
-                // NOUVEAU CHAMP À AJOUTER : metadata pour tracer la décomposition
+                // ✅ METADATA avec la décomposition exacte
                 metadata: {
-                    restaurantAmount: subtotal,
-                    akomCommission: akomCommission,
-                    transactionFees: fees,
-                    totalPaid: totalWithCommission,
+                    restaurantAmount: breakdown.restaurantAmount,
+                    akomCommission: breakdown.akomCommission,
+                    transactionFees: breakdown.transactionFees,
+                    totalPaid: breakdown.totalPaid,
+                    operator: params.operator,
                 },
             },
         })
 
-        /**
-         * ✅ SIMPLIFICATION MAJEURE
-         * 
-         * Puisque tout passe par le compte Akôm, on utilise toujours
-         * la même instance ebilling. Plus besoin de créer des instances
-         * différentes selon le restaurant !
-         */
+        // 6. Créer la facture eBilling (tout va sur le compte Akôm)
         const billResult = await ebilling.createBill({
             payerMsisdn: params.payerPhone,
             payerEmail: 'client@restaurant.com',
             payerName: params.payerName || 'Client',
-            amount: totalWithCommission,
+            amount: breakdown.totalPaid,
             externalReference: payment.id,
-            shortDescription: `${order.restaurant.name} - Commande ${order.orderNumber}`,
+            shortDescription: `${order.restaurant.name} - Cmd ${order.orderNumber}`,
             expiryPeriod: 30,
         })
 
         if (!billResult.success || !billResult.billId) {
+            // Marquer le paiement comme échoué
             await prisma.payment.update({
                 where: { id: payment.id },
                 data: {
@@ -153,11 +117,13 @@ export async function initiateOrderPayment(
             }
         }
 
+        // 7. Stocker le billId
         await prisma.payment.update({
             where: { id: payment.id },
             data: { transactionId: billResult.billId },
         })
 
+        // 8. Envoyer le push USSD ou retourner l'URL de paiement
         if (params.operator === 'airtel' || params.operator === 'moov') {
             const operatorName =
                 params.operator === 'airtel' ? 'airtelmoney' : 'moovmoney4'
@@ -178,16 +144,17 @@ export async function initiateOrderPayment(
                 success: true,
                 paymentId: payment.id,
                 billId: billResult.billId,
-                message: 'Code de confirmation envoyé. Validez le paiement sur votre téléphone.',
+                message: 'Code de confirmation envoyé. Validez sur votre téléphone.',
                 breakdown: {
-                    orderAmount: subtotal,
-                    commission: akomCommission,
-                    fees: fees,
-                    total: totalWithCommission,
+                    orderAmount: breakdown.restaurantAmount,
+                    commission: breakdown.akomCommission,
+                    fees: breakdown.transactionFees,
+                    total: breakdown.totalPaid,
                 },
             }
         }
 
+        // Paiement par carte
         const callbackUrl = `${process.env.NEXT_PUBLIC_APP_URL}/r/${order.restaurant.slug}/order/${order.id}/payment-callback`
         const paymentUrl = ebilling.getCardPaymentUrl(
             billResult.billId,
@@ -200,10 +167,10 @@ export async function initiateOrderPayment(
             billId: billResult.billId,
             paymentUrl,
             breakdown: {
-                orderAmount: subtotal,
-                commission: akomCommission,
-                fees: fees,
-                total: totalWithCommission,
+                orderAmount: breakdown.restaurantAmount,
+                commission: breakdown.akomCommission,
+                fees: breakdown.transactionFees,
+                total: breakdown.totalPaid,
             },
         }
     } catch (error) {

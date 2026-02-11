@@ -4,24 +4,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 
-/**
- * Webhook eBilling - Point d'entrée des notifications de paiement
- * 
- * URL à configurer dans votre compte eBilling:
- * https://votre-domaine.com/api/webhooks/ebilling
- * 
- * IMPORTANT: Cette URL doit être HTTPS en production et accessible publiquement.
- * eBilling ne peut pas envoyer de notifications vers localhost.
- */
-
 export async function POST(request: NextRequest) {
     try {
         const payload = await request.json()
 
-        // Log pour debugging (à retirer en production)
         console.log('📥 Webhook eBilling reçu:', payload)
 
-        // Vérifier que nous avons bien une référence
         const reference = payload.reference
 
         if (!reference) {
@@ -29,10 +17,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Référence manquante' }, { status: 400 })
         }
 
-        // La référence est soit un subscriptionPayment.id soit un payment.id
-        // Nous devons déterminer lequel en essayant les deux
-
-        // Essayer d'abord comme paiement d'abonnement
+        // Essayer comme paiement d'abonnement
         const subscriptionPayment =
             await prisma.subscriptionPayment.findUnique({
                 where: { id: reference },
@@ -50,7 +35,7 @@ export async function POST(request: NextRequest) {
             )
         }
 
-        // Sinon, essayer comme paiement de commande
+        // Essayer comme paiement de commande
         const orderPayment = await prisma.payment.findUnique({
             where: { id: reference },
             include: {
@@ -76,20 +61,14 @@ export async function POST(request: NextRequest) {
     }
 }
 
-/**
- * Gère la notification pour un paiement d'abonnement
- */
 async function handleSubscriptionPaymentWebhook(
     payment: any,
     payload: any
 ) {
     try {
-        // eBilling envoie le statut du paiement dans le payload
-        // Les statuts possibles sont généralement: 'SUCCESSFUL', 'FAILED', 'PENDING'
         const paymentStatus = payload.status || payload.payment_status
 
         if (paymentStatus === 'SUCCESSFUL') {
-            // Marquer le paiement comme confirmé
             await prisma.subscriptionPayment.update({
                 where: { id: payment.id },
                 data: {
@@ -99,7 +78,6 @@ async function handleSubscriptionPaymentWebhook(
                 },
             })
 
-            // Activer l'abonnement
             await prisma.subscription.update({
                 where: { id: payment.subscriptionId },
                 data: {
@@ -130,7 +108,6 @@ async function handleSubscriptionPaymentWebhook(
             return NextResponse.json({ success: true })
         }
 
-        // Statut inconnu ou PENDING, on ne fait rien
         return NextResponse.json({ success: true })
     } catch (error) {
         console.error('Erreur handleSubscriptionPaymentWebhook:', error)
@@ -141,15 +118,12 @@ async function handleSubscriptionPaymentWebhook(
     }
 }
 
-/**
- * Gère la notification pour un paiement de commande
- */
 async function handleOrderPaymentWebhook(payment: any, payload: any) {
     try {
         const paymentStatus = payload.status || payload.payment_status
 
         if (paymentStatus === 'SUCCESSFUL') {
-            // Marquer le paiement comme réussi
+            // ✅ Marquer le paiement comme réussi (redistributedAt reste null)
             await prisma.payment.update({
                 where: { id: payment.id },
                 data: {
@@ -157,11 +131,11 @@ async function handleOrderPaymentWebhook(payment: any, payload: any) {
                 },
             })
 
-            // Optionnel: changer automatiquement le statut de la commande
+            // Changer le statut de la commande
             await prisma.order.update({
                 where: { id: payment.orderId },
                 data: {
-                    status: 'preparing', // La commande passe en préparation
+                    status: 'preparing',
                 },
             })
 
@@ -181,7 +155,6 @@ async function handleOrderPaymentWebhook(payment: any, payload: any) {
                 },
             })
 
-            // Optionnel: annuler la commande si le paiement échoue
             await prisma.order.update({
                 where: { id: payment.orderId },
                 data: {

@@ -172,15 +172,29 @@ model Restaurant {
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
 
+  // Identifiants eBilling (pour modèle décentralisé - optionnel)
   ebillingUsername   String?  @map("ebilling_username")
   ebillingSharedKey  String?  @map("ebilling_shared_key")
   ebillingConfigured Boolean  @default(false) @map("ebilling_configured")
 
-  // 🆕 NOUVEAUX CHAMPS pour la redistribution
-  bankAccountNumber String? @map("bank_account_number") // IBAN ou numéro de compte
-  bankName          String? @map("bank_name")
-  mobileMoneyNumber String? @map("mobile_money_number") // Numéro Airtel/Moov pour recevoir l'argent
+  // 🆕 Coordonnées bancaires pour redistribution
+  bankAccountNumber  String? @map("bank_account_number")
+  bankName           String? @map("bank_name")
+  bankAccountHolder  String? @map("bank_account_holder")
+  bankIban           String? @map("bank_iban")
+  bankSwiftCode      String? @map("bank_swift_code")
+  
+  // 🆕 Mobile Money pour redistribution
+  mobileMoneyNumber   String? @map("mobile_money_number") // Format: 074123456
   mobileMoneyOperator String? @map("mobile_money_operator") // airtel ou moov
+  mobileMoneyHolder   String? @map("mobile_money_holder")
+  
+  // 🆕 Préférences de redistribution
+  preferredRedistributionMethod String  @default("mobile_money") @map("preferred_redistribution_method")
+  redistributionFrequency       String  @default("weekly") @map("redistribution_frequency")
+  redistributionDayOfWeek       Int?    @default(5) @map("redistribution_day_of_week") // 1-7, 5=Vendredi
+  minRedistributionAmount       Int     @default(10000) @map("min_redistribution_amount")
+
 
   // Relations
   users          RestaurantUser[]
@@ -368,29 +382,30 @@ model Payment {
   id            String        @id @default(uuid()) @db.Uuid
   restaurantId  String        @map("restaurant_id") @db.Uuid
   orderId       String        @map("order_id") @db.Uuid
-  amount        Int // Montant en FCFA (entier)
+  amount        Int // Montant TOTAL payé par le client (commande + commission + frais)
   method        PaymentMethod
   status        PaymentStatus @default(pending)
   timing        PaymentTiming
   transactionId String?       @map("transaction_id")
   phoneNumber   String?       @map("phone_number")
   errorMessage  String?       @map("error_message")
-
+  
+  // 🆕 NOUVEAUX CHAMPS pour le modèle centralisé
+  metadata             Json?     // Décomposition: {restaurantAmount, akomCommission, transactionFees, totalPaid}
+  redistributedAt      DateTime? @map("redistributed_at") // Date de reversement au restaurant
+  redistributionMethod String?   @map("redistribution_method") // mobile_money, bank_transfer, cash
+  redistributionRef    String?   @map("redistribution_ref") // Référence transaction de redistribution
+  
   createdAt     DateTime      @default(now()) @map("created_at")
   updatedAt     DateTime      @updatedAt @map("updated_at")
 
-// 🆕 NOUVEAUX CHAMPS pour le modèle centralisé
-  metadata      Json?         // Stocke la décomposition : restaurantAmount, akomCommission, fees
-  redistributedAt DateTime?   @map("redistributed_at") // Date de reversement au restaurant
-  redistributionMethod String? @map("redistribution_method") // Comment on a reversé : virement, mobile_money, etc.
-  redistributionRef String?    @map("redistribution_ref") // Référence du virement de redistribution
-  
   // Relations
   restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
   order      Order      @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   @@index([orderId])
-  @@index([restaurantId, redistributedAt])
+  @@index([restaurantId, redistributedAt]) // 🆕 Index pour requêtes de redistribution
+  @@index([restaurantId, status, redistributedAt]) // 🆕 Index composite pour stats
   @@map("payments")
 }
 
