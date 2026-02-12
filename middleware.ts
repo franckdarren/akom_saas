@@ -36,6 +36,39 @@ export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl
 
     // ============================================================
+    // PROTECTION DES ROUTES SUPERADMIN
+    // ============================================================
+    
+    if (pathname.startsWith('/superadmin')) {
+        
+        // Vérifier si l'utilisateur est connecté
+        if (!user) {
+            console.log('❌ No user logged in, redirecting to login')
+            const url = request.nextUrl.clone()
+            url.pathname = '/login'
+            return NextResponse.redirect(url)
+        }
+
+        console.log('👤 User attempting superadmin access:', user.email)
+
+        // Vérifier si l'utilisateur est superadmin
+        const superAdminEmails = (process.env.SUPER_ADMIN_EMAILS || '').split(',')
+        
+        const isSuperAdmin = superAdmins(user.email, superAdminEmails)
+
+        if (!isSuperAdmin) {
+            console.log('❌ User is not superadmin, redirecting to dashboard')
+            const url = request.nextUrl.clone()
+            url.pathname = '/dashboard'
+            return NextResponse.redirect(url)
+        }
+
+        console.log('✅ Superadmin access granted, allowing through')
+        // L'utilisateur est superadmin, on le laisse passer
+        return supabaseResponse
+    }
+
+    // ============================================================
     // ROUTES
     // ============================================================
 

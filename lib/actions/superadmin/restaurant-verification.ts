@@ -23,18 +23,17 @@ async function verifySuperadmin() {
         data: { user },
     } = await supabase.auth.getUser()
 
-    if (!user) {
+    if (!user || !user.email) {
         return { authorized: false, userId: null }
     }
 
-    // TODO: Implémenter votre logique de vérification superadmin
-    // Par exemple, vérifier un rôle dans une table users
-    // ou vérifier si user.email est dans une liste de superadmins
+    // Utiliser la MÊME variable d'environnement que le middleware
+    const superAdminEmails = (process.env.SUPER_ADMIN_EMAILS || '').split(',')
+    const isSuperAdmin = superAdminEmails.some(
+        (email) => email.trim().toLowerCase() === user.email!.toLowerCase()
+    )
 
-    // Pour l'instant, exemple basique :
-    const isSuperadmin = user.email?.endsWith('@akom-admin.com') || false
-
-    return { authorized: isSuperadmin, userId: user.id }
+    return { authorized: isSuperAdmin, userId: user.id }
 }
 
 // ============================================================
@@ -67,15 +66,46 @@ export async function getRestaurantsPendingVerification() {
             },
         })
 
+        // 🔥 Transformation propre pour correspondre au type frontend
+        const formattedRestaurants = restaurants.map((restaurant) => ({
+            id: restaurant.id,
+            name: restaurant.name,
+            slug: restaurant.slug,
+            createdAt: restaurant.createdAt,
+            verificationStatus: restaurant.verificationStatus,
+
+            verificationDocuments: restaurant.verificationDocuments
+                ? {
+                    profilePhotoUrl:
+                        restaurant.verificationDocuments.profilePhotoUrl,
+                    profilePhotoUploadedAt:
+                        restaurant.verificationDocuments.profilePhotoUploadedAt,
+                    identityDocumentUrl:
+                        restaurant.verificationDocuments.identityDocumentUrl,
+                    identityDocumentType:
+                        restaurant.verificationDocuments.identityDocumentType,
+                    identityDocumentUploadedAt:
+                        restaurant.verificationDocuments.identityDocumentUploadedAt,
+                }
+                : null,
+
+            users: restaurant.users.map((user) => ({
+                userId: user.userId,
+                // ✅ garanti toujours un string
+                role: user.role ?? 'admin',
+            })),
+        }))
+
         return {
             success: true,
-            data: restaurants,
+            data: formattedRestaurants,
         }
     } catch (error) {
         console.error('Erreur récupération restaurants en attente:', error)
         return { success: false, error: 'Erreur lors de la récupération' }
     }
 }
+
 
 // ============================================================
 // FONCTION : Approuver la vérification d'un restaurant

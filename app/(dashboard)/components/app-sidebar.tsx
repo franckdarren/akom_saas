@@ -25,6 +25,8 @@ import {
     CircleDollarSign,
     ChevronUp,
     ChevronDown,
+    FileCheck,
+    AlertCircle,
 } from "lucide-react"
 
 import {
@@ -157,6 +159,10 @@ export function AppSidebar({ user, role, restaurantName, restaurantLogoUrl, onSi
                     { title: "Support", href: "/superadmin/support", icon: MessageSquare },
                     { title: "Logs", href: "/superadmin/logs", icon: FileText },
                     { title: "Abonnements", href: "/superadmin/payments", icon: CircleDollarSign },
+                    { title: "Vérifications", href: "/superadmin/verifications", icon: FileCheck },
+                    { title: "Fiches circuit", href: "/superadmin/circuit-sheets", icon: FileText },
+                    { title: "Suspendus", href: "/superadmin/suspended", icon: AlertCircle },
+
                 ],
             },
         ],

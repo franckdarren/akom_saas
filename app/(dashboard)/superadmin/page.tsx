@@ -33,6 +33,11 @@ import {
     Clock,
     CheckCircle2,
     Calendar,
+    FileText,
+    AlertCircle,
+    CheckCircle,
+    FileCheck,
+    XCircle,
 } from 'lucide-react'
 
 import { formatNumber, formatPrice } from '@/lib/utils/format'
@@ -120,19 +125,19 @@ export default async function SuperAdminDashboard() {
                         title="Abonnements actifs"
                         value={stats.activeSubscriptions}
                         subtitle={`${stats.trialSubscriptions} en essai`}
-                        icon={<CheckCircle2 className="text-green-600" />}
+                        icon={<CheckCircle2 />}
                     />
 
                     <StatCard
                         title="Abonnements expirés"
                         value={stats.expiredSubscriptions}
-                        icon={<Clock className="text-red-600" />}
+                        icon={<Clock />}
                     />
 
                     <StatCard
                         title="Paiements en attente"
                         value={stats.pendingPayments}
-                        icon={<Clock className="text-orange-600" />}
+                        icon={<Clock />}
                     />
 
                     <StatCard
@@ -142,7 +147,43 @@ export default async function SuperAdminDashboard() {
                             month: 'long',
                             year: 'numeric',
                         })}
-                        icon={<CreditCard className="text-blue-600" />}
+                        icon={<CreditCard />}
+                    />
+
+                    <StatCard
+                        title="En attente de documents"
+                        value={stats.pendingPayments}
+                        icon={<Clock />}
+                    />
+
+                    <StatCard
+                        title="Documents soumis"
+                        value={stats.pendingPayments}
+                        icon={<FileCheck />}
+                    />
+
+                    <StatCard
+                        title="Restaurants vérifiés"
+                        value={stats.pendingPayments}
+                        icon={<CheckCircle />}
+                    />
+
+                    <StatCard
+                        title="Documents rejetés"
+                        value={stats.pendingPayments}
+                        icon={<XCircle />}
+                    />
+
+                    <StatCard
+                        title="Restaurants suspendus"
+                        value={stats.pendingPayments}
+                        icon={<AlertCircle />}
+                    />
+
+                    <StatCard
+                        title="Fiches circuit en attente"
+                        value={stats.pendingPayments}
+                        icon={<FileText />}
                     />
                 </div>
 
