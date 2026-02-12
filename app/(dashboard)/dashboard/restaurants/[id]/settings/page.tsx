@@ -98,7 +98,7 @@ export default async function RestaurantSettingsPage({
             {/* Alerte si compte non vérifié */}
             {needsVerification && (
                 <Alert variant="destructive">
-                <div className="flex items-start space-x-2">
+                <div className="flex items-center gap-2">
                     <AlertTriangle className="h-4 w-4" />
                     <AlertDescription>
                         <strong>Compte non vérifié :</strong> Votre menu n'est pas encore accessible

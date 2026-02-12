@@ -205,11 +205,13 @@ export function VerificationDocumentsForm({
                 {/* Statut en attente de validation */}
                 {isSubmitted && (
                     <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/20">
+                        <div className="flex items-center gap-2">
                         <Clock className="h-4 w-4 text-blue-600" />
                         <AlertDescription className="text-blue-800 dark:text-blue-200">
                             Vos documents ont été soumis et sont en cours de vérification par notre équipe.
-                            Nous vous contacterons sous 24-48h.
+                            Nous vous contacterons sous 24 à 48h.
                         </AlertDescription>
+                        </div>
                     </Alert>
                 )}
 
