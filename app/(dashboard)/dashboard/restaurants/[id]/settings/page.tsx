@@ -115,7 +115,7 @@ export default async function RestaurantSettingsPage({
                         restaurantId={restaurant.id}
                         verificationDocument={restaurant.verificationDocuments}
                     />
-                    <Separator className="my-8" />
+                    {/* <Separator className="my-8" /> */}
                 </>
             )}
 
@@ -127,7 +127,7 @@ export default async function RestaurantSettingsPage({
                         circuitSheet={restaurant.circuitSheet}
                         plan={restaurant.subscription?.plan || 'starter'}
                     />
-                    <Separator className="my-8" />
+                    {/* <Separator className="my-8" /> */}
                 </>
             )}
 
