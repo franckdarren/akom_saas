@@ -1,0 +1,334 @@
+// app/(dashboard)/dashboard/warehouse/products/[id]/page.tsx
+import { Metadata } from 'next'
+import { notFound } from 'next/navigation'
+import Link from 'next/link'
+import Image from 'next/image'
+import { Edit, Package, TrendingUp, History, ArrowLeft } from 'lucide-react'
+
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Separator } from '@/components/ui/separator'
+import { getCurrentUserAndRestaurant } from '@/lib/auth/session'
+import prisma from '@/lib/prisma'
+import { formatPrice } from '@/lib/utils/format'
+import { WarehouseMovementsTimeline } from '@/components/warehouse/WarehouseMovementsTimeline'
+import { QuickActionsButtons } from '@/components/warehouse/QuickActionsButtons'
+
+export const metadata: Metadata = {
+    title: 'Détail produit entrepôt | Akôm',
+}
+
+interface PageProps {
+    params: {
+        id: string
+    }
+}
+
+/**
+ * Page de détail d'un produit d'entrepôt.
+ * 
+ * Affiche toutes les informations du produit, son stock actuel,
+ * le lien avec le produit menu si configuré, et l'historique des mouvements.
+ * 
+ * Design inspiré de Shopify Product Details et Notion Pages.
+ */
+export default async function WarehouseProductDetailPage({ params }: PageProps) {
+    const { restaurantId } = await getCurrentUserAndRestaurant()
+
+    // Récupérer le produit avec toutes ses relations
+    const product = await prisma.warehouseProduct.findUnique({
+        where: {
+            id: params.id,
+            restaurantId, // Sécurité : vérifier que le produit appartient au restaurant
+        },
+        include: {
+            stock: true,
+            linkedProduct: {
+                include: {
+                    stock: true,
+                },
+            },
+            movements: {
+                orderBy: {
+                    createdAt: 'desc',
+                },
+                take: 20, // Derniers 20 mouvements
+            },
+        },
+    })
+
+    if (!product || !product.stock[0]) {
+        notFound()
+    }
+
+    const stock = product.stock[0]
+    const isLowStock = stock.quantity < stock.alertThreshold
+    const linkedProduct = product.linkedProduct
+    const linkedProductStock = linkedProduct?.stock?.[0]
+
+    return (
+        <div className="flex flex-col gap-6 p-6 max-w-5xl mx-auto">
+            {/* Header avec navigation */}
+            <div className="flex items-center gap-4">
+                <Button variant="ghost" size="sm" asChild>
+                    <Link href="/dashboard/warehouse">
+                        <ArrowLeft className="h-4 w-4 mr-2" />
+                        Retour au magasin
+                    </Link>
+                </Button>
+            </div>
+
+            {/* Section principale : Infos produit + Image */}
+            <div className="grid gap-6 md:grid-cols-[300px_1fr]">
+                {/* Image du produit */}
+                <div className="relative aspect-square rounded-lg border overflow-hidden bg-muted">
+                    {product.imageUrl ? (
+                        <Image
+                            src={product.imageUrl}
+                            alt={product.name}
+                            fill
+                            className="object-cover"
+                        />
+                    ) : (
+                        <div className="flex items-center justify-center h-full">
+                            <Package className="h-24 w-24 text-muted-foreground" />
+                        </div>
+                    )}
+                </div>
+
+                {/* Informations principales */}
+                <div className="space-y-6">
+                    {/* Titre et badges */}
+                    <div>
+                        <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                                <h1 className="text-3xl font-bold tracking-tight">
+                                    {product.name}
+                                </h1>
+                                {product.sku && (
+                                    <p className="text-sm text-muted-foreground font-mono mt-1">
+                                        SKU: {product.sku}
+                                    </p>
+                                )}
+                            </div>
+                            <Button asChild size="sm" variant="outline">
+                                <Link href={`/dashboard/warehouse/products/${product.id}/edit`}>
+                                    <Edit className="h-4 w-4 mr-2" />
+                                    Modifier
+                                </Link>
+                            </Button>
+                        </div>
+
+                        <div className="flex items-center gap-2 mt-3">
+                            {product.category && (
+                                <Badge variant="secondary">{product.category}</Badge>
+                            )}
+                            {isLowStock && (
+                                <Badge variant="destructive" className="gap-1">
+                                    <TrendingUp className="h-3 w-3" />
+                                    Stock bas
+                                </Badge>
+                            )}
+                            {!product.isActive && (
+                                <Badge variant="outline">Inactif</Badge>
+                            )}
+                        </div>
+                    </div>
+
+                    {product.description && (
+                        <>
+                            <Separator />
+                            <div>
+                                <h3 className="font-semibold mb-2">Description</h3>
+                                <p className="text-muted-foreground">{product.description}</p>
+                            </div>
+                        </>
+                    )}
+
+                    {/* Configuration de l'unité */}
+                    <Separator />
+                    <div>
+                        <h3 className="font-semibold mb-3">Configuration de l&apos;emballage</h3>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <p className="text-sm text-muted-foreground">Type d&apos;emballage</p>
+                                <p className="font-semibold capitalize mt-1">
+                                    {product.storageUnit}
+                                </p>
+                            </div>
+                            <div>
+                                <p className="text-sm text-muted-foreground">Unités par emballage</p>
+                                <p className="font-semibold mt-1">
+                                    {product.unitsPerStorage} unités
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Actions rapides */}
+                    <Separator />
+                    <QuickActionsButtons product={product} stock={stock} />
+                </div>
+            </div>
+
+            {/* Section : Stock et valorisation */}
+            <div className="grid gap-6 md:grid-cols-3">
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-base">Stock actuel</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-3">
+                            <div>
+                                <p className={`text-3xl font-bold ${isLowStock ? 'text-orange-600' : ''}`}>
+                                    {stock.quantity}
+                                </p>
+                                <p className="text-sm text-muted-foreground capitalize">
+                                    {product.storageUnit}
+                                </p>
+                            </div>
+                            <Separator />
+                            <div>
+                                <p className="text-sm text-muted-foreground">Seuil d'alerte</p>
+                                <p className="font-medium mt-1">{stock.alertThreshold}</p>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-base">Valorisation</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        {stock.unitCost ? (
+                            <div className="space-y-3">
+                                <div>
+                                    <p className="text-3xl font-bold">
+                                        {formatPrice(stock.quantity * stock.unitCost)}
+                                    </p>
+                                    <p className="text-sm text-muted-foreground">Valeur totale</p>
+                                </div>
+                                <Separator />
+                                <div>
+                                    <p className="text-sm text-muted-foreground">Coût unitaire</p>
+                                    <p className="font-medium mt-1">{formatPrice(stock.unitCost)}</p>
+                                </div>
+                            </div>
+                        ) : (
+                            <p className="text-sm text-muted-foreground">
+                                Aucun coût défini
+                            </p>
+                        )}
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-base">Dernier inventaire</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        {stock.lastInventoryDate ? (
+                            <div className="space-y-2">
+                                <p className="text-2xl font-bold">
+                                    {new Date(stock.lastInventoryDate).toLocaleDateString('fr-FR')}
+                                </p>
+                                <p className="text-sm text-muted-foreground">
+                                    Il y a {getDaysSince(stock.lastInventoryDate)} jours
+                                </p>
+                            </div>
+                        ) : (
+                            <p className="text-sm text-muted-foreground">
+                                Aucun inventaire enregistré
+                            </p>
+                        )}
+                    </CardContent>
+                </Card>
+            </div>
+
+            {/* Section : Lien avec produit menu */}
+            {linkedProduct && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Lien avec le menu</CardTitle>
+                        <CardDescription>
+                            Ce produit d'entrepôt peut réapprovisionner un produit du menu
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="flex items-start gap-4 p-4 rounded-lg border bg-muted/50">
+                            {linkedProduct.imageUrl && (
+                                <div className="relative h-16 w-16 rounded-md overflow-hidden bg-background">
+                                    <Image
+                                        src={linkedProduct.imageUrl}
+                                        alt={linkedProduct.name}
+                                        fill
+                                        className="object-cover"
+                                    />
+                                </div>
+                            )}
+
+                            <div className="flex-1">
+                                <div className="flex items-start justify-between">
+                                    <div>
+                                        <p className="font-semibold">{linkedProduct.name}</p>
+                                        <p className="text-sm text-muted-foreground mt-1">
+                                            Stock opérationnel actuel: {linkedProductStock?.quantity || 0} unités
+                                        </p>
+                                    </div>
+                                    <Button variant="outline" size="sm" asChild>
+                                        <Link href={`/dashboard/menu/products/${linkedProduct.id}`}>
+                                            Voir produit
+                                        </Link>
+                                    </Button>
+                                </div>
+
+                                <div className="mt-3 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800">
+                                    <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                                        Conversion automatique
+                                    </p>
+                                    <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
+                                        1 {product.storageUnit} → {product.conversionRatio} × {linkedProduct.name}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+
+            {/* Section : Historique des mouvements */}
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                    <div>
+                        <CardTitle>Historique des mouvements</CardTitle>
+                        <CardDescription>
+                            Derniers mouvements de stock pour ce produit
+                        </CardDescription>
+                    </div>
+                    {product.movements.length > 0 && (
+                        <Button variant="outline" size="sm" asChild>
+                            <Link href={`/dashboard/warehouse/movements?productId=${product.id}`}>
+                                <History className="h-4 w-4 mr-2" />
+                                Voir tout
+                            </Link>
+                        </Button>
+                    )}
+                </CardHeader>
+                <CardContent>
+                    <WarehouseMovementsTimeline movements={product.movements} />
+                </CardContent>
+            </Card>
+        </div>
+    )
+}
+
+/**
+ * Calcule le nombre de jours depuis une date.
+ */
+function getDaysSince(date: Date): number {
+    const now = new Date()
+    const diff = now.getTime() - new Date(date).getTime()
+    return Math.floor(diff / (1000 * 60 * 60 * 24))
+}
