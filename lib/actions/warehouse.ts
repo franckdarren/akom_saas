@@ -603,6 +603,7 @@ export async function getWarehouseProductById(
         if (!product) return { success: false, error: 'Produit introuvable' }
 
         const stock = product.stock[0]
+        const linkedStock = product.linkedProduct?.stock ? product.linkedProduct.stock[0] : undefined
 
         const transformedProduct: WarehouseProductDetail = {
             id: product.id,
@@ -635,48 +636,27 @@ export async function getWarehouseProductById(
                 }
                 : undefined,
             isLowStock: stock ? Number(stock.quantity) < Number(stock.alertThreshold) : false,
-            /**
-             * Transformation du produit menu lié.
-             *
-             * Point crucial : Votre schéma Prisma définit la relation Product -> Stock comme un-à-un.
-             * Cela signifie que product.linkedProduct.stock est un objet Stock singulier ou null,
-             * jamais un tableau. Cette architecture reflète la réalité métier : un produit a un seul
-             * stock actuel à tout moment.
-             *
-             * Nous créons un tableau contenant ce stock unique pour maintenir la compatibilité avec
-             * l'interface TypeScript qui attend un tableau optionnel. Cette transformation permet à
-             * vos composants d'utiliser une API cohérente où le stock est toujours traité comme une
-             * collection, même si elle ne contient qu'un élément.
-             */
             linkedProduct: product.linkedProduct
                 ? {
                     id: product.linkedProduct.id,
                     name: product.linkedProduct.name,
                     imageUrl: product.linkedProduct.imageUrl,
-                    currentStock: product.linkedProduct.stock
-                        ? Number(product.linkedProduct.stock.quantity)
-                        : 0,
-                    stock: product.linkedProduct.stock ? [{
-                        quantity: Number(product.linkedProduct.stock.quantity),
-                        alertThreshold: Number(product.linkedProduct.stock.alertThreshold),
-                        unitCost: product.linkedProduct.stock.unitCost !== null
-                            ? Number(product.linkedProduct.stock.unitCost)
-                            : null,
-                        lastInventoryDate: product.linkedProduct.stock.lastInventoryDate
-                            ? new Date(product.linkedProduct.stock.lastInventoryDate).toISOString()
-                            : null,
-                        updatedAt: new Date(product.linkedProduct.stock.updatedAt).toISOString(),
-                    }] : undefined,
+                    currentStock: linkedStock ? Number(linkedStock.quantity) : 0,
+                    stock: linkedStock
+                        ? [{
+                            quantity: Number(linkedStock.quantity),
+                            alertThreshold: Number(linkedStock.alertThreshold),
+                            unitCost: linkedStock.unitCost !== null
+                                ? Number(linkedStock.unitCost)
+                                : null,
+                            lastInventoryDate: linkedStock.lastInventoryDate
+                                ? new Date(linkedStock.lastInventoryDate).toISOString()
+                                : null,
+                            updatedAt: new Date(linkedStock.updatedAt).toISOString(),
+                        }]
+                        : undefined,
                 }
                 : undefined,
-            /**
-             * Transformation des mouvements avec typage correct du movementType.
-             *
-             * Prisma retourne movementType comme une chaîne générique, mais nous savons que dans
-             * votre base de données, cette colonne ne peut contenir que cinq valeurs spécifiques
-             * définies dans votre schéma. L'assertion de type que nous faisons ici est sûre parce
-             * que votre schéma PostgreSQL garantit ces contraintes au niveau de la base de données.
-             */
             movements: product.movements.map(m => ({
                 id: m.id,
                 restaurantId: m.restaurantId,
@@ -701,6 +681,7 @@ export async function getWarehouseProductById(
         return { success: false, error: 'Erreur lors de la récupération du produit' }
     }
 }
+
 
 // ============================================================
 // Action 8 : Récupérer les produits menu disponibles pour liaison
