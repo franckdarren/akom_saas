@@ -540,7 +540,74 @@ export async function getWarehouseProducts(filters?: {
 // Action 7 : Récupérer un produit spécifique avec son historique
 // ============================================================
 
-export async function getWarehouseProductById(productId: string) {
+/**
+ * Type de retour explicite pour getWarehouseProductById.
+ *
+ * Définir ce type explicitement garantit que TypeScript peut vérifier
+ * la cohérence entre ce que la fonction retourne et ce que les composants
+ * attendent de recevoir. Cela élimine beaucoup d'erreurs potentielles.
+ */
+interface WarehouseProductDetail {
+    id: string
+    restaurantId: string
+    name: string
+    sku: string | null
+    description: string | null
+    storageUnit: string
+    unitsPerStorage: number
+    category: string | null
+    imageUrl: string | null
+    linkedProductId: string | null
+    conversionRatio: number
+    notes: string | null
+    isActive: boolean
+    createdAt: string | null
+    updatedAt: string | null
+    stock?: {
+        id: string
+        restaurantId: string
+        warehouseProductId: string
+        quantity: number
+        alertThreshold: number
+        unitCost: number | null
+        lastInventoryDate: string | null
+        updatedAt: string
+    }
+    isLowStock: boolean
+    linkedProduct?: {
+        id: string
+        name: string
+        imageUrl: string | null
+        currentStock: number
+        stock?: Array<{
+            quantity: number
+            alertThreshold: number
+            unitCost: number | null
+            lastInventoryDate: string | null
+            updatedAt: string
+        }>
+    }
+    movements: Array<{
+        id: string
+        restaurantId: string
+        warehouseProductId: string
+        movementType: string
+        quantity: number
+        previousQty: number
+        newQty: number
+        supplierName: string | null
+        invoiceReference: string | null
+        destination: string | null
+        reason: string | null
+        performedBy: string | null
+        notes: string | null
+        createdAt: string | null
+    }>
+}
+
+export async function getWarehouseProductById(
+    productId: string
+): Promise<{ success: true; data: WarehouseProductDetail } | { error: string }> {
     try {
         const { restaurantId } = await getCurrentUserAndRestaurant()
 
@@ -557,19 +624,30 @@ export async function getWarehouseProductById(productId: string) {
 
         const stock = product.stock[0]
 
-        const transformedProduct = {
-            ...product,
+        const transformedProduct: WarehouseProductDetail = {
+            id: product.id,
+            restaurantId: product.restaurantId,
+            name: product.name,
+            sku: product.sku,
+            description: product.description,
+            storageUnit: product.storageUnit,
+            unitsPerStorage: product.unitsPerStorage,
+            category: product.category,
+            imageUrl: product.imageUrl,
+            linkedProductId: product.linkedProductId,
             conversionRatio: Number(product.conversionRatio),
+            notes: product.notes,
+            isActive: product.isActive,
+            createdAt: product.createdAt?.toISOString() ?? null,
+            updatedAt: product.updatedAt?.toISOString() ?? null,
             stock: stock
                 ? {
-                    ...stock,
+                    id: stock.id,
+                    restaurantId: stock.restaurantId,
+                    warehouseProductId: stock.warehouseProductId,
                     quantity: Number(stock.quantity),
                     alertThreshold: Number(stock.alertThreshold),
                     unitCost: stock.unitCost !== null ? Number(stock.unitCost) : null,
-                    // ✅ AJOUT : Convertir createdAt en ISO string
-                    createdAt: stock.createdAt
-                        ? new Date(stock.createdAt).toISOString()
-                        : null,
                     lastInventoryDate: stock.lastInventoryDate
                         ? new Date(stock.lastInventoryDate).toISOString()
                         : null,
@@ -586,13 +664,9 @@ export async function getWarehouseProductById(productId: string) {
                         ? Number(product.linkedProduct.stock[0].quantity)
                         : 0,
                     stock: product.linkedProduct.stock?.map(s => ({
-                        ...s,
                         quantity: Number(s.quantity),
                         alertThreshold: Number(s.alertThreshold),
                         unitCost: s.unitCost !== null ? Number(s.unitCost) : null,
-                        createdAt: s.createdAt
-                            ? new Date(s.createdAt).toISOString()
-                            : null,
                         lastInventoryDate: s.lastInventoryDate
                             ? new Date(s.lastInventoryDate).toISOString()
                             : null,
@@ -601,14 +675,21 @@ export async function getWarehouseProductById(productId: string) {
                 }
                 : undefined,
             movements: product.movements.map(m => ({
-                ...m,
+                id: m.id,
+                restaurantId: m.restaurantId,
+                warehouseProductId: m.warehouseProductId,
+                movementType: m.movementType,
                 quantity: Number(m.quantity),
                 previousQty: Number(m.previousQty),
                 newQty: Number(m.newQty),
+                supplierName: m.supplierName,
+                invoiceReference: m.invoiceReference,
+                destination: m.destination,
+                reason: m.reason,
+                performedBy: m.performedBy,
+                notes: m.notes,
                 createdAt: m.createdAt ? new Date(m.createdAt).toISOString() : null,
             })),
-            createdAt: product.createdAt?.toISOString() ?? null,
-            updatedAt: product.updatedAt?.toISOString() ?? null,
         }
 
         return { success: true, data: transformedProduct }
@@ -617,7 +698,6 @@ export async function getWarehouseProductById(productId: string) {
         return { error: 'Erreur lors de la récupération du produit' }
     }
 }
-
 
 // ============================================================
 // Action 8 : Récupérer les produits menu disponibles pour liaison
