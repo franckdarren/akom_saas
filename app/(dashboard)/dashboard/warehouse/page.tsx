@@ -52,61 +52,51 @@ export default async function WarehousePage({
     // Cette étape est cruciale, car Prisma retourne des objets Decimal pour les colonnes DECIMAL de PostgresSQL
     // alors que notre interface TypeScript attend des nombres JavaScript classiques
     const products: WarehouseProductWithStock[] = productsResult.success
-        ? productsResult.data.map(p => {
-            // Extraire le stock (le premier et normalement le seul)
-            const stockData = p.stock
+        ? productsResult.data.map(p => ({
+            id: p.id,
+            restaurantId: p.restaurantId,
+            name: p.name,
+            sku: p.sku,
+            description: p.description,
+            storageUnit: p.storageUnit,
+            unitsPerStorage: p.unitsPerStorage,
+            category: p.category,
+            imageUrl: p.imageUrl,
+            linkedProductId: p.linkedProductId,
+            conversionRatio: Number(p.conversionRatio),
+            notes: p.notes,
+            isActive: p.isActive,
+            createdAt: p.createdAt,
+            updatedAt: p.updatedAt,
 
-            return {
-                // Copier toutes les propriétés du produit
-                id: p.id,
-                restaurantId: p.restaurantId,
-                name: p.name,
-                sku: p.sku,
-                description: p.description,
-                storageUnit: p.storageUnit,
-                unitsPerStorage: p.unitsPerStorage,
-                category: p.category,
-                imageUrl: p.imageUrl,
-                linkedProductId: p.linkedProductId,
-                // Convertir le conversionRatio en number
-                conversionRatio: Number(p.conversionRatio),
-                notes: p.notes,
-                isActive: p.isActive,
-                createdAt: p.createdAt,
-                updatedAt: p.updatedAt,
-
-                // Transformer le stock en convertissant tous les Decimal en number
-                stock: {
-                    id: stockData.id,
-                    restaurantId: stockData.restaurantId,
-                    warehouseProductId: stockData.warehouseProductId,
-                    // Convertir quantity de Decimal vers number
-                    quantity: Number(stockData.quantity),
-                    // Convertir alertThreshold de Decimal vers number
-                    alertThreshold: Number(stockData.alertThreshold),
-                    // Convertir unitCost de Decimal vers number (gérer null)
-                    unitCost: stockData.unitCost ? Number(stockData.unitCost) : null,
-                    // Calculer totalValue en number (pas en Decimal)
-                    totalValue: stockData.unitCost
-                        ? Number(stockData.quantity) * Number(stockData.unitCost)
+            // Stock (convertir Decimal → number) ou undefined si pas de stock
+            stock: p.stock && {
+                id: p.stock.id,
+                restaurantId: p.stock.restaurantId,
+                warehouseProductId: p.stock.warehouseProductId,
+                quantity: Number(p.stock.quantity),
+                alertThreshold: Number(p.stock.alertThreshold),
+                unitCost: p.stock.unitCost != null ? Number(p.stock.unitCost) : null,
+                totalValue:
+                    p.stock.unitCost != null
+                        ? Number(p.stock.quantity) * Number(p.stock.unitCost)
                         : null,
-                    lastInventoryDate: stockData.lastInventoryDate,
-                    updatedAt: stockData.updatedAt,
-                },
+                lastInventoryDate: p.stock.lastInventoryDate,
+                updatedAt: p.stock.updatedAt,
+            },
 
-                // La propriété isLowStock est déjà calculée côté serveur
-                isLowStock: p.isLowStock,
+            isLowStock: p.isLowStock,
 
-                // Transformer le produit lié s'il existe
-                linkedProduct: p.linkedProduct ? {
-                    id: p.linkedProduct.id,
-                    name: p.linkedProduct.name,
-                    imageUrl: p.linkedProduct.imageUrl,
-                    currentStock: p.linkedProduct.currentStock,
-                } : undefined,
-            }
-        })
+            // Produit lié
+            linkedProduct: p.linkedProduct && {
+                id: p.linkedProduct.id,
+                name: p.linkedProduct.name,
+                imageUrl: p.linkedProduct.imageUrl,
+                currentStock: Number(p.linkedProduct.currentStock ?? 0),
+            },
+        }))
         : []
+
 
     return (
         <>
