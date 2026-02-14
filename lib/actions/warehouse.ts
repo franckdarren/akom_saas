@@ -607,7 +607,7 @@ interface WarehouseProductDetail {
 
 export async function getWarehouseProductById(
     productId: string
-): Promise<{ success: true; data: WarehouseProductDetail } | { error: string }> {
+): Promise<{ success: true; data: WarehouseProductDetail } | { success: false; error: string }> {
     try {
         const { restaurantId } = await getCurrentUserAndRestaurant()
 
@@ -620,7 +620,8 @@ export async function getWarehouseProductById(
             },
         })
 
-        if (!product) return { error: 'Produit introuvable' }
+        // Changement ici : ajouter success: false
+        if (!product) return { success: false, error: 'Produit introuvable' }
 
         const stock = product.stock[0]
 
@@ -695,7 +696,8 @@ export async function getWarehouseProductById(
         return { success: true, data: transformedProduct }
     } catch (error) {
         console.error('Erreur récupération produit:', error)
-        return { error: 'Erreur lors de la récupération du produit' }
+        // Changement ici aussi : ajouter success: false
+        return { success: false, error: 'Erreur lors de la récupération du produit' }
     }
 }
 
