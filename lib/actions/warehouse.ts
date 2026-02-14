@@ -12,11 +12,11 @@ export async function createWarehouseProduct(data: {
     name: string
     sku?: string
     description?: string
-    storageUnit: string // 'casier', 'carton', etc.
+    storageUnit: string
     unitsPerStorage: number
     category?: string
     imageUrl?: string
-    linkedProductId?: string // ID du produit menu
+    linkedProductId?: string
     conversionRatio?: number
     initialQuantity?: number
     alertThreshold?: number
@@ -25,7 +25,6 @@ export async function createWarehouseProduct(data: {
     try {
         const { restaurantId, userId } = await getCurrentUserAndRestaurant()
 
-        // Si un produit menu est lié, vérifier qu'il appartient au restaurant
         if (data.linkedProductId) {
             const linkedProduct = await prisma.product.findFirst({
                 where: {
@@ -39,9 +38,7 @@ export async function createWarehouseProduct(data: {
             }
         }
 
-        // Créer le produit d'entrepôt et son stock initial en transaction
         const warehouseProduct = await prisma.$transaction(async (tx) => {
-            // Créer le produit
             const product = await tx.warehouseProduct.create({
                 data: {
                     restaurantId,
@@ -57,18 +54,16 @@ export async function createWarehouseProduct(data: {
                 },
             })
 
-            // Créer l'entrée de stock
             await tx.warehouseStock.create({
                 data: {
                     restaurantId,
                     warehouseProductId: product.id,
                     quantity: data.initialQuantity || 0,
                     unitCost: data.unitCost,
-                    alertThreshold: data.alertThreshold ?? 10, // Valeur par défaut
+                    alertThreshold: data.alertThreshold ?? 10,
                 },
             })
 
-            // Si quantité initiale > 0, créer un mouvement d'entrée
             if (data.initialQuantity && data.initialQuantity > 0) {
                 await tx.warehouseMovement.create({
                     data: {
@@ -115,7 +110,6 @@ export async function warehouseStockEntry(data: {
         }
 
         await prisma.$transaction(async (tx) => {
-            // Récupérer le stock actuel
             const currentStock = await tx.warehouseStock.findUnique({
                 where: {
                     restaurantId_warehouseProductId: {
@@ -129,11 +123,9 @@ export async function warehouseStockEntry(data: {
                 throw new Error('Stock introuvable')
             }
 
-            // ✅ Convertir Decimal en number pour les calculs
             const previousQty = Number(currentStock.quantity)
             const newQty = previousQty + data.quantity
 
-            // Mettre à jour le stock
             await tx.warehouseStock.update({
                 where: {
                     id: currentStock.id,
@@ -145,7 +137,6 @@ export async function warehouseStockEntry(data: {
                 },
             })
 
-            // Créer le mouvement
             await tx.warehouseMovement.create({
                 data: {
                     restaurantId,
@@ -188,7 +179,6 @@ export async function transferWarehouseToOps(data: {
         }
 
         const result = await prisma.$transaction(async (tx) => {
-            // 1. Vérifier le produit d'entrepôt et son stock
             const warehouseProduct = await tx.warehouseProduct.findUnique({
                 where: { id: data.warehouseProductId },
                 include: {
@@ -207,14 +197,12 @@ export async function transferWarehouseToOps(data: {
                 throw new Error('Stock entrepôt introuvable')
             }
 
-            // ✅ Convertir Decimal en number
             const warehouseStockQty = Number(warehouseStock.quantity)
 
             if (warehouseStockQty < data.warehouseQuantity) {
                 throw new Error('Stock entrepôt insuffisant')
             }
 
-            // 2. Vérifier le produit opérationnel de destination
             const opsProduct = await tx.product.findUnique({
                 where: { id: data.opsProductId },
                 include: {
@@ -228,23 +216,16 @@ export async function transferWarehouseToOps(data: {
                 throw new Error('Produit opérationnel introuvable')
             }
 
-            // ✅ Vérifier que le stock existe (gérer le cas null)
             const opsStock = opsProduct.stock
 
             if (!opsStock) {
                 throw new Error('Stock opérationnel introuvable')
             }
 
-
-            // 3. Calculer la quantité avec conversion
-            // ✅ Convertir conversionRatio en number
             const conversionRatio = Number(warehouseProduct.conversionRatio) || 1
             const opsQuantityToAdd = data.warehouseQuantity * conversionRatio
-
-            // ✅ Convertir les quantités en number
             const opsStockQty = Number(opsStock.quantity)
 
-            // 4. Décrémenter le stock entrepôt
             const newWarehouseQty = warehouseStockQty - data.warehouseQuantity
             await tx.warehouseStock.update({
                 where: { id: warehouseStock.id },
@@ -254,7 +235,6 @@ export async function transferWarehouseToOps(data: {
                 },
             })
 
-            // 5. Incrémenter le stock opérationnel
             const newOpsQty = opsStockQty + opsQuantityToAdd
             await tx.stock.update({
                 where: { id: opsStock.id },
@@ -264,7 +244,6 @@ export async function transferWarehouseToOps(data: {
                 },
             })
 
-            // 6. Créer le mouvement dans l'entrepôt (sortie)
             await tx.warehouseMovement.create({
                 data: {
                     restaurantId,
@@ -279,8 +258,6 @@ export async function transferWarehouseToOps(data: {
                 },
             })
 
-            // 7. Créer le mouvement dans le stock opérationnel (entrée)
-            // ✅ Ajouter le champ userId qui est requis dans votre schéma
             await tx.stockMovement.create({
                 data: {
                     restaurantId,
@@ -290,11 +267,10 @@ export async function transferWarehouseToOps(data: {
                     previousQty: opsStockQty,
                     newQty: newOpsQty,
                     reason: `Transfert depuis magasin (${warehouseProduct.name})`,
-                    userId, // ✅ Champ manquant ajouté
+                    userId,
                 },
             })
 
-            // 8. Créer l'enregistrement de transfert
             await tx.warehouseToOpsTransfer.create({
                 data: {
                     restaurantId,
@@ -308,7 +284,6 @@ export async function transferWarehouseToOps(data: {
                 },
             })
 
-            // 9. Rendre le produit ops disponible
             if (!opsProduct.isAvailable && newOpsQty > 0) {
                 await tx.product.update({
                     where: { id: data.opsProductId },
@@ -368,7 +343,6 @@ export async function adjustWarehouseStock(data: {
                 throw new Error('Stock introuvable')
             }
 
-            // ✅ Convertir Decimal en number
             const previousQty = Number(currentStock.quantity)
             const difference = data.newQuantity - previousQty
 
@@ -411,7 +385,6 @@ export async function getWarehouseStats() {
     try {
         const { restaurantId } = await getCurrentUserAndRestaurant()
 
-        // Récupérer tous les produits avec leur stock
         const products = await prisma.warehouseProduct.findMany({
             where: {
                 restaurantId,
@@ -422,22 +395,19 @@ export async function getWarehouseStats() {
             },
         })
 
-        // Calculer les statistiques
         const stats = {
             totalProducts: products.length,
             totalValue: products.reduce((sum, product) => {
                 const stock = product.stock[0]
                 if (!stock || !stock.unitCost) return sum
-                // Convertir les Decimal en number pour le calcul
                 return sum + (Number(stock.quantity) * Number(stock.unitCost))
             }, 0),
             lowStockCount: products.filter(product => {
                 const stock = product.stock[0]
                 if (!stock) return false
-                // Convertir les Decimal en number pour la comparaison
                 return Number(stock.quantity) < Number(stock.alertThreshold)
             }).length,
-            averageStockValue: 0, // Sera calculé après
+            averageStockValue: 0,
             lastInventoryDate: products.reduce((latest, product) => {
                 const stock = product.stock[0]
                 if (!stock?.lastInventoryDate) return latest
@@ -448,7 +418,6 @@ export async function getWarehouseStats() {
             }, null as Date | null),
         }
 
-        // Calculer la valeur moyenne par produit
         stats.averageStockValue = stats.totalProducts > 0
             ? stats.totalValue / stats.totalProducts
             : 0
@@ -536,17 +505,14 @@ export async function getWarehouseProducts(filters?: {
     }
 }
 
-
 // ============================================================
 // Action 7 : Récupérer un produit spécifique avec son historique
 // ============================================================
 
 /**
- * Type de retour explicite pour getWarehouseProductById.
- *
- * Définir ce type explicitement garantit que TypeScript peut vérifier
- * la cohérence entre ce que la fonction retourne et ce que les composants
- * attendent de recevoir. Cela élimine beaucoup d'erreurs potentielles.
+ * Interface définissant exactement la structure des données retournées par getWarehouseProductById.
+ * Cette interface garantit la cohérence entre ce que la fonction retourne et ce que les composants attendent.
+ * Tous les types Decimal de Prisma sont convertis en number, et toutes les dates en ISO strings.
  */
 interface WarehouseProductDetail {
     id: string
@@ -592,7 +558,6 @@ interface WarehouseProductDetail {
         id: string
         restaurantId: string
         warehouseProductId: string
-        // ✅ Type précis au lieu de string générique
         movementType: 'entry' | 'exit' | 'transfer_to_ops' | 'adjustment' | 'loss'
         quantity: number
         previousQty: number
@@ -607,6 +572,19 @@ interface WarehouseProductDetail {
     }>
 }
 
+/**
+ * Fonction qui récupère un produit d'entrepôt complet avec son stock, ses mouvements,
+ * et son produit menu lié le cas échéant. Cette fonction effectue plusieurs transformations
+ * importantes pour rendre les données compatibles avec le frontend :
+ *
+ * 1. Conversion des types Decimal de PostgreSQL en nombres JavaScript standards
+ * 2. Sérialisation des dates en ISO strings pour la transmission client-serveur
+ * 3. Typage correct du movementType comme union littérale plutôt que string générique
+ * 4. Gestion de la relation un-à-un entre Product et Stock
+ *
+ * Le type de retour est une union discriminée qui permet à TypeScript de vérifier
+ * correctement si l'opération a réussi avant d'accéder aux données.
+ */
 export async function getWarehouseProductById(
     productId: string
 ): Promise<{ success: true; data: WarehouseProductDetail } | { success: false; error: string }> {
@@ -657,32 +635,52 @@ export async function getWarehouseProductById(
                 }
                 : undefined,
             isLowStock: stock ? Number(stock.quantity) < Number(stock.alertThreshold) : false,
+            /**
+             * Transformation du produit menu lié.
+             *
+             * Point crucial : Votre schéma Prisma définit la relation Product -> Stock comme un-à-un.
+             * Cela signifie que product.linkedProduct.stock est un objet Stock singulier ou null,
+             * jamais un tableau. Cette architecture reflète la réalité métier : un produit a un seul
+             * stock actuel à tout moment.
+             *
+             * Nous créons un tableau contenant ce stock unique pour maintenir la compatibilité avec
+             * l'interface TypeScript qui attend un tableau optionnel. Cette transformation permet à
+             * vos composants d'utiliser une API cohérente où le stock est toujours traité comme une
+             * collection, même si elle ne contient qu'un élément.
+             */
             linkedProduct: product.linkedProduct
                 ? {
                     id: product.linkedProduct.id,
                     name: product.linkedProduct.name,
                     imageUrl: product.linkedProduct.imageUrl,
-                    currentStock: product.linkedProduct.stock?.[0]
-                        ? Number(product.linkedProduct.stock[0].quantity)
+                    currentStock: product.linkedProduct.stock
+                        ? Number(product.linkedProduct.stock.quantity)
                         : 0,
-                    stock: product.linkedProduct.stock?.map(s => ({
-                        quantity: Number(s.quantity),
-                        alertThreshold: Number(s.alertThreshold),
-                        unitCost: s.unitCost !== null ? Number(s.unitCost) : null,
-                        lastInventoryDate: s.lastInventoryDate
-                            ? new Date(s.lastInventoryDate).toISOString()
+                    stock: product.linkedProduct.stock ? [{
+                        quantity: Number(product.linkedProduct.stock.quantity),
+                        alertThreshold: Number(product.linkedProduct.stock.alertThreshold),
+                        unitCost: product.linkedProduct.stock.unitCost !== null
+                            ? Number(product.linkedProduct.stock.unitCost)
                             : null,
-                        updatedAt: new Date(s.updatedAt).toISOString(),
-                    })),
+                        lastInventoryDate: product.linkedProduct.stock.lastInventoryDate
+                            ? new Date(product.linkedProduct.stock.lastInventoryDate).toISOString()
+                            : null,
+                        updatedAt: new Date(product.linkedProduct.stock.updatedAt).toISOString(),
+                    }] : undefined,
                 }
                 : undefined,
+            /**
+             * Transformation des mouvements avec typage correct du movementType.
+             *
+             * Prisma retourne movementType comme une chaîne générique, mais nous savons que dans
+             * votre base de données, cette colonne ne peut contenir que cinq valeurs spécifiques
+             * définies dans votre schéma. L'assertion de type que nous faisons ici est sûre parce
+             * que votre schéma PostgreSQL garantit ces contraintes au niveau de la base de données.
+             */
             movements: product.movements.map(m => ({
                 id: m.id,
                 restaurantId: m.restaurantId,
                 warehouseProductId: m.warehouseProductId,
-                // ✅ CORRECTION CRITIQUE : Cast du movementType vers le type attendu
-                // Prisma retourne une string générique, mais nous savons que dans notre BDD
-                // cette colonne ne contient que ces valeurs spécifiques définies dans le schéma
                 movementType: m.movementType as 'entry' | 'exit' | 'transfer_to_ops' | 'adjustment' | 'loss',
                 quantity: Number(m.quantity),
                 previousQty: Number(m.previousQty),
@@ -712,8 +710,6 @@ export async function getAvailableProductsForLinking() {
     try {
         const { restaurantId } = await getCurrentUserAndRestaurant()
 
-        // Récupérer tous les produits actifs du menu
-        // Ces produits pourront être liés à des produits d'entrepôt
         const products = await prisma.product.findMany({
             where: {
                 restaurantId,
@@ -744,14 +740,12 @@ export async function getWarehouseCategories() {
     try {
         const { restaurantId } = await getCurrentUserAndRestaurant()
 
-        // Récupérer toutes les catégories uniques
-        // Cette requête est optimisée car elle ne récupère que le champ category
         const products = await prisma.warehouseProduct.findMany({
             where: {
                 restaurantId,
                 isActive: true,
                 category: {
-                    not: null, // Exclure les produits sans catégorie
+                    not: null,
                 },
             },
             select: {
@@ -760,11 +754,10 @@ export async function getWarehouseCategories() {
             distinct: ['category'],
         })
 
-        // Extraire les catégories uniques et filtrer les nulls
         const categories = products
             .map(p => p.category)
             .filter((category): category is string => category !== null)
-            .sort() // Tri alphabétique
+            .sort()
 
         return { success: true, data: categories }
     } catch (error) {
@@ -795,8 +788,6 @@ export async function updateWarehouseProduct(data: {
     try {
         const { restaurantId } = await getCurrentUserAndRestaurant()
 
-        // Vérifier que le produit existe et appartient bien au restaurant
-        // Cette étape est cruciale pour la sécurité multi-tenant
         const existingProduct = await prisma.warehouseProduct.findUnique({
             where: { id: data.id },
         })
@@ -809,8 +800,6 @@ export async function updateWarehouseProduct(data: {
             return { error: 'Accès non autorisé à ce produit' }
         }
 
-        // Si un nouveau produit menu est lié, vérifier qu'il appartient au restaurant
-        // Cela évite qu'un utilisateur malveillant ne lie un produit d'un autre restaurant
         if (data.linkedProductId && data.linkedProductId !== existingProduct.linkedProductId) {
             const linkedProduct = await prisma.product.findFirst({
                 where: {
@@ -824,14 +813,10 @@ export async function updateWarehouseProduct(data: {
             }
         }
 
-        // Effectuer la mise à jour dans une transaction pour garantir la cohérence
-        // Si on modifie le seuil d'alerte, on doit aussi mettre à jour le stock
         const updatedProduct = await prisma.$transaction(async (tx) => {
-            // Mettre à jour le produit
             const product = await tx.warehouseProduct.update({
                 where: { id: data.id },
                 data: {
-                    // On ne met à jour que les champs fournis (undefined ne modifie pas)
                     name: data.name,
                     sku: data.sku,
                     description: data.description,
@@ -847,8 +832,6 @@ export async function updateWarehouseProduct(data: {
                 },
             })
 
-            // Si le seuil d'alerte a changé, mettre à jour le stock également
-            // Cela permet de garder la cohérence entre le produit et son stock
             if (data.alertThreshold !== undefined) {
                 await tx.warehouseStock.updateMany({
                     where: {
@@ -864,10 +847,9 @@ export async function updateWarehouseProduct(data: {
             return product
         })
 
-        // Revalider les caches Next.js pour que les changements soient visibles immédiatement
         revalidatePath('/dashboard/warehouse')
         revalidatePath(`/dashboard/warehouse/products/${data.id}`)
-        
+
         return { success: true, product: updatedProduct }
     } catch (error) {
         console.error('Erreur mise à jour produit entrepôt:', error)
