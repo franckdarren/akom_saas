@@ -1,17 +1,17 @@
 // app/(dashboard)/dashboard/warehouse/movements/page.tsx
-import { Metadata } from 'next'
-import { Suspense } from 'react'
-import {Download } from 'lucide-react'
+import {Metadata} from 'next'
+import {Suspense} from 'react'
+import {Download} from 'lucide-react'
 
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
-import { getCurrentUserAndRestaurant } from '@/lib/auth/session'
+import {Button} from '@/components/ui/button'
+import {Card} from '@/components/ui/card'
+import {getCurrentUserAndRestaurant} from '@/lib/auth/session'
 import prisma from '@/lib/prisma'
-import { WarehouseMovementsTimeline } from '@/components/warehouse/WarehouseMovementsTimeline'
-import { MovementsFilters } from '@/components/warehouse/MovementsFilters'
-import { MovementsStats } from '@/components/warehouse/MovementsStats'
-import { SidebarTrigger } from '@/components/ui/sidebar'
-import { Separator } from '@/components/ui/separator'
+import {WarehouseMovementsTimeline} from '@/components/warehouse/WarehouseMovementsTimeline'
+import {MovementsFilters} from '@/components/warehouse/MovementsFilters'
+import {MovementsStats} from '@/components/warehouse/MovementsStats'
+import {SidebarTrigger} from '@/components/ui/sidebar'
+import {Separator} from '@/components/ui/separator'
 import {
     Breadcrumb,
     BreadcrumbItem,
@@ -21,7 +21,7 @@ import {
     BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
 
-import { WarehouseMovement, WarehouseMovementType } from '@/types/warehouse'
+import {WarehouseMovement, WarehouseMovementType} from '@/types/warehouse'
 
 export const metadata: Metadata = {
     title: 'Mouvements de stock | Akôm',
@@ -69,11 +69,11 @@ function calculateMovementsStatsRaw(movements: any[]) {
     }
 }
 
-export default async function WarehouseMovementsPage({ searchParams }: PageProps) {
-    const { restaurantId } = await getCurrentUserAndRestaurant()
+export default async function WarehouseMovementsPage({searchParams}: PageProps) {
+    const {restaurantId} = await getCurrentUserAndRestaurant()
 
     // Construire les filtres
-    const where: any = { restaurantId }
+    const where: any = {restaurantId}
     if (searchParams.productId) where.warehouseProductId = searchParams.productId
     if (searchParams.type) where.movementType = searchParams.type
     if (searchParams.startDate || searchParams.endDate) {
@@ -94,7 +94,7 @@ export default async function WarehouseMovementsPage({ searchParams }: PageProps
                 },
             },
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy: {createdAt: 'desc'},
         take: 100,
     })
 
@@ -103,24 +103,24 @@ export default async function WarehouseMovementsPage({ searchParams }: PageProps
 
     // Produits pour le filtre
     const products = await prisma.warehouseProduct.findMany({
-        where: { restaurantId },
-        select: { id: true, name: true },
-        orderBy: { name: 'asc' },
+        where: {restaurantId},
+        select: {id: true, name: true},
+        orderBy: {name: 'asc'},
     })
 
     return (
         <>
             {/* Header */}
             <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-                <SidebarTrigger className="-ml-1" />
-                <Separator orientation="vertical" className="mr-2 h-4" />
+                <SidebarTrigger className="-ml-1"/>
+                <Separator orientation="vertical" className="mr-2 h-4"/>
                 <div className="flex justify-between w-full">
                     <Breadcrumb>
                         <BreadcrumbList>
                             <BreadcrumbItem>
                                 <BreadcrumbLink href="/dashboard/warehouse">Magasin</BreadcrumbLink>
                             </BreadcrumbItem>
-                            <BreadcrumbSeparator />
+                            <BreadcrumbSeparator/>
                             <BreadcrumbItem>
                                 <BreadcrumbPage>Mouvements de stock</BreadcrumbPage>
                             </BreadcrumbItem>
@@ -138,19 +138,19 @@ export default async function WarehouseMovementsPage({ searchParams }: PageProps
                         </p>
                     </div>
                     <Button variant="outline" disabled className="gap-2">
-                        <Download className="h-4 w-4" />
+                        <Download className="h-4 w-4"/>
                         Exporter (à venir)
                     </Button>
                 </div>
 
                 {/* Statistiques */}
-                <Suspense fallback={<StatsCardsSkeleton />}>
-                    <MovementsStats stats={stats} />
+                <Suspense fallback={<StatsCardsSkeleton/>}>
+                    <MovementsStats stats={stats}/>
                 </Suspense>
 
                 {/* Filtres et timeline */}
                 <Card className="p-6 space-y-6">
-                    <MovementsFilters products={products} />
+                    <MovementsFilters products={products}/>
 
                     <div className="flex items-center justify-between text-sm text-muted-foreground">
                         <span>
@@ -164,8 +164,8 @@ export default async function WarehouseMovementsPage({ searchParams }: PageProps
                         )}
                     </div>
 
-                    <Suspense fallback={<TimelineSkeleton />}>
-                        <WarehouseMovementsTimeline movements={movements} />
+                    <Suspense fallback={<TimelineSkeleton/>}>
+                        <WarehouseMovementsTimeline movements={movements}/>
                     </Suspense>
                 </Card>
             </div>
@@ -180,8 +180,8 @@ function StatsCardsSkeleton() {
             {[...Array(4)].map((_, i) => (
                 <Card key={i} className="p-6">
                     <div className="animate-pulse space-y-3">
-                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4" />
-                        <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
+                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"/>
+                        <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/2"/>
                     </div>
                 </Card>
             ))}
@@ -194,10 +194,10 @@ function TimelineSkeleton() {
         <div className="animate-pulse space-y-4">
             {[...Array(5)].map((_, i) => (
                 <div key={i} className="flex gap-4">
-                    <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700" />
+                    <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700"/>
                     <div className="flex-1 space-y-2">
-                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4" />
-                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
+                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"/>
+                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"/>
                     </div>
                 </div>
             ))}
