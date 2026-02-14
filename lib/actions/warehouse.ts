@@ -19,6 +19,7 @@ export async function createWarehouseProduct(data: {
     linkedProductId?: string // ID du produit menu
     conversionRatio?: number
     initialQuantity?: number
+    alertThreshold?: number
     unitCost?: number
 }) {
     try {
@@ -63,7 +64,7 @@ export async function createWarehouseProduct(data: {
                     warehouseProductId: product.id,
                     quantity: data.initialQuantity || 0,
                     unitCost: data.unitCost,
-                    alertThreshold: 10, // Valeur par défaut
+                    alertThreshold: data.alertThreshold ?? 10, // Valeur par défaut
                 },
             })
 
