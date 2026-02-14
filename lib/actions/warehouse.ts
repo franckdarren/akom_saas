@@ -566,9 +566,14 @@ export async function getWarehouseProductById(productId: string) {
                     quantity: Number(stock.quantity),
                     alertThreshold: Number(stock.alertThreshold),
                     unitCost: stock.unitCost !== null ? Number(stock.unitCost) : null,
+                    // ✅ AJOUT : Convertir createdAt en ISO string
+                    createdAt: stock.createdAt
+                        ? new Date(stock.createdAt).toISOString()
+                        : null,
                     lastInventoryDate: stock.lastInventoryDate
                         ? new Date(stock.lastInventoryDate).toISOString()
                         : null,
+                    updatedAt: new Date(stock.updatedAt).toISOString(),
                 }
                 : undefined,
             isLowStock: stock ? Number(stock.quantity) < Number(stock.alertThreshold) : false,
@@ -585,9 +590,13 @@ export async function getWarehouseProductById(productId: string) {
                         quantity: Number(s.quantity),
                         alertThreshold: Number(s.alertThreshold),
                         unitCost: s.unitCost !== null ? Number(s.unitCost) : null,
+                        createdAt: s.createdAt
+                            ? new Date(s.createdAt).toISOString()
+                            : null,
                         lastInventoryDate: s.lastInventoryDate
                             ? new Date(s.lastInventoryDate).toISOString()
                             : null,
+                        updatedAt: new Date(s.updatedAt).toISOString(),
                     })),
                 }
                 : undefined,
@@ -608,7 +617,6 @@ export async function getWarehouseProductById(productId: string) {
         return { error: 'Erreur lors de la récupération du produit' }
     }
 }
-
 
 
 // ============================================================
