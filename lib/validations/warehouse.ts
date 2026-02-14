@@ -38,9 +38,10 @@ export const createWarehouseProductSchema = z.object({
         .max(1000, 'La description ne peut pas dépasser 1000 caractères')
         .optional(),
 
-    storageUnit: z.enum(storageUnits, {
-        required_error: 'Veuillez sélectionner une unité de stockage',
+    storageUnit: z.enum(storageUnits).refine(Boolean, {
+        message: 'Veuillez sélectionner une unité de stockage',
     }),
+
 
     unitsPerStorage: z
         .number()
