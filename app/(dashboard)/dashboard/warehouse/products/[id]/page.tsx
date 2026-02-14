@@ -31,31 +31,38 @@ interface PageProps {
     params: Promise<{ id: string }>
 }
 
-/**
- * Cette page affiche les détails complets d'un produit d'entrepôt.
- *
- * Elle récupère les données depuis la Server Action getWarehouseProductById qui retourne
- * des données déjà transformées avec les Decimal convertis en number et les dates sérialisées.
- *
- * Pour éviter les erreurs TypeScript, nous devons typer explicitement toutes les transformations
- * supplémentaires que nous effectuons côté client, notamment la conversion des ISO strings
- * en objets Date pour l'affichage.
- */
 export default async function WarehouseProductDetailPage({ params }: PageProps) {
     const { id } = await params
     if (!id) notFound()
 
     const res = await getWarehouseProductById(id)
-    if (res.error || !res.data) notFound()
 
+    /**
+     * ✅ CORRECTION : Vérification correcte de l'union discriminée
+     *
+     * Nous vérifions d'abord si success est false (ce qui signifie qu'il y a une erreur).
+     * TypeScript comprend maintenant que dans ce cas, res a la propriété error.
+     *
+     * Cette approche est appelée "narrowing" : TypeScript rétrécit le type possible
+     * de res en fonction de la condition que nous vérifions.
+     */
+    if (!res.success) {
+        // Dans ce bloc, TypeScript sait que res est de type { error: string }
+        // On pourrait logger l'erreur si on voulait : console.error(res.error)
+        notFound()
+    }
+
+    /**
+     * À partir d'ici, TypeScript sait que res.success est true,
+     * donc res est de type { success: true, data: WarehouseProductDetail }
+     *
+     * Nous pouvons maintenant accéder à res.data en toute sécurité.
+     * TypeScript garantit que data existe et a le bon type.
+     */
     const productFromDb = res.data
 
     /**
      * Interface pour le stock transformé côté client.
-     *
-     * Cette interface définit exactement la structure que nous créons après avoir
-     * converti les ISO strings en objets Date. Elle garantit que TypeScript comprend
-     * précisément ce que nous manipulons et peut vérifier la cohérence des types.
      */
     interface TransformedStock {
         id: string
@@ -69,13 +76,6 @@ export default async function WarehouseProductDetailPage({ params }: PageProps) 
         updatedAt: Date
     }
 
-    /**
-     * Transformation du stock avec typage explicite.
-     *
-     * Nous créons un tableau de TransformedStock en convertissant les ISO strings
-     * en objets Date. Le typage explicite permet à TypeScript de vérifier que chaque
-     * propriété est correctement définie et utilisée.
-     */
     const stock: TransformedStock[] = productFromDb.stock
         ? [
             {
@@ -97,13 +97,6 @@ export default async function WarehouseProductDetailPage({ params }: PageProps) 
         ]
         : []
 
-    /**
-     * Interface pour le produit lié transformé.
-     *
-     * Cette interface définit la structure du produit menu lié après transformation.
-     * Elle inclut un tableau de stock typé explicitement pour éviter les erreurs
-     * de type implicite any dans les fonctions map.
-     */
     interface TransformedLinkedProduct {
         id: string
         name: string
@@ -113,13 +106,6 @@ export default async function WarehouseProductDetailPage({ params }: PageProps) 
         }>
     }
 
-    /**
-     * Transformation du produit avec typage explicite complet.
-     *
-     * Nous définissons chaque propriété du produit transformé avec son type exact.
-     * Pour le linkedProduct, nous utilisons l'interface TransformedLinkedProduct
-     * qui type explicitement le tableau stock, éliminant ainsi l'erreur any.
-     */
     const product = {
         id: productFromDb.id,
         restaurantId: productFromDb.restaurantId,
@@ -134,8 +120,8 @@ export default async function WarehouseProductDetailPage({ params }: PageProps) 
         conversionRatio: productFromDb.conversionRatio,
         notes: productFromDb.notes,
         isActive: productFromDb.isActive,
-        createdAt: new Date(productFromDb.createdAt!),
-        updatedAt: new Date(productFromDb.updatedAt!),
+        createdAt: productFromDb.createdAt ? new Date(productFromDb.createdAt) : new Date(),
+        updatedAt: productFromDb.updatedAt ? new Date(productFromDb.updatedAt) : new Date(),
         stock,
         isLowStock: productFromDb.isLowStock,
         movements: productFromDb.movements,
@@ -144,8 +130,6 @@ export default async function WarehouseProductDetailPage({ params }: PageProps) 
                 id: productFromDb.linkedProduct.id,
                 name: productFromDb.linkedProduct.name,
                 imageUrl: productFromDb.linkedProduct.imageUrl,
-                // ✅ CORRECTION : Typage explicite du paramètre s dans map
-                // En définissant le type du paramètre, nous éliminons l'erreur any
                 stock: productFromDb.linkedProduct.stock?.map((s: { quantity: number }) => ({
                     quantity: s.quantity,
                 })) ?? [],
