@@ -82,8 +82,10 @@ export function WarehouseProductsTable({ products }: WarehouseProductsTableProps
                             {/* Unité */}
                             <TableCell>
                                 <div className="flex flex-col gap-1">
-                                    <span className="font-medium capitalize">{product.stock.storageUnit}</span>
-                                    <span className="text-xs text-muted-foreground">{product.stock.unitsPerStorage} unités</span>
+                                    {/* ✅ CORRECTION : Accéder à storageUnit depuis le produit, pas depuis le stock */}
+                                    <span className="font-medium capitalize">{product.storageUnit}</span>
+                                    {/* ✅ CORRECTION : Accéder à unitsPerStorage depuis le produit, pas depuis le stock */}
+                                    <span className="text-xs text-muted-foreground">{product.unitsPerStorage} unités</span>
                                 </div>
                             </TableCell>
 
