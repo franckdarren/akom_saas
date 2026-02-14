@@ -1,3 +1,4 @@
+// app/(dashboard)/dashboard/warehouse/products/[id]/page.tsx
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
@@ -18,7 +19,7 @@ import {
     BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
 
-import { getWarehouseProductById } from '@/lib/actions/warehouse' // ✅ nouvelle action serveur
+import { getWarehouseProductById } from '@/lib/actions/warehouse'
 import { formatPrice } from '@/lib/utils/format'
 import { WarehouseMovementsTimeline } from '@/components/warehouse/WarehouseMovementsTimeline'
 import { QuickActionsButtons } from '@/components/warehouse/QuickActionsButtons'
@@ -35,19 +36,54 @@ export default async function WarehouseProductDetailPage({ params }: PageProps) 
     const { id } = await params
     if (!id) notFound()
 
-    // ✅ Utilisation de l'action serveur centralisée
+    // Récupérer le produit avec son stock
     const res = await getWarehouseProductById(id)
     if (res.error || !res.data) notFound()
-    const product = res.data
 
-    const stock = product.stock
-    const isLowStock = stock ? stock.quantity < stock.alertThreshold : false
+    const productFromDb = res.data
+
+    // 🔹 Transformer le stock pour correspondre au type WarehouseStock[]
+    const stock = productFromDb.stock?.map(s => ({
+        ...s,
+        quantity: Number(s.quantity),
+        alertThreshold: Number(s.alertThreshold),
+        unitCost: s.unitCost !== null ? Number(s.unitCost) : null,
+        totalValue: s.unitCost ? Number(s.quantity) * Number(s.unitCost) : null,
+        lastInventoryDate: s.lastInventoryDate,
+        updatedAt: s.updatedAt,
+    })) ?? []
+
+    // 🔹 Transformer le produit pour correspondre aux types
+    const product = {
+        ...productFromDb,
+        conversionRatio: Number(productFromDb.conversionRatio),
+        createdAt: productFromDb.createdAt,
+        updatedAt: productFromDb.updatedAt,
+        stock,
+        linkedProduct: productFromDb.linkedProduct
+            ? {
+                ...productFromDb.linkedProduct,
+                stock: productFromDb.linkedProduct.stock?.map(s => ({
+                    ...s,
+                    quantity: Number(s.quantity),
+                    alertThreshold: Number(s.alertThreshold),
+                    unitCost: s.unitCost !== null ? Number(s.unitCost) : null,
+                    totalValue: s.unitCost ? Number(s.quantity) * Number(s.unitCost) : null,
+                    lastInventoryDate: s.lastInventoryDate,
+                    updatedAt: s.updatedAt,
+                })) ?? [],
+            }
+            : undefined,
+    }
+
+    const mainStock = stock[0] // si tu veux le premier stock pour affichage rapide
+    const isLowStock = mainStock ? mainStock.quantity < mainStock.alertThreshold : false
     const linkedProduct = product.linkedProduct
     const linkedProductStock = linkedProduct?.stock?.[0]
 
     return (
         <>
-            {/* Header avec navigation */}
+            {/* Header */}
             <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
                 <SidebarTrigger className="-ml-1" />
                 <Separator orientation="vertical" className="mr-2 h-4" />
@@ -59,7 +95,7 @@ export default async function WarehouseProductDetailPage({ params }: PageProps) 
                             </BreadcrumbItem>
                             <BreadcrumbSeparator />
                             <BreadcrumbItem>
-                                <BreadcrumbPage>Détails d&#39;un produit</BreadcrumbPage>
+                                <BreadcrumbPage>Détails d&apos;un produit</BreadcrumbPage>
                             </BreadcrumbItem>
                         </BreadcrumbList>
                     </Breadcrumb>
@@ -80,32 +116,30 @@ export default async function WarehouseProductDetailPage({ params }: PageProps) 
                     </div>
 
                     <div className="space-y-6">
-                        <div>
-                            <div className="flex items-start justify-between">
-                                <div className="flex-1">
-                                    <h1 className="text-3xl font-bold tracking-tight">{product.name}</h1>
-                                    {product.sku && (
-                                        <p className="text-sm text-muted-foreground font-mono mt-1">SKU: {product.sku}</p>
-                                    )}
-                                </div>
-                                <Button asChild size="sm" variant="outline">
-                                    <Link href={`/dashboard/warehouse/products/${product.id}/edit`}>
-                                        <Edit className="h-4 w-4 mr-2" />
-                                        Modifier
-                                    </Link>
-                                </Button>
-                            </div>
-
-                            <div className="flex items-center gap-2 mt-3">
-                                {product.category && <Badge variant="secondary">{product.category}</Badge>}
-                                {isLowStock && (
-                                    <Badge variant="destructive" className="gap-1">
-                                        <TrendingUp className="h-3 w-3" />
-                                        Stock bas
-                                    </Badge>
+                        <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                                <h1 className="text-3xl font-bold tracking-tight">{product.name}</h1>
+                                {product.sku && (
+                                    <p className="text-sm text-muted-foreground font-mono mt-1">SKU: {product.sku}</p>
                                 )}
-                                {!product.isActive && <Badge variant="outline">Inactif</Badge>}
                             </div>
+                            <Button asChild size="sm" variant="outline">
+                                <Link href={`/dashboard/warehouse/products/${product.id}/edit`}>
+                                    <Edit className="h-4 w-4 mr-2" />
+                                    Modifier
+                                </Link>
+                            </Button>
+                        </div>
+
+                        <div className="flex items-center gap-2 mt-3">
+                            {product.category && <Badge variant="secondary">{product.category}</Badge>}
+                            {isLowStock && (
+                                <Badge variant="destructive" className="gap-1">
+                                    <TrendingUp className="h-3 w-3" />
+                                    Stock bas
+                                </Badge>
+                            )}
+                            {!product.isActive && <Badge variant="outline">Inactif</Badge>}
                         </div>
 
                         {product.description && (
@@ -139,7 +173,7 @@ export default async function WarehouseProductDetailPage({ params }: PageProps) 
                 </div>
 
                 {/* Section stock */}
-                {stock && (
+                {mainStock && (
                     <div className="grid gap-6 md:grid-cols-3">
                         <Card>
                             <CardHeader>
@@ -149,14 +183,14 @@ export default async function WarehouseProductDetailPage({ params }: PageProps) 
                                 <div className="space-y-3">
                                     <div>
                                         <p className={`text-3xl font-bold ${isLowStock ? 'text-orange-600' : ''}`}>
-                                            {stock.quantity ?? 0}
+                                            {mainStock.quantity ?? 0}
                                         </p>
                                         <p className="text-sm text-muted-foreground capitalize">{product.storageUnit}</p>
                                     </div>
                                     <Separator />
                                     <div>
                                         <p className="text-sm text-muted-foreground">Seuil d'alerte</p>
-                                        <p className="font-medium mt-1">{stock.alertThreshold ?? 0}</p>
+                                        <p className="font-medium mt-1">{mainStock.alertThreshold ?? 0}</p>
                                     </div>
                                 </div>
                             </CardContent>
@@ -167,18 +201,18 @@ export default async function WarehouseProductDetailPage({ params }: PageProps) 
                                 <CardTitle className="text-base">Valorisation</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                {stock.unitCost ? (
+                                {mainStock.unitCost ? (
                                     <div className="space-y-3">
                                         <div>
                                             <p className="text-3xl font-bold">
-                                                {formatPrice(stock.quantity * stock.unitCost)}
+                                                {formatPrice(mainStock.quantity * mainStock.unitCost)}
                                             </p>
                                             <p className="text-sm text-muted-foreground">Valeur totale</p>
                                         </div>
                                         <Separator />
                                         <div>
                                             <p className="text-sm text-muted-foreground">Coût unitaire</p>
-                                            <p className="font-medium mt-1">{formatPrice(stock.unitCost)}</p>
+                                            <p className="font-medium mt-1">{formatPrice(mainStock.unitCost)}</p>
                                         </div>
                                     </div>
                                 ) : (
@@ -192,13 +226,13 @@ export default async function WarehouseProductDetailPage({ params }: PageProps) 
                                 <CardTitle className="text-base">Dernier inventaire</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                {stock.lastInventoryDate ? (
+                                {mainStock.lastInventoryDate ? (
                                     <div className="space-y-2">
                                         <p className="text-2xl font-bold">
-                                            {new Date(stock.lastInventoryDate).toLocaleDateString('fr-FR')}
+                                            {new Date(mainStock.lastInventoryDate).toLocaleDateString('fr-FR')}
                                         </p>
                                         <p className="text-sm text-muted-foreground">
-                                            Il y a {getDaysSince(stock.lastInventoryDate)} jours
+                                            Il y a {getDaysSince(mainStock.lastInventoryDate)} jours
                                         </p>
                                     </div>
                                 ) : (
@@ -252,8 +286,7 @@ export default async function WarehouseProductDetailPage({ params }: PageProps) 
                                             Conversion automatique
                                         </p>
                                         <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
-                                            1 {product.storageUnit} → {product.conversionRatio} ×{' '}
-                                            {linkedProduct.name}
+                                            1 {product.storageUnit} → {product.conversionRatio} × {linkedProduct.name}
                                         </p>
                                     </div>
                                 </div>
@@ -287,7 +320,7 @@ export default async function WarehouseProductDetailPage({ params }: PageProps) 
     )
 }
 
-/** Calcule le nombre de jours depuis une date ISO string */
+/** Calcule le nombre de jours depuis une date ISO string ou Date */
 function getDaysSince(date: string | Date): number {
     const now = new Date()
     const d = typeof date === 'string' ? new Date(date) : date
