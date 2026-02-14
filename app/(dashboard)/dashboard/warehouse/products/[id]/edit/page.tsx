@@ -8,22 +8,32 @@ import { Button } from '@/components/ui/button'
 import { getCurrentUserAndRestaurant } from '@/lib/auth/session'
 import prisma from '@/lib/prisma'
 import { WarehouseProductForm } from '@/components/warehouse/WarehouseProductForm'
+import {SidebarTrigger} from "@/components/ui/sidebar";
+import {Separator} from "@/components/ui/separator";
+import {
+    Breadcrumb,
+    BreadcrumbItem,
+    BreadcrumbLink,
+    BreadcrumbList, BreadcrumbPage,
+    BreadcrumbSeparator
+} from "@/components/ui/breadcrumb";
 
 export const metadata: Metadata = {
-    title: 'Modifier produit d\'entrepôt | Akôm',
-    description: 'Modifiez les informations d\'un produit de votre magasin de stockage',
+    title: "Modifier produit d'entrepôt | Akôm",
+    description:
+        "Modifiez les informations d'un produit de votre magasin de stockage",
 }
 
 interface PageProps {
-    params: Promise<{ id: string }> // ✅ IMPORTANT : params est une Promise depuis Next.js 15
+    params: Promise<{ id: string }>
 }
 
-export default async function EditWarehouseProductPage({ params }: PageProps) {
-    // ✅ CORRECTION 1 : await params pour récupérer l'id
+export default async function EditWarehouseProductPage({
+                                                           params,
+                                                       }: PageProps) {
     const { id } = await params
     const { restaurantId } = await getCurrentUserAndRestaurant()
 
-    // Récupérer le produit avec toutes ses informations
     const productFromDb = await prisma.warehouseProduct.findUnique({
         where: {
             id,
@@ -39,17 +49,28 @@ export default async function EditWarehouseProductPage({ params }: PageProps) {
         notFound()
     }
 
-    // ✅ CORRECTION 2 : Convertir les types Decimal en number
-    // Cette transformation est nécessaire car les Client Components ne peuvent
-    // pas recevoir des objets Decimal de Prisma. Nous devons les convertir
-    // en types JavaScript natifs avant de les passer au composant.
+    // 🔥 SERIALIZATION COMPLETE (IMPORTANT)
     const product = {
         ...productFromDb,
-        // Convertir conversionRatio de Decimal vers number
+
+        // Decimal → number
         conversionRatio: Number(productFromDb.conversionRatio),
+
+        stock: productFromDb.stock
+            ? {
+                ...productFromDb.stock,
+                quantity: Number(productFromDb.stock.quantity),
+                alertThreshold: Number(
+                    productFromDb.stock.alertThreshold
+                ),
+                unitCost:
+                    productFromDb.stock.unitCost !== null
+                        ? Number(productFromDb.stock.unitCost)
+                        : null,
+            }
+            : null,
     }
 
-    // Récupérer la liste des produits du menu
     const menuProducts = await prisma.product.findMany({
         where: {
             restaurantId,
@@ -66,28 +87,39 @@ export default async function EditWarehouseProductPage({ params }: PageProps) {
     })
 
     return (
-        <div className="flex flex-col gap-6 p-6 max-w-4xl mx-auto">
-            {/* Header avec navigation */}
-            <div className="flex items-center gap-4">
-                <Button variant="ghost" size="sm" asChild>
-                    <Link href={`/dashboard/warehouse/products/${product.id}`}>
-                        <ArrowLeft className="h-4 w-4 mr-2" />
-                        Retour au produit
-                    </Link>
-                </Button>
-            </div>
+        <>
+            {/* Header */}
+            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+                <SidebarTrigger className="-ml-1" />
+                <Separator orientation="vertical" className="mr-2 h-4" />
+                <div className="flex justify-between w-full">
+                    <Breadcrumb>
+                        <BreadcrumbList>
+                            <BreadcrumbItem>
+                                <BreadcrumbLink href="/dashboard/warehouse">Magasin</BreadcrumbLink>
+                            </BreadcrumbItem>
+                            <BreadcrumbSeparator />
+                            <BreadcrumbItem>
+                                <BreadcrumbPage>Magasin de stockage</BreadcrumbPage>
+                            </BreadcrumbItem>
+                        </BreadcrumbList>
+                    </Breadcrumb>
+                </div>
+            </header>
 
-            {/* Titre de la page */}
+            <div className="flex flex-1 flex-col gap-4 p-4">
+
+            {/* Title */}
             <div>
                 <h1 className="text-3xl font-bold tracking-tight">
-                    Modifier le produit d'entrepôt
+                    Modifier le produit d&#39;entrepôt
                 </h1>
                 <p className="text-muted-foreground mt-1">
                     Mettez à jour les informations de {product.name}
                 </p>
             </div>
 
-            {/* Message informatif */}
+            {/* Info box */}
             <div className="rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/20 p-4">
                 <div className="flex gap-3">
                     <div className="flex-shrink-0">
@@ -109,19 +141,22 @@ export default async function EditWarehouseProductPage({ params }: PageProps) {
                             À propos des modifications de stock
                         </h3>
                         <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
-                            Le stock et le coût unitaire ne peuvent pas être modifiés directement ici.
-                            Pour ajuster le stock, utilisez les actions "Entrée de stock" ou "Ajustement d'inventaire"
-                            depuis la page du produit. Cela garantit la traçabilité complète de tous les mouvements.
+                            Le stock et le coût unitaire ne peuvent pas être
+                            modifiés directement ici. Utilisez les actions
+                            "Entrée de stock" ou "Ajustement d'inventaire"
+                            depuis la page du produit pour garantir la
+                            traçabilité complète.
                         </p>
                     </div>
                 </div>
             </div>
 
-            {/* Formulaire de modification avec les données nettoyées */}
+            {/* Form */}
             <WarehouseProductForm
                 initialData={product}
                 availableProducts={menuProducts}
             />
-        </div>
+            </div>
+        </>
     )
 }

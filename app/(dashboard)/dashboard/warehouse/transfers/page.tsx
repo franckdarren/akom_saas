@@ -95,7 +95,7 @@ export default async function WarehouseTransfersPage() {
                     <div className='my-auto'>
                         <BreadcrumbList>
                             <BreadcrumbItem>
-                                <BreadcrumbLink href="/dashboard">Magasin</BreadcrumbLink>
+                                <BreadcrumbLink href="/dashboard/warehouse">Magasin</BreadcrumbLink>
                             </BreadcrumbItem>
                             <BreadcrumbSeparator />
                             <BreadcrumbItem>

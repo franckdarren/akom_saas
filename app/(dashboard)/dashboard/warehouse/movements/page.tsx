@@ -113,7 +113,7 @@ export default async function WarehouseMovementsPage({ searchParams }: PageProps
                     <Breadcrumb>
                         <BreadcrumbList>
                             <BreadcrumbItem>
-                                <BreadcrumbLink href="/dashboard">Magasin</BreadcrumbLink>
+                                <BreadcrumbLink href="/dashboard/warehouse">Magasin</BreadcrumbLink>
                             </BreadcrumbItem>
                             <BreadcrumbSeparator />
                             <BreadcrumbItem>

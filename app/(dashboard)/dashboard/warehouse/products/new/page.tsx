@@ -48,7 +48,7 @@ export default async function NewWarehouseProductPage() {
                     <Breadcrumb>
                         <BreadcrumbList>
                             <BreadcrumbItem>
-                                <BreadcrumbLink href="/dashboard">Magasin</BreadcrumbLink>
+                                <BreadcrumbLink href="/dashboard/warehouse">Magasin</BreadcrumbLink>
                             </BreadcrumbItem>
                             <BreadcrumbSeparator />
                             <BreadcrumbItem>

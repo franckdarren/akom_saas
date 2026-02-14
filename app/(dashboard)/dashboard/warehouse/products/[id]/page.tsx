@@ -3,74 +3,73 @@ import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Edit, Package, TrendingUp, History, ArrowLeft } from 'lucide-react'
+import { Edit, Package, TrendingUp, History } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { getCurrentUserAndRestaurant } from '@/lib/auth/session'
-import prisma from '@/lib/prisma'
-import { formatPrice } from '@/lib/utils/format'
-import { WarehouseMovementsTimeline } from '@/components/warehouse/WarehouseMovementsTimeline'
-import { QuickActionsButtons } from '@/components/warehouse/QuickActionsButtons'
-import {SidebarTrigger} from "@/components/ui/sidebar";
+import { SidebarTrigger } from '@/components/ui/sidebar'
 import {
     Breadcrumb,
     BreadcrumbItem,
     BreadcrumbLink,
-    BreadcrumbList, BreadcrumbPage,
-    BreadcrumbSeparator
-} from "@/components/ui/breadcrumb";
+    BreadcrumbList,
+    BreadcrumbPage,
+    BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb'
+
+import prisma from '@/lib/prisma'
+import { getCurrentUserAndRestaurant } from '@/lib/auth/session'
+import { formatPrice } from '@/lib/utils/format'
+import { WarehouseMovementsTimeline } from '@/components/warehouse/WarehouseMovementsTimeline'
+import { QuickActionsButtons } from '@/components/warehouse/QuickActionsButtons'
 
 export const metadata: Metadata = {
     title: 'Détail produit entrepôt | Akôm',
 }
 
-interface PageProps {
-    params: {
-        id: string
+/** Serialize les objets Decimal pour Next.js */
+function serializeWarehouseProduct(product: any) {
+    return {
+        ...product,
+        conversionRatio: Number(product.conversionRatio),
+        stock: product.stock
+            ? {
+                ...product.stock,
+                quantity: Number(product.stock.quantity),
+                alertThreshold: Number(product.stock.alertThreshold),
+                unitCost: product.stock.unitCost ? Number(product.stock.unitCost) : null,
+            }
+            : null,
     }
 }
 
-/**
- * Page de détail d'un produit d'entrepôt.
- *
- * Affiche toutes les informations du produit, son stock actuel,
- * le lien avec le produit menu si configuré, et l'historique des mouvements.
- *
- * Design inspiré de Shopify Product Details et Notion Pages.
- */
+interface PageProps {
+    params: Promise<{ id: string }> // Next 16 RSC
+}
+
 export default async function WarehouseProductDetailPage({ params }: PageProps) {
+    // ✅ Récupération du paramètre id
+    const { id } = await params
+    if (!id) notFound()
+
     const { restaurantId } = await getCurrentUserAndRestaurant()
 
     // Récupérer le produit avec toutes ses relations
-    const product = await prisma.warehouseProduct.findUnique({
-        where: {
-            id: params.id,
-            restaurantId, // Sécurité : vérifier que le produit appartient au restaurant
-        },
+    const productFromDb = await prisma.warehouseProduct.findUnique({
+        where: { id }, // Prisma ne supporte pas `AND` ici avec findUnique
         include: {
             stock: true,
-            linkedProduct: {
-                include: {
-                    stock: true,
-                },
-            },
-            movements: {
-                orderBy: {
-                    createdAt: 'desc',
-                },
-                take: 20, // Derniers 20 mouvements
-            },
+            linkedProduct: { include: { stock: true } },
+            movements: { orderBy: { createdAt: 'desc' }, take: 20 },
         },
     })
 
-    if (!product || !product.stock[0]) {
-        notFound()
-    }
+    if (!productFromDb || !productFromDb.stock?.[0]) notFound()
 
-    const stock = product.stock[0]
+    const product = serializeWarehouseProduct(productFromDb)
+    const stock = product.stock!
     const isLowStock = stock.quantity < stock.alertThreshold
     const linkedProduct = product.linkedProduct
     const linkedProductStock = linkedProduct?.stock?.[0]
@@ -97,18 +96,12 @@ export default async function WarehouseProductDetailPage({ params }: PageProps) 
             </header>
 
             <div className="flex flex-1 flex-col gap-4 p-4">
-
                 {/* Section principale : Infos produit + Image */}
                 <div className="grid gap-6 md:grid-cols-[300px_1fr]">
                     {/* Image du produit */}
                     <div className="relative aspect-square rounded-lg border overflow-hidden bg-muted">
                         {product.imageUrl ? (
-                            <Image
-                                src={product.imageUrl}
-                                alt={product.name}
-                                fill
-                                className="object-contain"
-                            />
+                            <Image src={product.imageUrl} alt={product.name} fill className="object-contain" />
                         ) : (
                             <div className="flex items-center justify-center h-full">
                                 <Package className="h-24 w-24 text-muted-foreground" />
@@ -118,17 +111,12 @@ export default async function WarehouseProductDetailPage({ params }: PageProps) 
 
                     {/* Informations principales */}
                     <div className="space-y-6">
-                        {/* Titre et badges */}
                         <div>
                             <div className="flex items-start justify-between">
                                 <div className="flex-1">
-                                    <h1 className="text-3xl font-bold tracking-tight">
-                                        {product.name}
-                                    </h1>
+                                    <h1 className="text-3xl font-bold tracking-tight">{product.name}</h1>
                                     {product.sku && (
-                                        <p className="text-sm text-muted-foreground font-mono mt-1">
-                                            SKU: {product.sku}
-                                        </p>
+                                        <p className="text-sm text-muted-foreground font-mono mt-1">SKU: {product.sku}</p>
                                     )}
                                 </div>
                                 <Button asChild size="sm" variant="outline">
@@ -140,18 +128,14 @@ export default async function WarehouseProductDetailPage({ params }: PageProps) 
                             </div>
 
                             <div className="flex items-center gap-2 mt-3">
-                                {product.category && (
-                                    <Badge variant="secondary">{product.category}</Badge>
-                                )}
+                                {product.category && <Badge variant="secondary">{product.category}</Badge>}
                                 {isLowStock && (
                                     <Badge variant="destructive" className="gap-1">
                                         <TrendingUp className="h-3 w-3" />
                                         Stock bas
                                     </Badge>
                                 )}
-                                {!product.isActive && (
-                                    <Badge variant="outline">Inactif</Badge>
-                                )}
+                                {!product.isActive && <Badge variant="outline">Inactif</Badge>}
                             </div>
                         </div>
 
@@ -172,20 +156,15 @@ export default async function WarehouseProductDetailPage({ params }: PageProps) 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <p className="text-sm text-muted-foreground">Type d&apos;emballage</p>
-                                    <p className="font-semibold capitalize mt-1">
-                                        {product.storageUnit}
-                                    </p>
+                                    <p className="font-semibold capitalize mt-1">{product.storageUnit}</p>
                                 </div>
                                 <div>
                                     <p className="text-sm text-muted-foreground">Unités par emballage</p>
-                                    <p className="font-semibold mt-1">
-                                        {product.unitsPerStorage} unités
-                                    </p>
+                                    <p className="font-semibold mt-1">{product.unitsPerStorage} unités</p>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Actions rapides */}
                         <Separator />
                         <QuickActionsButtons product={product} stock={stock} />
                     </div>
@@ -203,9 +182,7 @@ export default async function WarehouseProductDetailPage({ params }: PageProps) 
                                     <p className={`text-3xl font-bold ${isLowStock ? 'text-orange-600' : ''}`}>
                                         {stock.quantity}
                                     </p>
-                                    <p className="text-sm text-muted-foreground capitalize">
-                                        {product.storageUnit}
-                                    </p>
+                                    <p className="text-sm text-muted-foreground capitalize">{product.storageUnit}</p>
                                 </div>
                                 <Separator />
                                 <div>
@@ -224,9 +201,7 @@ export default async function WarehouseProductDetailPage({ params }: PageProps) 
                             {stock.unitCost ? (
                                 <div className="space-y-3">
                                     <div>
-                                        <p className="text-3xl font-bold">
-                                            {formatPrice(stock.quantity * stock.unitCost)}
-                                        </p>
+                                        <p className="text-3xl font-bold">{formatPrice(stock.quantity * stock.unitCost)}</p>
                                         <p className="text-sm text-muted-foreground">Valeur totale</p>
                                     </div>
                                     <Separator />
@@ -236,9 +211,7 @@ export default async function WarehouseProductDetailPage({ params }: PageProps) 
                                     </div>
                                 </div>
                             ) : (
-                                <p className="text-sm text-muted-foreground">
-                                    Aucun coût défini
-                                </p>
+                                <p className="text-sm text-muted-foreground">Aucun coût défini</p>
                             )}
                         </CardContent>
                     </Card>
@@ -258,9 +231,7 @@ export default async function WarehouseProductDetailPage({ params }: PageProps) 
                                     </p>
                                 </div>
                             ) : (
-                                <p className="text-sm text-muted-foreground">
-                                    Aucun inventaire enregistré
-                                </p>
+                                <p className="text-sm text-muted-foreground">Aucun inventaire enregistré</p>
                             )}
                         </CardContent>
                     </Card>
@@ -271,9 +242,7 @@ export default async function WarehouseProductDetailPage({ params }: PageProps) 
                     <Card>
                         <CardHeader>
                             <CardTitle>Lien avec le menu</CardTitle>
-                            <CardDescription>
-                                Ce produit d&#39;entrepôt peut réapprovisionner un produit du menu
-                            </CardDescription>
+                            <CardDescription>Ce produit d&apos;entrepôt peut réapprovisionner un produit du menu</CardDescription>
                         </CardHeader>
                         <CardContent>
                             <div className="flex items-start gap-4 p-4 rounded-lg border bg-muted/50">
@@ -297,16 +266,12 @@ export default async function WarehouseProductDetailPage({ params }: PageProps) 
                                             </p>
                                         </div>
                                         <Button variant="outline" size="sm" asChild>
-                                            <Link href={`/dashboard/menu/products/${linkedProduct.id}`}>
-                                                Voir produit
-                                            </Link>
+                                            <Link href={`/dashboard/menu/products/${linkedProduct.id}`}>Voir produit</Link>
                                         </Button>
                                     </div>
 
                                     <div className="mt-3 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800">
-                                        <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
-                                            Conversion automatique
-                                        </p>
+                                        <p className="text-sm font-medium text-blue-900 dark:text-blue-100">Conversion automatique</p>
                                         <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
                                             1 {product.storageUnit} → {product.conversionRatio} × {linkedProduct.name}
                                         </p>
@@ -322,9 +287,7 @@ export default async function WarehouseProductDetailPage({ params }: PageProps) 
                     <CardHeader className="flex flex-row items-center justify-between">
                         <div>
                             <CardTitle>Historique des mouvements</CardTitle>
-                            <CardDescription>
-                                Derniers mouvements de stock pour ce produit
-                            </CardDescription>
+                            <CardDescription>Derniers mouvements de stock pour ce produit</CardDescription>
                         </div>
                         {product.movements.length > 0 && (
                             <Button variant="outline" size="sm" asChild>
@@ -344,9 +307,7 @@ export default async function WarehouseProductDetailPage({ params }: PageProps) 
     )
 }
 
-/**
- * Calcule le nombre de jours depuis une date.
- */
+/** Calcule le nombre de jours depuis une date */
 function getDaysSince(date: Date): number {
     const now = new Date()
     const diff = now.getTime() - new Date(date).getTime()
