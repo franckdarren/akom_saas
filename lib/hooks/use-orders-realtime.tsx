@@ -1,9 +1,9 @@
 // lib/hooks/use-orders-realtime.tsx
 'use client'
 
-import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
-import { createClient } from '@/lib/supabase/client'
-import { useRestaurant } from '@/lib/hooks/use-restaurant'
+import {useEffect, useState, useCallback, useMemo, useRef} from 'react'
+import {createClient} from '@/lib/supabase/client'
+import {useRestaurant} from '@/lib/hooks/use-restaurant'
 
 export type OrderStatus =
     | 'pending'
@@ -44,12 +44,12 @@ export interface Order {
 
 export function useOrdersRealtime() {
     const supabase = createClient()
-    const { currentRestaurant } = useRestaurant()
+    const {currentRestaurant} = useRestaurant()
 
     const [allOrders, setAllOrders] = useState<Order[]>([])
     const [loading, setLoading] = useState(true)
     const [statusFilter, setStatusFilter] = useState<OrderStatus | 'all'>('all')
-    
+
     const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
     /**
@@ -61,16 +61,35 @@ export function useOrdersRealtime() {
         try {
             const res = await fetch(
                 `/api/orders?restaurantId=${currentRestaurant.id}`,
-                { cache: 'no-store' }
+                {cache: 'no-store'}
             )
 
-            const data = await res.json()
+            // ✅ Vérifier que la réponse est JSON avant d'appeler res.json()
+            const text = await res.text()
+
+            if (!text) {
+                console.warn('⚠️ /api/orders returned empty response')
+                setAllOrders([])
+                return
+            }
+
+            let data: { orders?: Order[] } = {}
+            try {
+                data = JSON.parse(text)
+            } catch (err) {
+                console.error('Erreur parse JSON /api/orders:', err, text)
+                setAllOrders([])
+                return
+            }
 
             if (data?.orders) {
                 setAllOrders(data.orders)
+            } else {
+                setAllOrders([])
             }
         } catch (e) {
             console.error('Erreur fetch orders:', e)
+            setAllOrders([])
         } finally {
             setLoading(false)
         }

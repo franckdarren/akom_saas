@@ -1,10 +1,10 @@
 // app/(dashboard)/dashboard/orders/page.tsx
 'use client'
 
-import { useOrdersRealtime } from '@/lib/hooks/use-orders-realtime'
-import { OrderCard } from '@/components/kitchen/OrderCard'
-import { OrderFilters } from '@/components/kitchen/OrderFilters'
-import { NotificationSound } from '@/components/kitchen/NotificationSound'
+import {useOrdersRealtime} from '@/lib/hooks/use-orders-realtime'
+import {OrderCard} from '@/components/kitchen/OrderCard'
+import {OrderFilters} from '@/components/kitchen/OrderFilters'
+import {NotificationSound} from '@/components/kitchen/NotificationSound'
 import {
     Breadcrumb,
     BreadcrumbList,
@@ -13,16 +13,16 @@ import {
     BreadcrumbSeparator,
     BreadcrumbPage,
 } from '@/components/ui/breadcrumb'
-import { Separator } from '@/components/ui/separator'
-import { SidebarTrigger } from '@/components/ui/sidebar'
-import { Card, CardContent } from '@/components/ui/card'
-import { Loader2 } from 'lucide-react'
-import { useAuth } from '@/lib/hooks/use-auth'
-import { useRestaurant } from '@/lib/hooks/use-restaurant'
+import {Separator} from '@/components/ui/separator'
+import {SidebarTrigger} from '@/components/ui/sidebar'
+import {Card, CardContent} from '@/components/ui/card'
+import {Loader2} from 'lucide-react'
+import {useAuth} from '@/lib/hooks/use-auth'
+import {useRestaurant} from '@/lib/hooks/use-restaurant'
 
 export default function OrdersPage() {
-    const { user } = useAuth()
-    const { currentRole } = useRestaurant()
+    const {user} = useAuth()
+    const {currentRole} = useRestaurant()
     const {
         orders,
         allOrders,
@@ -42,23 +42,23 @@ export default function OrdersPage() {
         cancelled: allOrders.filter((o) => o.status === 'cancelled').length,
     }
 
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center min-h-[400px]">
-                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            </div>
-        )
-    }
+    // if (loading) {
+    //     return (
+    //         <div className="flex items-center justify-center min-h-[400px]">
+    //             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+    //         </div>
+    //     )
+    // }
 
     return (
         <>
             {/* Son de notification */}
-            <NotificationSound shouldPlay={pendingCount > 0} />
+            <NotificationSound shouldPlay={pendingCount > 0}/>
 
             {/* Header avec breadcrumb */}
             <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-                <SidebarTrigger className="-ml-1" />
-                <Separator orientation="vertical" className="mr-2 h-4" />
+                <SidebarTrigger className="-ml-1"/>
+                <Separator orientation="vertical" className="mr-2 h-4"/>
                 <div className="flex justify-between w-full">
                     <Breadcrumb>
                         <BreadcrumbList>
@@ -67,7 +67,7 @@ export default function OrdersPage() {
                                     Opérations
                                 </BreadcrumbLink>
                             </BreadcrumbItem>
-                            <BreadcrumbSeparator />
+                            <BreadcrumbSeparator/>
                             <BreadcrumbItem>
                                 <BreadcrumbPage>Commandes</BreadcrumbPage>
                             </BreadcrumbItem>
@@ -91,7 +91,7 @@ export default function OrdersPage() {
                         <Card className="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800">
                             <CardContent className="p-4">
                                 <div className="flex items-center gap-2">
-                                    <div className="h-3 w-3 bg-red-500 rounded-full animate-pulse" />
+                                    <div className="h-3 w-3 bg-red-500 rounded-full animate-pulse"/>
                                     <span className="font-semibold text-red-900 dark:text-red-100">
                                         {pendingCount} nouvelle
                                         {pendingCount > 1 ? 's' : ''} commande
@@ -133,7 +133,7 @@ export default function OrdersPage() {
                 ) : (
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                         {orders.map((order) => (
-                            <OrderCard key={order.id} order={order} />
+                            <OrderCard key={order.id} order={order}/>
                         ))}
                     </div>
                 )}
