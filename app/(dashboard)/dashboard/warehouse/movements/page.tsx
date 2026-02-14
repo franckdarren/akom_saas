@@ -1,8 +1,7 @@
 // app/(dashboard)/dashboard/warehouse/movements/page.tsx
 import { Metadata } from 'next'
 import { Suspense } from 'react'
-import Link from 'next/link'
-import { ArrowLeft, Download } from 'lucide-react'
+import {Download } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -11,19 +10,22 @@ import prisma from '@/lib/prisma'
 import { WarehouseMovementsTimeline } from '@/components/warehouse/WarehouseMovementsTimeline'
 import { MovementsFilters } from '@/components/warehouse/MovementsFilters'
 import { MovementsStats } from '@/components/warehouse/MovementsStats'
-import {SidebarTrigger} from "@/components/ui/sidebar";
-import {Separator} from "@/components/ui/separator";
+import { SidebarTrigger } from '@/components/ui/sidebar'
+import { Separator } from '@/components/ui/separator'
 import {
     Breadcrumb,
     BreadcrumbItem,
     BreadcrumbLink,
-    BreadcrumbList, BreadcrumbPage,
-    BreadcrumbSeparator
-} from "@/components/ui/breadcrumb";
+    BreadcrumbList,
+    BreadcrumbPage,
+    BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb'
+
+import { WarehouseMovement, WarehouseMovementType } from '@/types/warehouse'
 
 export const metadata: Metadata = {
     title: 'Mouvements de stock | Akôm',
-    description: 'Historique complet des mouvements d\'entrepôt',
+    description: "Historique complet des mouvements d'entrepôt",
 }
 
 interface PageProps {
@@ -35,43 +37,53 @@ interface PageProps {
     }
 }
 
-/**
- * Page d'historique complet des mouvements de stock d'entrepôt.
- *
- * Affiche tous les mouvements avec :
- * - Filtres par produit, type, période
- * - Statistiques agrégées
- * - Timeline détaillée
- * - Export possible (future feature)
- *
- * Design inspiré de Stripe Payments List et QuickBooks Transactions.
- */
+/** Sérialise les mouvements pour le client : Decimal -> number, Date -> string, string -> union */
+function serializeMovements(movements: any[]): WarehouseMovement[] {
+    return movements.map((m) => ({
+        ...m,
+        quantity: Number(m.quantity),
+        previousQty: Number(m.previousQty),
+        newQty: Number(m.newQty),
+        movementType: m.movementType as WarehouseMovementType,
+        createdAt: m.createdAt.toISOString(),
+        warehouseProduct: {
+            ...m.warehouseProduct,
+        },
+    }))
+}
+
+/** Sérialise-les stats côté client */
+function calculateMovementsStatsRaw(movements: any[]) {
+    return {
+        totalMovements: movements.length,
+        entries: movements.filter((m) => m.movementType === 'entry').length,
+        exits: movements.filter((m) => m.movementType === 'exit').length,
+        transfers: movements.filter((m) => m.movementType === 'transfer_to_ops').length,
+        adjustments: movements.filter((m) => m.movementType === 'adjustment').length,
+        totalQuantityIn: movements
+            .filter((m) => m.quantity > 0)
+            .reduce((sum, m) => sum + Number(m.quantity), 0),
+        totalQuantityOut: movements
+            .filter((m) => m.quantity < 0)
+            .reduce((sum, m) => sum + Math.abs(Number(m.quantity)), 0),
+    }
+}
+
 export default async function WarehouseMovementsPage({ searchParams }: PageProps) {
     const { restaurantId } = await getCurrentUserAndRestaurant()
 
-    // Construire les filtres de recherche
+    // Construire les filtres
     const where: any = { restaurantId }
-
-    if (searchParams.productId) {
-        where.warehouseProductId = searchParams.productId
-    }
-
-    if (searchParams.type) {
-        where.movementType = searchParams.type
-    }
-
+    if (searchParams.productId) where.warehouseProductId = searchParams.productId
+    if (searchParams.type) where.movementType = searchParams.type
     if (searchParams.startDate || searchParams.endDate) {
         where.createdAt = {}
-        if (searchParams.startDate) {
-            where.createdAt.gte = new Date(searchParams.startDate)
-        }
-        if (searchParams.endDate) {
-            where.createdAt.lte = new Date(searchParams.endDate)
-        }
+        if (searchParams.startDate) where.createdAt.gte = new Date(searchParams.startDate)
+        if (searchParams.endDate) where.createdAt.lte = new Date(searchParams.endDate)
     }
 
-    // Récupérer les mouvements avec pagination
-    const movements = await prisma.warehouseMovement.findMany({
+    // Récupérer les mouvements
+    const movementsRaw = await prisma.warehouseMovement.findMany({
         where,
         include: {
             warehouseProduct: {
@@ -82,25 +94,18 @@ export default async function WarehouseMovementsPage({ searchParams }: PageProps
                 },
             },
         },
-        orderBy: {
-            createdAt: 'desc',
-        },
-        take: 100, // Limiter à 100 résultats pour les performances
+        orderBy: { createdAt: 'desc' },
+        take: 100,
     })
 
-    // Calculer des statistiques sur la période filtrée
-    const stats = await calculateMovementsStats(restaurantId, where)
+    const movements = serializeMovements(movementsRaw)
+    const stats = calculateMovementsStatsRaw(movements)
 
-    // Récupérer la liste des produits pour le filtre
+    // Produits pour le filtre
     const products = await prisma.warehouseProduct.findMany({
         where: { restaurantId },
-        select: {
-            id: true,
-            name: true,
-        },
-        orderBy: {
-            name: 'asc',
-        },
+        select: { id: true, name: true },
+        orderBy: { name: 'asc' },
     })
 
     return (
@@ -127,88 +132,48 @@ export default async function WarehouseMovementsPage({ searchParams }: PageProps
             <div className="flex flex-1 flex-col gap-4 p-4">
                 <div className="flex items-center justify-between">
                     <div>
-                        <div className="flex items-center gap-3">
-
-                            <h1 className="text-3xl font-bold tracking-tight">
-                                Mouvements de stock
-                            </h1>
-                        </div>
+                        <h1 className="text-3xl font-bold tracking-tight">Mouvements de stock</h1>
                         <p className="text-muted-foreground mt-1">
-                            Historique complet de tous les mouvements d'entrepôt
+                            Historique complet de tous les mouvements d&#39;entrepôt
                         </p>
                     </div>
-
-                    {/* Export (future feature) */}
                     <Button variant="outline" disabled className="gap-2">
                         <Download className="h-4 w-4" />
                         Exporter (à venir)
                     </Button>
                 </div>
 
-                {/* Statistiques de la période */}
+                {/* Statistiques */}
                 <Suspense fallback={<StatsCardsSkeleton />}>
                     <MovementsStats stats={stats} />
                 </Suspense>
 
-                {/* Filtres et liste */}
-                <Card className="p-6">
-                    <div className="space-y-6">
-                        {/* Barre de filtres */}
-                        <MovementsFilters products={products} />
+                {/* Filtres et timeline */}
+                <Card className="p-6 space-y-6">
+                    <MovementsFilters products={products} />
 
-                        {/* Nombre de résultats */}
-                        <div className="flex items-center justify-between text-sm text-muted-foreground">
+                    <div className="flex items-center justify-between text-sm text-muted-foreground">
                         <span>
-                            {movements.length} mouvement{movements.length > 1 ? 's' : ''} trouvé{movements.length > 1 ? 's' : ''}
+                            {movements.length} mouvement{movements.length > 1 ? 's' : ''} trouvé
+                            {movements.length > 1 ? 's' : ''}
                         </span>
-                            {movements.length === 100 && (
-                                <span className="text-orange-600">
+                        {movements.length === 100 && (
+                            <span className="text-orange-600">
                                 Limite de 100 résultats atteinte. Affinez vos filtres.
                             </span>
-                            )}
-                        </div>
-
-                        {/* Timeline des mouvements */}
-                        <Suspense fallback={<TimelineSkeleton />}>
-                            <WarehouseMovementsTimeline movements={movements} />
-                        </Suspense>
+                        )}
                     </div>
+
+                    <Suspense fallback={<TimelineSkeleton />}>
+                        <WarehouseMovementsTimeline movements={movements} />
+                    </Suspense>
                 </Card>
             </div>
         </>
     )
 }
 
-/**
- * Calcule les statistiques agrégées des mouvements.
- */
-async function calculateMovementsStats(restaurantId: string, where: any) {
-    const movements = await prisma.warehouseMovement.findMany({
-        where,
-        select: {
-            movementType: true,
-            quantity: true,
-        },
-    })
-
-    const stats = {
-        totalMovements: movements.length,
-        entries: movements.filter(m => m.movementType === 'entry').length,
-        exits: movements.filter(m => m.movementType === 'exit').length,
-        transfers: movements.filter(m => m.movementType === 'transfer_to_ops').length,
-        adjustments: movements.filter(m => m.movementType === 'adjustment').length,
-        totalQuantityIn: movements
-            .filter(m => m.quantity > 0)
-            .reduce((sum, m) => sum + Number(m.quantity), 0),
-        totalQuantityOut: movements
-            .filter(m => m.quantity < 0)
-            .reduce((sum, m) => sum + Math.abs(Number(m.quantity)), 0),
-    }
-
-    return stats
-}
-
-// Composants de loading
+// Loading skeletons
 function StatsCardsSkeleton() {
     return (
         <div className="grid gap-4 md:grid-cols-4">
