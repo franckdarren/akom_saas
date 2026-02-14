@@ -95,7 +95,7 @@ export function CoverImageUploader({
                         src={preview}
                         alt="Aperçu"
                         fill
-                        className="object-cover"
+                        className="object-contain"
                     />
                     {!disabled && (
                         <Button

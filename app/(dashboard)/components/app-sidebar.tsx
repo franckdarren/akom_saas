@@ -27,6 +27,9 @@ import {
     ChevronDown,
     FileCheck,
     AlertCircle,
+    ArrowRightLeft,
+    Warehouse,
+    Activity,
 } from "lucide-react"
 
 import {
@@ -113,6 +116,31 @@ export function AppSidebar({ user, role, restaurantName, restaurantLogoUrl, onSi
                     { title: "Stocks", href: "/dashboard/stocks", icon: Package },
                     { title: "Paiements", href: "/dashboard/payments", icon: CreditCard },
                     { title: "Abonnements", href: "/dashboard/subscription", icon: CalendarSync },
+                ],
+            },
+            {
+                title: "Magasin",
+                items: [
+                    {
+                        title: "Vue d'ensemble",
+                        href: "/dashboard/warehouse",
+                        icon: Warehouse
+                    },
+                    {
+                        title: "Créer un produit",
+                        href: "/dashboard/warehouse/products/new",
+                        icon: Package
+                    },
+                    {
+                        title: "Mouvements",
+                        href: "/dashboard/warehouse/movements",
+                        icon: Activity
+                    },
+                    {
+                        title: "Transferts vers restaurant",
+                        href: "/dashboard/warehouse/transfers",
+                        icon: ArrowRightLeft
+                    },
                 ],
             },
             {
