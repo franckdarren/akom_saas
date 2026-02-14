@@ -50,26 +50,28 @@ export default async function EditWarehouseProductPage({
     }
 
     // 🔥 SERIALIZATION COMPLETE (IMPORTANT)
+    const stockData = productFromDb.stock?.[0] ?? null
+
     const product = {
         ...productFromDb,
-
-        // Decimal → number
         conversionRatio: Number(productFromDb.conversionRatio),
 
-        stock: productFromDb.stock
+        stock: stockData
             ? {
-                ...productFromDb.stock,
-                quantity: Number(productFromDb.stock.quantity),
-                alertThreshold: Number(
-                    productFromDb.stock.alertThreshold
-                ),
-                unitCost:
-                    productFromDb.stock.unitCost !== null
-                        ? Number(productFromDb.stock.unitCost)
+                ...stockData,
+                quantity: Number(stockData.quantity),
+                alertThreshold: Number(stockData.alertThreshold),
+                unitCost: stockData.unitCost !== null ? Number(stockData.unitCost) : null,
+                totalValue:
+                    stockData.unitCost != null
+                        ? Number(stockData.quantity) * Number(stockData.unitCost)
                         : null,
+                lastInventoryDate: stockData.lastInventoryDate ?? null,
+                updatedAt: stockData.updatedAt ?? new Date(),
             }
-            : null,
+            : null, // si pas de stock
     }
+
 
     const menuProducts = await prisma.product.findMany({
         where: {
