@@ -750,7 +750,7 @@ export async function getAvailableProductsForLinking() {
         const products = await prisma.product.findMany({
             where: {
                 restaurantId,
-                isActive: true,
+                // isActive: true,
             },
             select: {
                 id: true,
