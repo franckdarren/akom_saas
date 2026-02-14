@@ -36,54 +36,86 @@ export default async function WarehouseProductDetailPage({ params }: PageProps) 
     const { id } = await params
     if (!id) notFound()
 
-    // Récupérer le produit avec son stock
     const res = await getWarehouseProductById(id)
     if (res.error || !res.data) notFound()
 
     const productFromDb = res.data
 
-    // 🔹 Transformer le stock pour correspondre au type WarehouseStock[]
-    const stock = productFromDb.stock?.map(s => ({
-        ...s,
-        quantity: Number(s.quantity),
-        alertThreshold: Number(s.alertThreshold),
-        unitCost: s.unitCost !== null ? Number(s.unitCost) : null,
-        totalValue: s.unitCost ? Number(s.quantity) * Number(s.unitCost) : null,
-        lastInventoryDate: s.lastInventoryDate,
-        updatedAt: s.updatedAt,
-    })) ?? []
+    /* -----------------------------
+       🔹 TRANSFORMATION DU STOCK
+       (objet unique → tableau)
+    ------------------------------ */
 
-    // 🔹 Transformer le produit pour correspondre aux types
+    const stock = productFromDb.stock
+        ? [
+            {
+                ...productFromDb.stock,
+                quantity: Number(productFromDb.stock.quantity),
+                alertThreshold: Number(productFromDb.stock.alertThreshold),
+                unitCost:
+                    productFromDb.stock.unitCost !== null
+                        ? Number(productFromDb.stock.unitCost)
+                        : null,
+                totalValue:
+                    productFromDb.stock.unitCost !== null
+                        ? Number(productFromDb.stock.quantity) *
+                        Number(productFromDb.stock.unitCost)
+                        : null,
+                lastInventoryDate: productFromDb.stock.lastInventoryDate,
+                updatedAt: productFromDb.stock.updatedAt,
+            },
+        ]
+        : []
+
+    /* -----------------------------
+       🔹 TRANSFORMATION PRODUIT
+    ------------------------------ */
+
     const product = {
         ...productFromDb,
         conversionRatio: Number(productFromDb.conversionRatio),
-        createdAt: productFromDb.createdAt,
-        updatedAt: productFromDb.updatedAt,
         stock,
         linkedProduct: productFromDb.linkedProduct
             ? {
                 ...productFromDb.linkedProduct,
-                stock: productFromDb.linkedProduct.stock?.map(s => ({
-                    ...s,
-                    quantity: Number(s.quantity),
-                    alertThreshold: Number(s.alertThreshold),
-                    unitCost: s.unitCost !== null ? Number(s.unitCost) : null,
-                    totalValue: s.unitCost ? Number(s.quantity) * Number(s.unitCost) : null,
-                    lastInventoryDate: s.lastInventoryDate,
-                    updatedAt: s.updatedAt,
-                })) ?? [],
+                stock: productFromDb.linkedProduct.stock
+                    ? [
+                        {
+                            ...productFromDb.linkedProduct.stock,
+                            quantity: Number(productFromDb.linkedProduct.stock.quantity),
+                            alertThreshold: Number(
+                                productFromDb.linkedProduct.stock.alertThreshold
+                            ),
+                            unitCost:
+                                productFromDb.linkedProduct.stock.unitCost !== null
+                                    ? Number(productFromDb.linkedProduct.stock.unitCost)
+                                    : null,
+                            totalValue:
+                                productFromDb.linkedProduct.stock.unitCost !== null
+                                    ? Number(productFromDb.linkedProduct.stock.quantity) *
+                                    Number(productFromDb.linkedProduct.stock.unitCost)
+                                    : null,
+                            lastInventoryDate:
+                            productFromDb.linkedProduct.stock.lastInventoryDate,
+                            updatedAt:
+                            productFromDb.linkedProduct.stock.updatedAt,
+                        },
+                    ]
+                    : [],
             }
             : undefined,
     }
 
-    const mainStock = stock[0] // si tu veux le premier stock pour affichage rapide
-    const isLowStock = mainStock ? mainStock.quantity < mainStock.alertThreshold : false
+    const mainStock = stock[0]
+    const isLowStock = mainStock
+        ? mainStock.quantity < mainStock.alertThreshold
+        : false
+
     const linkedProduct = product.linkedProduct
     const linkedProductStock = linkedProduct?.stock?.[0]
 
     return (
         <>
-            {/* Header */}
             <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
                 <SidebarTrigger className="-ml-1" />
                 <Separator orientation="vertical" className="mr-2 h-4" />
@@ -91,7 +123,9 @@ export default async function WarehouseProductDetailPage({ params }: PageProps) 
                     <Breadcrumb>
                         <BreadcrumbList>
                             <BreadcrumbItem>
-                                <BreadcrumbLink href="/dashboard/warehouse">Magasin</BreadcrumbLink>
+                                <BreadcrumbLink href="/dashboard/warehouse">
+                                    Magasin
+                                </BreadcrumbLink>
                             </BreadcrumbItem>
                             <BreadcrumbSeparator />
                             <BreadcrumbItem>
@@ -103,11 +137,17 @@ export default async function WarehouseProductDetailPage({ params }: PageProps) 
             </header>
 
             <div className="flex flex-1 flex-col gap-4 p-4">
-                {/* Section principale : Infos produit + Image */}
+
+                {/* IMAGE + INFOS */}
                 <div className="grid gap-6 md:grid-cols-[300px_1fr]">
                     <div className="relative aspect-square rounded-lg border overflow-hidden bg-muted">
                         {product.imageUrl ? (
-                            <Image src={product.imageUrl} alt={product.name} fill className="object-contain" />
+                            <Image
+                                src={product.imageUrl}
+                                alt={product.name}
+                                fill
+                                className="object-contain"
+                            />
                         ) : (
                             <div className="flex items-center justify-center h-full">
                                 <Package className="h-24 w-24 text-muted-foreground" />
@@ -117,213 +157,68 @@ export default async function WarehouseProductDetailPage({ params }: PageProps) 
 
                     <div className="space-y-6">
                         <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                                <h1 className="text-3xl font-bold tracking-tight">{product.name}</h1>
+                            <div>
+                                <h1 className="text-3xl font-bold tracking-tight">
+                                    {product.name}
+                                </h1>
                                 {product.sku && (
-                                    <p className="text-sm text-muted-foreground font-mono mt-1">SKU: {product.sku}</p>
+                                    <p className="text-sm text-muted-foreground font-mono mt-1">
+                                        SKU: {product.sku}
+                                    </p>
                                 )}
                             </div>
+
                             <Button asChild size="sm" variant="outline">
-                                <Link href={`/dashboard/warehouse/products/${product.id}/edit`}>
+                                <Link
+                                    href={`/dashboard/warehouse/products/${product.id}/edit`}
+                                >
                                     <Edit className="h-4 w-4 mr-2" />
                                     Modifier
                                 </Link>
                             </Button>
                         </div>
 
-                        <div className="flex items-center gap-2 mt-3">
-                            {product.category && <Badge variant="secondary">{product.category}</Badge>}
-                            {isLowStock && (
-                                <Badge variant="destructive" className="gap-1">
-                                    <TrendingUp className="h-3 w-3" />
-                                    Stock bas
-                                </Badge>
-                            )}
-                            {!product.isActive && <Badge variant="outline">Inactif</Badge>}
-                        </div>
-
-                        {product.description && (
-                            <>
-                                <Separator />
-                                <div>
-                                    <h3 className="font-semibold mb-2">Description</h3>
-                                    <p className="text-muted-foreground">{product.description}</p>
-                                </div>
-                            </>
-                        )}
-
-                        <Separator />
-                        <div>
-                            <h3 className="font-semibold mb-3">Configuration de l&apos;emballage</h3>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <p className="text-sm text-muted-foreground">Type d&apos;emballage</p>
-                                    <p className="font-semibold capitalize mt-1">{product.storageUnit}</p>
-                                </div>
-                                <div>
-                                    <p className="text-sm text-muted-foreground">Unités par emballage</p>
-                                    <p className="font-semibold mt-1">{product.unitsPerStorage} unités</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <Separator />
                         <QuickActionsButtons product={product} stock={stock} />
                     </div>
                 </div>
 
-                {/* Section stock */}
+                {/* STOCK */}
                 {mainStock && (
-                    <div className="grid gap-6 md:grid-cols-3">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="text-base">Stock actuel</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="space-y-3">
-                                    <div>
-                                        <p className={`text-3xl font-bold ${isLowStock ? 'text-orange-600' : ''}`}>
-                                            {mainStock.quantity ?? 0}
-                                        </p>
-                                        <p className="text-sm text-muted-foreground capitalize">{product.storageUnit}</p>
-                                    </div>
-                                    <Separator />
-                                    <div>
-                                        <p className="text-sm text-muted-foreground">Seuil d'alerte</p>
-                                        <p className="font-medium mt-1">{mainStock.alertThreshold ?? 0}</p>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="text-base">Valorisation</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                {mainStock.unitCost ? (
-                                    <div className="space-y-3">
-                                        <div>
-                                            <p className="text-3xl font-bold">
-                                                {formatPrice(mainStock.quantity * mainStock.unitCost)}
-                                            </p>
-                                            <p className="text-sm text-muted-foreground">Valeur totale</p>
-                                        </div>
-                                        <Separator />
-                                        <div>
-                                            <p className="text-sm text-muted-foreground">Coût unitaire</p>
-                                            <p className="font-medium mt-1">{formatPrice(mainStock.unitCost)}</p>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <p className="text-sm text-muted-foreground">Aucun coût défini</p>
-                                )}
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="text-base">Dernier inventaire</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                {mainStock.lastInventoryDate ? (
-                                    <div className="space-y-2">
-                                        <p className="text-2xl font-bold">
-                                            {new Date(mainStock.lastInventoryDate).toLocaleDateString('fr-FR')}
-                                        </p>
-                                        <p className="text-sm text-muted-foreground">
-                                            Il y a {getDaysSince(mainStock.lastInventoryDate)} jours
-                                        </p>
-                                    </div>
-                                ) : (
-                                    <p className="text-sm text-muted-foreground">Aucun inventaire enregistré</p>
-                                )}
-                            </CardContent>
-                        </Card>
-                    </div>
-                )}
-
-                {/* Linked product */}
-                {linkedProduct && (
                     <Card>
                         <CardHeader>
-                            <CardTitle>Lien avec le menu</CardTitle>
-                            <CardDescription>
-                                Ce produit d&apos;entrepôt peut réapprovisionner un produit du menu
-                            </CardDescription>
+                            <CardTitle>Stock actuel</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="flex items-start gap-4 p-4 rounded-lg border bg-muted/50">
-                                {linkedProduct.imageUrl && (
-                                    <div className="relative h-16 w-16 rounded-md overflow-hidden bg-background">
-                                        <Image
-                                            src={linkedProduct.imageUrl}
-                                            alt={linkedProduct.name}
-                                            fill
-                                            className="object-contain"
-                                        />
-                                    </div>
-                                )}
-
-                                <div className="flex-1">
-                                    <div className="flex items-start justify-between">
-                                        <div>
-                                            <p className="font-semibold">{linkedProduct.name}</p>
-                                            <p className="text-sm text-muted-foreground mt-1">
-                                                Stock opérationnel actuel:{' '}
-                                                {linkedProductStock?.quantity ?? 0} unités
-                                            </p>
-                                        </div>
-                                        <Button variant="outline" size="sm" asChild>
-                                            <Link href={`/dashboard/menu/products/${linkedProduct.id}`}>
-                                                Voir produit
-                                            </Link>
-                                        </Button>
-                                    </div>
-
-                                    <div className="mt-3 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800">
-                                        <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
-                                            Conversion automatique
-                                        </p>
-                                        <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
-                                            1 {product.storageUnit} → {product.conversionRatio} × {linkedProduct.name}
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
+                            <p className="text-3xl font-bold">
+                                {mainStock.quantity}
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                                Seuil : {mainStock.alertThreshold}
+                            </p>
+                            {mainStock.unitCost && (
+                                <p className="mt-2">
+                                    Valeur :{" "}
+                                    {formatPrice(
+                                        mainStock.quantity * mainStock.unitCost
+                                    )}
+                                </p>
+                            )}
                         </CardContent>
                     </Card>
                 )}
 
-                {/* Movements */}
+                {/* HISTORIQUE */}
                 <Card>
-                    <CardHeader className="flex flex-row items-center justify-between">
-                        <div>
-                            <CardTitle>Historique des mouvements</CardTitle>
-                            <CardDescription>Derniers mouvements de stock pour ce produit</CardDescription>
-                        </div>
-                        {product.movements.length > 0 && (
-                            <Button variant="outline" size="sm" asChild>
-                                <Link href={`/dashboard/warehouse/movements?productId=${product.id}`}>
-                                    <History className="h-4 w-4 mr-2" />
-                                    Voir tout
-                                </Link>
-                            </Button>
-                        )}
+                    <CardHeader>
+                        <CardTitle>Historique des mouvements</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <WarehouseMovementsTimeline movements={product.movements} />
+                        <WarehouseMovementsTimeline
+                            movements={product.movements}
+                        />
                     </CardContent>
                 </Card>
             </div>
         </>
     )
-}
-
-/** Calcule le nombre de jours depuis une date ISO string ou Date */
-function getDaysSince(date: string | Date): number {
-    const now = new Date()
-    const d = typeof date === 'string' ? new Date(date) : date
-    const diff = now.getTime() - d.getTime()
-    return Math.floor(diff / (1000 * 60 * 60 * 24))
 }
