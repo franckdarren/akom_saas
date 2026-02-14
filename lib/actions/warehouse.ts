@@ -591,7 +591,8 @@ interface WarehouseProductDetail {
         id: string
         restaurantId: string
         warehouseProductId: string
-        movementType: string
+        // ✅ Type précis au lieu de string générique
+        movementType: 'entry' | 'exit' | 'transfer_to_ops' | 'adjustment' | 'loss'
         quantity: number
         previousQty: number
         newQty: number
@@ -620,7 +621,6 @@ export async function getWarehouseProductById(
             },
         })
 
-        // Changement ici : ajouter success: false
         if (!product) return { success: false, error: 'Produit introuvable' }
 
         const stock = product.stock[0]
@@ -679,7 +679,10 @@ export async function getWarehouseProductById(
                 id: m.id,
                 restaurantId: m.restaurantId,
                 warehouseProductId: m.warehouseProductId,
-                movementType: m.movementType,
+                // ✅ CORRECTION CRITIQUE : Cast du movementType vers le type attendu
+                // Prisma retourne une string générique, mais nous savons que dans notre BDD
+                // cette colonne ne contient que ces valeurs spécifiques définies dans le schéma
+                movementType: m.movementType as 'entry' | 'exit' | 'transfer_to_ops' | 'adjustment' | 'loss',
                 quantity: Number(m.quantity),
                 previousQty: Number(m.previousQty),
                 newQty: Number(m.newQty),
@@ -696,7 +699,6 @@ export async function getWarehouseProductById(
         return { success: true, data: transformedProduct }
     } catch (error) {
         console.error('Erreur récupération produit:', error)
-        // Changement ici aussi : ajouter success: false
         return { success: false, error: 'Erreur lors de la récupération du produit' }
     }
 }
