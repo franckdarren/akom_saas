@@ -117,7 +117,11 @@ export default async function WarehouseProductDetailPage({ params }: PageProps) 
         // Passer le stock comme un tableau pour correspondre aux types attendus par QuickActionsButtons
         stock: [stock],
         isLowStock: productFromDb.isLowStock,
-        movements: productFromDb.movements,
+        movements: productFromDb.movements.map(m => ({
+            ...m,
+            // Convertir la date ISO string en objet Date que le composant attend
+            createdAt: m.createdAt ? new Date(m.createdAt) : new Date(),
+        })),
         linkedProduct: productFromDb.linkedProduct
             ? {
                 id: productFromDb.linkedProduct.id,
