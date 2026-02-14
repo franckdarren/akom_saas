@@ -37,75 +37,64 @@ export default async function WarehouseProductDetailPage({ params }: PageProps) 
 
     const res = await getWarehouseProductById(id)
 
-    /**
-     * ✅ CORRECTION : Vérification correcte de l'union discriminée
-     *
-     * Nous vérifions d'abord si success est false (ce qui signifie qu'il y a une erreur).
-     * TypeScript comprend maintenant que dans ce cas, res a la propriété error.
-     *
-     * Cette approche est appelée "narrowing" : TypeScript rétrécit le type possible
-     * de res en fonction de la condition que nous vérifions.
-     */
     if (!res.success) {
-        // Dans ce bloc, TypeScript sait que res est de type { error: string }
-        // On pourrait logger l'erreur si on voulait : console.error(res.error)
         notFound()
     }
 
-    /**
-     * À partir d'ici, TypeScript sait que res.success est true,
-     * donc res est de type { success: true, data: WarehouseProductDetail }
-     *
-     * Nous pouvons maintenant accéder à res.data en toute sécurité.
-     * TypeScript garantit que data existe et a le bon type.
-     */
     const productFromDb = res.data
 
     /**
-     * Interface pour le stock transformé côté client.
+     * Transformation du stock depuis la Server Action.
+     *
+     * Au lieu de créer un tableau avec un seul élément, nous travaillons directement
+     * avec l'objet stock. Cette approche est plus simple et reflète mieux la réalité :
+     * un produit d'entrepôt a toujours exactement un stock associé, jamais zéro, jamais plusieurs.
+     *
+     * Si le stock n'existe pas (ce qui ne devrait jamais arriver dans une base de données cohérente),
+     * nous affichons simplement un message d'erreur plutôt que de créer un tableau vide.
      */
-    interface TransformedStock {
-        id: string
-        restaurantId: string
-        warehouseProductId: string
-        quantity: number
-        alertThreshold: number
-        unitCost: number | null
-        totalValue: number | null
-        lastInventoryDate: Date | null
-        updatedAt: Date
+
+    // Vérifier que le stock existe
+    if (!productFromDb.stock) {
+        // Dans une application en production, vous devriez logger cette erreur
+        // car cela indique un état incohérent de votre base de données
+        return (
+            <div className="flex items-center justify-center h-screen">
+                <div className="text-center">
+                    <h2 className="text-2xl font-bold mb-2">Erreur de données</h2>
+                    <p className="text-muted-foreground">
+                        Ce produit n'a pas de stock associé. Contactez le support.
+                    </p>
+                </div>
+            </div>
+        )
     }
 
-    const stock: TransformedStock[] = productFromDb.stock
-        ? [
-            {
-                id: productFromDb.stock.id,
-                restaurantId: productFromDb.stock.restaurantId,
-                warehouseProductId: productFromDb.stock.warehouseProductId,
-                quantity: productFromDb.stock.quantity,
-                alertThreshold: productFromDb.stock.alertThreshold,
-                unitCost: productFromDb.stock.unitCost,
-                totalValue:
-                    productFromDb.stock.unitCost !== null
-                        ? productFromDb.stock.quantity * productFromDb.stock.unitCost
-                        : null,
-                lastInventoryDate: productFromDb.stock.lastInventoryDate
-                    ? new Date(productFromDb.stock.lastInventoryDate)
-                    : null,
-                updatedAt: new Date(productFromDb.stock.updatedAt),
-            },
-        ]
-        : []
-
-    interface TransformedLinkedProduct {
-        id: string
-        name: string
-        imageUrl: string | null
-        stock: Array<{
-            quantity: number
-        }>
+    /**
+     * Créer l'objet stock transformé avec les dates converties.
+     *
+     * Nous convertissons les ISO strings en objets Date pour l'affichage,
+     * et nous calculons la valeur totale si le coût unitaire est disponible.
+     */
+    const stock = {
+        id: productFromDb.stock.id,
+        restaurantId: productFromDb.stock.restaurantId,
+        warehouseProductId: productFromDb.stock.warehouseProductId,
+        quantity: productFromDb.stock.quantity,
+        alertThreshold: productFromDb.stock.alertThreshold,
+        unitCost: productFromDb.stock.unitCost,
+        lastInventoryDate: productFromDb.stock.lastInventoryDate
+            ? new Date(productFromDb.stock.lastInventoryDate)
+            : null,
+        updatedAt: new Date(productFromDb.stock.updatedAt),
     }
 
+    /**
+     * Construire l'objet produit complet pour l'affichage.
+     *
+     * Nous combinons les données du produit de la base avec le stock transformé
+     * et les données du produit lié s'il existe.
+     */
     const product = {
         id: productFromDb.id,
         restaurantId: productFromDb.restaurantId,
@@ -122,23 +111,24 @@ export default async function WarehouseProductDetailPage({ params }: PageProps) 
         isActive: productFromDb.isActive,
         createdAt: productFromDb.createdAt ? new Date(productFromDb.createdAt) : new Date(),
         updatedAt: productFromDb.updatedAt ? new Date(productFromDb.updatedAt) : new Date(),
-        stock,
+        // Passer le stock comme un tableau pour correspondre aux types attendus par QuickActionsButtons
+        stock: [stock],
         isLowStock: productFromDb.isLowStock,
         movements: productFromDb.movements,
         linkedProduct: productFromDb.linkedProduct
-            ? ({
+            ? {
                 id: productFromDb.linkedProduct.id,
                 name: productFromDb.linkedProduct.name,
                 imageUrl: productFromDb.linkedProduct.imageUrl,
-                stock: productFromDb.linkedProduct.stock?.map((s: { quantity: number }) => ({
+                stock: productFromDb.linkedProduct.stock?.map(s => ({
                     quantity: s.quantity,
                 })) ?? [],
-            } as TransformedLinkedProduct)
+            }
             : undefined,
     }
 
-    const mainStock = stock[0]
-    const isLowStock = mainStock ? mainStock.quantity < mainStock.alertThreshold : false
+    // Calculer si le stock est bas pour l'affichage
+    const isLowStock = stock.quantity < stock.alertThreshold
 
     return (
         <>
@@ -198,29 +188,46 @@ export default async function WarehouseProductDetailPage({ params }: PageProps) 
                             </Button>
                         </div>
 
+                        {/* Passer le stock singulier au composant, pas le tableau */}
                         <QuickActionsButtons product={product} stock={stock} />
                     </div>
                 </div>
 
-                {/* STOCK */}
-                {mainStock && (
-                    <Card>
-                        <CardHeader>
+                {/* STOCK - Afficher avec Badge si stock bas */}
+                <Card>
+                    <CardHeader>
+                        <div className="flex items-center justify-between">
                             <CardTitle>Stock actuel</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-3xl font-bold">{mainStock.quantity}</p>
-                            <p className="text-sm text-muted-foreground">
-                                Seuil : {mainStock.alertThreshold}
-                            </p>
-                            {mainStock.unitCost && (
-                                <p className="mt-2">
-                                    Valeur : {formatPrice(mainStock.quantity * mainStock.unitCost)}
-                                </p>
+                            {isLowStock && (
+                                <span className="inline-flex items-center rounded-md bg-orange-50 px-2 py-1 text-xs font-medium text-orange-700 ring-1 ring-inset ring-orange-600/20 dark:bg-orange-900/20 dark:text-orange-400 dark:ring-orange-600/30">
+                                    Stock bas
+                                </span>
                             )}
-                        </CardContent>
-                    </Card>
-                )}
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-3xl font-bold">{stock.quantity}</p>
+                        <p className="text-sm text-muted-foreground mt-1">
+                            Seuil d'alerte : {stock.alertThreshold}
+                        </p>
+                        {stock.unitCost && (
+                            <p className="mt-3 text-muted-foreground">
+                                Valeur totale : <span className="font-semibold text-foreground">
+                                    {formatPrice(stock.quantity * stock.unitCost)}
+                                </span>
+                            </p>
+                        )}
+                        {stock.lastInventoryDate && (
+                            <p className="text-xs text-muted-foreground mt-2">
+                                Dernier inventaire : {stock.lastInventoryDate.toLocaleDateString('fr-FR', {
+                                day: 'numeric',
+                                month: 'long',
+                                year: 'numeric',
+                            })}
+                            </p>
+                        )}
+                    </CardContent>
+                </Card>
 
                 {/* HISTORIQUE */}
                 <Card>
