@@ -83,6 +83,9 @@ export default async function WarehouseProductDetailPage({ params }: PageProps) 
         quantity: productFromDb.stock.quantity,
         alertThreshold: productFromDb.stock.alertThreshold,
         unitCost: productFromDb.stock.unitCost,
+        totalValue: productFromDb.stock.unitCost !== null
+            ? productFromDb.stock.quantity * productFromDb.stock.unitCost
+            : null,
         lastInventoryDate: productFromDb.stock.lastInventoryDate
             ? new Date(productFromDb.stock.lastInventoryDate)
             : null,
