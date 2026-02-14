@@ -473,76 +473,44 @@ export async function getWarehouseProducts(filters?: {
     try {
         const { restaurantId } = await getCurrentUserAndRestaurant()
 
-        // Construire les conditions de filtrage dynamiquement
-        // Cette approche permet d'avoir une requête optimisée par Prisma
         const whereConditions: any = {
             restaurantId,
             isActive: true,
         }
 
-        // Filtre par catégorie si spécifié
-        if (filters?.category) {
-            whereConditions.category = filters.category
-        }
-
-        // Filtre par unité de stockage si spécifié
-        if (filters?.storageUnit) {
-            whereConditions.storageUnit = filters.storageUnit
-        }
-
-        // Filtre pour les produits liés à un produit menu uniquement
-        if (filters?.linkedOnly) {
-            whereConditions.linkedProductId = {
-                not: null,
-            }
-        }
-
-        // Filtre par recherche textuelle (nom ou SKU)
+        if (filters?.category) whereConditions.category = filters.category
+        if (filters?.storageUnit) whereConditions.storageUnit = filters.storageUnit
+        if (filters?.linkedOnly) whereConditions.linkedProductId = { not: null }
         if (filters?.search) {
             whereConditions.OR = [
-                {
-                    name: {
-                        contains: filters.search,
-                        mode: 'insensitive', // Recherche insensible à la casse
-                    },
-                },
-                {
-                    sku: {
-                        contains: filters.search,
-                        mode: 'insensitive',
-                    },
-                },
+                { name: { contains: filters.search, mode: 'insensitive' } },
+                { sku: { contains: filters.search, mode: 'insensitive' } },
             ]
         }
 
-        // Récupérer les produits avec toutes leurs relations
         const products = await prisma.warehouseProduct.findMany({
             where: whereConditions,
             include: {
                 stock: true,
-                linkedProduct: {
-                    include: {
-                        stock: true, // Pour connaître le stock actuel du produit menu
-                    },
-                },
+                linkedProduct: { include: { stock: true } },
             },
-            orderBy: {
-                name: 'asc', // Tri alphabétique par défaut
-            },
+            orderBy: { name: 'asc' },
         })
 
-        // Transformer les données pour l'interface
-        // Cette étape est importante car elle permet de calculer des propriétés
-        // dérivées et de formater les données pour le frontend
         const transformedProducts = products.map(product => {
             const stock = product.stock[0]
 
             return {
                 ...product,
-                stock,
-                // Propriété calculée pour savoir si le stock est bas
+                stock: stock
+                    ? {
+                        ...stock,
+                        quantity: Number(stock.quantity),
+                        alertThreshold: Number(stock.alertThreshold),
+                        unitCost: stock.unitCost !== null ? Number(stock.unitCost) : null,
+                    }
+                    : undefined,
                 isLowStock: stock ? Number(stock.quantity) < Number(stock.alertThreshold) : false,
-                // Informations sur le produit menu lié si présent
                 linkedProduct: product.linkedProduct
                     ? {
                         id: product.linkedProduct.id,
@@ -553,13 +521,9 @@ export async function getWarehouseProducts(filters?: {
                             : 0,
                     }
                     : undefined,
-
             }
         })
 
-        // Filtre post-requête pour le stock bas
-        // On fait ce filtre après la requête car il nécessite un calcul
-        // qui n'est pas directement exprimable en SQL de manière simple
         const finalProducts = filters?.lowStockOnly
             ? transformedProducts.filter(p => p.isLowStock)
             : transformedProducts
@@ -571,6 +535,7 @@ export async function getWarehouseProducts(filters?: {
     }
 }
 
+
 // ============================================================
 // Action 7 : Récupérer un produit spécifique avec son historique
 // ============================================================
@@ -579,48 +544,62 @@ export async function getWarehouseProductById(productId: string) {
     try {
         const { restaurantId } = await getCurrentUserAndRestaurant()
 
-        // Récupérer le produit avec toutes ses données associées
         const product = await prisma.warehouseProduct.findUnique({
-            where: {
-                id: productId,
-                restaurantId, // Sécurité : vérifier que le produit appartient au restaurant
-            },
+            where: { id: productId, restaurantId },
             include: {
                 stock: true,
-                linkedProduct: {
-                    include: {
-                        stock: true,
-                    },
-                },
-                movements: {
-                    orderBy: {
-                        createdAt: 'desc',
-                    },
-                    take: 50, // Limiter à 50 derniers mouvements pour les performances
-                },
+                linkedProduct: { include: { stock: true } },
+                movements: { orderBy: { createdAt: 'desc' }, take: 50 },
             },
         })
 
-        if (!product) {
-            return { error: 'Produit introuvable' }
-        }
+        if (!product) return { error: 'Produit introuvable' }
 
-        // Transformer les données pour l'interface
         const stock = product.stock[0]
 
         const transformedProduct = {
             ...product,
-            stock,
+            conversionRatio: Number(product.conversionRatio),
+            stock: stock
+                ? {
+                    ...stock,
+                    quantity: Number(stock.quantity),
+                    alertThreshold: Number(stock.alertThreshold),
+                    unitCost: stock.unitCost !== null ? Number(stock.unitCost) : null,
+                    lastInventoryDate: stock.lastInventoryDate
+                        ? new Date(stock.lastInventoryDate).toISOString()
+                        : null,
+                }
+                : undefined,
             isLowStock: stock ? Number(stock.quantity) < Number(stock.alertThreshold) : false,
             linkedProduct: product.linkedProduct
                 ? {
                     id: product.linkedProduct.id,
                     name: product.linkedProduct.name,
                     imageUrl: product.linkedProduct.imageUrl,
-                    currentStock: Number(product.linkedProduct.stock?.quantity ?? 0),
+                    currentStock: product.linkedProduct.stock?.[0]
+                        ? Number(product.linkedProduct.stock[0].quantity)
+                        : 0,
+                    stock: product.linkedProduct.stock?.map(s => ({
+                        ...s,
+                        quantity: Number(s.quantity),
+                        alertThreshold: Number(s.alertThreshold),
+                        unitCost: s.unitCost !== null ? Number(s.unitCost) : null,
+                        lastInventoryDate: s.lastInventoryDate
+                            ? new Date(s.lastInventoryDate).toISOString()
+                            : null,
+                    })),
                 }
                 : undefined,
-
+            movements: product.movements.map(m => ({
+                ...m,
+                quantity: Number(m.quantity),
+                previousQty: Number(m.previousQty),
+                newQty: Number(m.newQty),
+                createdAt: m.createdAt ? new Date(m.createdAt).toISOString() : null,
+            })),
+            createdAt: product.createdAt?.toISOString() ?? null,
+            updatedAt: product.updatedAt?.toISOString() ?? null,
         }
 
         return { success: true, data: transformedProduct }
@@ -629,6 +608,8 @@ export async function getWarehouseProductById(productId: string) {
         return { error: 'Erreur lors de la récupération du produit' }
     }
 }
+
+
 
 // ============================================================
 // Action 8 : Récupérer les produits menu disponibles pour liaison

@@ -1,4 +1,3 @@
-// app/(dashboard)/dashboard/warehouse/products/[id]/page.tsx
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
@@ -19,8 +18,7 @@ import {
     BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
 
-import prisma from '@/lib/prisma'
-import { getCurrentUserAndRestaurant } from '@/lib/auth/session'
+import { getWarehouseProductById } from '@/lib/actions/warehouse' // ✅ nouvelle action serveur
 import { formatPrice } from '@/lib/utils/format'
 import { WarehouseMovementsTimeline } from '@/components/warehouse/WarehouseMovementsTimeline'
 import { QuickActionsButtons } from '@/components/warehouse/QuickActionsButtons'
@@ -29,48 +27,21 @@ export const metadata: Metadata = {
     title: 'Détail produit entrepôt | Akôm',
 }
 
-/** Serialize les objets Decimal pour Next.js */
-function serializeWarehouseProduct(product: any) {
-    return {
-        ...product,
-        conversionRatio: Number(product.conversionRatio),
-        stock: product.stock
-            ? {
-                ...product.stock,
-                quantity: Number(product.stock.quantity),
-                alertThreshold: Number(product.stock.alertThreshold),
-                unitCost: product.stock.unitCost ? Number(product.stock.unitCost) : null,
-            }
-            : null,
-    }
-}
-
 interface PageProps {
-    params: Promise<{ id: string }> // Next 16 RSC
+    params: Promise<{ id: string }>
 }
 
 export default async function WarehouseProductDetailPage({ params }: PageProps) {
-    // ✅ Récupération du paramètre id
     const { id } = await params
     if (!id) notFound()
 
-    const { restaurantId } = await getCurrentUserAndRestaurant()
+    // ✅ Utilisation de l'action serveur centralisée
+    const res = await getWarehouseProductById(id)
+    if (res.error || !res.data) notFound()
+    const product = res.data
 
-    // Récupérer le produit avec toutes ses relations
-    const productFromDb = await prisma.warehouseProduct.findUnique({
-        where: { id }, // Prisma ne supporte pas `AND` ici avec findUnique
-        include: {
-            stock: true,
-            linkedProduct: { include: { stock: true } },
-            movements: { orderBy: { createdAt: 'desc' }, take: 20 },
-        },
-    })
-
-    if (!productFromDb || !productFromDb.stock?.[0]) notFound()
-
-    const product = serializeWarehouseProduct(productFromDb)
-    const stock = product.stock!
-    const isLowStock = stock.quantity < stock.alertThreshold
+    const stock = product.stock
+    const isLowStock = stock ? stock.quantity < stock.alertThreshold : false
     const linkedProduct = product.linkedProduct
     const linkedProductStock = linkedProduct?.stock?.[0]
 
@@ -84,11 +55,11 @@ export default async function WarehouseProductDetailPage({ params }: PageProps) 
                     <Breadcrumb>
                         <BreadcrumbList>
                             <BreadcrumbItem>
-                                <BreadcrumbLink href="/dashboard">Opérations</BreadcrumbLink>
+                                <BreadcrumbLink href="/dashboard/warehouse">Magasin</BreadcrumbLink>
                             </BreadcrumbItem>
                             <BreadcrumbSeparator />
                             <BreadcrumbItem>
-                                <BreadcrumbPage>Stocks</BreadcrumbPage>
+                                <BreadcrumbPage>Détails d&#39;un produit</BreadcrumbPage>
                             </BreadcrumbItem>
                         </BreadcrumbList>
                     </Breadcrumb>
@@ -98,7 +69,6 @@ export default async function WarehouseProductDetailPage({ params }: PageProps) 
             <div className="flex flex-1 flex-col gap-4 p-4">
                 {/* Section principale : Infos produit + Image */}
                 <div className="grid gap-6 md:grid-cols-[300px_1fr]">
-                    {/* Image du produit */}
                     <div className="relative aspect-square rounded-lg border overflow-hidden bg-muted">
                         {product.imageUrl ? (
                             <Image src={product.imageUrl} alt={product.name} fill className="object-contain" />
@@ -109,7 +79,6 @@ export default async function WarehouseProductDetailPage({ params }: PageProps) 
                         )}
                     </div>
 
-                    {/* Informations principales */}
                     <div className="space-y-6">
                         <div>
                             <div className="flex items-start justify-between">
@@ -149,7 +118,6 @@ export default async function WarehouseProductDetailPage({ params }: PageProps) 
                             </>
                         )}
 
-                        {/* Configuration de l'unité */}
                         <Separator />
                         <div>
                             <h3 className="font-semibold mb-3">Configuration de l&apos;emballage</h3>
@@ -170,79 +138,85 @@ export default async function WarehouseProductDetailPage({ params }: PageProps) 
                     </div>
                 </div>
 
-                {/* Section : Stock et valorisation */}
-                <div className="grid gap-6 md:grid-cols-3">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-base">Stock actuel</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="space-y-3">
-                                <div>
-                                    <p className={`text-3xl font-bold ${isLowStock ? 'text-orange-600' : ''}`}>
-                                        {stock.quantity}
-                                    </p>
-                                    <p className="text-sm text-muted-foreground capitalize">{product.storageUnit}</p>
-                                </div>
-                                <Separator />
-                                <div>
-                                    <p className="text-sm text-muted-foreground">Seuil d'alerte</p>
-                                    <p className="font-medium mt-1">{stock.alertThreshold}</p>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-base">Valorisation</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            {stock.unitCost ? (
+                {/* Section stock */}
+                {stock && (
+                    <div className="grid gap-6 md:grid-cols-3">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="text-base">Stock actuel</CardTitle>
+                            </CardHeader>
+                            <CardContent>
                                 <div className="space-y-3">
                                     <div>
-                                        <p className="text-3xl font-bold">{formatPrice(stock.quantity * stock.unitCost)}</p>
-                                        <p className="text-sm text-muted-foreground">Valeur totale</p>
+                                        <p className={`text-3xl font-bold ${isLowStock ? 'text-orange-600' : ''}`}>
+                                            {stock.quantity ?? 0}
+                                        </p>
+                                        <p className="text-sm text-muted-foreground capitalize">{product.storageUnit}</p>
                                     </div>
                                     <Separator />
                                     <div>
-                                        <p className="text-sm text-muted-foreground">Coût unitaire</p>
-                                        <p className="font-medium mt-1">{formatPrice(stock.unitCost)}</p>
+                                        <p className="text-sm text-muted-foreground">Seuil d'alerte</p>
+                                        <p className="font-medium mt-1">{stock.alertThreshold ?? 0}</p>
                                     </div>
                                 </div>
-                            ) : (
-                                <p className="text-sm text-muted-foreground">Aucun coût défini</p>
-                            )}
-                        </CardContent>
-                    </Card>
+                            </CardContent>
+                        </Card>
 
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-base">Dernier inventaire</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            {stock.lastInventoryDate ? (
-                                <div className="space-y-2">
-                                    <p className="text-2xl font-bold">
-                                        {new Date(stock.lastInventoryDate).toLocaleDateString('fr-FR')}
-                                    </p>
-                                    <p className="text-sm text-muted-foreground">
-                                        Il y a {getDaysSince(stock.lastInventoryDate)} jours
-                                    </p>
-                                </div>
-                            ) : (
-                                <p className="text-sm text-muted-foreground">Aucun inventaire enregistré</p>
-                            )}
-                        </CardContent>
-                    </Card>
-                </div>
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="text-base">Valorisation</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                {stock.unitCost ? (
+                                    <div className="space-y-3">
+                                        <div>
+                                            <p className="text-3xl font-bold">
+                                                {formatPrice(stock.quantity * stock.unitCost)}
+                                            </p>
+                                            <p className="text-sm text-muted-foreground">Valeur totale</p>
+                                        </div>
+                                        <Separator />
+                                        <div>
+                                            <p className="text-sm text-muted-foreground">Coût unitaire</p>
+                                            <p className="font-medium mt-1">{formatPrice(stock.unitCost)}</p>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <p className="text-sm text-muted-foreground">Aucun coût défini</p>
+                                )}
+                            </CardContent>
+                        </Card>
 
-                {/* Section : Lien avec produit menu */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="text-base">Dernier inventaire</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                {stock.lastInventoryDate ? (
+                                    <div className="space-y-2">
+                                        <p className="text-2xl font-bold">
+                                            {new Date(stock.lastInventoryDate).toLocaleDateString('fr-FR')}
+                                        </p>
+                                        <p className="text-sm text-muted-foreground">
+                                            Il y a {getDaysSince(stock.lastInventoryDate)} jours
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <p className="text-sm text-muted-foreground">Aucun inventaire enregistré</p>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </div>
+                )}
+
+                {/* Linked product */}
                 {linkedProduct && (
                     <Card>
                         <CardHeader>
                             <CardTitle>Lien avec le menu</CardTitle>
-                            <CardDescription>Ce produit d&apos;entrepôt peut réapprovisionner un produit du menu</CardDescription>
+                            <CardDescription>
+                                Ce produit d&apos;entrepôt peut réapprovisionner un produit du menu
+                            </CardDescription>
                         </CardHeader>
                         <CardContent>
                             <div className="flex items-start gap-4 p-4 rounded-lg border bg-muted/50">
@@ -262,18 +236,24 @@ export default async function WarehouseProductDetailPage({ params }: PageProps) 
                                         <div>
                                             <p className="font-semibold">{linkedProduct.name}</p>
                                             <p className="text-sm text-muted-foreground mt-1">
-                                                Stock opérationnel actuel: {linkedProductStock?.quantity || 0} unités
+                                                Stock opérationnel actuel:{' '}
+                                                {linkedProductStock?.quantity ?? 0} unités
                                             </p>
                                         </div>
                                         <Button variant="outline" size="sm" asChild>
-                                            <Link href={`/dashboard/menu/products/${linkedProduct.id}`}>Voir produit</Link>
+                                            <Link href={`/dashboard/menu/products/${linkedProduct.id}`}>
+                                                Voir produit
+                                            </Link>
                                         </Button>
                                     </div>
 
                                     <div className="mt-3 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800">
-                                        <p className="text-sm font-medium text-blue-900 dark:text-blue-100">Conversion automatique</p>
+                                        <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                                            Conversion automatique
+                                        </p>
                                         <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
-                                            1 {product.storageUnit} → {product.conversionRatio} × {linkedProduct.name}
+                                            1 {product.storageUnit} → {product.conversionRatio} ×{' '}
+                                            {linkedProduct.name}
                                         </p>
                                     </div>
                                 </div>
@@ -282,7 +262,7 @@ export default async function WarehouseProductDetailPage({ params }: PageProps) 
                     </Card>
                 )}
 
-                {/* Section : Historique des mouvements */}
+                {/* Movements */}
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between">
                         <div>
@@ -307,9 +287,10 @@ export default async function WarehouseProductDetailPage({ params }: PageProps) 
     )
 }
 
-/** Calcule le nombre de jours depuis une date */
-function getDaysSince(date: Date): number {
+/** Calcule le nombre de jours depuis une date ISO string */
+function getDaysSince(date: string | Date): number {
     const now = new Date()
-    const diff = now.getTime() - new Date(date).getTime()
+    const d = typeof date === 'string' ? new Date(date) : date
+    const diff = now.getTime() - d.getTime()
     return Math.floor(diff / (1000 * 60 * 60 * 24))
 }
