@@ -591,19 +591,34 @@ export async function getWarehouseProductById(
     try {
         const { restaurantId } = await getCurrentUserAndRestaurant()
 
-        const product = await prisma.warehouseProduct.findUnique({
-            where: { id: productId },
+        const product = await prisma.warehouseProduct.findFirst({
+            where: {
+                id: productId,
+                restaurantId,
+            },
             include: {
-                stock: true, // stock principal (tableau)
-                linkedProduct: { include: { stock: true } }, // stock du produit lié (objet)
-                movements: { orderBy: { createdAt: 'desc' }, take: 50 },
+                stock: true, // WarehouseStock[]
+                linkedProduct: {
+                    include: {
+                        stock: true, // Stock (objet unique)
+                    },
+                },
+                movements: {
+                    orderBy: { createdAt: 'desc' },
+                    take: 50,
+                },
             },
         })
 
-        if (!product) return { success: false, error: 'Produit introuvable' }
+        if (!product) {
+            return { success: false, error: 'Produit introuvable' }
+        }
 
-        const stock = product.stock[0] // stock principal
-        const linkedStock = product.linkedProduct?.stock // stock lié, objet ou undefined
+        // Warehouse stock (ARRAY)
+        const warehouseStock = product.stock[0]
+
+        // Linked product stock (OBJECT, not array)
+        const linkedStock = product.linkedProduct?.stock
 
         const transformedProduct: WarehouseProductDetail = {
             id: product.id,
@@ -619,49 +634,83 @@ export async function getWarehouseProductById(
             conversionRatio: Number(product.conversionRatio),
             notes: product.notes,
             isActive: product.isActive,
-            createdAt: product.createdAt?.toISOString() ?? null,
-            updatedAt: product.updatedAt?.toISOString() ?? null,
-            stock: stock
+            createdAt: product.createdAt
+                ? new Date(product.createdAt).toISOString()
+                : null,
+            updatedAt: product.updatedAt
+                ? new Date(product.updatedAt).toISOString()
+                : null,
+
+            // ✅ Warehouse stock (correct)
+            stock: warehouseStock
                 ? {
-                    id: stock.id,
-                    restaurantId: stock.restaurantId,
-                    warehouseProductId: stock.warehouseProductId,
-                    quantity: Number(stock.quantity),
-                    alertThreshold: Number(stock.alertThreshold),
-                    unitCost: stock.unitCost !== null ? Number(stock.unitCost) : null,
-                    lastInventoryDate: stock.lastInventoryDate
-                        ? new Date(stock.lastInventoryDate).toISOString()
+                    id: warehouseStock.id,
+                    restaurantId: warehouseStock.restaurantId,
+                    warehouseProductId: warehouseStock.warehouseProductId,
+                    quantity: Number(warehouseStock.quantity),
+                    alertThreshold: Number(warehouseStock.alertThreshold),
+                    unitCost:
+                        warehouseStock.unitCost !== null
+                            ? Number(warehouseStock.unitCost)
+                            : null,
+                    lastInventoryDate: warehouseStock.lastInventoryDate
+                        ? new Date(
+                            warehouseStock.lastInventoryDate
+                        ).toISOString()
                         : null,
-                    updatedAt: new Date(stock.updatedAt).toISOString(),
+                    updatedAt: new Date(
+                        warehouseStock.updatedAt
+                    ).toISOString(),
                 }
                 : undefined,
-            isLowStock: stock ? Number(stock.quantity) < Number(stock.alertThreshold) : false,
+
+            isLowStock: warehouseStock
+                ? Number(warehouseStock.quantity) <
+                Number(warehouseStock.alertThreshold)
+                : false,
+
+            // ✅ Linked product (fixed properly)
             linkedProduct: product.linkedProduct
                 ? {
                     id: product.linkedProduct.id,
                     name: product.linkedProduct.name,
                     imageUrl: product.linkedProduct.imageUrl,
-                    currentStock: linkedStock ? Number(linkedStock.quantity) : 0,
+                    currentStock: linkedStock
+                        ? Number(linkedStock.quantity)
+                        : 0,
+
+                    // IMPORTANT:
+                    // Stock model DOES NOT contain unitCost or lastInventoryDate
                     stock: linkedStock
-                        ? [{
-                            quantity: Number(linkedStock.quantity),
-                            alertThreshold: Number(linkedStock.alertThreshold),
-                            unitCost: linkedStock.unitCost !== null
-                                ? Number(linkedStock.unitCost)
-                                : null,
-                            lastInventoryDate: linkedStock.lastInventoryDate
-                                ? new Date(linkedStock.lastInventoryDate).toISOString()
-                                : null,
-                            updatedAt: new Date(linkedStock.updatedAt).toISOString(),
-                        }]
+                        ? [
+                            {
+                                quantity: Number(
+                                    linkedStock.quantity
+                                ),
+                                alertThreshold: Number(
+                                    linkedStock.alertThreshold
+                                ),
+                                unitCost: null, // not in Stock model
+                                lastInventoryDate: null, // not in Stock model
+                                updatedAt: new Date(
+                                    linkedStock.updatedAt
+                                ).toISOString(),
+                            },
+                        ]
                         : undefined,
                 }
                 : undefined,
-            movements: product.movements.map(m => ({
+
+            movements: product.movements.map((m) => ({
                 id: m.id,
                 restaurantId: m.restaurantId,
                 warehouseProductId: m.warehouseProductId,
-                movementType: m.movementType as 'entry' | 'exit' | 'transfer_to_ops' | 'adjustment' | 'loss',
+                movementType: m.movementType as
+                    | 'entry'
+                    | 'exit'
+                    | 'transfer_to_ops'
+                    | 'adjustment'
+                    | 'loss',
                 quantity: Number(m.quantity),
                 previousQty: Number(m.previousQty),
                 newQty: Number(m.newQty),
@@ -671,16 +720,22 @@ export async function getWarehouseProductById(
                 reason: m.reason,
                 performedBy: m.performedBy,
                 notes: m.notes,
-                createdAt: m.createdAt ? new Date(m.createdAt).toISOString() : null,
+                createdAt: m.createdAt
+                    ? new Date(m.createdAt).toISOString()
+                    : null,
             })),
         }
 
         return { success: true, data: transformedProduct }
     } catch (error) {
         console.error('Erreur récupération produit:', error)
-        return { success: false, error: 'Erreur lors de la récupération du produit' }
+        return {
+            success: false,
+            error: 'Erreur lors de la récupération du produit',
+        }
     }
 }
+
 
 
 
