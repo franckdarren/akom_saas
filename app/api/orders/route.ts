@@ -1,6 +1,6 @@
 // app/api/orders/route.ts
-import { NextRequest, NextResponse } from 'next/server'
-import { logOrderFailed } from '@/lib/actions/logs'
+import {NextRequest, NextResponse} from 'next/server'
+import {logOrderFailed} from '@/lib/actions/logs'
 import prisma from '@/lib/prisma'
 
 // ============================================================
@@ -40,39 +40,39 @@ export async function POST(request: NextRequest) {
 
         // Validation basique des données
         if (!body.restaurantId || !body.tableId || !body.items || body.items.length === 0) {
-            return NextResponse.json({ error: 'Données manquantes' }, { status: 400 })
+            return NextResponse.json({error: 'Données manquantes'}, {status: 400})
         }
 
         // Vérifier que le restaurant existe et est actif
         const restaurant = await prisma.restaurant.findUnique({
-            where: { id: body.restaurantId },
-            select: { id: true, name: true, slug: true },
+            where: {id: body.restaurantId},
+            select: {id: true, name: true, slug: true},
         })
 
         if (!restaurant) {
-            return NextResponse.json({ error: 'Restaurant non trouvé ou inactif' }, { status: 404 })
+            return NextResponse.json({error: 'Restaurant non trouvé ou inactif'}, {status: 404})
         }
 
         // Vérifier que la table existe et appartient bien au restaurant
         const table = await prisma.table.findFirst({
-            where: { id: body.tableId, restaurantId: body.restaurantId, isActive: true },
-            select: { id: true, number: true },
+            where: {id: body.tableId, restaurantId: body.restaurantId, isActive: true},
+            select: {id: true, number: true},
         })
 
         if (!table) {
-            return NextResponse.json({ error: 'Table non trouvée ou inactive' }, { status: 404 })
+            return NextResponse.json({error: 'Table non trouvée ou inactive'}, {status: 404})
         }
 
         // Récupérer tous les produits commandés
         const productIds: string[] = body.items.map((item) => item.productId)
         const productsRaw = await prisma.product.findMany({
-            where: { 
-                id: { in: productIds },
+            where: {
+                id: {in: productIds},
                 restaurantId: body.restaurantId,
                 isAvailable: true,
-                NOT: { price: null } // Exclure produits sans prix
+                NOT: {price: null} // Exclure produits sans prix
             },
-            include: { stock: true },
+            include: {stock: true},
         })
 
         // Caster pour TS
@@ -86,8 +86,8 @@ export async function POST(request: NextRequest) {
         // Vérifier que tous les produits existent
         if (products.length !== body.items.length) {
             return NextResponse.json(
-                { error: 'Certains produits sont introuvables, indisponibles ou sans prix' },
-                { status: 400 }
+                {error: 'Certains produits sont introuvables, indisponibles ou sans prix'},
+                {status: 400}
             )
         }
 
@@ -98,8 +98,8 @@ export async function POST(request: NextRequest) {
 
             if (product.stock && product.stock.quantity < item.quantity) {
                 return NextResponse.json(
-                    { error: `Stock insuffisant pour ${product.name}` },
-                    { status: 400 }
+                    {error: `Stock insuffisant pour ${product.name}`},
+                    {status: 400}
                 )
             }
         }
@@ -112,9 +112,9 @@ export async function POST(request: NextRequest) {
 
         // Générer le numéro de commande lisible
         const lastOrder = await prisma.order.findFirst({
-            where: { restaurantId: body.restaurantId },
-            orderBy: { createdAt: 'desc' },
-            select: { orderNumber: true },
+            where: {restaurantId: body.restaurantId},
+            orderBy: {createdAt: 'desc'},
+            select: {orderNumber: true},
         })
 
         let orderNumber = '#001'
@@ -145,7 +145,7 @@ export async function POST(request: NextRequest) {
                     }),
                 },
             },
-            include: { orderItems: true },
+            include: {orderItems: true},
         })
 
         // Construire l'URL de tracking
@@ -165,15 +165,62 @@ export async function POST(request: NextRequest) {
                 slug: restaurant.slug,
                 name: restaurant.name,
             },
-            table: { number: table.number },
+            table: {number: table.number},
             trackingUrl,
         })
     } catch (error) {
         console.error('💥 Erreur création commande:', error)
         await logOrderFailed(error instanceof Error ? error.message : 'Erreur inconnue')
         return NextResponse.json(
-            { error: 'Erreur lors de la création de la commande' },
-            { status: 500 }
+            {error: 'Erreur lors de la création de la commande'},
+            {status: 500}
+        )
+    }
+}
+
+
+// ============================================================
+// GET - Récupérer les commandes d'un restaurant
+// ============================================================
+
+export async function GET(req: NextRequest) {
+    try {
+        const restaurantId = req.nextUrl.searchParams.get('restaurantId')
+        if (!restaurantId) {
+            return NextResponse.json({error: 'restaurantId manquant'}, {status: 400})
+        }
+
+        // Récupérer toutes les commandes du restaurant avec les items
+        const orders = await prisma.order.findMany({
+            where: {restaurantId},
+            include: {orderItems: true, table: true},
+            orderBy: {createdAt: 'desc'},
+        })
+
+        // Transformer pour ton hook
+        const formattedOrders = orders.map(o => ({
+            id: o.id,
+            orderNumber: o.orderNumber,
+            status: o.status,
+            totalAmount: o.totalAmount,
+            createdAt: o.createdAt.toISOString(),
+            table: o.table ? {number: o.table.number} : undefined,
+            orderItems: o.orderItems.map(oi => ({
+                id: oi.id,
+                productName: oi.productName,
+                quantity: oi.quantity,
+                unitPrice: oi.unitPrice,
+            })),
+            customerName: o.customerName || undefined,
+            notes: o.notes || undefined,
+        }))
+
+        return NextResponse.json({orders: formattedOrders})
+    } catch (error) {
+        console.error('💥 Erreur GET /api/orders:', error)
+        return NextResponse.json(
+            {error: 'Erreur lors de la récupération des commandes'},
+            {status: 500}
         )
     }
 }
