@@ -592,18 +592,18 @@ export async function getWarehouseProductById(
         const { restaurantId } = await getCurrentUserAndRestaurant()
 
         const product = await prisma.warehouseProduct.findUnique({
-            where: { id: productId, restaurantId },
+            where: { id: productId },
             include: {
-                stock: true,
-                linkedProduct: { include: { stock: true } },
+                stock: true, // stock principal (tableau)
+                linkedProduct: { include: { stock: true } }, // stock du produit lié (objet)
                 movements: { orderBy: { createdAt: 'desc' }, take: 50 },
             },
         })
 
         if (!product) return { success: false, error: 'Produit introuvable' }
 
-        const stock = product.stock[0]
-        const linkedStock = product.linkedProduct?.stock ? product.linkedProduct.stock[0] : undefined
+        const stock = product.stock[0] // stock principal
+        const linkedStock = product.linkedProduct?.stock // stock lié, objet ou undefined
 
         const transformedProduct: WarehouseProductDetail = {
             id: product.id,
@@ -681,6 +681,7 @@ export async function getWarehouseProductById(
         return { success: false, error: 'Erreur lors de la récupération du produit' }
     }
 }
+
 
 
 // ============================================================
