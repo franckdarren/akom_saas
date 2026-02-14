@@ -11,6 +11,15 @@ import { WarehouseProductsTable } from '@/components/warehouse/WarehouseProducts
 import { WarehouseFilters } from '@/components/warehouse/WarehouseFilters'
 import { getWarehouseStats, getWarehouseProducts } from '@/lib/actions/warehouse'
 import { WarehouseProductWithStock } from '@/types/warehouse'
+import {SidebarTrigger} from "@/components/ui/sidebar";
+import {Separator} from "@/components/ui/separator";
+import {
+    Breadcrumb,
+    BreadcrumbItem,
+    BreadcrumbLink,
+    BreadcrumbList, BreadcrumbPage,
+    BreadcrumbSeparator
+} from "@/components/ui/breadcrumb";
 
 export const metadata: Metadata = {
     title: 'Magasin de stockage | Akôm',
@@ -18,8 +27,8 @@ export const metadata: Metadata = {
 }
 
 export default async function WarehousePage({
-    searchParams,
-}: {
+                                                searchParams,
+                                            }: {
     searchParams: {
         category?: string
         storageUnit?: string
@@ -40,7 +49,7 @@ export default async function WarehousePage({
     })
 
     // Conversion complète Decimal -> number pour correspondre à WarehouseProductWithStock
-    // Cette étape est cruciale car Prisma retourne des objets Decimal pour les colonnes DECIMAL de PostgreSQL
+    // Cette étape est cruciale, car Prisma retourne des objets Decimal pour les colonnes DECIMAL de PostgresSQL
     // alors que notre interface TypeScript attend des nombres JavaScript classiques
     const products: WarehouseProductWithStock[] = productsResult.success
         ? productsResult.data.map(p => {
@@ -78,7 +87,7 @@ export default async function WarehousePage({
                     // Convertir unitCost de Decimal vers number (gérer null)
                     unitCost: stockData.unitCost ? Number(stockData.unitCost) : null,
                     // Calculer totalValue en number (pas en Decimal)
-                    totalValue: stockData.unitCost 
+                    totalValue: stockData.unitCost
                         ? Number(stockData.quantity) * Number(stockData.unitCost)
                         : null,
                     lastInventoryDate: stockData.lastInventoryDate,
@@ -100,95 +109,115 @@ export default async function WarehousePage({
         : []
 
     return (
-        <div className="flex flex-col gap-6 p-6">
+        <>
             {/* Header avec titre et action principale */}
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Magasin de stockage</h1>
-                    <p className="text-muted-foreground mt-1">
-                        Gérez votre stock d'entrepôt et réapprovisionnez votre restaurant
-                    </p>
+            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+                <SidebarTrigger className="-ml-1" />
+                <Separator orientation="vertical" className="mr-2 h-4" />
+                <div className="flex justify-between w-full">
+                    <Breadcrumb>
+                        <BreadcrumbList>
+                            <BreadcrumbItem>
+                                <BreadcrumbLink href="/dashboard">Magasin</BreadcrumbLink>
+                            </BreadcrumbItem>
+                            <BreadcrumbSeparator />
+                            <BreadcrumbItem>
+                                <BreadcrumbPage>Magasin de stockage</BreadcrumbPage>
+                            </BreadcrumbItem>
+                        </BreadcrumbList>
+                    </Breadcrumb>
+                </div>
+            </header>
+
+            <div className="flex flex-1 flex-col gap-4 p-4">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h1 className="text-3xl font-bold tracking-tight">Magasin de stockage</h1>
+                        <p className="text-muted-foreground mt-1">
+                            Gérez votre stock d&apos;entrepôt et réapprovisionnez votre restaurant
+                        </p>
+                    </div>
+
+                    <Button asChild size="lg" className="gap-2">
+                        <Link href="/dashboard/warehouse/products/new">
+                            <Plus className="h-4 w-4" />
+                            Nouveau produit
+                        </Link>
+                    </Button>
                 </div>
 
-                <Button asChild size="lg" className="gap-2">
-                    <Link href="/dashboard/warehouse/products/new">
-                        <Plus className="h-4 w-4" />
-                        Nouveau produit
-                    </Link>
-                </Button>
-            </div>
+                {/* Cartes de statistiques KPI */}
+                <Suspense fallback={<StatsCardsSkeleton />}>
+                    <WarehouseStatsCards stats={stats} />
+                </Suspense>
 
-            {/* Cartes de statistiques KPI */}
-            <Suspense fallback={<StatsCardsSkeleton />}>
-                <WarehouseStatsCards stats={stats} />
-            </Suspense>
+                {/* Section principale : filtres + tableau */}
+                <Card className="p-6">
+                    <div className="space-y-6">
+                        <WarehouseFilters />
 
-            {/* Section principale : filtres + tableau */}
-            <Card className="p-6">
-                <div className="space-y-6">
-                    <WarehouseFilters />
-
-                    {/* Message si stock bas détecté */}
-                    {stats && stats.lowStockCount > 0 && (
-                        <div className="flex items-center gap-3 rounded-lg bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 p-4">
-                            <AlertTriangle className="h-5 w-5 text-orange-600 dark:text-orange-400" />
-                            <div className="flex-1">
-                                <p className="font-medium text-orange-900 dark:text-orange-100">
-                                    {stats.lowStockCount}{' '}
-                                    {stats.lowStockCount === 1 ? 'produit' : 'produits'} sous le seuil d'alerte
-                                </p>
-                                <p className="text-sm text-orange-700 dark:text-orange-300">
-                                    Pensez à réapprovisionner votre entrepôt pour éviter les ruptures
-                                </p>
+                        {/* Message si stock bas détecté */}
+                        {stats && stats.lowStockCount > 0 && (
+                            <div className="flex items-center gap-3 rounded-lg bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 p-4">
+                                <AlertTriangle className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                                <div className="flex-1">
+                                    <p className="font-medium text-orange-900 dark:text-orange-100">
+                                        {stats.lowStockCount}{' '}
+                                        {stats.lowStockCount === 1 ? 'produit' : 'produits'} sous le seuil d&apos;alerte
+                                    </p>
+                                    <p className="text-sm text-orange-700 dark:text-orange-300">
+                                        Pensez à réapprovisionner votre entrepôt pour éviter les ruptures
+                                    </p>
+                                </div>
+                                <Button variant="outline" size="sm" asChild>
+                                    <Link href="/dashboard/warehouse?lowStock=true">Voir les produits</Link>
+                                </Button>
                             </div>
-                            <Button variant="outline" size="sm" asChild>
-                                <Link href="/dashboard/warehouse?lowStock=true">Voir les produits</Link>
-                            </Button>
-                        </div>
-                    )}
+                        )}
 
-                    {/* Tableau des produits */}
-                    <Suspense fallback={<TableSkeleton />}>
-                        <WarehouseProductsTable products={products} />
-                    </Suspense>
+                        {/* Tableau des produits */}
+                        <Suspense fallback={<TableSkeleton />}>
+                            <WarehouseProductsTable products={products} />
+                        </Suspense>
+                    </div>
+                </Card>
+
+                {/* Liens rapides */}
+                <div className="grid gap-4 md:grid-cols-2">
+                    <Card className="p-6 hover:shadow-md transition-shadow cursor-pointer">
+                        <Link href="/dashboard/warehouse/movements" className="block">
+                            <div className="flex items-start gap-4">
+                                <div className="p-3 rounded-lg bg-blue-100 dark:bg-blue-900/20">
+                                    <TrendingDown className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                                </div>
+                                <div className="flex-1">
+                                    <h3 className="font-semibold text-lg">Mouvements de stock</h3>
+                                    <p className="text-sm text-muted-foreground mt-1">
+                                        Consultez l&apos;historique complet de tous les mouvements d&apos;entrepôt
+                                    </p>
+                                </div>
+                            </div>
+                        </Link>
+                    </Card>
+
+                    <Card className="p-6 hover:shadow-md transition-shadow cursor-pointer">
+                        <Link href="/dashboard/warehouse/transfers" className="block">
+                            <div className="flex items-start gap-4">
+                                <div className="p-3 rounded-lg bg-green-100 dark:bg-green-900/20">
+                                    <Package className="h-6 w-6 text-green-600 dark:text-green-400" />
+                                </div>
+                                <div className="flex-1">
+                                    <h3 className="font-semibold text-lg">Transferts vers restaurant</h3>
+                                    <p className="text-sm text-muted-foreground mt-1">
+                                        Historique des transferts depuis l&#39;entrepôt vers votre stock opérationnel
+                                    </p>
+                                </div>
+                            </div>
+                        </Link>
+                    </Card>
                 </div>
-            </Card>
-
-            {/* Liens rapides */}
-            <div className="grid gap-4 md:grid-cols-2">
-                <Card className="p-6 hover:shadow-md transition-shadow cursor-pointer">
-                    <Link href="/dashboard/warehouse/movements" className="block">
-                        <div className="flex items-start gap-4">
-                            <div className="p-3 rounded-lg bg-blue-100 dark:bg-blue-900/20">
-                                <TrendingDown className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                            </div>
-                            <div className="flex-1">
-                                <h3 className="font-semibold text-lg">Mouvements de stock</h3>
-                                <p className="text-sm text-muted-foreground mt-1">
-                                    Consultez l'historique complet de tous les mouvements d'entrepôt
-                                </p>
-                            </div>
-                        </div>
-                    </Link>
-                </Card>
-
-                <Card className="p-6 hover:shadow-md transition-shadow cursor-pointer">
-                    <Link href="/dashboard/warehouse/transfers" className="block">
-                        <div className="flex items-start gap-4">
-                            <div className="p-3 rounded-lg bg-green-100 dark:bg-green-900/20">
-                                <Package className="h-6 w-6 text-green-600 dark:text-green-400" />
-                            </div>
-                            <div className="flex-1">
-                                <h3 className="font-semibold text-lg">Transferts vers restaurant</h3>
-                                <p className="text-sm text-muted-foreground mt-1">
-                                    Historique des transferts depuis l'entrepôt vers votre stock opérationnel
-                                </p>
-                            </div>
-                        </div>
-                    </Link>
-                </Card>
             </div>
-        </div>
+        </>
     )
 }
 

@@ -3,6 +3,15 @@ import { Metadata } from 'next'
 import prisma from '@/lib/prisma'
 import { getCurrentUserAndRestaurant } from '@/lib/auth/session'
 import { WarehouseProductForm } from '@/components/warehouse/WarehouseProductForm'
+import {SidebarTrigger} from "@/components/ui/sidebar";
+import {Separator} from "@/components/ui/separator";
+import {
+    Breadcrumb,
+    BreadcrumbItem,
+    BreadcrumbLink,
+    BreadcrumbList, BreadcrumbPage,
+    BreadcrumbSeparator
+} from "@/components/ui/breadcrumb";
 
 export const metadata: Metadata = {
     title: "Nouveau produit d'entrepôt | Akôm",
@@ -13,7 +22,7 @@ export const metadata: Metadata = {
 export default async function NewWarehouseProductPage() {
     const { restaurantId } = await getCurrentUserAndRestaurant()
 
-    // ⚠️ Suppression de `isActive`, on ne filtre que par restaurantId
+    // ⚠️ Suppression de isActive, on ne filtre que par restaurantId
     const menuProducts = await prisma.product.findMany({
         where: {
             restaurantId,
@@ -31,21 +40,41 @@ export default async function NewWarehouseProductPage() {
     })
 
     return (
-        <div className="flex flex-col gap-6 p-6 max-w-4xl mx-auto">
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight">
-                    Nouveau produit d'entrepôt
-                </h1>
+        <>
+            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+                <SidebarTrigger className="-ml-1" />
+                <Separator orientation="vertical" className="mr-2 h-4" />
+                <div className="flex justify-between w-full">
+                    <Breadcrumb>
+                        <BreadcrumbList>
+                            <BreadcrumbItem>
+                                <BreadcrumbLink href="/dashboard">Magasin</BreadcrumbLink>
+                            </BreadcrumbItem>
+                            <BreadcrumbSeparator />
+                            <BreadcrumbItem>
+                                <BreadcrumbPage>Créer un produit d&#39;entrepot</BreadcrumbPage>
+                            </BreadcrumbItem>
+                        </BreadcrumbList>
+                    </Breadcrumb>
+                </div>
+            </header>
 
-                <p className="text-muted-foreground mt-1">
-                    Ajoutez un produit que vous stockez en volume
-                    dans votre entrepôt
-                </p>
+            <div className="flex flex-1 flex-col gap-4 p-4">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight">
+                        Nouveau produit d&#39;entrepôt
+                    </h1>
+
+                    <p className="text-muted-foreground mt-1">
+                        Ajoutez un produit que vous stockez en volume
+                        dans votre entrepôt
+                    </p>
+                </div>
+
+                <WarehouseProductForm
+                    availableProducts={menuProducts}
+                />
             </div>
-
-            <WarehouseProductForm
-                availableProducts={menuProducts}
-            />
-        </div>
+        </>
     )
 }

@@ -59,7 +59,7 @@ export function WarehouseProductsTable({ products }: WarehouseProductsTableProps
                             <TableCell>
                                 <div className="relative h-12 w-12 rounded-md overflow-hidden bg-muted">
                                     {product.imageUrl ? (
-                                        <Image src={product.imageUrl} alt={product.name} fill className="object-cover" />
+                                        <Image src={product.imageUrl} alt={product.name} fill className="object-contain" />
                                     ) : (
                                         <div className="flex items-center justify-center h-full">
                                             <Package className="h-6 w-6 text-muted-foreground" />

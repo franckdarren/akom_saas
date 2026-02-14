@@ -6,7 +6,7 @@ import { ArrowLeft } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { getCurrentUserAndRestaurant } from '@/lib/auth/session'
-import { prisma } from '@/lib/prisma'
+import prisma from '@/lib/prisma'
 import { WarehouseProductForm } from '@/components/warehouse/WarehouseProductForm'
 
 export const metadata: Metadata = {
@@ -15,36 +15,19 @@ export const metadata: Metadata = {
 }
 
 interface PageProps {
-    params: {
-        id: string
-    }
+    params: Promise<{ id: string }> // ✅ IMPORTANT : params est une Promise depuis Next.js 15
 }
 
-/**
- * Page de modification d'un produit d'entrepôt.
- * 
- * Cette page permet de modifier toutes les informations d'un produit existant :
- * - Informations de base (nom, SKU, description, image, catégorie)
- * - Configuration de l'unité de stockage
- * - Lien avec produit menu et ratio de conversion
- * - Seuil d'alerte
- * 
- * Note importante : Le stock initial et le coût unitaire ne sont pas modifiables ici.
- * Pour ajuster le stock, l'utilisateur doit utiliser les actions "Entrée de stock"
- * ou "Ajustement d'inventaire" depuis la page de détail du produit.
- * Pour modifier le coût unitaire, il peut le faire lors de la prochaine entrée de stock.
- * 
- * Cette séparation est volontaire pour maintenir la traçabilité des mouvements
- * et éviter les modifications de stock sans enregistrement dans l'historique.
- */
 export default async function EditWarehouseProductPage({ params }: PageProps) {
+    // ✅ CORRECTION 1 : await params pour récupérer l'id
+    const { id } = await params
     const { restaurantId } = await getCurrentUserAndRestaurant()
 
     // Récupérer le produit avec toutes ses informations
-    const product = await prisma.warehouseProduct.findUnique({
+    const productFromDb = await prisma.warehouseProduct.findUnique({
         where: {
-            id: params.id,
-            restaurantId, // Sécurité : vérifier que le produit appartient au restaurant
+            id,
+            restaurantId,
         },
         include: {
             stock: true,
@@ -52,19 +35,25 @@ export default async function EditWarehouseProductPage({ params }: PageProps) {
         },
     })
 
-    // Si le produit n'existe pas ou n'appartient pas au restaurant, afficher 404
-    if (!product) {
+    if (!productFromDb) {
         notFound()
     }
 
-    // Récupérer la liste des produits du menu pour le sélecteur de lien
-    // On exclut le produit actuellement lié pour éviter les doublons dans la liste
+    // ✅ CORRECTION 2 : Convertir les types Decimal en number
+    // Cette transformation est nécessaire car les Client Components ne peuvent
+    // pas recevoir des objets Decimal de Prisma. Nous devons les convertir
+    // en types JavaScript natifs avant de les passer au composant.
+    const product = {
+        ...productFromDb,
+        // Convertir conversionRatio de Decimal vers number
+        conversionRatio: Number(productFromDb.conversionRatio),
+    }
+
+    // Récupérer la liste des produits du menu
     const menuProducts = await prisma.product.findMany({
         where: {
             restaurantId,
-            isActive: true,
-            // Optionnel : on peut inclure le produit actuellement lié
-            // pour permettre de le garder dans la sélection
+            isAvailable: true,
         },
         select: {
             id: true,
@@ -98,7 +87,7 @@ export default async function EditWarehouseProductPage({ params }: PageProps) {
                 </p>
             </div>
 
-            {/* Message informatif sur ce qui n'est pas modifiable */}
+            {/* Message informatif */}
             <div className="rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/20 p-4">
                 <div className="flex gap-3">
                     <div className="flex-shrink-0">
@@ -128,14 +117,7 @@ export default async function EditWarehouseProductPage({ params }: PageProps) {
                 </div>
             </div>
 
-            {/* Formulaire de modification */}
-            {/* 
-        Le composant WarehouseProductForm détecte automatiquement qu'on est en mode édition
-        grâce à la présence de la prop initialData. Il adapte son comportement :
-        - Les champs de stock initial et coût unitaire sont masqués
-        - Le bouton de soumission affiche "Enregistrer les modifications"
-        - L'action appelée est updateWarehouseProduct au lieu de createWarehouseProduct
-      */}
+            {/* Formulaire de modification avec les données nettoyées */}
             <WarehouseProductForm
                 initialData={product}
                 availableProducts={menuProducts}

@@ -230,7 +230,7 @@ export default async function WarehouseTransfersPage() {
                                                                         src={transfer.warehouseProduct.imageUrl}
                                                                         alt={transfer.warehouseProduct.name}
                                                                         fill
-                                                                        className="object-cover"
+                                                                        className="object-contain"
                                                                     />
                                                                 ) : (
                                                                     <div className="flex items-center justify-center h-full">
@@ -273,7 +273,7 @@ export default async function WarehouseTransfersPage() {
                                                                         src={transfer.opsProduct.imageUrl}
                                                                         alt={transfer.opsProduct.name}
                                                                         fill
-                                                                        className="object-cover"
+                                                                        className="object-contain"
                                                                     />
                                                                 ) : (
                                                                     <div className="flex items-center justify-center h-full">

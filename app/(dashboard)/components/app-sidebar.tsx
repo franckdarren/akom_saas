@@ -127,7 +127,7 @@ export function AppSidebar({ user, role, restaurantName, restaurantLogoUrl, onSi
                         icon: Warehouse
                     },
                     {
-                        title: "Produits entrepôt",
+                        title: "Créer un produit",
                         href: "/dashboard/warehouse/products/new",
                         icon: Package
                     },

@@ -11,6 +11,15 @@ import prisma from '@/lib/prisma'
 import { WarehouseMovementsTimeline } from '@/components/warehouse/WarehouseMovementsTimeline'
 import { MovementsFilters } from '@/components/warehouse/MovementsFilters'
 import { MovementsStats } from '@/components/warehouse/MovementsStats'
+import {SidebarTrigger} from "@/components/ui/sidebar";
+import {Separator} from "@/components/ui/separator";
+import {
+    Breadcrumb,
+    BreadcrumbItem,
+    BreadcrumbLink,
+    BreadcrumbList, BreadcrumbPage,
+    BreadcrumbSeparator
+} from "@/components/ui/breadcrumb";
 
 export const metadata: Metadata = {
     title: 'Mouvements de stock | Akôm',
@@ -28,13 +37,13 @@ interface PageProps {
 
 /**
  * Page d'historique complet des mouvements de stock d'entrepôt.
- * 
+ *
  * Affiche tous les mouvements avec :
  * - Filtres par produit, type, période
  * - Statistiques agrégées
  * - Timeline détaillée
  * - Export possible (future feature)
- * 
+ *
  * Design inspiré de Stripe Payments List et QuickBooks Transactions.
  */
 export default async function WarehouseMovementsPage({ searchParams }: PageProps) {
@@ -95,63 +104,78 @@ export default async function WarehouseMovementsPage({ searchParams }: PageProps
     })
 
     return (
-        <div className="flex flex-col gap-6 p-6">
+        <>
             {/* Header */}
-            <div className="flex items-center justify-between">
-                <div>
-                    <div className="flex items-center gap-3">
-                        <Button variant="ghost" size="sm" asChild>
-                            <Link href="/dashboard/warehouse">
-                                <ArrowLeft className="h-4 w-4 mr-2" />
-                                Retour
-                            </Link>
-                        </Button>
-                        <h1 className="text-3xl font-bold tracking-tight">
-                            Mouvements de stock
-                        </h1>
+            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+                <SidebarTrigger className="-ml-1" />
+                <Separator orientation="vertical" className="mr-2 h-4" />
+                <div className="flex justify-between w-full">
+                    <Breadcrumb>
+                        <BreadcrumbList>
+                            <BreadcrumbItem>
+                                <BreadcrumbLink href="/dashboard">Magasin</BreadcrumbLink>
+                            </BreadcrumbItem>
+                            <BreadcrumbSeparator />
+                            <BreadcrumbItem>
+                                <BreadcrumbPage>Mouvements de stock</BreadcrumbPage>
+                            </BreadcrumbItem>
+                        </BreadcrumbList>
+                    </Breadcrumb>
+                </div>
+            </header>
+
+            <div className="flex flex-1 flex-col gap-4 p-4">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <div className="flex items-center gap-3">
+
+                            <h1 className="text-3xl font-bold tracking-tight">
+                                Mouvements de stock
+                            </h1>
+                        </div>
+                        <p className="text-muted-foreground mt-1">
+                            Historique complet de tous les mouvements d'entrepôt
+                        </p>
                     </div>
-                    <p className="text-muted-foreground mt-1">
-                        Historique complet de tous les mouvements d'entrepôt
-                    </p>
+
+                    {/* Export (future feature) */}
+                    <Button variant="outline" disabled className="gap-2">
+                        <Download className="h-4 w-4" />
+                        Exporter (à venir)
+                    </Button>
                 </div>
 
-                {/* Export (future feature) */}
-                <Button variant="outline" disabled className="gap-2">
-                    <Download className="h-4 w-4" />
-                    Exporter (à venir)
-                </Button>
-            </div>
+                {/* Statistiques de la période */}
+                <Suspense fallback={<StatsCardsSkeleton />}>
+                    <MovementsStats stats={stats} />
+                </Suspense>
 
-            {/* Statistiques de la période */}
-            <Suspense fallback={<StatsCardsSkeleton />}>
-                <MovementsStats stats={stats} />
-            </Suspense>
+                {/* Filtres et liste */}
+                <Card className="p-6">
+                    <div className="space-y-6">
+                        {/* Barre de filtres */}
+                        <MovementsFilters products={products} />
 
-            {/* Filtres et liste */}
-            <Card className="p-6">
-                <div className="space-y-6">
-                    {/* Barre de filtres */}
-                    <MovementsFilters products={products} />
-
-                    {/* Nombre de résultats */}
-                    <div className="flex items-center justify-between text-sm text-muted-foreground">
+                        {/* Nombre de résultats */}
+                        <div className="flex items-center justify-between text-sm text-muted-foreground">
                         <span>
                             {movements.length} mouvement{movements.length > 1 ? 's' : ''} trouvé{movements.length > 1 ? 's' : ''}
                         </span>
-                        {movements.length === 100 && (
-                            <span className="text-orange-600">
+                            {movements.length === 100 && (
+                                <span className="text-orange-600">
                                 Limite de 100 résultats atteinte. Affinez vos filtres.
                             </span>
-                        )}
-                    </div>
+                            )}
+                        </div>
 
-                    {/* Timeline des mouvements */}
-                    <Suspense fallback={<TimelineSkeleton />}>
-                        <WarehouseMovementsTimeline movements={movements} />
-                    </Suspense>
-                </div>
-            </Card>
-        </div>
+                        {/* Timeline des mouvements */}
+                        <Suspense fallback={<TimelineSkeleton />}>
+                            <WarehouseMovementsTimeline movements={movements} />
+                        </Suspense>
+                    </div>
+                </Card>
+            </div>
+        </>
     )
 }
 

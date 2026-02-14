@@ -1,4 +1,4 @@
-// import { prisma } from '@/lib/prisma'
+// import prisma from '@/lib/prisma'
 "use client"
 
 import { useEffect, useState } from "react"
@@ -153,7 +153,7 @@ export function MenuItem({
         <div className="flex gap-4 bg-white px-4 py-3">
             <img
                 src={item.image}
-                className="w-20 h-20 rounded-lg object-cover"
+                className="w-20 h-20 rounded-lg object-contain"
             />
 
             <div className="flex-1">
