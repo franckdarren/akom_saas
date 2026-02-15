@@ -1,22 +1,23 @@
 // app/(dashboard)/dashboard/layout.tsx
-import { redirect } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
-import { signOut, getUserRole } from "@/lib/actions/auth"
-import { AppSidebar } from "../components/app-sidebar"
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
-import { RestaurantProvider } from "@/lib/hooks/use-restaurant"
+import {redirect} from "next/navigation"
+import {createClient} from "@/lib/supabase/server"
+import {signOut, getUserRole} from "@/lib/actions/auth"
+import {AppSidebar} from "../components/app-sidebar"
+import {SidebarProvider, SidebarInset} from "@/components/ui/sidebar"
+import {RestaurantProvider} from "@/lib/hooks/use-restaurant"
 import prisma from "@/lib/prisma"
+import {FloatingSupportButton} from "@/components/support/FloatingSupportButton";
 
 export default async function DashboardLayout({
-    children,
-}: {
+                                                  children,
+                                              }: {
     children: React.ReactNode
 }) {
     const supabase = await createClient()
 
     // Vérifier l'authentification
     const {
-        data: { user },
+        data: {user},
     } = await supabase.auth.getUser()
 
     if (!user) {
@@ -34,7 +35,7 @@ export default async function DashboardLayout({
         const url = new URL(
             typeof window !== 'undefined' ? window.location.href : 'http://localhost:3000'
         )
-        
+
         // Si on est sur /dashboard (exactement) ou toute route qui ne commence pas par /superadmin
         // on redirige vers /superadmin
         // Note: on ne peut pas accéder à pathname directement ici, donc on passe par autre chose
@@ -45,7 +46,7 @@ export default async function DashboardLayout({
     // Les SuperAdmins peuvent accéder au dashboard même sans restaurant
     if (userRole !== "superadmin") {
         const hasRestaurant = await prisma.restaurantUser.findFirst({
-            where: { userId: user.id },
+            where: {userId: user.id},
         })
 
         // Si pas de restaurant ET pas SuperAdmin, rediriger vers l'onboarding
@@ -55,12 +56,12 @@ export default async function DashboardLayout({
     }
 
     // Récupérer les infos du restaurant actuel (seulement si pas SuperAdmin)
-    const restaurantUser = userRole !== "superadmin" 
+    const restaurantUser = userRole !== "superadmin"
         ? await prisma.restaurantUser.findFirst({
-            where: { userId: user.id },
+            where: {userId: user.id},
             include: {
                 restaurant: {
-                    select: { 
+                    select: {
                         id: true,
                         name: true,
                         logoUrl: true
@@ -96,7 +97,9 @@ export default async function DashboardLayout({
                 />
                 <SidebarInset>
                     {children}
+                    {/* Bouton flottant de support */}
                 </SidebarInset>
+                <FloatingSupportButton/>
             </SidebarProvider>
         </RestaurantProvider>
     )
