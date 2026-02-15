@@ -1,15 +1,14 @@
 'use client'
 
 import {useState, useEffect, useRef} from 'react'
-import {MessageSquare, X, Send, Loader2, ArrowLeft} from 'lucide-react'
+import {MessageSquare, X, Send, ArrowLeft, Loader2} from 'lucide-react'
 import {Button} from '@/components/ui/button'
 import {Badge} from '@/components/ui/badge'
 import {Textarea} from '@/components/ui/textarea'
 import {ScrollArea} from '@/components/ui/scroll-area'
-import {createSupportTicket, sendTicketMessage, getMyTickets, getTicketMessages} from '@/lib/actions/support'
-import {toast} from 'sonner'
 import {cn} from '@/lib/utils'
 import {formatDate} from '@/lib/utils/format'
+import {createSupportTicket, sendTicketMessage, getMyTickets, getTicketMessages} from '@/lib/actions/support'
 
 interface Ticket {
     id: string
@@ -36,6 +35,8 @@ export function FloatingSupportButton() {
     const [isLoading, setIsLoading] = useState(false)
     const [unreadCount, setUnreadCount] = useState(0)
     const [showNewTicketForm, setShowNewTicketForm] = useState(false)
+    const [isTicketsLoading, setIsTicketsLoading] = useState(false)
+    const [isMessagesLoading, setIsMessagesLoading] = useState(false)
 
     const scrollRef = useRef<HTMLDivElement>(null)
     const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -46,60 +47,42 @@ export function FloatingSupportButton() {
         priority: 'medium' as 'low' | 'medium' | 'high' | 'urgent'
     })
 
-    // ----- Auto scroll -----
+    // Auto scroll sur le dernier message
     useEffect(() => {
-        if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+        if (scrollRef.current) {
+            scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+        }
     }, [messages])
 
-    // ----- Focus textarea -----
+    // Focus textarea quand conversation ouverte
     useEffect(() => {
-        if (selectedTicket && textareaRef.current) textareaRef.current.focus()
+        if (selectedTicket && textareaRef.current) {
+            textareaRef.current.focus()
+        }
     }, [selectedTicket])
 
-    // ----- Load tickets when modal opens -----
+    // Charger les tickets à l'ouverture
     useEffect(() => {
-        if (isOpen && !selectedTicket) {
-            loadTickets()
-            checkUnreadMessages()
-        }
+        if (isOpen && !selectedTicket) loadTickets()
     }, [isOpen, selectedTicket])
 
-    // ----- Polling messages every 5s for selected ticket -----
+    // Charger les messages quand un ticket est sélectionné
     useEffect(() => {
-        if (!selectedTicket) return
-        loadMessages(selectedTicket)
-        const interval = setInterval(() => loadMessages(selectedTicket), 5000)
-        return () => clearInterval(interval)
+        if (selectedTicket) loadMessages(selectedTicket)
     }, [selectedTicket])
 
     const loadTickets = async () => {
-        try {
-            const result = await getMyTickets()
-            if (result.success && result.tickets) setTickets(result.tickets)
-        } catch (e) {
-            console.error(e)
-        }
+        setIsTicketsLoading(true)
+        const result = await getMyTickets()
+        if (result.success && result.tickets) setTickets(result.tickets)
+        setIsTicketsLoading(false)
     }
 
     const loadMessages = async (ticketId: string) => {
-        try {
-            const result = await getTicketMessages(ticketId)
-            if (result.success && result.messages) setMessages(result.messages)
-        } catch (e) {
-            console.error(e)
-        }
-    }
-
-    const checkUnreadMessages = async () => {
-        try {
-            const result = await getMyTickets()
-            if (result.success && result.tickets) {
-                const openTickets = result.tickets.filter(t => t.status === 'open' || t.status === 'in_progress')
-                setUnreadCount(openTickets.length)
-            }
-        } catch (e) {
-            console.error(e)
-        }
+        setIsMessagesLoading(true)
+        const result = await getTicketMessages(ticketId)
+        if (result.success && result.messages) setMessages(result.messages)
+        setIsMessagesLoading(false)
     }
 
     const handleSendMessage = async (e: React.FormEvent) => {
@@ -107,35 +90,31 @@ export function FloatingSupportButton() {
         if (!newMessage.trim() || !selectedTicket) return
 
         setIsLoading(true)
-        try {
-            const result = await sendTicketMessage({ticketId: selectedTicket, message: newMessage})
-            if (result.error) toast.error(result.error)
-            else {
-                setNewMessage('')
-                loadMessages(selectedTicket)
-            }
-        } catch (e) {
-            toast.error('Erreur lors de l’envoi du message')
+        const result = await sendTicketMessage({ticketId: selectedTicket, message: newMessage})
+
+        if (result.error) alert(result.error)
+        else {
+            setNewMessage('')
+            loadMessages(selectedTicket)
         }
+
         setIsLoading(false)
     }
 
     const handleCreateTicket = async (e: React.FormEvent) => {
         e.preventDefault()
-        if (!newTicket.subject.trim() || !newTicket.description.trim()) return
         setIsLoading(true)
-        try {
-            const result = await createSupportTicket(newTicket)
-            if (result.error) toast.error(result.error)
-            else {
-                toast.success('Ticket créé avec succès')
-                setShowNewTicketForm(false)
-                setNewTicket({subject: '', description: '', priority: 'medium'})
-                loadTickets()
-            }
-        } catch (e) {
-            toast.error('Erreur lors de la création du ticket')
+
+        const result = await createSupportTicket(newTicket)
+
+        if (result.error) alert(result.error)
+        else {
+            alert('Ticket créé avec succès')
+            setShowNewTicketForm(false)
+            setNewTicket({subject: '', description: '', priority: 'medium'})
+            loadTickets()
         }
+
         setIsLoading(false)
     }
 
@@ -152,8 +131,11 @@ export function FloatingSupportButton() {
             resolved: 'Résolu',
             closed: 'Fermé'
         }
-        return <Badge
-            className={cn('text-white', variants[status as keyof typeof variants])}>{labels[status as keyof typeof labels]}</Badge>
+        return (
+            <Badge className={cn('text-white', variants[status as keyof typeof variants])}>
+                {labels[status as keyof typeof labels]}
+            </Badge>
+        )
     }
 
     const getPriorityBadge = (priority: string) => {
@@ -169,39 +151,42 @@ export function FloatingSupportButton() {
             high: 'Haute',
             urgent: 'Urgente'
         }
-        return <Badge
-            className={cn('text-white', variants[priority as keyof typeof variants])}>{labels[priority as keyof typeof labels]}</Badge>
+        return (
+            <Badge className={cn('text-white', variants[priority as keyof typeof variants])}>
+                {labels[priority as keyof typeof labels]}
+            </Badge>
+        )
     }
 
     return (
         <>
             {/* Floating Button */}
-            <div>
-                <Button
-                    onClick={() => setIsOpen(true)}
-                    size="icon"
-                    className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-xl bg-primary text-primary-foreground hover:opacity-90 z-50"
-                >
-                    {unreadCount > 0 && (
-                        <Badge
-                            className="absolute -top-1 -right-1 h-6 w-6 p-0 flex items-center justify-center bg-destructive text-destructive-foreground animate-pulse">
-                            {unreadCount}
-                        </Badge>
-                    )}
-                    <MessageSquare className="h-6 w-6"/>
-                </Button>
-            </div>
+            <Button
+                onClick={() => setIsOpen(true)}
+                size="icon"
+                className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-xl bg-primary text-primary-foreground hover:opacity-90 z-50"
+            >
+                {unreadCount > 0 && (
+                    <Badge
+                        className="absolute -top-1 -right-1 h-6 w-6 p-0 flex items-center justify-center bg-destructive text-destructive-foreground animate-pulse">
+                        {unreadCount}
+                    </Badge>
+                )}
+                <MessageSquare className="h-6 w-6"/>
+            </Button>
 
             {/* Modal */}
             {isOpen && (
                 <div
-                    className="fixed bottom-6 right-6 w-[400px] max-w-[95vw] max-h-[calc(100vh-48px)] bg-card border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden z-50"
-                >
+                    className="fixed bottom-24 right-6 w-[400px] max-w-[95vw] h-[80vh] bg-card border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden z-50">
                     {/* Header */}
                     <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted">
                         <div className="flex items-center gap-2 font-semibold">
                             {selectedTicket && (
-                                <ArrowLeft className="h-4 w-4 cursor-pointer" onClick={() => setSelectedTicket(null)}/>
+                                <ArrowLeft
+                                    className="h-4 w-4 cursor-pointer"
+                                    onClick={() => setSelectedTicket(null)}
+                                />
                             )}
                             {selectedTicket ? 'Conversation' : 'Support'}
                         </div>
@@ -212,93 +197,114 @@ export function FloatingSupportButton() {
                     <div className="flex-1 flex flex-col">
                         {!selectedTicket ? (
                             <>
+                                {/* Liste des tickets */}
                                 <div className="p-4">
                                     <Button onClick={() => setShowNewTicketForm(true)} className="w-full">
                                         Nouveau ticket
                                     </Button>
                                 </div>
 
-                                {showNewTicketForm ? (
-                                    <ScrollArea className="flex-1 p-4">
-                                        <form onSubmit={handleCreateTicket} className="space-y-4">
-                                            <div>
-                                                <label>Sujet *</label>
-                                                <input
-                                                    className="w-full border p-2 rounded"
-                                                    value={newTicket.subject}
-                                                    onChange={e => setNewTicket({
-                                                        ...newTicket,
-                                                        subject: e.target.value
-                                                    })}
-                                                    required
-                                                />
-                                            </div>
-                                            <div>
-                                                <label>Description *</label>
-                                                <Textarea
-                                                    value={newTicket.description}
-                                                    onChange={e => setNewTicket({
-                                                        ...newTicket,
-                                                        description: e.target.value
-                                                    })}
-                                                    rows={4}
-                                                    required
-                                                />
-                                            </div>
-                                            <Button type="submit" disabled={isLoading}>
-                                                {isLoading ? <Loader2 className="h-4 w-4 animate-spin"/> : 'Créer'}
-                                            </Button>
-                                        </form>
-                                    </ScrollArea>
-                                ) : (
-                                    <ScrollArea className="flex-1 px-2">
-                                        {tickets.map(ticket => (
+                                <ScrollArea className="flex-1 px-2">
+                                    {isTicketsLoading ? (
+                                        <div
+                                            className="flex justify-center items-center py-4 text-sm text-muted-foreground">
+                                            <Loader2 className="h-5 w-5 animate-spin mr-2"/> Chargement des tickets...
+                                        </div>
+                                    ) : (
+                                        tickets.map((ticket) => (
                                             <div
                                                 key={ticket.id}
                                                 onClick={() => setSelectedTicket(ticket.id)}
                                                 className="p-3 rounded-lg hover:bg-accent cursor-pointer transition"
                                             >
-                                                <div className="font-medium text-sm">{ticket.subject}</div>
+                                                <div className="flex justify-between items-center">
+                                                    <div className="font-medium text-sm">{ticket.subject}</div>
+                                                    {getStatusBadge(ticket.status)}
+                                                </div>
                                                 <div className="text-xs text-muted-foreground mt-1">
-                                                    {getStatusBadge(ticket.status)} • {getPriorityBadge(ticket.priority)} •{' '}
-                                                    {ticket._count.messages} messages • {formatDate(ticket.createdAt)}
+                                                    {getPriorityBadge(ticket.priority)} • {ticket._count.messages} messages
+                                                    •{' '}
+                                                    {formatDate(ticket.createdAt)}
                                                 </div>
                                             </div>
-                                        ))}
-                                    </ScrollArea>
-                                )}
+                                        ))
+                                    )}
+                                </ScrollArea>
                             </>
                         ) : (
                             <>
-                                <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-4">
-                                    {messages.map(message => (
-                                        <div
-                                            key={message.id}
-                                            className={cn('flex', message.isAdmin ? 'justify-start' : 'justify-end')}
-                                        >
-                                            <div
-                                                className={cn(
-                                                    'max-w-[75%] px-4 py-2 rounded-2xl text-sm',
-                                                    message.isAdmin ? 'bg-muted text-foreground' : 'bg-primary text-primary-foreground'
-                                                )}
-                                            >
-                                                {message.message}
-                                                <div
-                                                    className="text-[10px] opacity-60 mt-1">{formatDate(message.createdAt)}</div>
-                                            </div>
+                                {/* Détails + messages */}
+                                <div className="flex-1 flex flex-col overflow-y-auto px-4 py-3 space-y-4"
+                                     ref={scrollRef}>
+                                    {isMessagesLoading ? (
+                                        <div className="text-center text-sm text-muted-foreground py-4">
+                                            Chargement des messages...
                                         </div>
-                                    ))}
+                                    ) : (
+                                        <>
+                                            {/* Détails du ticket */}
+                                            {tickets
+                                                .filter((t) => t.id === selectedTicket)
+                                                .map((ticket) => (
+                                                    <div
+                                                        key={ticket.id}
+                                                        className={cn(
+                                                            "p-3 mb-2 rounded-lg border border-border hover:bg-accent transition cursor-pointer shadow-sm",
+                                                            selectedTicket === ticket.id ? "bg-accent/50" : "bg-card"
+                                                        )}
+                                                        onClick={() => setSelectedTicket(ticket.id)}
+                                                    >
+                                                        {/* Sujet du ticket */}
+                                                        <div className="flex justify-between">
+                                                            <div
+                                                                className="font-semibold text-sm mb-1 text-foreground">{ticket.subject}</div>
+                                                            {getStatusBadge(ticket.status)}
+                                                        </div>
+                                                        {/* Badges */}
+                                                        {/*<div className="flex items-center gap-2 mb-1">*/}
+                                                        {/*    {getPriorityBadge(ticket.priority)}*/}
+                                                        {/*</div>*/}
+
+                                                        {/* Infos supplémentaires */}
+                                                        <div className="text-xs text-muted-foreground">
+                                                            {ticket._count.messages} message{ticket._count.messages > 1 ? "s" : ""} • {formatDate(ticket.createdAt)}
+                                                        </div>
+                                                    </div>
+
+                                                ))}
+
+                                            {/* Messages */}
+                                            {messages.map((message) => (
+                                                <div
+                                                    key={message.id}
+                                                    className={cn('flex', message.isAdmin ? 'justify-start' : 'justify-end')}
+                                                >
+                                                    <div
+                                                        className={cn(
+                                                            'max-w-[75%] px-4 py-2 rounded-2xl text-sm',
+                                                            message.isAdmin ? 'bg-muted text-foreground' : 'bg-primary text-primary-foreground'
+                                                        )}
+                                                    >
+                                                        {message.message}
+                                                        <div
+                                                            className="text-[10px] opacity-60 mt-1">{formatDate(message.createdAt)}</div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </>
+                                    )}
                                 </div>
 
+                                {/* Input message */}
                                 <form onSubmit={handleSendMessage} className="p-3 border-t border-border flex gap-2">
                                     <Textarea
                                         ref={textareaRef}
                                         value={newMessage}
-                                        onChange={e => setNewMessage(e.target.value)}
+                                        onChange={(e) => setNewMessage(e.target.value)}
                                         placeholder="Votre message..."
                                         className="resize-none"
                                         rows={2}
-                                        onKeyDown={e => {
+                                        onKeyDown={(e) => {
                                             if (e.key === 'Enter' && !e.shiftKey) {
                                                 e.preventDefault()
                                                 handleSendMessage(e)
