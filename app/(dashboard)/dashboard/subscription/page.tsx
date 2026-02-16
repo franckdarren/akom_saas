@@ -1,11 +1,11 @@
 // app/dashboard/subscription/page.tsx
-import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import {redirect} from 'next/navigation'
+import {createClient} from '@/lib/supabase/server'
 import {
     getRestaurantSubscription,
     getDaysRemaining,
 } from '@/lib/actions/subscription'
-import { formatPrice } from '@/lib/subscription/config'
+import {formatPrice} from '@/lib/subscription/config'
 import Link from 'next/link'
 import {
     Calendar,
@@ -31,19 +31,19 @@ import {
     BreadcrumbSeparator,
     BreadcrumbPage,
 } from '@/components/ui/breadcrumb'
-import { Separator } from '@/components/ui/separator'
-import { SidebarTrigger } from '@/components/ui/sidebar'
-import { Button } from '@/components/ui/button'
-import { Plus } from 'lucide-react'
-import { getUserRole } from "@/lib/actions/auth"
+import {Separator} from '@/components/ui/separator'
+import {SidebarTrigger} from '@/components/ui/sidebar'
+import {Button} from '@/components/ui/button'
+import {Plus} from 'lucide-react'
+import {getUserRole} from "@/lib/actions/auth"
 
-import { Badge } from '@/components/ui/badge'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import {Badge} from '@/components/ui/badge'
+import {Alert, AlertDescription, AlertTitle} from '@/components/ui/alert'
 
 export default async function SubscriptionPage() {
     const supabase = await createClient()
     const {
-        data: { user },
+        data: {user},
     } = await supabase.auth.getUser()
 
     const userRole = await getUserRole()
@@ -53,7 +53,7 @@ export default async function SubscriptionPage() {
     }
 
     // Récupérer le restaurant
-    const { data: restaurantUser } = await supabase
+    const {data: restaurantUser} = await supabase
         .from('restaurant_users')
         .select('restaurant_id, restaurants(name)')
         .eq('user_id', user.id)
@@ -67,14 +67,14 @@ export default async function SubscriptionPage() {
     const restaurantName = (restaurantUser.restaurants as any)?.name
 
     // Récupérer l'abonnement
-    const { subscription } = await getRestaurantSubscription(restaurantId)
+    const {subscription} = await getRestaurantSubscription(restaurantId)
     const daysRemaining = await getDaysRemaining(restaurantId)
 
     if (!subscription) {
         return (
             <div className="p-6">
                 <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
+                    <AlertCircle className="h-4 w-4"/>
                     <AlertTitle>Erreur</AlertTitle>
                     <AlertDescription>
                         Aucun abonnement trouvé pour ce restaurant.
@@ -92,15 +92,15 @@ export default async function SubscriptionPage() {
     return (
         <>
             <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-                <SidebarTrigger className="-ml-1" />
-                <Separator orientation="vertical" className="mr-2 h-4" />
+                <SidebarTrigger className="-ml-1"/>
+                <Separator orientation="vertical" className="mr-2 h-4"/>
                 <div className="flex justify-between w-full">
                     <Breadcrumb>
                         <BreadcrumbList>
                             <BreadcrumbItem>
                                 <BreadcrumbLink href="/dashboard">Opérations</BreadcrumbLink>
                             </BreadcrumbItem>
-                            <BreadcrumbSeparator />
+                            <BreadcrumbSeparator/>
                             <BreadcrumbItem>
                                 <BreadcrumbPage>Abonnement</BreadcrumbPage>
                             </BreadcrumbItem>
@@ -123,12 +123,12 @@ export default async function SubscriptionPage() {
 
                 {/* Alerte si expiration proche */}
                 {isExpiringSoon && subscription.status === 'trial' && (
-                    <Alert className="border-orange-200 bg-orange-50">
-                        <AlertCircle className="h-4 w-4 text-orange-600" />
-                        <AlertTitle className="text-orange-800">
+                    <Alert className="border-orange-800 ">
+                        <AlertCircle className="h-4 w-4 text-orange-600"/>
+                        <AlertTitle className="text-primary">
                             Période d'essai bientôt terminée
                         </AlertTitle>
-                        <AlertDescription className="text-orange-700">
+                        <AlertDescription className="text-orange-600">
                             Il vous reste {daysRemaining} jour{daysRemaining! > 1 ? 's' : ''}{' '}
                             d'essai gratuit. Choisissez votre plan dès maintenant pour ne pas
                             perdre l'accès.
@@ -139,7 +139,7 @@ export default async function SubscriptionPage() {
                 {/* Paiements en attente */}
                 {pendingPayments.length > 0 && (
                     <Alert className="border-blue-200 bg-blue-50">
-                        <Clock className="h-4 w-4 text-blue-600" />
+                        <Clock className="h-4 w-4 text-blue-600"/>
                         <AlertTitle className="text-blue-800">
                             Paiement en cours de validation
                         </AlertTitle>
@@ -184,13 +184,13 @@ export default async function SubscriptionPage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-3">
                                 <div>
-                                    <p className="text-sm text-gray-600">Plan</p>
+                                    <p className="text-sm text-muted-foreground">Plan</p>
                                     <p className="text-lg font-semibold capitalize">
                                         {subscription.plan}
                                     </p>
                                 </div>
                                 <div>
-                                    <p className="text-sm text-gray-600">Prix mensuel</p>
+                                    <p className="text-sm text-muted-foreground">Prix mensuel</p>
                                     <p className="text-lg font-semibold">
                                         {formatPrice(subscription.monthlyPrice)}
                                     </p>
@@ -201,18 +201,18 @@ export default async function SubscriptionPage() {
                                 {subscription.status === 'trial' ? (
                                     <>
                                         <div>
-                                            <p className="text-sm text-gray-600">Date de début</p>
+                                            <p className="text-sm text-muted-foreground">Date de début</p>
                                             <p className="text-lg font-medium flex items-center gap-2">
-                                                <Calendar className="h-4 w-4" />
+                                                <Calendar className="h-4 w-4"/>
                                                 {new Date(subscription.trialStartsAt).toLocaleDateString(
                                                     'fr-FR'
                                                 )}
                                             </p>
                                         </div>
                                         <div>
-                                            <p className="text-sm text-gray-600">Fin de l'essai</p>
+                                            <p className="text-sm text-muted-foreground">Fin de l'essai</p>
                                             <p className="text-lg font-medium flex items-center gap-2">
-                                                <Calendar className="h-4 w-4" />
+                                                <Calendar className="h-4 w-4"/>
                                                 {new Date(subscription.trialEndsAt).toLocaleDateString(
                                                     'fr-FR'
                                                 )}
@@ -223,11 +223,11 @@ export default async function SubscriptionPage() {
                                     <>
                                         {subscription.currentPeriodStart && (
                                             <div>
-                                                <p className="text-sm text-gray-600">
+                                                <p className="text-sm text-muted-foreground">
                                                     Début de période
                                                 </p>
                                                 <p className="text-lg font-medium flex items-center gap-2">
-                                                    <Calendar className="h-4 w-4" />
+                                                    <Calendar className="h-4 w-4"/>
                                                     {new Date(
                                                         subscription.currentPeriodStart
                                                     ).toLocaleDateString('fr-FR')}
@@ -236,11 +236,11 @@ export default async function SubscriptionPage() {
                                         )}
                                         {subscription.currentPeriodEnd && (
                                             <div>
-                                                <p className="text-sm text-gray-600">
+                                                <p className="text-sm text-muted-foreground">
                                                     Prochaine facturation
                                                 </p>
                                                 <p className="text-lg font-medium flex items-center gap-2">
-                                                    <Calendar className="h-4 w-4" />
+                                                    <Calendar className="h-4 w-4"/>
                                                     {new Date(
                                                         subscription.currentPeriodEnd
                                                     ).toLocaleDateString('fr-FR')}
@@ -254,16 +254,16 @@ export default async function SubscriptionPage() {
 
                         {/* Compte à rebours */}
                         {daysRemaining !== null && daysRemaining >= 0 && (
-                            <div className="bg-gray-50 rounded-lg p-4 text-center">
-                                <p className="text-sm text-gray-600 mb-2">
+                            <div className="rounded-lg p-4 text-center border">
+                                <p className="text-sm text-muted-foreground mb-2">
                                     {subscription.status === 'trial'
                                         ? 'Jours d\'essai restants'
                                         : 'Jours restants'}
                                 </p>
-                                <p className="text-4xl font-bold text-blue-600">
+                                <p className="text-4xl font-bold text-primary">
                                     {daysRemaining}
                                 </p>
-                                <p className="text-sm text-gray-500 mt-1">
+                                <p className="text-sm text-muted-foreground mt-1">
                                     jour{daysRemaining > 1 ? 's' : ''}
                                 </p>
                             </div>
@@ -274,7 +274,7 @@ export default async function SubscriptionPage() {
                             <p className="font-semibold mb-3">Fonctionnalités incluses :</p>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                                 <div className="flex items-center gap-2 text-sm">
-                                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                                    <CheckCircle2 className="h-4 w-4 text-green-600"/>
                                     <span>
                                         {subscription.maxTables
                                             ? `${subscription.maxTables} tables`
@@ -282,36 +282,36 @@ export default async function SubscriptionPage() {
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-2 text-sm">
-                                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                                    <CheckCircle2 className="h-4 w-4 text-green-600"/>
                                     <span>{subscription.maxUsers} utilisateurs</span>
                                 </div>
                                 {subscription.hasStockManagement && (
                                     <div className="flex items-center gap-2 text-sm">
-                                        <CheckCircle2 className="h-4 w-4 text-green-600" />
+                                        <CheckCircle2 className="h-4 w-4 text-green-600"/>
                                         <span>Gestion de stock</span>
                                     </div>
                                 )}
                                 {subscription.hasAdvancedStats && (
                                     <div className="flex items-center gap-2 text-sm">
-                                        <CheckCircle2 className="h-4 w-4 text-green-600" />
+                                        <CheckCircle2 className="h-4 w-4 text-green-600"/>
                                         <span>Statistiques avancées</span>
                                     </div>
                                 )}
                                 {subscription.hasDataExport && (
                                     <div className="flex items-center gap-2 text-sm">
-                                        <CheckCircle2 className="h-4 w-4 text-green-600" />
+                                        <CheckCircle2 className="h-4 w-4 text-green-600"/>
                                         <span>Export de données</span>
                                     </div>
                                 )}
                                 {subscription.hasMobilePayment && (
                                     <div className="flex items-center gap-2 text-sm">
-                                        <CheckCircle2 className="h-4 w-4 text-green-600" />
+                                        <CheckCircle2 className="h-4 w-4 text-green-600"/>
                                         <span>Paiement mobile money</span>
                                     </div>
                                 )}
                                 {subscription.hasMultiRestaurants && (
                                     <div className="flex items-center gap-2 text-sm">
-                                        <CheckCircle2 className="h-4 w-4 text-green-600" />
+                                        <CheckCircle2 className="h-4 w-4 text-green-600"/>
                                         <span>Multi-restaurants</span>
                                     </div>
                                 )}
@@ -325,7 +325,7 @@ export default async function SubscriptionPage() {
                                     {subscription.status === 'trial'
                                         ? 'Choisir mon plan'
                                         : 'Changer de plan'}
-                                    <ArrowRight className="ml-2 h-4 w-4" />
+                                    <ArrowRight className="ml-2 h-4 w-4"/>
                                 </Link>
                             </Button>
                             {subscription.status === 'active' && (
@@ -349,8 +349,8 @@ export default async function SubscriptionPage() {
                     </CardHeader>
                     <CardContent>
                         {subscription.payments.length === 0 ? (
-                            <div className="text-center py-8 text-gray-500">
-                                <CreditCard className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                            <div className="text-center py-8 text-muted-foreground">
+                                <CreditCard className="h-12 w-12 mx-auto mb-3 opacity-50"/>
                                 <p>Aucun paiement enregistré</p>
                             </div>
                         ) : (
@@ -362,20 +362,20 @@ export default async function SubscriptionPage() {
                                     >
                                         <div className="flex items-center gap-4">
                                             {payment.status === 'confirmed' && (
-                                                <CheckCircle2 className="h-5 w-5 text-green-600" />
+                                                <CheckCircle2 className="h-5 w-5 text-green-600"/>
                                             )}
                                             {payment.status === 'pending' && (
-                                                <Clock className="h-5 w-5 text-orange-600" />
+                                                <Clock className="h-5 w-5 text-orange-600"/>
                                             )}
                                             {payment.status === 'failed' && (
-                                                <XCircle className="h-5 w-5 text-red-600" />
+                                                <XCircle className="h-5 w-5 text-red-600"/>
                                             )}
 
                                             <div>
                                                 <p className="font-medium">
                                                     {formatPrice(payment.amount)}
                                                 </p>
-                                                <p className="text-sm text-gray-600">
+                                                <p className="text-sm text-muted-foreground">
                                                     {payment.billingCycle} mois •{' '}
                                                     {new Date(payment.createdAt).toLocaleDateString(
                                                         'fr-FR'
