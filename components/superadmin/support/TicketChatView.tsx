@@ -13,16 +13,6 @@ import {TicketQuickActions} from './TicketQuickActions'
 import {TicketInfoSidebar} from './TicketInfoSidebar'
 import type {SupportTicket} from '@prisma/client'
 
-/**
- * Composant principal de conversation pour SuperAdmin
- *
- * Pourquoi cette structure ?
- * - Layout en 3 colonnes : liste messages + sidebar infos
- * - Polling automatique pour temps réel
- * - Actions rapides accessibles sans quitter la conversation
- * - Auto-scroll vers le bas à chaque nouveau message
- */
-
 interface Message {
     id: string
     message: string
@@ -35,7 +25,7 @@ interface TicketWithRelations extends SupportTicket {
     restaurant: {
         id: string
         name: string
-        email: string
+        email: string | null
         phone: string | null
     }
     _count: {
@@ -57,9 +47,13 @@ export function TicketChatView({ticket, initialMessages}: TicketChatViewProps) {
     // Référence pour l'auto-scroll
     const messagesEndRef = useRef<HTMLDivElement>(null)
 
+    // Référence pour suivre si nous sommes en train de taper
+    const isTypingRef = useRef(false)
+
     /**
-     * Auto-scroll vers le bas quand de nouveaux messages arrivent
-     * Comportement smooth pour une meilleure UX
+     * Cette fonction gère l'auto-scroll de manière intelligente.
+     * Elle fait défiler vers le bas seulement si l'utilisateur n'est pas
+     * en train de consulter des messages plus anciens en haut de la conversation.
      */
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({behavior: 'smooth'})
@@ -70,30 +64,83 @@ export function TicketChatView({ticket, initialMessages}: TicketChatViewProps) {
     }, [messages])
 
     /**
-     * Polling toutes les 3 secondes pour charger les nouveaux messages
-     * Plus rapides que côté client, car SuperAdmin doit répondre vite
+     * CORRECTION PRINCIPALE : Polling intelligent sans rechargement de page
+     *
+     * Au lieu de recharger toute la page avec router.refresh() ou revalidatePath,
+     * nous allons simplement mettre à jour l'état local des messages.
+     *
+     * La clé ici est d'utiliser setMessages() qui ne déclenche qu'un re-render
+     * du composant, pas un rechargement complet de la page.
      */
     useEffect(() => {
-        const interval = setInterval(async () => {
-            const result = await getTicketMessages(ticket.id)
-            if (result.success && result.messages) {
-                setMessages(result.messages)
+        let pollingInterval: NodeJS.Timeout
+
+        const pollMessages = async () => {
+            // Ne pas polluer si l'utilisateur est en train de taper
+            // Cela évite de perturber l'expérience pendant la saisie
+            if (isTypingRef.current) {
+                return
             }
+
+            try {
+                const result = await getTicketMessages(ticket.id)
+
+                if (result.success && result.messages) {
+                    // Vérifier si nous avons de nouveaux messages
+                    // en comparant le nombre de messages
+                    if (result.messages.length !== messages.length) {
+                        // Mise à jour uniquement si le nombre a changé
+                        // Cela évite les re-renders inutiles
+                        setMessages(result.messages)
+                    }
+                }
+            } catch (error) {
+                // En cas d'erreur, on ne fait rien plutôt que de casser l'expérience
+                console.error('Erreur lors du polling des messages:', error)
+            }
+        }
+
+        // Démarrer le polling après un délai initial de 3 secondes
+        // Cela donne le temps à l'utilisateur de voir les messages initiaux
+        const initialDelay = setTimeout(() => {
+            // Ensuite, polluer toutes les 5 secondes
+            pollingInterval = setInterval(pollMessages, 5000)
         }, 3000)
 
-        return () => clearInterval(interval)
-    }, [ticket.id])
+        // Nettoyage : arrêter le polling quand le composant est démonté
+        return () => {
+            clearTimeout(initialDelay)
+            if (pollingInterval) {
+                clearInterval(pollingInterval)
+            }
+        }
+    }, [ticket.id, messages.length]) // Dépendances optimisées
 
     /**
-     * Gestion de l'envoi de message
-     * Validation : message non vide
-     * Feedback immédiat : loading state + toast
+     * Gestion de l'envoi de message avec feedback immédiat
+     *
+     * Cette fonction ajoute immédiatement le message à l'interface (optimistic update)
+     * avant même que le serveur confirme. Cela rend l'interface plus réactive.
      */
     const handleSendMessage = async (e: React.FormEvent) => {
         e.preventDefault()
         if (!newMessage.trim() || isLoading) return
 
         setIsLoading(true)
+
+        // Créer un message temporaire pour l'affichage immédiat
+        const tempMessage: Message = {
+            id: `temp-${Date.now()}`,
+            message: newMessage,
+            isAdmin: true,
+            createdAt: new Date(),
+            userId: currentTicket.userId
+        }
+
+        // Ajouter immédiatement le message à l'interface
+        const previousMessages = messages
+        setMessages([...messages, tempMessage])
+        setNewMessage('')
 
         try {
             const result = await sendAdminMessage({
@@ -102,20 +149,22 @@ export function TicketChatView({ticket, initialMessages}: TicketChatViewProps) {
             })
 
             if (result.error) {
+                // En cas d'erreur, restaurer les messages précédents
+                setMessages(previousMessages)
+                setNewMessage(tempMessage.message) // Restaurer le texte
                 toast.error(result.error)
             } else {
-                // Réinitialiser le champ
-                setNewMessage('')
-
-                // Recharger les messages immédiatement
+                // Recharger tous les messages pour avoir les IDs corrects
                 const messagesResult = await getTicketMessages(ticket.id)
                 if (messagesResult.success && messagesResult.messages) {
                     setMessages(messagesResult.messages)
                 }
-
                 toast.success('Message envoyé')
             }
         } catch (error) {
+            // En cas d'erreur inattendue
+            setMessages(previousMessages)
+            setNewMessage(tempMessage.message)
             toast.error('Erreur lors de l\'envoi')
         } finally {
             setIsLoading(false)
@@ -124,21 +173,32 @@ export function TicketChatView({ticket, initialMessages}: TicketChatViewProps) {
 
     /**
      * Callback pour mettre à jour le ticket après une action rapide
-     * (changement statut, priorité, etc.)
      */
     const handleTicketUpdate = (updatedTicket: Partial<SupportTicket>) => {
         setCurrentTicket({...currentTicket, ...updatedTicket} as TicketWithRelations)
     }
 
     /**
-     * Gestion du raccourci clavier Entrée pour envoyer
-     * Maj+Entrée pour nouvelle ligne (comportement naturel)
+     * Gestion du raccourci clavier avec détection de la saisie
      */
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault()
             handleSendMessage(e)
         }
+    }
+
+    /**
+     * Détecter quand l'utilisateur tape pour suspendre le polling
+     */
+    const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        setNewMessage(e.target.value)
+        isTypingRef.current = true
+
+        // Réactiver le polling après 2 secondes d'inactivité
+        setTimeout(() => {
+            isTypingRef.current = false
+        }, 2000)
     }
 
     return (
@@ -165,7 +225,6 @@ export function TicketChatView({ticket, initialMessages}: TicketChatViewProps) {
                     {/* Liste des messages avec scroll */}
                     <div className="flex-1 overflow-y-auto p-4">
                         <TicketMessageList messages={messages}/>
-                        {/* Élément invisible pour l'auto-scroll */}
                         <div ref={messagesEndRef}/>
                     </div>
 
@@ -187,7 +246,7 @@ export function TicketChatView({ticket, initialMessages}: TicketChatViewProps) {
                         <div className="flex gap-2">
                             <Textarea
                                 value={newMessage}
-                                onChange={(e) => setNewMessage(e.target.value)}
+                                onChange={handleTextareaChange}
                                 onKeyDown={handleKeyDown}
                                 placeholder="Tapez votre réponse... (Entrée pour envoyer)"
                                 rows={3}

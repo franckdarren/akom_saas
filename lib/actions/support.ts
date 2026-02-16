@@ -6,6 +6,7 @@ import prisma from '@/lib/prisma'
 import {isSuperAdminEmail} from '@/lib/utils/permissions'
 import type {TicketStatus, TicketPriority} from '@prisma/client'
 
+
 // ============================================================
 // HELPERS
 // ============================================================
@@ -153,31 +154,66 @@ export async function getMyTickets() {
 
 export async function getTicketMessages(ticketId: string) {
     try {
+        console.log('💬 Récupération des messages pour:', ticketId)
+
         const user = await getCurrentUser()
-        const restaurantUser = await prisma.restaurantUser.findFirst({
-            where: {userId: user.id},
-        })
 
-        if (!restaurantUser) return {error: 'Accès refusé'}
+        // Vérifier si c'est un SuperAdmin
+        const isSuperAdmin = isSuperAdminEmail(user.email || '')
 
-        // Vérifier que le ticket appartient bien au restaurant
-        const ticket = await prisma.supportTicket.findFirst({
-            where: {
-                id: ticketId,
-                restaurantId: restaurantUser.restaurantId
+        if (isSuperAdmin) {
+            /**
+             * Le SuperAdmin a un accès complet à tous les tickets
+             * sans restriction par restaurant. C'est logique car
+             * il doit pouvoir gérer le support de tous les restaurants.
+             */
+            const messages = await prisma.ticketMessage.findMany({
+                where: {ticketId},
+                orderBy: {createdAt: 'asc'}
+            })
+
+            console.log(`✅ ${messages.length} messages trouvés (accès SuperAdmin)`)
+            return {success: true, messages}
+        } else {
+            /**
+             * Pour un utilisateur normal (admin de restaurant),
+             * nous devons vérifier qu'il a accès au restaurant
+             * auquel appartient ce ticket.
+             *
+             * Cette vérification protège contre l'accès non autorisé
+             * aux tickets d'autres restaurants.
+             */
+            const restaurantUser = await prisma.restaurantUser.findFirst({
+                where: {userId: user.id},
+            })
+
+            if (!restaurantUser) {
+                return {success: false, error: 'Accès refusé', messages: []}
             }
-        })
 
-        if (!ticket) return {error: 'Ticket introuvable'}
+            // Vérifier que le ticket appartient au restaurant de l'utilisateur
+            const ticket = await prisma.supportTicket.findFirst({
+                where: {
+                    id: ticketId,
+                    restaurantId: restaurantUser.restaurantId
+                }
+            })
 
-        const messages = await prisma.ticketMessage.findMany({
-            where: {ticketId},
-            orderBy: {createdAt: 'asc'}
-        })
+            if (!ticket) {
+                return {success: false, error: 'Accès refusé', messages: []}
+            }
 
-        return {success: true, messages}
+            const messages = await prisma.ticketMessage.findMany({
+                where: {ticketId},
+                orderBy: {createdAt: 'asc'}
+            })
+
+            console.log(`✅ ${messages.length} messages trouvés`)
+            return {success: true, messages}
+        }
     } catch (error) {
-        return {error: 'Erreur lors du chargement des messages'}
+        console.error('❌ Erreur getTicketMessages:', error)
+        return {success: false, error: 'Erreur lors du chargement des messages', messages: []}
     }
 }
 
@@ -265,7 +301,6 @@ export async function sendAdminMessage(data: {
             }
         })
 
-        // Marquer le ticket comme "en cours" si nécessaire
         await prisma.supportTicket.update({
             where: {id: data.ticketId},
             data: {
@@ -274,9 +309,13 @@ export async function sendAdminMessage(data: {
             }
         })
 
-        revalidatePath('/superadmin/support')
+        // SUPPRESSION DE revalidatePath ICI
+        // Le composant client va gérer la mise à jour lui-même
+        // revalidatePath('/superadmin/support')
+
         return {success: true, message}
     } catch (error) {
+        console.error('Erreur sendAdminMessage:', error)
         return {error: 'Erreur lors de l\'envoi du message'}
     }
 }
@@ -296,7 +335,9 @@ export async function updateTicketStatus(data: {
             }
         })
 
-        revalidatePath('/superadmin/support')
+        // SUPPRESSION DE revalidatePath ICI
+        // revalidatePath('/superadmin/support')
+
         return {success: true, ticket}
     } catch (error) {
         return {error: 'Erreur lors de la mise à jour du statut'}
@@ -315,7 +356,9 @@ export async function updateTicketPriority(data: {
             data: {priority: data.priority}
         })
 
-        revalidatePath('/superadmin/support')
+        // SUPPRESSION DE revalidatePath ICI
+        // revalidatePath('/superadmin/support')
+
         return {success: true, ticket}
     } catch (error) {
         return {error: 'Erreur lors de la mise à jour de la priorité'}
@@ -359,8 +402,21 @@ export async function closeTicket(ticketId: string) {
 
 export async function getTicketById(ticketId: string) {
     try {
+        console.log('🔍 Récupération du ticket:', ticketId)
+
+        // Vérifier que l'utilisateur est SuperAdmin
         await verifySuperAdmin()
 
+        /**
+         * Chargement du ticket avec les informations du restaurant.
+         *
+         * D'après votre schéma, le modèle Restaurant possède :
+         * - id, name, slug, phone, address, logoUrl, etc.
+         *
+         * Nous allons sélectionner les champs pertinents pour l'affichage
+         * dans l'interface SuperAdmin. Le champ phone existe bien dans votre
+         * schéma, donc nous pouvons le récupérer directement.
+         */
         const ticket = await prisma.supportTicket.findUnique({
             where: {id: ticketId},
             include: {
@@ -368,8 +424,8 @@ export async function getTicketById(ticketId: string) {
                     select: {
                         id: true,
                         name: true,
-                        // email: true,
-                        phone: true
+                        phone: true,  // ✅ Ce champ existe dans votre schéma
+                        address: true, // Bonus : utile pour le contexte
                     }
                 },
                 _count: {
@@ -378,10 +434,80 @@ export async function getTicketById(ticketId: string) {
             }
         })
 
-        if (!ticket) return {error: 'Ticket introuvable'}
+        console.log('✅ Ticket trouvé:', ticket ? 'Oui' : 'Non')
 
-        return {success: true, ticket}
+        if (!ticket) {
+            return {success: false, error: 'Ticket introuvable'}
+        }
+
+        /**
+         * Maintenant, nous devons récupérer l'email de contact du restaurant.
+         *
+         * Stratégie :
+         * Dans votre architecture, les informations utilisateur (y compris l'email)
+         * sont gérées par Supabase Auth, pas par Prisma. Nous allons donc :
+         *
+         * 1. Trouver un utilisateur associé à ce restaurant via RestaurantUser
+         * 2. Récupérer son email depuis Supabase Auth
+         *
+         * Cette approche est cohérente avec votre séparation des responsabilités
+         * entre Supabase (auth) et Prisma (données métier).
+         */
+
+            // Trouver le premier utilisateur admin de ce restaurant
+        const restaurantUser = await prisma.restaurantUser.findFirst({
+                where: {
+                    restaurantId: ticket.restaurantId,
+                    // On cherche soit un admin système, soit quelqu'un avec un rôle admin personnalisé
+                    OR: [
+                        {role: 'admin'},
+                        {
+                            customRole: {
+                                name: 'Admin'
+                            }
+                        }
+                    ]
+                },
+                include: {
+                    customRole: true
+                }
+            })
+
+        // Récupérer l'email depuis Supabase Auth si nous avons trouvé un utilisateur
+        let contactEmail = null
+        if (restaurantUser?.userId) {
+            try {
+                const supabase = await createClient()
+                const {data: userData} = await supabase.auth.admin.getUserById(
+                    restaurantUser.userId
+                )
+                contactEmail = userData?.user?.email || null
+            } catch (emailError) {
+                console.warn('Impossible de récupérer l\'email depuis Supabase:', emailError)
+                // On continue sans l'email plutôt que de faire échouer toute la requête
+            }
+        }
+
+        /**
+         * Construction de l'objet enrichi qui correspond à la structure
+         * attendue par nos composants de chat.
+         *
+         * Nous combinons :
+         * - Les données Prisma du restaurant (nom, téléphone, adresse)
+         * - L'email récupéré depuis Supabase Auth
+         */
+        const enrichedTicket = {
+            ...ticket,
+            restaurant: {
+                ...ticket.restaurant,
+                email: contactEmail || `contact@${ticket.restaurant.name.toLowerCase().replace(/\s+/g, '-')}.com`,
+                // Le téléphone vient déjà de Prisma, on le garde tel quel
+            }
+        }
+
+        return {success: true, ticket: enrichedTicket}
     } catch (error) {
-        return {error: 'Erreur lors du chargement du ticket'}
+        console.error('❌ Erreur getTicketById:', error)
+        return {success: false, error: 'Erreur lors du chargement du ticket'}
     }
 }

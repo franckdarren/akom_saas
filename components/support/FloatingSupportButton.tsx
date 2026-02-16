@@ -260,6 +260,7 @@ export function FloatingSupportButton() {
                                                                 className="font-semibold text-sm mb-1 text-foreground">{ticket.subject}</div>
                                                             {getStatusBadge(ticket.status)}
                                                         </div>
+                                                        
                                                         {/* Badges */}
                                                         {/*<div className="flex items-center gap-2 mb-1">*/}
                                                         {/*    {getPriorityBadge(ticket.priority)}*/}

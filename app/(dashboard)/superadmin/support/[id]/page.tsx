@@ -13,28 +13,29 @@ import {
 import {SidebarTrigger} from '@/components/ui/sidebar'
 import {Separator} from '@/components/ui/separator'
 
+export const dynamic = 'force-dynamic'
+
 export default async function TicketDetailPage({
                                                    params,
                                                }: {
-    params: { id: string }
+    params: Promise<{ id: string }>
 }) {
-    // Vérifier que l'utilisateur est SuperAdmin
+    const resolvedParams = await params
+    const ticketId = resolvedParams.id
+
     const user = await getSuperadminUser()
     if (!user) redirect('/login')
 
-    // Charger le ticket
-    const ticketResult = await getTicketById(params.id)
-
+    const ticketResult = await getTicketById(ticketId)
     if (!ticketResult.success || !ticketResult.ticket) {
         notFound()
     }
 
-    // Charger les messages
-    const messagesResult = await getTicketMessages(params.id)
+    const messagesResult = await getTicketMessages(ticketId)
 
     return (
         <>
-            <header className="flex h-16 shrink-0 items-center gap-2">
+            <header className="flex h-16 shrink-0 items-center gap-2 border-b">
                 <div className="flex items-center gap-2 px-4">
                     <SidebarTrigger className="-ml-1"/>
                     <Separator orientation="vertical" className="mr-2 h-4"/>
@@ -62,7 +63,7 @@ export default async function TicketDetailPage({
                 </div>
             </header>
 
-            <div className="flex-1 overflow-auto p-6">
+            <div className="flex-1 overflow-auto p-6 mb-5">
                 <TicketChatView
                     ticket={ticketResult.ticket}
                     initialMessages={messagesResult.messages || []}
