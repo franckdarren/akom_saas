@@ -11,6 +11,7 @@ import {formatDate} from '@/lib/utils/format'
 import {createSupportTicket, sendTicketMessage, getMyTickets, getTicketMessages} from '@/lib/actions/support'
 
 interface Ticket {
+    description: string
     id: string
     subject: string
     status: 'open' | 'in_progress' | 'resolved' | 'closed'
@@ -63,11 +64,13 @@ export function FloatingSupportButton() {
 
     // Charger les tickets à l'ouverture
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/immutability
         if (isOpen && !selectedTicket) loadTickets()
     }, [isOpen, selectedTicket])
 
     // Charger les messages quand un ticket est sélectionné
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/immutability
         if (selectedTicket) loadMessages(selectedTicket)
     }, [selectedTicket])
 
@@ -179,8 +182,10 @@ export function FloatingSupportButton() {
             {isOpen && (
                 <div
                     className="fixed bottom-24 right-6 w-[400px] max-w-[95vw] h-[80vh] bg-card border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden z-50">
-                    {/* Header */}
-                    <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted">
+
+                    {/* HEADER (fixe) */}
+                    <div
+                        className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted shrink-0">
                         <div className="flex items-center gap-2 font-semibold">
                             {selectedTicket && (
                                 <ArrowLeft
@@ -193,111 +198,117 @@ export function FloatingSupportButton() {
                         <X className="h-4 w-4 cursor-pointer" onClick={() => setIsOpen(false)}/>
                     </div>
 
-                    {/* Content */}
-                    <div className="flex-1 flex flex-col">
+                    {/* BODY */}
+                    <div className="flex-1 flex flex-col min-h-0">
+
                         {!selectedTicket ? (
                             <>
-                                {/* Liste des tickets */}
-                                <div className="p-4">
-                                    <Button onClick={() => setShowNewTicketForm(true)} className="w-full">
+                                {/* Bouton nouveau ticket */}
+                                <div className="p-4 shrink-0">
+                                    <Button
+                                        onClick={() => setShowNewTicketForm(true)}
+                                        className="w-full"
+                                    >
                                         Nouveau ticket
                                     </Button>
                                 </div>
 
-                                <ScrollArea className="flex-1 px-2">
-                                    {isTicketsLoading ? (
-                                        <div
-                                            className="flex justify-center items-center py-4 text-sm text-muted-foreground">
-                                            <Loader2 className="h-5 w-5 animate-spin mr-2"/> Chargement des tickets...
-                                        </div>
-                                    ) : (
-                                        tickets.map((ticket) => (
+                                {/* LISTE SCROLLABLE */}
+                                <ScrollArea className="flex-1 min-h-0 px-2">
+                                    <div className="pb-4">
+                                        {tickets.map((ticket) => (
                                             <div
                                                 key={ticket.id}
                                                 onClick={() => setSelectedTicket(ticket.id)}
-                                                className="p-3 rounded-lg hover:bg-accent cursor-pointer transition"
+                                                className="p-3 rounded-lg hover:bg-accent cursor-pointer transition border mb-2"
                                             >
                                                 <div className="flex justify-between items-center">
-                                                    <div className="font-medium text-sm">{ticket.subject}</div>
+                                                    <div className="font-medium text-sm">
+                                                        {ticket.subject}
+                                                    </div>
                                                     {getStatusBadge(ticket.status)}
                                                 </div>
+
                                                 <div className="text-xs text-muted-foreground mt-1">
-                                                    {getPriorityBadge(ticket.priority)} • {ticket._count.messages} messages
-                                                    •{' '}
+                                                    {ticket._count.messages} messages •{" "}
                                                     {formatDate(ticket.createdAt)}
                                                 </div>
                                             </div>
-                                        ))
-                                    )}
+                                        ))}
+                                    </div>
                                 </ScrollArea>
                             </>
                         ) : (
                             <>
-                                {/* Détails + messages */}
-                                <div className="flex-1 flex flex-col overflow-y-auto px-4 py-3 space-y-4"
-                                     ref={scrollRef}>
-                                    {isMessagesLoading ? (
-                                        <div className="text-center text-sm text-muted-foreground py-4">
-                                            Chargement des messages...
-                                        </div>
-                                    ) : (
-                                        <>
-                                            {/* Détails du ticket */}
-                                            {tickets
-                                                .filter((t) => t.id === selectedTicket)
-                                                .map((ticket) => (
-                                                    <div
-                                                        key={ticket.id}
-                                                        className={cn(
-                                                            "p-3 mb-2 rounded-lg border border-border hover:bg-accent transition cursor-pointer shadow-sm",
-                                                            selectedTicket === ticket.id ? "bg-accent/50" : "bg-card"
-                                                        )}
-                                                        onClick={() => setSelectedTicket(ticket.id)}
-                                                    >
-                                                        {/* Sujet du ticket */}
-                                                        <div className="flex justify-between">
-                                                            <div
-                                                                className="font-semibold text-sm mb-1 text-foreground">{ticket.subject}</div>
-                                                            {getStatusBadge(ticket.status)}
-                                                        </div>
-                                                        
-                                                        {/* Badges */}
-                                                        {/*<div className="flex items-center gap-2 mb-1">*/}
-                                                        {/*    {getPriorityBadge(ticket.priority)}*/}
-                                                        {/*</div>*/}
+                                {/* MESSAGES SCROLLABLE */}
+                                <ScrollArea className="flex-1 min-h-0 px-4 py-3">
+                                    <div className="space-y-4 pb-4">
 
-                                                        {/* Infos supplémentaires */}
-                                                        <div className="text-xs text-muted-foreground">
-                                                            {ticket._count.messages} message{ticket._count.messages > 1 ? "s" : ""} • {formatDate(ticket.createdAt)}
+                                        {/* Card ticket */}
+                                        {tickets
+                                            .filter((t) => t.id === selectedTicket)
+                                            .map((ticket) => (
+                                                <div
+                                                    key={ticket.id}
+                                                    className="p-3 rounded-lg border bg-accent/30"
+                                                >
+                                                    <div className="flex justify-between mb-2">
+                                                        <div className="font-semibold text-sm">
+                                                            {ticket.subject}
                                                         </div>
+                                                        {getStatusBadge(ticket.status)}
                                                     </div>
 
-                                                ))}
+                                                    <p className="text-sm whitespace-pre-wrap mb-3">
+                                                        {ticket.description}
+                                                    </p>
 
-                                            {/* Messages */}
-                                            {messages.map((message) => (
-                                                <div
-                                                    key={message.id}
-                                                    className={cn('flex', message.isAdmin ? 'justify-start' : 'justify-end')}
-                                                >
-                                                    <div
-                                                        className={cn(
-                                                            'max-w-[75%] px-4 py-2 rounded-2xl text-sm',
-                                                            message.isAdmin ? 'bg-muted text-foreground' : 'bg-primary text-primary-foreground'
-                                                        )}
-                                                    >
-                                                        {message.message}
-                                                        <div
-                                                            className="text-[10px] opacity-60 mt-1">{formatDate(message.createdAt)}</div>
+                                                    <div className="text-xs text-muted-foreground">
+                                                        {/*{ticket._count.messages} message*/}
+                                                        {/*{ticket._count.messages > 1 ? "s" : ""} •{" "}*/}
+                                                        {formatDate(ticket.createdAt)}
                                                     </div>
                                                 </div>
                                             ))}
-                                        </>
-                                    )}
-                                </div>
 
-                                {/* Input message */}
-                                <form onSubmit={handleSendMessage} className="p-3 border-t border-border flex gap-2">
+                                        {/* Messages */}
+                                        {messages.map((message) => (
+                                            <div
+                                                key={message.id}
+                                                className={cn(
+                                                    "flex",
+                                                    message.isAdmin ? "justify-start" : "justify-end"
+                                                )}
+                                            >
+                                                <div
+                                                    className={cn(
+                                                        "max-w-[75%] px-4 py-2 rounded-2xl text-sm",
+                                                        message.isAdmin
+                                                            ? "bg-muted"
+                                                            : "bg-primary text-primary-foreground"
+                                                    )}
+                                                >
+                                                    {message.isAdmin && (
+                                                        <div className="text-xs font-semibold text-blue-600 mb-1">
+                                                            Support Akôm
+                                                        </div>
+                                                    )}
+                                                    {message.message}
+                                                    <div className="text-[10px] opacity-60 mt-1">
+                                                        {formatDate(message.createdAt)}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+
+                                    </div>
+                                </ScrollArea>
+
+                                {/* INPUT FIXE */}
+                                <form
+                                    onSubmit={handleSendMessage}
+                                    className="p-3 border-t border-border flex gap-2 shrink-0"
+                                >
                                     <Textarea
                                         ref={textareaRef}
                                         value={newMessage}
@@ -305,16 +316,17 @@ export function FloatingSupportButton() {
                                         placeholder="Votre message..."
                                         className="resize-none"
                                         rows={2}
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'Enter' && !e.shiftKey) {
-                                                e.preventDefault()
-                                                handleSendMessage(e)
-                                            }
-                                        }}
                                     />
-                                    <Button type="submit" size="icon" disabled={!newMessage.trim() || isLoading}>
-                                        {isLoading ? <Loader2 className="h-4 w-4 animate-spin"/> :
-                                            <Send className="h-4 w-4"/>}
+                                    <Button
+                                        type="submit"
+                                        size="icon"
+                                        disabled={!newMessage.trim() || isLoading}
+                                    >
+                                        {isLoading ? (
+                                            <Loader2 className="h-4 w-4 animate-spin"/>
+                                        ) : (
+                                            <Send className="h-4 w-4"/>
+                                        )}
                                     </Button>
                                 </form>
                             </>
@@ -322,6 +334,7 @@ export function FloatingSupportButton() {
                     </div>
                 </div>
             )}
+
         </>
     )
 }
