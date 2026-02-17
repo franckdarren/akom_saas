@@ -108,14 +108,6 @@ jobs:
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
             || exit 1
 
-      - name: Envoi des alertes de stock bas
-        env:
-          CRON_SECRET: ${{ secrets.CRON_SECRET }}
-        run: |
-          curl -f -X GET \
-            "${{ secrets.APP_URL }}/api/cron/send-stock-alerts" \
-            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
-            || exit 1
 
       - name: Envoi des rapports quotidiens
         env:
