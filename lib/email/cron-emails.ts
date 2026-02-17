@@ -1,20 +1,20 @@
 /**
  * FONCTIONS D'ENVOI D'EMAIL POUR LES TÂCHES CRON
- * 
+ *
  * Ce fichier contient toutes les fonctions d'envoi d'email utilisées
  * par les différentes tâches CRON automatisées d'Akôm.
- * 
+ *
  * Chaque fonction est documentée avec :
  * - Son objectif
  * - Les données qu'elle reçoit
  * - Le format de l'email généré
- * 
+ *
  * Configuration requise :
  * - RESEND_API_KEY dans .env
  * - FROM_EMAIL configuré (email vérifié dans Resend)
  */
 
-import { Resend } from 'resend'
+import {Resend} from 'resend'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@akom.app'
@@ -33,7 +33,6 @@ export interface StockAlert {
 
 export interface PendingOrderAlert {
     orderNumber: string
-    tableNumber: string | number
     totalAmount: number
     minutesOld: number
     createdAt: string
@@ -97,10 +96,10 @@ export interface WeeklyReportData {
 // ============================================================
 
 export async function sendStockAlertEmail({
-    to,
-    restaurantName,
-    alerts,
-}: {
+                                              to,
+                                              restaurantName,
+                                              alerts,
+                                          }: {
     to: string
     restaurantName: string
     alerts: StockAlert[]
@@ -136,8 +135,8 @@ export async function sendStockAlertEmail({
             <p><strong>${alerts.length} produit(s)</strong> de votre restaurant ont atteint ou dépassé leur seuil d'alerte de stock :</p>
             
             ${alerts
-                .map(
-                    alert => `
+        .map(
+            alert => `
             <div class="alert-item">
                 <div class="product-name">${alert.productName}</div>
                 <div class="category">${alert.categoryName}</div>
@@ -145,15 +144,15 @@ export async function sendStockAlertEmail({
                     <span class="critical">Stock actuel : ${alert.currentQuantity}</span> / 
                     Seuil d'alerte : ${alert.alertThreshold}
                     ${
-                        alert.currentQuantity <= 0
-                            ? '<br><span class="critical">⚠️ RUPTURE DE STOCK</span>'
-                            : ''
-                    }
+                alert.currentQuantity <= 0
+                    ? '<br><span class="critical">⚠️ RUPTURE DE STOCK</span>'
+                    : ''
+            }
                 </div>
             </div>
             `
-                )
-                .join('')}
+        )
+        .join('')}
             
             <p style="margin-top: 20px;">
                 <strong>Action recommandée :</strong> Réapprovisionnez ces produits dès que possible 
@@ -173,7 +172,7 @@ export async function sendStockAlertEmail({
 </html>
     `
 
-    const { data, error } = await resend.emails.send({
+    const {data, error} = await resend.emails.send({
         from: FROM_EMAIL,
         to,
         subject,
@@ -192,10 +191,10 @@ export async function sendStockAlertEmail({
 // ============================================================
 
 export async function sendPendingOrderAlertEmail({
-    to,
-    restaurantName,
-    order,
-}: {
+                                                     to,
+                                                     restaurantName,
+                                                     order,
+                                                 }: {
     to: string
     restaurantName: string
     order: PendingOrderAlert
@@ -234,22 +233,21 @@ export async function sendPendingOrderAlertEmail({
             <div class="order-box">
                 <div class="order-number">Commande ${order.orderNumber}</div>
                 <p style="margin: 5px 0;">
-                    <strong>Table :</strong> ${order.tableNumber}<br>
                     <strong>Montant :</strong> ${order.totalAmount.toLocaleString()} FCFA<br>
                     <strong>Créée à :</strong> ${new Date(order.createdAt).toLocaleString('fr-FR')}
                 </p>
                 
                 <h3>Détail des produits :</h3>
                 ${order.items
-                    .map(
-                        item => `
+        .map(
+            item => `
                 <div class="item">
                     <strong>${item.quantity}x</strong> ${item.productName} 
                     <span style="float: right;">${item.unitPrice.toLocaleString()} FCFA</span>
                 </div>
                 `
-                    )
-                    .join('')}
+        )
+        .join('')}
             </div>
             
             <p>
@@ -268,7 +266,7 @@ export async function sendPendingOrderAlertEmail({
 </html>
     `
 
-    const { data, error } = await resend.emails.send({
+    const {data, error} = await resend.emails.send({
         from: FROM_EMAIL,
         to,
         subject,
@@ -287,9 +285,9 @@ export async function sendPendingOrderAlertEmail({
 // ============================================================
 
 export async function sendDailyReportEmail({
-    to,
-    data: reportData,
-}: {
+                                               to,
+                                               data: reportData,
+                                           }: {
     to: string
     data: DailyReportData
 }) {
@@ -353,8 +351,8 @@ export async function sendDailyReportEmail({
             <div class="section">
                 <h2 style="margin-top: 0; color: #2c3e50;">🏆 Top 5 des produits</h2>
                 ${reportData.topProducts
-                    .map(
-                        (product, index) => `
+        .map(
+            (product, index) => `
                 <div class="product-item">
                     <div>
                         <strong>#${index + 1} ${product.name}</strong><br>
@@ -367,22 +365,22 @@ export async function sendDailyReportEmail({
                     </div>
                 </div>
                 `
-                    )
-                    .join('')}
+        )
+        .join('')}
             </div>
             
             <div class="section">
                 <h2 style="margin-top: 0; color: #2c3e50;">📈 Répartition par statut</h2>
                 ${Object.entries(reportData.statusBreakdown)
-                    .map(
-                        ([status, count]) => `
+        .map(
+            ([status, count]) => `
                 <div class="product-item">
                     <span>${getStatusLabel(status)}</span>
                     <strong>${count}</strong>
                 </div>
                 `
-                    )
-                    .join('')}
+        )
+        .join('')}
             </div>
             
             <p style="text-align: center; color: #7f8c8d; margin-top: 25px;">
@@ -395,7 +393,7 @@ export async function sendDailyReportEmail({
 </html>
     `
 
-    const { data, error } = await resend.emails.send({
+    const {data, error} = await resend.emails.send({
         from: FROM_EMAIL,
         to,
         subject,
@@ -414,9 +412,9 @@ export async function sendDailyReportEmail({
 // ============================================================
 
 export async function sendWeeklyReportEmail({
-    to,
-    data: reportData,
-}: {
+                                                to,
+                                                data: reportData,
+                                            }: {
     to: string
     data: WeeklyReportData
 }) {
@@ -424,7 +422,7 @@ export async function sendWeeklyReportEmail({
 
     const ordersEvolution = reportData.comparison.evolution.orders
     const revenueEvolution = reportData.comparison.evolution.revenue
-    
+
     const ordersColor = ordersEvolution >= 0 ? '#27ae60' : '#e74c3c'
     const revenueColor = revenueEvolution >= 0 ? '#27ae60' : '#e74c3c'
 
@@ -500,8 +498,8 @@ export async function sendWeeklyReportEmail({
             <div class="section">
                 <h2 style="margin-top: 0; color: #2c3e50;">🏆 Top produits de la semaine</h2>
                 ${reportData.topProducts
-                    .map(
-                        (product, index) => `
+        .map(
+            (product, index) => `
                 <div class="day-item">
                     <div>
                         <strong>#${index + 1} ${product.name}</strong><br>
@@ -514,15 +512,15 @@ export async function sendWeeklyReportEmail({
                     </div>
                 </div>
                 `
-                    )
-                    .join('')}
+        )
+        .join('')}
             </div>
             
             <div class="section">
                 <h2 style="margin-top: 0; color: #2c3e50;">📅 Détail par jour</h2>
                 ${reportData.dailyBreakdown
-                    .map(
-                        day => `
+        .map(
+            day => `
                 <div class="day-item">
                     <span>${day.date}</span>
                     <div style="text-align: right;">
@@ -533,8 +531,8 @@ export async function sendWeeklyReportEmail({
                     </div>
                 </div>
                 `
-                    )
-                    .join('')}
+        )
+        .join('')}
             </div>
             
             <p style="text-align: center; color: #7f8c8d; margin-top: 25px;">
@@ -547,7 +545,7 @@ export async function sendWeeklyReportEmail({
 </html>
     `
 
-    const { data, error } = await resend.emails.send({
+    const {data, error} = await resend.emails.send({
         from: FROM_EMAIL,
         to,
         subject,
