@@ -75,15 +75,6 @@ jobs:
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
             || exit 1
 
-      - name: Nettoyage des paiements en attente
-        env:
-          CRON_SECRET: ${{ secrets.CRON_SECRET }}
-        run: |
-          curl -f -X GET \
-            "${{ secrets.APP_URL }}/api/cron/clean-pending-payments" \
-            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
-            || exit 1
-
   # ============================================================
   # JOB 2 : Rappels quotidiens (9h du matin)
   # ============================================================
