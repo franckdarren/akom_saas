@@ -1,13 +1,11 @@
-// app/api/cron/cancel-abandoned-orders/route.ts
-
-import { NextRequest, NextResponse } from 'next/server'
+import {NextRequest, NextResponse} from 'next/server'
 import prisma from '@/lib/prisma'
-import { logSystemAction } from '@/lib/actions/logs'
+import {logSystemAction} from '@/lib/actions/logs'
 
 /**
  * CRON JOB : Annulation automatique des commandes abandonnées
  * Fréquence : Toutes les 15 minutes
- * Logique : Annule les commandes en "pending" depuis plus de 2 heures
+ * Logique : Annule les commandes en "pending" depuis plus de 4 heures
  */
 export async function GET(request: NextRequest) {
     try {
@@ -16,28 +14,37 @@ export async function GET(request: NextRequest) {
 
         if (!token || token !== process.env.CRON_SECRET) {
             console.error('❌ Tentative d\'accès non autorisée au CRON')
-            return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
+            return NextResponse.json({error: 'Non autorisé'}, {status: 401})
         }
 
         console.log('🔄 Démarrage de l\'annulation des commandes abandonnées...')
 
         const twoHoursAgo = new Date()
-        twoHoursAgo.setHours(twoHoursAgo.getHours() - 2)
+        twoHoursAgo.setHours(twoHoursAgo.getHours() - 4)
 
+        // ✅ On utilise SELECT explicite (plus safe que include en prod)
         const abandonedOrders = await prisma.order.findMany({
             where: {
                 status: 'pending',
-                createdAt: { lt: twoHoursAgo },
-                restaurant: { isActive: true },
+                createdAt: {lt: twoHoursAgo},
+                restaurant: {isActive: true},
+                isArchived: false,
             },
-            include: {
-                restaurant: { select: { id: true, name: true } },
-                table: { select: { number: true } },
-                items: {
+            select: {
+                id: true,
+                orderNumber: true,
+                restaurantId: true,
+                totalAmount: true,
+                createdAt: true,
+                table: {
+                    select: {number: true},
+                },
+                restaurant: {
+                    select: {id: true, name: true},
+                },
+                orderItems: {
                     select: {
-                        productId: true,
-                        quantity: true,
-                        unitPrice: true,
+                        id: true,
                     },
                 },
             },
@@ -54,11 +61,15 @@ export async function GET(request: NextRequest) {
 
         console.log(`⚠️ ${abandonedOrders.length} commande(s) abandonnée(s)`)
 
-        const cancelledOrders = await prisma.$transaction(
-            abandonedOrders.map(order =>
+        // ✅ Transaction sécurisée
+        await prisma.$transaction(
+            abandonedOrders.map((order) =>
                 prisma.order.update({
-                    where: { id: order.id },
-                    data: { status: 'cancelled', updatedAt: new Date() },
+                    where: {id: order.id},
+                    data: {
+                        status: 'cancelled',
+                        updatedAt: new Date(),
+                    },
                 })
             )
         )
@@ -70,16 +81,19 @@ export async function GET(request: NextRequest) {
                 (Date.now() - order.createdAt.getTime()) / (1000 * 60)
             )
 
+            const safeOrderNumber =
+                order.orderNumber ?? `CMD-${order.id.slice(0, 6)}`
+
             await logSystemAction(
                 'order_cancelled_auto',
                 {
                     orderId: order.id,
-                    orderNumber: order.orderNumber,
+                    orderNumber: safeOrderNumber,
                     restaurantId: order.restaurantId,
                     restaurantName: order.restaurant.name,
-                    tableNumber: order.table?.number,
+                    tableNumber: order.table?.number ?? null,
                     totalAmount: order.totalAmount,
-                    itemsCount: order.items.length,
+                    itemsCount: order.orderItems.length,
                     minutesOld,
                     reason: 'Commande abandonnée (> 2 heures)',
                 },
@@ -88,20 +102,20 @@ export async function GET(request: NextRequest) {
 
             details.push({
                 orderId: order.id,
-                orderNumber: order.orderNumber,
+                orderNumber: safeOrderNumber,
                 restaurantName: order.restaurant.name,
-                tableNumber: order.table?.number,
+                tableNumber: order.table?.number ?? null,
                 totalAmount: order.totalAmount,
                 minutesOld,
             })
 
-            console.log(`🗑️ Commande ${order.orderNumber} annulée (${minutesOld}min)`)
+            console.log(`🗑️ Commande ${safeOrderNumber} annulée (${minutesOld}min)`)
         }
 
         const result = {
             success: true,
-            message: `${cancelledOrders.length} commande(s) annulée(s)`,
-            cancelled: cancelledOrders.length,
+            message: `${abandonedOrders.length} commande(s) annulée(s)`,
+            cancelled: abandonedOrders.length,
             details,
             executedAt: new Date().toISOString(),
         }
@@ -111,16 +125,22 @@ export async function GET(request: NextRequest) {
 
     } catch (error) {
         console.error('❌ Erreur annulation commandes:', error)
-        
+
         await logSystemAction(
             'cron_error',
-            { task: 'cancel-abandoned-orders', error: error instanceof Error ? error.message : 'Erreur inconnue' },
+            {
+                task: 'cancel-abandoned-orders',
+                error: error instanceof Error ? error.message : 'Erreur inconnue',
+            },
             'error'
         )
 
         return NextResponse.json(
-            { error: 'Erreur lors de l\'annulation', details: error instanceof Error ? error.message : 'Erreur inconnue' },
-            { status: 500 }
+            {
+                error: 'Erreur lors de l\'annulation',
+                details: error instanceof Error ? error.message : 'Erreur inconnue',
+            },
+            {status: 500}
         )
     }
 }
