@@ -1,240 +1,107 @@
-// app/api/cron/send-daily-reports/route.ts
+// app/api/cron/daily-report/route.ts
+import {NextResponse} from 'next/server';
+import prisma from '@/lib/prisma'; // ton client Prisma
 
-import { NextRequest, NextResponse } from 'next/server'
-import prisma from '@/lib/prisma'
-import { logSystemAction } from '@/lib/actions/logs'
-import { sendDailyReportEmail } from '@/lib/email/cron-emails'
+type DailyReportData = {
+    restaurantName: string;
+    date: string;
+    ordersCount: number;
+    revenue: number;
+    avgBasket: number;
+    topProducts: { name: string; quantity: number; revenue: number }[];
+    statusBreakdown: Record<string, number>;
+    comparison: { previousDay: number; evolution: number };
+};
 
-/**
- * CRON JOB : Envoi des rapports quotidiens
- * Fréquence : Tous les jours à 9h du matin
- * Logique : Génère et envoie un rapport complet de l'activité de la veille
- */
-export async function GET(request: NextRequest) {
+export async function GET() {
     try {
-        const authHeader = request.headers.get('authorization')
-        const token = authHeader?.replace('Bearer ', '')
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
 
-        if (!token || token !== process.env.CRON_SECRET) {
-            console.error('❌ Tentative d\'accès non autorisée au CRON')
-            return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
-        }
+        const yesterday = new Date(today);
+        yesterday.setDate(today.getDate() - 1);
 
-        console.log('🔄 Démarrage de l\'envoi des rapports quotidiens...')
+        // 1️⃣ Récupérer tous les restaurants actifs
+        const restaurants = await prisma.restaurant.findMany({
+            where: {isActive: true},
+            select: {id: true, name: true},
+        });
 
-        const now = new Date()
-        
-        const yesterdayStart = new Date(now)
-        yesterdayStart.setDate(yesterdayStart.getDate() - 1)
-        yesterdayStart.setHours(0, 0, 0, 0)
-        
-        const yesterdayEnd = new Date(yesterdayStart)
-        yesterdayEnd.setHours(23, 59, 59, 999)
+        const reports: DailyReportData[] = [];
 
-        const dayBeforeStart = new Date(yesterdayStart)
-        dayBeforeStart.setDate(dayBeforeStart.getDate() - 1)
-        
-        const dayBeforeEnd = new Date(dayBeforeStart)
-        dayBeforeEnd.setHours(23, 59, 59, 999)
-
-        console.log(`📅 Rapport pour : ${yesterdayStart.toLocaleDateString('fr-FR')}`)
-
-        const activeRestaurants = await prisma.restaurant.findMany({
-            where: {
-                isActive: true,
-                subscription: { status: { in: ['trial', 'active'] } },
-            },
-            select: { id: true, name: true, email: true },
-        })
-
-        if (activeRestaurants.length === 0) {
-            console.log('✅ Aucun restaurant actif')
-            return NextResponse.json({
-                success: true,
-                message: 'Aucun restaurant actif',
-                reportsSent: 0,
-            })
-        }
-
-        console.log(`📊 Génération pour ${activeRestaurants.length} restaurant(s)`)
-
-        let totalReportsSent = 0
-        const reportDetails = []
-
-        for (const restaurant of activeRestaurants) {
-            try {
-                const [yesterdayOrders, yesterdayStats] = await Promise.all([
-                    prisma.order.findMany({
-                        where: {
-                            restaurantId: restaurant.id,
-                            createdAt: { gte: yesterdayStart, lte: yesterdayEnd },
-                        },
-                        include: {
-                            items: {
-                                include: {
-                                    product: { select: { name: true } },
-                                },
-                            },
-                        },
-                    }),
-
-                    prisma.order.groupBy({
-                        by: ['status'],
-                        where: {
-                            restaurantId: restaurant.id,
-                            createdAt: { gte: yesterdayStart, lte: yesterdayEnd },
-                        },
-                        _count: { id: true },
-                        _sum: { totalAmount: true },
-                    }),
-                ])
-
-                const dayBeforeOrders = await prisma.order.count({
-                    where: {
-                        restaurantId: restaurant.id,
-                        createdAt: { gte: dayBeforeStart, lte: dayBeforeEnd },
-                    },
-                })
-
-                const yesterdayRevenue = yesterdayStats.reduce(
-                    (sum, stat) => sum + (stat._sum.totalAmount || 0),
-                    0
-                )
-
-                const yesterdayOrdersCount = yesterdayOrders.length
-
-                if (yesterdayOrdersCount === 0) {
-                    console.log(`   ⏭️ ${restaurant.name} : Aucune commande hier`)
-                    continue
-                }
-
-                const avgBasket = yesterdayOrdersCount > 0
-                    ? Math.round(yesterdayRevenue / yesterdayOrdersCount)
-                    : 0
-
-                const productSales = yesterdayOrders
-                    .flatMap(order => order.items)
-                    .reduce((acc, item) => {
-                        const productName = item.product.name
-                        if (!acc[productName]) {
-                            acc[productName] = {
-                                name: productName,
-                                quantity: 0,
-                                revenue: 0,
-                            }
-                        }
-                        acc[productName].quantity += item.quantity
-                        acc[productName].revenue += item.quantity * item.unitPrice
-                        return acc
-                    }, {} as Record<string, { name: string; quantity: number; revenue: number }>)
-
-                const topProducts = Object.values(productSales)
-                    .sort((a, b) => b.quantity - a.quantity)
-                    .slice(0, 5)
-
-                const statusBreakdown = yesterdayStats.reduce((acc, stat) => {
-                    acc[stat.status] = stat._count.id
-                    return acc
-                }, {} as Record<string, number>)
-
-                const evolutionPercent = dayBeforeOrders > 0
-                    ? Math.round(((yesterdayOrdersCount - dayBeforeOrders) / dayBeforeOrders) * 100)
-                    : 0
-
-                const reportData = {
-                    restaurantName: restaurant.name,
-                    date: yesterdayStart.toLocaleDateString('fr-FR', {
-                        weekday: 'long',
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                    }),
-                    ordersCount: yesterdayOrdersCount,
-                    revenue: yesterdayRevenue,
-                    avgBasket,
-                    topProducts,
-                    statusBreakdown,
-                    comparison: {
-                        previousDay: dayBeforeOrders,
-                        evolution: evolutionPercent,
-                    },
-                }
-
-                await sendDailyReportEmail({
-                    to: restaurant.email,
-                    data: reportData,
-                })
-
-                totalReportsSent++
-                reportDetails.push({
+        for (const restaurant of restaurants) {
+            // 2️⃣ Récupérer les stats du jour
+            const orders = await prisma.order.findMany({
+                where: {
                     restaurantId: restaurant.id,
-                    restaurantName: restaurant.name,
-                    ordersCount: yesterdayOrdersCount,
-                    revenue: yesterdayRevenue,
-                    emailSent: true,
-                })
-
-                await logSystemAction(
-                    'daily_report_sent',
-                    {
-                        restaurantId: restaurant.id,
-                        restaurantName: restaurant.name,
-                        date: yesterdayStart.toISOString(),
-                        ordersCount: yesterdayOrdersCount,
-                        revenue: yesterdayRevenue,
+                    createdAt: {
+                        gte: today,
+                        lt: new Date(today.getTime() + 24 * 60 * 60 * 1000),
                     },
-                    'info'
-                )
+                },
+                include: {
+                    orderItems: true, // ✅ nom exact de la relation
+                    payments: true,
+                },
+            });
 
-                console.log(`   ✅ ${restaurant.name} : ${yesterdayOrdersCount} commandes, ${yesterdayRevenue} FCFA`)
+            const ordersCount = orders.length;
+            const revenue = orders.reduce((sum, order) => sum + order.totalAmount, 0);
+            const avgBasket = ordersCount > 0 ? Math.round(revenue / ordersCount) : 0;
 
-            } catch (restaurantError) {
-                console.error(`   ❌ Erreur pour ${restaurant.name}:`, restaurantError)
+            // 3️⃣ Status breakdown
+            const statusBreakdown: Record<string, number> = {};
+            orders.forEach((order) => {
+                statusBreakdown[order.status] = (statusBreakdown[order.status] || 0) + 1;
+            });
 
-                reportDetails.push({
+            // 4️⃣ Top produits
+            const topProductsMap: Record<string, { name: string; quantity: number; revenue: number }> = {};
+            orders.forEach((order) => {
+                order.orderItems.forEach((item) => {
+                    if (!topProductsMap[item.productName]) {
+                        topProductsMap[item.productName] = {name: item.productName, quantity: 0, revenue: 0};
+                    }
+                    topProductsMap[item.productName].quantity += item.quantity;
+                    topProductsMap[item.productName].revenue += item.quantity * item.unitPrice;
+                });
+            });
+            const topProducts = Object.values(topProductsMap)
+                .sort((a, b) => b.revenue - a.revenue)
+                .slice(0, 5);
+
+            // 5️⃣ Comparaison avec hier
+            const yesterdayStats = await prisma.order.aggregate({
+                where: {
                     restaurantId: restaurant.id,
-                    restaurantName: restaurant.name,
-                    emailSent: false,
-                    error: restaurantError instanceof Error ? restaurantError.message : 'Erreur inconnue',
-                })
-
-                await logSystemAction(
-                    'daily_report_failed',
-                    {
-                        restaurantId: restaurant.id,
-                        restaurantName: restaurant.name,
-                        error: restaurantError instanceof Error ? restaurantError.message : 'Erreur inconnue',
+                    createdAt: {
+                        gte: yesterday,
+                        lt: today,
                     },
-                    'error'
-                )
-            }
+                },
+                _sum: {totalAmount: true},
+            });
+            const previousDayRevenue = yesterdayStats._sum.totalAmount || 0;
+            const evolution =
+                previousDayRevenue > 0 ? Math.round(((revenue - previousDayRevenue) / previousDayRevenue) * 100) : 100;
+
+            // 6️⃣ Construire le rapport
+            reports.push({
+                restaurantName: restaurant.name,
+                date: today.toISOString().split('T')[0],
+                ordersCount,
+                revenue,
+                avgBasket,
+                topProducts,
+                statusBreakdown,
+                comparison: {previousDay: previousDayRevenue, evolution},
+            });
         }
 
-        const result = {
-            success: true,
-            message: `${totalReportsSent} rapport(s) envoyé(s)`,
-            reportsSent: totalReportsSent,
-            restaurantsChecked: activeRestaurants.length,
-            date: yesterdayStart.toLocaleDateString('fr-FR'),
-            details: reportDetails,
-            executedAt: new Date().toISOString(),
-        }
-
-        console.log('✅ Envoi des rapports terminé')
-        return NextResponse.json(result)
-
+        // Ici tu peux sauvegarder reports dans DailyStats ou envoyer par mail, etc.
+        return NextResponse.json({success: true, reports});
     } catch (error) {
-        console.error('❌ Erreur envoi rapports:', error)
-        
-        await logSystemAction(
-            'cron_error',
-            { task: 'send-daily-reports', error: error instanceof Error ? error.message : 'Erreur inconnue' },
-            'error'
-        )
-
-        return NextResponse.json(
-            { error: 'Erreur lors de l\'envoi des rapports', details: error instanceof Error ? error.message : 'Erreur inconnue' },
-            { status: 500 }
-        )
+        console.error('Erreur cron daily report:', error);
+        return NextResponse.json({success: false, error: (error as Error).message});
     }
 }
