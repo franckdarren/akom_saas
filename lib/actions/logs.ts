@@ -1,8 +1,10 @@
+// lib/actions/logs.ts
+
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
-import type { LogLevel } from '@prisma/client' // ✅ On ne met que ce qui existe
+import type { LogLevel } from '@prisma/client'
 import { isSuperAdminEmail } from '@/lib/utils/permissions'
 
 // ============================================================
@@ -18,7 +20,7 @@ export interface LogsStats {
 }
 
 // ============================================================
-// CRÉER UN LOG
+// CRÉER UN LOG (pour les actions utilisateur)
 // ============================================================
 
 export async function createLog(
@@ -44,6 +46,48 @@ export async function createLog(
         })
     } catch (error) {
         console.error('Erreur création log:', error)
+    }
+}
+
+// ============================================================
+// CRÉER UN LOG SYSTÈME (pour les actions CRON)
+// ============================================================
+
+/**
+ * Cette fonction est spécifiquement conçue pour les tâches CRON
+ * et autres actions système automatiques qui s'exécutent sans
+ * utilisateur connecté.
+ * 
+ * Différences avec createLog() :
+ * - Ne tente pas de récupérer l'utilisateur connecté
+ * - userId est toujours null (action système)
+ * - Accepte directement metadata au lieu de message
+ * - Plus simple et plus rapide pour les CRON
+ * 
+ * @param action - Nom de l'action système (ex: 'restaurant_suspended_auto')
+ * @param metadata - Données structurées sur l'action
+ * @param level - Niveau de log (info, warning, error, critical)
+ */
+export async function logSystemAction(
+    action: string,
+    metadata: Record<string, unknown>,
+    level: LogLevel = 'info'
+): Promise<void> {
+    try {
+        await prisma.systemLog.create({
+            data: {
+                level,
+                action,
+                message: `Action système : ${action}`,
+                userId: null, // Actions système n'ont pas de userId
+                metadata: metadata ? JSON.parse(JSON.stringify(metadata)) : null,
+            },
+        })
+    } catch (error) {
+        // On log dans la console mais on ne throw pas d'erreur
+        // pour éviter de bloquer l'exécution d'une tâche CRON
+        // juste parce que le logging a échoué
+        console.error('❌ Erreur lors du logging système:', error)
     }
 }
 
@@ -97,7 +141,7 @@ export async function getLogsStats(): Promise<LogsStats> {
 }
 
 // ============================================================
-// HELPERS SPÉCIFIQUES
+// HELPERS SPÉCIFIQUES (actions utilisateur)
 // ============================================================
 
 export async function logRestaurantCreated(restaurantId: string, name: string) {

@@ -380,6 +380,8 @@ model Order {
   createdAt    DateTime    @default(now()) @map("created_at")
   updatedAt    DateTime    @updatedAt @map("updated_at")
 
+  isArchived    Boolean  @default(false)
+
   // Relations
   restaurant     Restaurant      @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
   table          Table?          @relation(fields: [tableId], references: [id], onDelete: SetNull)
@@ -390,6 +392,7 @@ model Order {
   @@unique([restaurantId, orderNumber])
   @@index([restaurantId, status])
   @@index([restaurantId, createdAt(sort: Desc)])
+  @@index([isArchived, status])
   @@map("orders")
 }
 
