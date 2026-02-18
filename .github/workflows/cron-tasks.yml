@@ -141,13 +141,13 @@ jobs:
             "${{ secrets.APP_URL }}/api/cron/send-subscription-reminders" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
 
-      - name: Rapport brut d'activité du jour (calcul interne)
-        # Calcule et expose les stats du jour — utilisé comme source de données
-        # par send-daily-reports et par le dashboard SuperAdmin
-        run: |
-          curl -f -X GET \
-            "${{ secrets.APP_URL }}/api/cron/daily-report" \
-            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+#      - name: Rapport brut d'activité du jour (calcul interne)
+#        # Calcule et expose les stats du jour — utilisé comme source de données
+#        # par send-daily-reports et par le dashboard SuperAdmin
+#        run: |
+#          curl -f -X GET \
+#            "${{ secrets.APP_URL }}/api/cron/daily-report" \
+#            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
 
       - name: Rapports d'activité quotidiens par email (admin de chaque restaurant)
         # Envoie le rapport formaté par email à l'admin de chaque restaurant actif
