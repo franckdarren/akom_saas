@@ -1,15 +1,17 @@
+// lib/actions/restaurant.ts
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import {revalidatePath} from 'next/cache'
+import {redirect} from 'next/navigation'
+import {createClient} from '@/lib/supabase/server'
+import {supabaseAdmin} from '@/lib/supabase/admin'
 import prisma from '@/lib/prisma'
-import type { UserRole, RestaurantWithRole } from '@/types/auth'
-import { revalidatePath } from 'next/cache'
-import { redirect } from 'next/navigation'
-import { generateUniqueSlug } from '@/lib/actions/slug'
-import { restaurantSettingsSchema, type RestaurantSettingsInput } from '@/lib/validations/restaurant'
-import { logRestaurantCreated } from '@/lib/actions/logs'
-import { formatRestaurantName } from '@/lib/utils/format-text'
-import { PLAN_CONFIGS } from '@/lib/subscription/config'
+import type {UserRole, RestaurantWithRole} from '@/types/auth'
+import {generateUniqueSlug} from '@/lib/actions/slug'
+import {restaurantSettingsSchema, type RestaurantSettingsInput} from '@/lib/validations/restaurant'
+import {logRestaurantCreated} from '@/lib/actions/logs'
+import {formatRestaurantName} from '@/lib/utils/format-text'
+import {PLAN_CONFIGS} from '@/lib/subscription/config'
 
 
 interface CreateRestaurantData {
@@ -25,15 +27,15 @@ interface CreateRestaurantData {
 export async function createRestaurant(data: CreateRestaurantData) {
     const supabase = await createClient()
     const {
-        data: { user },
+        data: {user},
     } = await supabase.auth.getUser()
 
     if (!user) {
-        return { error: 'Non authentifié' }
+        return {error: 'Non authentifié'}
     }
 
     if (!data.name || data.name.trim().length === 0) {
-        return { error: 'Le nom du restaurant est obligatoire' }
+        return {error: 'Le nom du restaurant est obligatoire'}
     }
 
     const slug = await generateUniqueSlug(data.name)
@@ -62,7 +64,7 @@ export async function createRestaurant(data: CreateRestaurantData) {
             },
         })
 
-        // NOUVEAU : Créer automatiquement l'abonnement d'essai
+        // Créer automatiquement l'abonnement d'essai
         await tx.subscription.create({
             data: {
                 restaurantId: restaurant.id,
@@ -87,7 +89,6 @@ export async function createRestaurant(data: CreateRestaurantData) {
     redirect('/onboarding/verification')
 }
 
-
 // ============================================================
 // RÉCUPÉRER LES RESTAURANTS D'UN UTILISATEUR
 // ============================================================
@@ -95,16 +96,14 @@ export async function createRestaurant(data: CreateRestaurantData) {
 export async function getUserRestaurants(): Promise<RestaurantWithRole[]> {
     const supabase = await createClient()
 
-    // Récupérer l'utilisateur connecté
     const {
-        data: { user },
+        data: {user},
     } = await supabase.auth.getUser()
 
     if (!user) {
         return []
     }
 
-    // Récupérer les restaurants avec les rôles
     const restaurantUsers = await prisma.restaurantUser.findMany({
         where: {
             userId: user.id,
@@ -140,7 +139,7 @@ export async function getUserRoleInRestaurant(
     const supabase = await createClient()
 
     const {
-        data: { user },
+        data: {user},
     } = await supabase.auth.getUser()
 
     if (!user) {
@@ -175,66 +174,10 @@ export async function hasAccessToRestaurant(
 
 // ============================================================
 // INVITER UN UTILISATEUR DANS UN RESTAURANT
+// NOTE : Cette fonction est dépréciée.
+// Utiliser lib/actions/invitation.ts → inviteUserToRestaurant()
+// qui gère le flow complet avec emails, tokens et la table `invitations`.
 // ============================================================
-
-export async function inviteUserToRestaurant(
-    restaurantId: string,
-    email: string,
-    role: UserRole
-) {
-    const supabase = await createClient()
-
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) {
-        throw new Error('Non authentifié')
-    }
-
-    // Vérifier que l'utilisateur actuel est admin du restaurant
-    const currentUserRole = await getUserRoleInRestaurant(restaurantId)
-
-    if (currentUserRole !== 'admin') {
-        throw new Error('Seuls les admins peuvent inviter des utilisateurs')
-    }
-
-    // Récupérer l'utilisateur à inviter par email
-    const { data: invitedUser } = await supabase
-        .from('auth.users')
-        .select('id')
-        .eq('email', email)
-        .single()
-
-    if (!invitedUser) {
-        throw new Error('Utilisateur non trouvé')
-    }
-
-    // Vérifier qu'il n'est pas déjà membre
-    const existingMembership = await prisma.restaurantUser.findUnique({
-        where: {
-            userId_restaurantId: {
-                userId: invitedUser.id,
-                restaurantId: restaurantId,
-            },
-        },
-    })
-
-    if (existingMembership) {
-        throw new Error('Cet utilisateur est déjà membre du restaurant')
-    }
-
-    // Ajouter l'utilisateur au restaurant
-    const restaurantUser = await prisma.restaurantUser.create({
-        data: {
-            userId: invitedUser.id,
-            restaurantId: restaurantId,
-            role: role,
-        },
-    })
-
-    return restaurantUser
-}
 
 // ============================================================
 // CHANGER LE RÔLE D'UN UTILISATEUR
@@ -248,26 +191,23 @@ export async function changeUserRole(
     const supabase = await createClient()
 
     const {
-        data: { user },
+        data: {user},
     } = await supabase.auth.getUser()
 
     if (!user) {
         throw new Error('Non authentifié')
     }
 
-    // Vérifier que l'utilisateur actuel est admin
     const currentUserRole = await getUserRoleInRestaurant(restaurantId)
 
     if (currentUserRole !== 'admin') {
         throw new Error('Seuls les admins peuvent changer les rôles')
     }
 
-    // Empêcher de changer son propre rôle
     if (user.id === targetUserId) {
         throw new Error('Vous ne pouvez pas changer votre propre rôle')
     }
 
-    // Mettre à jour le rôle
     const restaurantUser = await prisma.restaurantUser.update({
         where: {
             userId_restaurantId: {
@@ -294,26 +234,23 @@ export async function removeUserFromRestaurant(
     const supabase = await createClient()
 
     const {
-        data: { user },
+        data: {user},
     } = await supabase.auth.getUser()
 
     if (!user) {
         throw new Error('Non authentifié')
     }
 
-    // Vérifier que l'utilisateur actuel est admin
     const currentUserRole = await getUserRoleInRestaurant(restaurantId)
 
     if (currentUserRole !== 'admin') {
         throw new Error('Seuls les admins peuvent retirer des utilisateurs')
     }
 
-    // Empêcher de se retirer soi-même
     if (user.id === targetUserId) {
         throw new Error('Vous ne pouvez pas vous retirer vous-même')
     }
 
-    // Supprimer l'utilisateur
     await prisma.restaurantUser.delete({
         where: {
             userId_restaurantId: {
@@ -323,9 +260,8 @@ export async function removeUserFromRestaurant(
         },
     })
 
-    return { success: true }
+    return {success: true}
 }
-
 
 // ============================================================
 // METTRE À JOUR L'IMAGE DE COUVERTURE
@@ -337,14 +273,13 @@ export async function updateRestaurantCover(
 ) {
     const supabase = await createClient()
     const {
-        data: { user },
+        data: {user},
     } = await supabase.auth.getUser()
 
     if (!user) {
-        return { error: 'Non authentifié' }
+        return {error: 'Non authentifié'}
     }
 
-    // Vérifier que l'utilisateur est admin du restaurant
     const userRole = await prisma.restaurantUser.findUnique({
         where: {
             userId_restaurantId: {
@@ -352,28 +287,26 @@ export async function updateRestaurantCover(
                 restaurantId: restaurantId,
             },
         },
-        select: { role: true },
+        select: {role: true},
     })
 
     if (!userRole || userRole.role !== 'admin') {
-        return { error: 'Seuls les admins peuvent modifier l\'image de couverture' }
+        return {error: "Seuls les admins peuvent modifier l'image de couverture"}
     }
 
     try {
-        // Mettre à jour l'image
         await prisma.restaurant.update({
-            where: { id: restaurantId },
-            data: { coverImageUrl },
+            where: {id: restaurantId},
+            data: {coverImageUrl},
         })
 
-        // Revalider les pages concernées
         revalidatePath('/dashboard/restaurants')
         revalidatePath(`/dashboard/restaurants/${restaurantId}`)
 
-        return { success: true }
+        return {success: true}
     } catch (error) {
         console.error('Erreur mise à jour cover:', error)
-        return { error: 'Erreur lors de la mise à jour' }
+        return {error: 'Erreur lors de la mise à jour'}
     }
 }
 
@@ -387,14 +320,13 @@ export async function updateRestaurantSettings(
 ) {
     const supabase = await createClient()
     const {
-        data: { user },
+        data: {user},
     } = await supabase.auth.getUser()
 
     if (!user) {
-        return { error: 'Non authentifié' }
+        return {error: 'Non authentifié'}
     }
 
-    // Validation des données
     const parsed = restaurantSettingsSchema.safeParse(data)
     if (!parsed.success) {
         return {
@@ -402,7 +334,6 @@ export async function updateRestaurantSettings(
         }
     }
 
-    // Vérifier que l'utilisateur est admin du restaurant
     const userRole = await prisma.restaurantUser.findUnique({
         where: {
             userId_restaurantId: {
@@ -410,23 +341,20 @@ export async function updateRestaurantSettings(
                 restaurantId: restaurantId,
             },
         },
-        select: { role: true },
+        select: {role: true},
     })
 
     if (!userRole || userRole.role !== 'admin') {
-        return { error: 'Seuls les admins peuvent modifier les paramètres' }
+        return {error: 'Seuls les admins peuvent modifier les paramètres'}
     }
 
     try {
-        // ✅ Formater le nom avant la mise à jour
-        // Cela garantit la cohérence avec la création
         const formattedName = formatRestaurantName(parsed.data.name)
 
-        // Mettre à jour le restaurant
         const restaurant = await prisma.restaurant.update({
-            where: { id: restaurantId },
+            where: {id: restaurantId},
             data: {
-                name: formattedName, // ✅ Utiliser le nom formaté
+                name: formattedName,
                 phone: parsed.data.phone || null,
                 address: parsed.data.address || null,
                 logoUrl: parsed.data.logoUrl || null,
@@ -435,37 +363,35 @@ export async function updateRestaurantSettings(
             },
         })
 
-        // Revalider les pages concernées
         revalidatePath('/dashboard')
         revalidatePath('/dashboard/restaurants')
         revalidatePath(`/dashboard/restaurants/${restaurantId}`)
 
-        return { success: true, restaurant }
+        return {success: true, restaurant}
     } catch (error) {
         console.error('Erreur mise à jour restaurant:', error)
-        return { error: 'Erreur lors de la mise à jour' }
+        return {error: 'Erreur lors de la mise à jour'}
     }
 }
 
 // ============================================================
-// RÉCUPÉRER LES DÉTAILS D'UN RESTAURANT (pour l'admin)
+// RÉCUPÉRER LES DÉTAILS D'UN RESTAURANT
 // ============================================================
 
 export async function getRestaurantDetails(restaurantId: string) {
     const supabase = await createClient()
     const {
-        data: { user },
+        data: {user},
     } = await supabase.auth.getUser()
 
     if (!user) {
-        return { error: 'Non authentifié' }
+        return {error: 'Non authentifié'}
     }
 
     if (!restaurantId) {
-        throw new Error("Restaurant non sélectionné")
+        throw new Error('Restaurant non sélectionné')
     }
 
-    // Vérifier l'accès
     const userRole = await prisma.restaurantUser.findUnique({
         where: {
             userId_restaurantId: {
@@ -473,16 +399,16 @@ export async function getRestaurantDetails(restaurantId: string) {
                 restaurantId: restaurantId,
             },
         },
-        select: { role: true },
+        select: {role: true},
     })
 
     if (!userRole) {
-        return { error: 'Accès refusé' }
+        return {error: 'Accès refusé'}
     }
 
     try {
         const restaurant = await prisma.restaurant.findUnique({
-            where: { id: restaurantId },
+            where: {id: restaurantId},
             select: {
                 id: true,
                 name: true,
@@ -496,12 +422,12 @@ export async function getRestaurantDetails(restaurantId: string) {
         })
 
         if (!restaurant) {
-            return { error: 'Restaurant introuvable' }
+            return {error: 'Restaurant introuvable'}
         }
 
-        return { success: true, restaurant }
+        return {success: true, restaurant}
     } catch (error) {
         console.error('Erreur récupération restaurant:', error)
-        return { error: 'Erreur lors de la récupération' }
+        return {error: 'Erreur lors de la récupération'}
     }
 }

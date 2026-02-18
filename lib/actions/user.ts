@@ -1,11 +1,11 @@
 // lib/actions/user.ts
 'use server'
 
-import { revalidatePath } from 'next/cache'
-import { createClient } from '@/lib/supabase/server'
-import { supabaseAdmin } from '@/lib/supabase/admin'
+import {revalidatePath} from 'next/cache'
+import {createClient} from '@/lib/supabase/server'
+import {supabaseAdmin} from '@/lib/supabase/admin'
 import prisma from '@/lib/prisma'
-import type { UserRole } from '@/types/auth'
+import type {UserRole} from '@/types/auth'
 
 // ============================================================
 // TYPES
@@ -33,7 +33,7 @@ interface TeamMember {
 async function requireAdmin(restaurantId: string) {
     const supabase = await createClient()
     const {
-        data: { user },
+        data: {user},
     } = await supabase.auth.getUser()
 
     if (!user) {
@@ -47,11 +47,11 @@ async function requireAdmin(restaurantId: string) {
                 restaurantId: restaurantId,
             },
         },
-        select: { role: true },
+        select: {role: true},
     })
 
     if (!restaurantUser || restaurantUser.role !== 'admin') {
-        throw new Error('Seuls les admins peuvent gérer l\'équipe')
+        throw new Error("Seuls les admins peuvent gérer l'équipe")
     }
 
     return user
@@ -68,34 +68,31 @@ export async function getTeamMembers(
         await requireAdmin(restaurantId)
 
         const restaurantUsers = await prisma.restaurantUser.findMany({
-            where: { restaurantId },
+            where: {restaurantId},
             select: {
                 id: true,
                 userId: true,
                 role: true,
                 createdAt: true,
             },
-            orderBy: { createdAt: 'asc' },
+            orderBy: {createdAt: 'asc'},
         })
 
-        // Récupérer les emails via Supabase Admin
-        const members: TeamMember[] = []
+        // Récupérer tous les users en une seule requête (batch)
+        const {data: usersData} = await supabaseAdmin.auth.admin.listUsers()
+        const emailMap = new Map(
+            usersData.users.map((u) => [u.id, u.email || 'Email inconnu'])
+        )
 
-        for (const ru of restaurantUsers) {
-            const { data: userData } = await supabaseAdmin.auth.admin.getUserById(
-                ru.userId
-            )
-
-            if (userData?.user) {
-                members.push({
-                    id: ru.id,
-                    userId: ru.userId,
-                    email: userData.user.email || 'Email inconnu',
-                    role: ru.role as UserRole,
-                    createdAt: ru.createdAt,
-                })
-            }
-        }
+        const members: TeamMember[] = restaurantUsers
+            .filter((ru) => emailMap.has(ru.userId))
+            .map((ru) => ({
+                id: ru.id,
+                userId: ru.userId,
+                email: emailMap.get(ru.userId) || 'Email inconnu',
+                role: ru.role as UserRole,
+                createdAt: ru.createdAt,
+            }))
 
         return members
     } catch (error) {
@@ -110,21 +107,21 @@ export async function getTeamMembers(
 
 export async function createUser(data: CreateUserData) {
     try {
-        const currentUser = await requireAdmin(data.restaurantId)
+        await requireAdmin(data.restaurantId)
 
         // Validation email
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
         if (!emailRegex.test(data.email)) {
-            return { error: 'Email invalide' }
+            return {error: 'Email invalide'}
         }
 
         // Validation mot de passe
         if (data.password.length < 6) {
-            return { error: 'Le mot de passe doit contenir au moins 6 caractères' }
+            return {error: 'Le mot de passe doit contenir au moins 6 caractères'}
         }
 
         // Vérifier si l'utilisateur existe déjà dans Supabase
-        const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers()
+        const {data: existingUsers} = await supabaseAdmin.auth.admin.listUsers()
         const existingUser = existingUsers.users.find(
             (u) => u.email === data.email.toLowerCase()
         )
@@ -141,7 +138,7 @@ export async function createUser(data: CreateUserData) {
             })
 
             if (existingMember) {
-                return { error: 'Cet utilisateur fait déjà partie de l\'équipe' }
+                return {error: "Cet utilisateur fait déjà partie de l'équipe"}
             }
 
             // Ajouter au restaurant
@@ -156,21 +153,21 @@ export async function createUser(data: CreateUserData) {
             revalidatePath(`/dashboard/users`)
             return {
                 success: true,
-                message: 'Utilisateur existant ajouté à l\'équipe'
+                message: "Utilisateur existant ajouté à l'équipe",
             }
         }
 
         // Créer un nouvel utilisateur
-        const { data: newUser, error: createError } =
+        const {data: newUser, error: createError} =
             await supabaseAdmin.auth.admin.createUser({
                 email: data.email.toLowerCase(),
                 password: data.password,
-                email_confirm: true, // Auto-confirmer l'email
+                email_confirm: true,
             })
 
         if (createError || !newUser.user) {
             console.error('Erreur création utilisateur:', createError)
-            return { error: 'Erreur lors de la création du compte' }
+            return {error: 'Erreur lors de la création du compte'}
         }
 
         // Ajouter au restaurant
@@ -189,7 +186,7 @@ export async function createUser(data: CreateUserData) {
         }
     } catch (error) {
         console.error('Erreur création utilisateur:', error)
-        return { error: 'Erreur lors de la création de l\'utilisateur' }
+        return {error: "Erreur lors de la création de l'utilisateur"}
     }
 }
 
@@ -207,7 +204,7 @@ export async function changeUserRole(
 
         // Impossible de modifier son propre rôle
         if (currentUser.id === userId) {
-            return { error: 'Vous ne pouvez pas modifier votre propre rôle' }
+            return {error: 'Vous ne pouvez pas modifier votre propre rôle'}
         }
 
         // Vérifier qu'il reste au moins 1 admin
@@ -220,7 +217,7 @@ export async function changeUserRole(
             })
 
             if (adminCount <= 1) {
-                return { error: 'Il doit rester au moins 1 administrateur' }
+                return {error: 'Il doit rester au moins 1 administrateur'}
             }
         }
 
@@ -231,14 +228,14 @@ export async function changeUserRole(
                     restaurantId,
                 },
             },
-            data: { role: newRole },
+            data: {role: newRole},
         })
 
         revalidatePath(`/dashboard/users`)
-        return { success: true }
+        return {success: true}
     } catch (error) {
         console.error('Erreur changement rôle:', error)
-        return { error: 'Erreur lors du changement de rôle' }
+        return {error: 'Erreur lors du changement de rôle'}
     }
 }
 
@@ -252,7 +249,7 @@ export async function removeTeamMember(restaurantId: string, userId: string) {
 
         // Impossible de se retirer soi-même
         if (currentUser.id === userId) {
-            return { error: 'Vous ne pouvez pas vous retirer vous-même' }
+            return {error: 'Vous ne pouvez pas vous retirer vous-même'}
         }
 
         // Récupérer le rôle du membre à retirer
@@ -263,11 +260,11 @@ export async function removeTeamMember(restaurantId: string, userId: string) {
                     restaurantId,
                 },
             },
-            select: { role: true },
+            select: {role: true},
         })
 
         if (!member) {
-            return { error: 'Membre introuvable' }
+            return {error: 'Membre introuvable'}
         }
 
         // Si c'est un admin, vérifier qu'il en reste au moins 1
@@ -296,13 +293,12 @@ export async function removeTeamMember(restaurantId: string, userId: string) {
         })
 
         revalidatePath(`/dashboard/users`)
-        return { success: true }
+        return {success: true}
     } catch (error) {
         console.error('Erreur retrait membre:', error)
-        return { error: 'Erreur lors du retrait du membre' }
+        return {error: 'Erreur lors du retrait du membre'}
     }
 }
-
 
 // ============================================================
 // Récupérer les utilisateurs d'un restaurant
@@ -312,14 +308,14 @@ export async function getRestaurantUsers(restaurantId: string) {
     try {
         const supabase = await createClient()
         const {
-            data: { user },
+            data: {user},
         } = await supabase.auth.getUser()
 
         if (!user) {
-            return { error: 'Non authentifié' }
+            return {error: 'Non authentifié'}
         }
 
-        // Vérification simple
+        // Vérification d'accès
         const hasAccess = await prisma.restaurantUser.findUnique({
             where: {
                 userId_restaurantId: {
@@ -327,14 +323,14 @@ export async function getRestaurantUsers(restaurantId: string) {
                     restaurantId: restaurantId,
                 },
             },
-            select: { id: true },
+            select: {id: true},
         })
 
         if (!hasAccess) {
-            return { error: 'Accès refusé' }
+            return {error: 'Accès refusé'}
         }
 
-        // Récupération optimisée
+        // Récupération des membres
         const restaurantUsers = await prisma.restaurantUser.findMany({
             where: {
                 restaurantId: restaurantId,
@@ -356,11 +352,8 @@ export async function getRestaurantUsers(restaurantId: string) {
             },
         })
 
-        // Récupérer les emails en batch (plus efficace)
-        const userIds = restaurantUsers.map((ru) => ru.userId)
-        const { data: usersData } = await supabaseAdmin.auth.admin.listUsers()
-
-        // Créer un map pour un accès O(1)
+        // Récupérer les emails en batch via supabaseAdmin
+        const {data: usersData} = await supabaseAdmin.auth.admin.listUsers()
         const emailMap = new Map(
             usersData.users.map((u) => [u.id, u.email || 'Email inconnu'])
         )
@@ -374,119 +367,15 @@ export async function getRestaurantUsers(restaurantId: string) {
             createdAt: ru.createdAt.toISOString(),
         }))
 
-        return { success: true, users: usersWithEmails }
+        return {success: true, users: usersWithEmails}
     } catch (error) {
         console.error('Erreur récupération utilisateurs:', error)
-        return { error: 'Erreur lors de la récupération des utilisateurs' }
+        return {error: 'Erreur lors de la récupération des utilisateurs'}
     }
 }
 
 // ============================================================
-// Inviter un utilisateur dans un restaurant
+// NOTE : inviteUserToRestaurant a été supprimé de ce fichier
+// Utiliser lib/actions/invitation.ts → inviteUserToRestaurant()
+// qui gère le flow complet avec la table `invitations`
 // ============================================================
-
-export async function inviteUserToRestaurant(
-    restaurantId: string,
-    email: string,
-    roleId: string
-) {
-    try {
-        const supabase = await createClient()
-        const {
-            data: { user },
-        } = await supabase.auth.getUser()
-
-        if (!user) {
-            return { error: 'Non authentifié' }
-        }
-
-        // Vérifier que l'utilisateur actuel est admin du restaurant
-        const currentUserRole = await prisma.restaurantUser.findUnique({
-            where: {
-                userId_restaurantId: {
-                    userId: user.id,
-                    restaurantId: restaurantId,
-                },
-            },
-            include: {
-                customRole: {
-                    select: {
-                        name: true,
-                    },
-                },
-            },
-        })
-
-        if (!currentUserRole || currentUserRole.customRole?.name !== 'Administrateur') {
-            return { error: 'Seuls les administrateurs peuvent inviter des utilisateurs' }
-        }
-
-        // Vérifier que le rôle existe et appartient au restaurant
-        const role = await prisma.role.findUnique({
-            where: {
-                id: roleId,
-                restaurantId: restaurantId,
-            },
-        })
-
-        if (!role) {
-            return { error: 'Rôle introuvable' }
-        }
-
-        // Vérifier si l'utilisateur existe déjà dans Supabase Auth
-        const { data: existingUsers } = await supabase.auth.admin.listUsers()
-        const existingUser = existingUsers.users.find((u) => u.email === email)
-
-        let invitedUserId: string
-
-        if (existingUser) {
-            // L'utilisateur existe déjà
-            invitedUserId = existingUser.id
-
-            // Vérifier qu'il n'est pas déjà membre de ce restaurant
-            const existingMembership = await prisma.restaurantUser.findUnique({
-                where: {
-                    userId_restaurantId: {
-                        userId: invitedUserId,
-                        restaurantId: restaurantId,
-                    },
-                },
-            })
-
-            if (existingMembership) {
-                return { error: 'Cet utilisateur est déjà membre du restaurant' }
-            }
-        } else {
-            // L'utilisateur n'existe pas, créer une invitation
-            const { data: inviteData, error: inviteError } =
-                await supabase.auth.admin.inviteUserByEmail(email, {
-                    data: {
-                        invited_to_restaurant: restaurantId,
-                        invited_role: roleId,
-                    },
-                })
-
-            if (inviteError || !inviteData.user) {
-                console.error('Erreur invitation:', inviteError)
-                return { error: 'Erreur lors de l\'envoi de l\'invitation' }
-            }
-
-            invitedUserId = inviteData.user.id
-        }
-
-        // Ajouter l'utilisateur au restaurant avec son rôle
-        await prisma.restaurantUser.create({
-            data: {
-                userId: invitedUserId,
-                restaurantId: restaurantId,
-                roleId: roleId,
-            },
-        })
-
-        revalidatePath('/dashboard/users')
-        return { success: true }
-    } catch (error) {
-        console.error('Erreur invitation utilisateur:', error)
-        return { error: 'Erreur lors de l\'invitation de l\'utilisateur' }
-    }
-}

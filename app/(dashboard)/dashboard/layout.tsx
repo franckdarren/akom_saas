@@ -6,7 +6,15 @@ import {AppSidebar} from "../components/app-sidebar"
 import {SidebarProvider, SidebarInset} from "@/components/ui/sidebar"
 import {RestaurantProvider} from "@/lib/hooks/use-restaurant"
 import prisma from "@/lib/prisma"
-import {FloatingSupportButton} from "@/components/support/FloatingSupportButton";
+import {FloatingSupportButton} from "@/components/support/FloatingSupportButton"
+
+// Routes du dashboard accessibles même sans vérification complète
+// (ex: settings pour soumettre les documents, subscription, support)
+const VERIFICATION_EXEMPT_ROUTES = [
+    '/dashboard/settings',
+    '/dashboard/subscription',
+    '/dashboard/support',
+]
 
 export default async function DashboardLayout({
                                                   children,
@@ -24,38 +32,67 @@ export default async function DashboardLayout({
         redirect("/login")
     }
 
-    // Récupérer le rôle de l'utilisateur EN PREMIER
+    // Récupérer le rôle de l'utilisateur
     const userRole = await getUserRole()
 
-    // ⚡ NOUVEAU : Rediriger les SuperAdmins vers /superadmin automatiquement
-    // (sauf s'ils sont déjà sur une route /superadmin)
+    // Les SuperAdmins passent directement
     if (userRole === "superadmin") {
-        // On ne redirige que si l'utilisateur est sur /dashboard (page d'accueil)
-        // Pour éviter une boucle de redirection sur les autres pages /superadmin/*
-        const url = new URL(
-            typeof window !== 'undefined' ? window.location.href : 'http://localhost:3000'
-        )
-
-        // Si on est sur /dashboard (exactement) ou toute route qui ne commence pas par /superadmin
-        // on redirige vers /superadmin
-        // Note: on ne peut pas accéder à pathname directement ici, donc on passe par autre chose
-        // On va plutôt gérer ça dans la page /dashboard elle-même
-    }
-
-    // ⚡ FIX : Vérifier le restaurant UNIQUEMENT si ce n'est PAS un SuperAdmin
-    // Les SuperAdmins peuvent accéder au dashboard même sans restaurant
-    if (userRole !== "superadmin") {
-        const hasRestaurant = await prisma.restaurantUser.findFirst({
+        // On laisse passer, le middleware gère la redirection vers /superadmin
+    } else {
+        // Vérifier que l'utilisateur a bien un restaurant
+        const restaurantUser = await prisma.restaurantUser.findFirst({
             where: {userId: user.id},
+            include: {
+                restaurant: {
+                    select: {
+                        id: true,
+                        name: true,
+                        logoUrl: true,
+                        verificationStatus: true,
+                        isVerified: true,
+                    },
+                },
+            },
         })
 
-        // Si pas de restaurant ET pas SuperAdmin, rediriger vers l'onboarding
-        if (!hasRestaurant) {
+        if (!restaurantUser) {
             redirect("/onboarding")
+        }
+
+        const restaurant = restaurantUser!.restaurant
+        const verificationStatus = restaurant.verificationStatus
+
+        // ============================================================
+        // VÉRIFICATION DU STATUT DE VÉRIFICATION
+        // Un restaurant non vérifié ne peut pas accéder au dashboard complet
+        // Statuts bloquants : pending_documents, documents_submitted, documents_rejected, suspended
+        // Seul "verified" donne accès complet
+        // ============================================================
+
+        const isVerified = verificationStatus === 'verified'
+
+        if (!isVerified) {
+            // Récupérer le pathname depuis les headers (disponible côté server)
+            const {headers} = await import('next/headers')
+            const headersList = await headers()
+            const pathname = headersList.get('x-pathname') || ''
+
+            const isExempt = VERIFICATION_EXEMPT_ROUTES.some(route =>
+                pathname.startsWith(route)
+            )
+
+            if (!isExempt) {
+                // Rediriger selon le statut
+                if (verificationStatus === 'suspended') {
+                    redirect('/onboarding/suspended')
+                } else {
+                    redirect('/onboarding/verification')
+                }
+            }
         }
     }
 
-    // Récupérer les infos du restaurant actuel (seulement si pas SuperAdmin)
+    // Récupérer les infos du restaurant (seulement si pas SuperAdmin)
     const restaurantUser = userRole !== "superadmin"
         ? await prisma.restaurantUser.findFirst({
             where: {userId: user.id},
@@ -64,7 +101,7 @@ export default async function DashboardLayout({
                     select: {
                         id: true,
                         name: true,
-                        logoUrl: true
+                        logoUrl: true,
                     },
                 },
             },
@@ -75,7 +112,6 @@ export default async function DashboardLayout({
     const restaurantId = restaurantUser?.restaurant.id
     const restaurantLogoUrl = restaurantUser?.restaurant.logoUrl
 
-    // Server action pour déconnexion
     async function handleSignOut() {
         "use server"
         await signOut()
@@ -97,7 +133,6 @@ export default async function DashboardLayout({
                 />
                 <SidebarInset>
                     {children}
-                    {/* Bouton flottant de support */}
                 </SidebarInset>
                 <FloatingSupportButton/>
             </SidebarProvider>

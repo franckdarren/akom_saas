@@ -1,92 +1,171 @@
 // app/onboarding/verification/page.tsx
-import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import {redirect} from 'next/navigation'
+import {createClient} from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { CheckCircle2, AlertTriangle } from 'lucide-react'
-import { VerificationDocumentsForm } from '@/components/restaurant/verification-documents-form'
+import {
+    Card,
+    CardContent,
+    CardHeader,
+    CardTitle,
+    CardDescription,
+} from '@/components/ui/card'
+import {Alert, AlertDescription} from '@/components/ui/alert'
+import {
+    CheckCircle2,
+    AlertTriangle,
+    ShieldCheck,
+    Clock,
+    FileText,
+} from 'lucide-react'
+import {VerificationDocumentsForm} from '@/components/restaurant/verification-documents-form'
+import {Progress} from '@/components/ui/progress'
 
 export default async function VerificationPage() {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const {data: {user}} = await supabase.auth.getUser()
 
-    if (!user) {
-        redirect('/login')
-    }
+    if (!user) redirect('/login')
 
-    // Récupérer le restaurant de l'utilisateur
     const restaurantUser = await prisma.restaurantUser.findFirst({
-        where: { userId: user.id },
+        where: {userId: user.id},
         include: {
             restaurant: {
-                include: {
-                    verificationDocuments: true,
-                },
+                include: {verificationDocuments: true},
             },
         },
     })
 
-    if (!restaurantUser) {
-        redirect('/onboarding')
-    }
+    if (!restaurantUser) redirect('/onboarding')
 
-    const { restaurant } = restaurantUser
+    const {restaurant} = restaurantUser
 
-    // Si déjà vérifié, rediriger vers le dashboard
-    if (restaurant.isVerified) {
-        redirect('/dashboard')
-    }
+    if (restaurant.isVerified) redirect('/dashboard')
 
     return (
-        <div className="container max-w-2xl py-10">
-            {/* Message de bienvenue */}
-            <Card className="mb-6 border-blue-200 bg-blue-50 dark:bg-blue-950/20">
-                <CardHeader>
-                    <div className="flex items-start gap-3">
-                        <CheckCircle2 className="h-6 w-6 text-blue-600 mt-1" />
-                        <div>
-                            <CardTitle className="text-blue-900 dark:text-blue-100">
-                                Bienvenue sur Akôm, {restaurant.name} ! 🎉
-                            </CardTitle>
-                        </div>
+        <div className="min-h-screen flex items-center justify-center bg-background py-12">
+            <div className="container max-w-3xl">
+
+                {/* Progression */}
+                <div className="mb-10">
+                    <div className="flex justify-between text-sm text-muted-foreground mb-2">
+                        <span>Étape 3 sur 4</span>
+                        <span>Vérification du restaurant</span>
                     </div>
-                </CardHeader>
-                <CardContent className="text-blue-800 dark:text-blue-200">
-                    <p className="mb-3">
-                        Votre restaurant a été créé avec succès ! Pour des raisons de sécurité et 
-                        de conformité, nous devons vérifier votre identité avant d'activer votre compte.
-                    </p>
-                    <p className="font-medium">
-                        Cette vérification prend généralement 24 à 48 heures après la soumission de vos documents.
-                    </p>
-                </CardContent>
-            </Card>
+                    <Progress value={75}/>
+                </div>
 
-            {/* Alerte importante */}
-            <Alert className="mb-6">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription>
-                    <strong>Important :</strong> Vous pouvez explorer l'interface dès maintenant, 
-                    mais votre menu ne sera pas accessible aux clients tant que votre compte n'est pas vérifié. 
-                    Nous vous recommandons de soumettre vos documents dès maintenant pour activer votre compte rapidement.
-                </AlertDescription>
-            </Alert>
+                {/* Hero Card */}
+                <Card className="mb-8 border-none shadow-lg bg-primary text-primary-foreground">
+                    <CardHeader>
+                        <div className="flex items-start gap-4">
+                            <div className="bg-primary-foreground/10 p-2 rounded-xl">
+                                <CheckCircle2 className="h-6 w-6"/>
+                            </div>
+                            <div>
+                                <CardTitle className="text-xl">
+                                    Bienvenue sur Akôm, {restaurant.name} 🎉
+                                </CardTitle>
+                                <CardDescription className="text-primary-foreground/80 mt-1">
+                                    Dernière étape avant l’activation de votre compte
+                                </CardDescription>
+                            </div>
+                        </div>
+                    </CardHeader>
 
-            {/* Formulaire de vérification */}
-            <VerificationDocumentsForm
-                restaurantId={restaurant.id}
-                verificationDocument={restaurant.verificationDocuments}
-            />
+                    <CardContent className="space-y-3 text-primary-foreground/90">
+                        <p>
+                            Pour garantir la sécurité des paiements et protéger vos clients,
+                            nous devons vérifier l’identité de votre établissement.
+                        </p>
+                        <div className="flex items-center gap-2 text-sm opacity-90">
+                            <Clock className="h-4 w-4"/>
+                            Vérification sous 24 à 48h après soumission.
+                        </div>
+                    </CardContent>
+                </Card>
 
-            {/* Bouton pour passer (optionnel) */}
-            <div className="mt-6 text-center">
-                <a 
-                    href="/dashboard" 
-                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                    Je soumettrai mes documents plus tard →
-                </a>
+                {/* Process Card */}
+                <Card className="mb-8">
+                    <CardHeader>
+                        <CardTitle className="text-lg">Comment ça fonctionne ?</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+
+                        <div className="flex gap-4">
+                            <div className="bg-muted p-2 rounded-lg flex items-center">
+                                <FileText className="h-5 w-5 text-primary"/>
+                            </div>
+                            <div>
+                                <p className="font-medium">1. Soumettez vos documents</p>
+                                <p className="text-sm text-muted-foreground">
+                                    Pièce d’identité et document officiel du restaurant.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="flex gap-4">
+                            <div className="bg-muted p-2 rounded-lg flex items-center">
+                                <ShieldCheck className="h-5 w-5 text-primary"/>
+                            </div>
+                            <div>
+                                <p className="font-medium">2. Vérification par notre équipe</p>
+                                <p className="text-sm text-muted-foreground">
+                                    Nous validons vos informations en toute confidentialité.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="flex gap-4">
+                            <div className="bg-muted p-2 rounded-lg flex items-center">
+                                <CheckCircle2 className="h-5 w-5 text-primary"/>
+                            </div>
+                            <div>
+                                <p className="font-medium">3. Activation automatique</p>
+                                <p className="text-sm text-muted-foreground">
+                                    Votre menu devient accessible aux clients immédiatement.
+                                </p>
+                            </div>
+                        </div>
+
+                    </CardContent>
+                </Card>
+
+                {/* Alert */}
+                <div
+                    className="text-sm mb-8 flex items-center gap-3 border border-destructive rounded-md p-5 text-destructive">
+                    <AlertTriangle className="h-4 w-4"/>
+                    <div>
+                        Votre menu ne sera pas visible publiquement tant que la vérification
+                        n’est pas validée.
+                    </div>
+                </div>
+
+                {/* Formulaire */}
+                <div>
+                    <div>
+                        <h2 className="leading-none font-semibold text-lg">Soumettre vos documents</h2>
+                        <p className="text-sm text-muted-foreground mt-2 mb-5">
+                            Toutes les données sont cryptées et sécurisées.
+                        </p>
+                    </div>
+                    <div>
+                        <VerificationDocumentsForm
+                            restaurantId={restaurant.id}
+                            verificationDocument={restaurant.verificationDocuments}
+                        />
+                    </div>
+                </div>
+
+                {/* CTA secondaire */}
+                {/*<div className="mt-8 text-center">*/}
+                {/*    <a*/}
+                {/*        href="/dashboard"*/}
+                {/*        className="text-sm text-muted-foreground hover:text-foreground transition-colors"*/}
+                {/*    >*/}
+                {/*        Je compléterai cette étape plus tard →*/}
+                {/*    </a>*/}
+                {/*</div>*/}
+
             </div>
         </div>
     )

@@ -1,11 +1,11 @@
 // components/restaurant/verification-documents-form.tsx
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
+import {useState} from 'react'
+import {useRouter} from 'next/navigation'
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card'
+import {Button} from '@/components/ui/button'
+import {Label} from '@/components/ui/label'
 import {
     Select,
     SelectContent,
@@ -13,8 +13,9 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Badge } from '@/components/ui/badge'
+import {Alert, AlertDescription} from '@/components/ui/alert'
+import {Badge} from '@/components/ui/badge'
+import {createClient} from '@/lib/supabase/client'
 import {
     CheckCircle2,
     XCircle,
@@ -25,10 +26,10 @@ import {
     AlertTriangle,
     Loader2
 } from 'lucide-react'
-import { toast } from 'sonner'
-import { submitVerificationDocuments, resubmitVerificationDocuments } from '@/lib/actions/restaurant-verification'
-import type { RestaurantVerificationDocument } from '@prisma/client'
-import type { IdentityDocumentType } from '@/types/restaurant-verification'
+import {toast} from 'sonner'
+import {submitVerificationDocuments, resubmitVerificationDocuments} from '@/lib/actions/restaurant-verification'
+import type {RestaurantVerificationDocument} from '@prisma/client'
+import type {IdentityDocumentType} from '@/types/restaurant-verification'
 import {
     VERIFICATION_STATUS_LABELS,
     IDENTITY_DOCUMENT_TYPE_LABELS,
@@ -49,9 +50,9 @@ interface VerificationDocumentsFormProps {
 // ============================================================
 
 export function VerificationDocumentsForm({
-    restaurantId,
-    verificationDocument,
-}: VerificationDocumentsFormProps) {
+                                              restaurantId,
+                                              verificationDocument,
+                                          }: VerificationDocumentsFormProps) {
     const router = useRouter()
 
     // États
@@ -80,21 +81,35 @@ export function VerificationDocumentsForm({
         const file = e.target.files?.[0]
         if (!file) return
 
-        // TODO: Implémenter l'upload vers Supabase Storage
-        // Pour l'instant, simulation
+        // Validation taille
+        if (file.size > 5 * 1024 * 1024) {
+            toast.error('La photo ne doit pas dépasser 5MB')
+            return
+        }
+
         setIsLoading(true)
 
         try {
-            // Simuler upload
-            await new Promise(resolve => setTimeout(resolve, 1000))
+            const supabase = createClient() // import depuis @/lib/supabase/client
 
-            // TODO: Remplacer par le vrai URL après upload
-            const fakeUrl = `https://storage.akom.com/profiles/${file.name}`
-            setProfilePhotoUrl(fakeUrl)
+            const fileExt = file.name.split('.').pop()
+            const fileName = `${restaurantId}/profile-${Date.now()}.${fileExt}`
 
+            const {error: uploadError} = await supabase.storage
+                .from('verification-documents')
+                .upload(fileName, file, {upsert: true})
+
+            if (uploadError) throw uploadError
+
+            const {data} = supabase.storage
+                .from('verification-documents')
+                .getPublicUrl(fileName)
+
+            setProfilePhotoUrl(data.publicUrl)
             toast.success('Photo de profil uploadée')
         } catch (error) {
-            toast.error('Erreur lors de l\'upload')
+            console.error('Erreur upload:', error)
+            toast.error("Erreur lors de l'upload")
         } finally {
             setIsLoading(false)
         }
@@ -109,19 +124,34 @@ export function VerificationDocumentsForm({
             return
         }
 
+        if (file.size > 10 * 1024 * 1024) {
+            toast.error('Le document ne doit pas dépasser 10MB')
+            return
+        }
+
         setIsLoading(true)
 
         try {
-            // Simuler upload
-            await new Promise(resolve => setTimeout(resolve, 1000))
+            const supabase = createClient()
 
-            // TODO: Remplacer par le vrai URL après upload
-            const fakeUrl = `https://storage.akom.com/identity/${file.name}`
-            setIdentityDocumentUrl(fakeUrl)
+            const fileExt = file.name.split('.').pop()
+            const fileName = `${restaurantId}/identity-${Date.now()}.${fileExt}`
 
-            toast.success('Pièce d\'identité uploadée')
+            const {error: uploadError} = await supabase.storage
+                .from('verification-documents')
+                .upload(fileName, file, {upsert: true})
+
+            if (uploadError) throw uploadError
+
+            const {data} = supabase.storage
+                .from('verification-documents')
+                .getPublicUrl(fileName)
+
+            setIdentityDocumentUrl(data.publicUrl)
+            toast.success("Pièce d'identité uploadée")
         } catch (error) {
-            toast.error('Erreur lors de l\'upload')
+            console.error('Erreur upload:', error)
+            toast.error("Erreur lors de l'upload")
         } finally {
             setIsLoading(false)
         }
@@ -183,9 +213,10 @@ export function VerificationDocumentsForm({
                 {/* Statut vérifié */}
                 {isVerified && (
                     <Alert className="border-green-200 bg-green-50 dark:bg-green-950/20">
-                        <CheckCircle2 className="h-4 w-4 text-green-600" />
+                        <CheckCircle2 className="h-4 w-4 text-green-600"/>
                         <AlertDescription className="text-green-800 dark:text-green-200">
-                            Votre restaurant a été vérifié et approuvé ! Vous pouvez maintenant utiliser toutes les fonctionnalités.
+                            Votre restaurant a été vérifié et approuvé ! Vous pouvez maintenant utiliser toutes les
+                            fonctionnalités.
                         </AlertDescription>
                     </Alert>
                 )}
@@ -193,10 +224,10 @@ export function VerificationDocumentsForm({
                 {/* Statut rejeté */}
                 {isRejected && verificationDocument?.rejectionReason && (
                     <Alert variant="destructive">
-                        <XCircle className="h-4 w-4" />
+                        <XCircle className="h-4 w-4"/>
                         <AlertDescription>
                             <strong>Documents rejetés :</strong> {verificationDocument.rejectionReason}
-                            <br />
+                            <br/>
                             <span className="text-sm">Veuillez corriger et re-soumettre vos documents.</span>
                         </AlertDescription>
                     </Alert>
@@ -206,11 +237,11 @@ export function VerificationDocumentsForm({
                 {isSubmitted && (
                     <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/20">
                         <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-blue-600" />
-                        <AlertDescription className="text-blue-800 dark:text-blue-200">
-                            Vos documents ont été soumis et sont en cours de vérification par notre équipe.
-                            Nous vous contacterons sous 24 à 48h.
-                        </AlertDescription>
+                            <Clock className="h-4 w-4 text-blue-600"/>
+                            <AlertDescription className="text-blue-800 dark:text-blue-200">
+                                Vos documents ont été soumis et sont en cours de vérification par notre équipe.
+                                Nous vous contacterons sous 24 à 48h.
+                            </AlertDescription>
                         </div>
                     </Alert>
                 )}
@@ -221,7 +252,7 @@ export function VerificationDocumentsForm({
                         {/* Photo de profil */}
                         <div className="space-y-3">
                             <div className="flex items-center gap-2">
-                                <User className="h-5 w-5 text-muted-foreground" />
+                                <User className="h-5 w-5 text-muted-foreground"/>
                                 <Label className="text-base">
                                     Photo de profil <span className="text-red-500">*</span>
                                 </Label>
@@ -249,7 +280,7 @@ export function VerificationDocumentsForm({
                                         disabled={isLoading}
                                         onClick={() => document.getElementById('profile-photo-input')?.click()}
                                     >
-                                        <Upload className="mr-2 h-4 w-4" />
+                                        <Upload className="mr-2 h-4 w-4"/>
                                         {profilePhotoUrl ? 'Changer la photo' : 'Uploader la photo'}
                                     </Button>
                                     <input
@@ -270,7 +301,7 @@ export function VerificationDocumentsForm({
                         {/* Pièce d'identité */}
                         <div className="space-y-3">
                             <div className="flex items-center gap-2">
-                                <FileText className="h-5 w-5 text-muted-foreground" />
+                                <FileText className="h-5 w-5 text-muted-foreground"/>
                                 <Label className="text-base">
                                     Pièce d'identité <span className="text-red-500">*</span>
                                 </Label>
@@ -289,7 +320,7 @@ export function VerificationDocumentsForm({
                                     disabled={isLoading}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Sélectionnez le type de document" />
+                                        <SelectValue placeholder="Sélectionnez le type de document"/>
                                     </SelectTrigger>
                                     <SelectContent>
                                         {Object.entries(IDENTITY_DOCUMENT_TYPE_LABELS).map(([value, label]) => (
@@ -305,7 +336,7 @@ export function VerificationDocumentsForm({
                             <div className="flex items-center gap-4">
                                 {identityDocumentUrl && (
                                     <div className="flex items-center gap-2 px-3 py-2 bg-muted rounded-lg">
-                                        <FileText className="h-4 w-4 text-green-600" />
+                                        <FileText className="h-4 w-4 text-green-600"/>
                                         <span className="text-sm">Document uploadé</span>
                                     </div>
                                 )}
@@ -317,7 +348,7 @@ export function VerificationDocumentsForm({
                                         disabled={isLoading || !identityDocumentType}
                                         onClick={() => document.getElementById('identity-document-input')?.click()}
                                     >
-                                        <Upload className="mr-2 h-4 w-4" />
+                                        <Upload className="mr-2 h-4 w-4"/>
                                         {identityDocumentUrl ? 'Changer le document' : 'Uploader le document'}
                                     </Button>
                                     <input
@@ -337,9 +368,10 @@ export function VerificationDocumentsForm({
 
                         {/* Avertissement sécurité */}
                         <Alert>
-                            <AlertTriangle className="h-4 w-4" />
+                            <AlertTriangle className="h-4 w-4"/>
                             <AlertDescription className="text-sm">
-                                <strong>Sécurité de vos données :</strong> Vos documents sont stockés de manière sécurisée
+                                <strong>Sécurité de vos données :</strong> Vos documents sont stockés de manière
+                                sécurisée
                                 et ne sont accessibles qu'à notre équipe de vérification. Ils ne seront jamais partagés
                                 avec des tiers.
                             </AlertDescription>
@@ -354,12 +386,12 @@ export function VerificationDocumentsForm({
                             >
                                 {isLoading ? (
                                     <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
                                         Envoi en cours...
                                     </>
                                 ) : (
                                     <>
-                                        <CheckCircle2 className="mr-2 h-4 w-4" />
+                                        <CheckCircle2 className="mr-2 h-4 w-4"/>
                                         {isRejected ? 'Re-soumettre les documents' : 'Soumettre les documents'}
                                     </>
                                 )}
