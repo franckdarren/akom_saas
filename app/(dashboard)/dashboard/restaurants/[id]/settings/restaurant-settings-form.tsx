@@ -1,18 +1,19 @@
 // app/dashboard/restaurants/[id]/settings/restaurant-settings-form.tsx
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { Loader2, Copy, Check } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { CoverImageUploader } from '@/components/dashboard/cover-image-uploader'
-import { ImageUploader } from '@/components/image-uploader'
-import { updateRestaurantSettings } from '@/lib/actions/restaurant'
-import { toast } from 'sonner'
+import {useState} from 'react'
+import {useRouter} from 'next/navigation'
+import {Loader2} from 'lucide-react'
+import {Button} from '@/components/ui/button'
+import {Input} from '@/components/ui/input'
+import {Label} from '@/components/ui/label'
+import {Textarea} from '@/components/ui/textarea'
+import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
+import {CoverImageUploader} from '@/components/dashboard/cover-image-uploader'
+import {ImageUploader} from '@/components/image-uploader'
+import {CatalogLinkSection} from '@/components/dashboard/catalog-link-section'
+import {updateRestaurantSettings} from '@/lib/actions/restaurant'
+import {toast} from 'sonner'
 
 interface Restaurant {
     id: string
@@ -29,10 +30,9 @@ interface RestaurantSettingsFormProps {
     restaurant: Restaurant
 }
 
-export function RestaurantSettingsForm({ restaurant }: RestaurantSettingsFormProps) {
+export function RestaurantSettingsForm({restaurant}: RestaurantSettingsFormProps) {
     const router = useRouter()
     const [isSubmitting, setIsSubmitting] = useState(false)
-    const [copied, setCopied] = useState(false)
 
     // États du formulaire
     const [name, setName] = useState(restaurant.name)
@@ -41,10 +41,6 @@ export function RestaurantSettingsForm({ restaurant }: RestaurantSettingsFormPro
     const [logoUrl, setLogoUrl] = useState<string | null>(restaurant.logoUrl)
     const [coverImageUrl, setCoverImageUrl] = useState<string | null>(restaurant.coverImageUrl)
     const [isActive, setIsActive] = useState(restaurant.isActive)
-
-    // URL du menu public
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-    const menuUrl = `${baseUrl}/r/${restaurant.slug}/t/`
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault()
@@ -72,13 +68,6 @@ export function RestaurantSettingsForm({ restaurant }: RestaurantSettingsFormPro
         } finally {
             setIsSubmitting(false)
         }
-    }
-
-    function copyMenuUrl() {
-        navigator.clipboard.writeText(menuUrl + '[numéro_table]')
-        setCopied(true)
-        toast.success('URL copiée dans le presse-papier')
-        setTimeout(() => setCopied(false), 2000)
     }
 
     return (
@@ -142,61 +131,11 @@ export function RestaurantSettingsForm({ restaurant }: RestaurantSettingsFormPro
                 </CardContent>
             </Card>
 
-            {/* URL du menu */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>🔗 URL du menu public</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <div>
-                        <Label>Slug (identifiant unique)</Label>
-                        <div className="flex gap-2 mt-2">
-                            <Input
-                                value={restaurant.slug}
-                                readOnly
-                                className="bg-muted"
-                            />
-                            <Button
-                                type="button"
-                                variant="outline"
-                                disabled
-                                className="opacity-50"
-                            >
-                                Modifier
-                            </Button>
-                        </div>
-                        <p className="text-xs text-muted-foreground mt-2">
-                            ⚠️ La modification du slug cassera tous les QR codes existants
-                        </p>
-                    </div>
-
-                    <div>
-                        <Label>Lien du menu</Label>
-                        <div className="flex gap-2 mt-2">
-                            <Input
-                                value={menuUrl + '[numéro_table]'}
-                                readOnly
-                                className="bg-muted"
-                            />
-                            <Button
-                                type="button"
-                                variant="outline"
-                                size="icon"
-                                onClick={copyMenuUrl}
-                            >
-                                {copied ? (
-                                    <Check className="h-4 w-4" />
-                                ) : (
-                                    <Copy className="h-4 w-4" />
-                                )}
-                            </Button>
-                        </div>
-                        <p className="text-xs text-muted-foreground mt-2">
-                            Exemple : {menuUrl}1 (pour la table 1)
-                        </p>
-                    </div>
-                </CardContent>
-            </Card>
+            {/* Lien catalogue public - NOUVEAU */}
+            <CatalogLinkSection
+                restaurantSlug={restaurant.slug}
+                restaurantName={restaurant.name}
+            />
 
             {/* Logo */}
             <Card>
@@ -232,8 +171,8 @@ export function RestaurantSettingsForm({ restaurant }: RestaurantSettingsFormPro
                             className="h-4 w-4"
                         />
                         <Label htmlFor="isActive" className="cursor-pointer">
-                            Restaurant actif 
-                            <span className="text-sm text-muted-foreground">
+                            Restaurant actif
+                            <span className="text-sm text-muted-foreground ml-1">
                                 {isActive
                                     ? '(les clients peuvent accéder au menu et passer commande)'
                                     : '(le menu est désactivé, les clients ne peuvent plus commander)'}
@@ -257,7 +196,7 @@ export function RestaurantSettingsForm({ restaurant }: RestaurantSettingsFormPro
                 <Button type="submit" disabled={isSubmitting}>
                     {isSubmitting ? (
                         <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
                             Enregistrement...
                         </>
                     ) : (
