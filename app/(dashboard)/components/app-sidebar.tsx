@@ -1,12 +1,13 @@
-// app/components/app-sidebar.tsx
 "use client"
 
 import * as React from "react"
+import {useState} from "react"
 import Link from "next/link"
 import Image from 'next/image'
-import {usePathname} from "next/navigation"
+import {usePathname, useRouter} from "next/navigation"
 import {useNavigationLoading} from "@/lib/hooks/use-navigation-loading"
 import {NavigationLoader} from "@/components/NavigationLoader"
+import {signOut} from "@/lib/actions/auth"
 
 import {
     ChefHat,
@@ -34,6 +35,7 @@ import {
     Warehouse,
     Activity,
     User,
+    Loader2,
 } from "lucide-react"
 
 import {
@@ -50,7 +52,6 @@ import {
 } from "@/components/ui/sidebar"
 import {Avatar, AvatarFallback} from "@/components/ui/avatar"
 import {Badge} from "@/components/ui/badge"
-import {Separator} from "@/components/ui/separator"
 import {useRestaurant} from "@/lib/hooks/use-restaurant"
 import {DashboardHeader} from "../dashboard/components/DashboardHeader"
 import {
@@ -81,13 +82,33 @@ export function AppSidebar({
                                role,
                                restaurantName,
                                restaurantLogoUrl,
-                               onSignOut,
                            }: AppSidebarProps) {
     const pathname = usePathname()
+    const router = useRouter()
     const {currentRestaurant} = useRestaurant()
     const {loading, startLoading} = useNavigationLoading()
+    const [isSigningOut, setIsSigningOut] = useState(false)
 
-    // 🆕 Configuration des menus par rôle
+    // ============================================================
+    // DÉCONNEXION — géré localement pour éviter la latence
+    // ============================================================
+
+    async function handleSignOut() {
+        if (isSigningOut) return // Empêcher les clics multiples
+        setIsSigningOut(true)
+        try {
+            await signOut()
+        } catch {
+            // signOut fait un redirect() donc on ne passera jamais ici
+            // mais on remet le state au cas où
+            setIsSigningOut(false)
+        }
+    }
+
+    // ============================================================
+    // MENUS PAR RÔLE
+    // ============================================================
+
     const menuConfig: Record<UserRole, Array<{
         title: string
         items: Array<{
@@ -184,14 +205,21 @@ export function AppSidebar({
     }
 
     const menuItems = menuConfig[role]
-
-    // Initiales avatar
     const initials = user.email.split("@")[0].substring(0, 2).toUpperCase()
 
     return (
         <>
-            {/* Loader global */}
             <NavigationLoader loading={loading}/>
+
+            {/* Overlay de déconnexion */}
+            {isSigningOut && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+                    <div className="flex flex-col items-center gap-3">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary"/>
+                        <p className="text-sm text-muted-foreground font-medium">Déconnexion en cours...</p>
+                    </div>
+                </div>
+            )}
 
             <Sidebar>
                 <SidebarHeader className="px-1 py-4 flex-row justify-between items-center">
@@ -212,7 +240,7 @@ export function AppSidebar({
                                 />
                             </div>
                         )}
-                        <div className="flex flex-col">
+                        <div className="flex">
                             <span className="font-semibold text-sm">{restaurantName}</span>
                         </div>
                     </Link>
@@ -236,9 +264,7 @@ export function AppSidebar({
                                                     asChild={!isDisabled}
                                                     isActive={isActive}
                                                     disabled={isDisabled}
-                                                    className={
-                                                        isDisabled ? "opacity-50 cursor-not-allowed" : ""
-                                                    }
+                                                    className={isDisabled ? "opacity-50 cursor-not-allowed" : ""}
                                                 >
                                                     {isDisabled ? (
                                                         <div className="flex items-center gap-2">
@@ -276,7 +302,9 @@ export function AppSidebar({
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <button
-                                className="flex w-full items-center gap-3 px-3 py-3 text-left hover:bg-muted rounded-md transition">
+                                className="flex w-full items-center gap-3 px-3 py-3 text-left hover:bg-muted rounded-md transition"
+                                disabled={isSigningOut}
+                            >
                                 <Avatar className="h-8 w-8">
                                     <AvatarFallback className="bg-primary text-primary-foreground text-xs">
                                         {initials}
@@ -289,9 +317,9 @@ export function AppSidebar({
                                 </div>
 
                                 <span className="flex flex-col gap-2 items-center justify-center text-muted-foreground">
-                  <ChevronUp className="h-3 w-3 -mb-1"/>
-                  <ChevronDown className="h-3 w-3 -mt-1"/>
-                </span>
+                                    <ChevronUp className="h-3 w-3 -mb-1"/>
+                                    <ChevronDown className="h-3 w-3 -mt-1"/>
+                                </span>
                             </button>
                         </DropdownMenuTrigger>
 
@@ -312,10 +340,23 @@ export function AppSidebar({
 
                             <DropdownMenuItem
                                 className="text-destructive focus:text-destructive"
-                                onClick={onSignOut}
+                                disabled={isSigningOut}
+                                onSelect={(e) => {
+                                    e.preventDefault() // Empêcher la fermeture du menu avant l'action
+                                    handleSignOut()
+                                }}
                             >
-                                <LogOut className="mr-2 h-4 w-4"/>
-                                Déconnexion
+                                {isSigningOut ? (
+                                    <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
+                                        Déconnexion...
+                                    </>
+                                ) : (
+                                    <>
+                                        <LogOut className="mr-2 h-4 w-4"/>
+                                        Déconnexion
+                                    </>
+                                )}
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
