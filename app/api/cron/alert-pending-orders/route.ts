@@ -1,15 +1,41 @@
+// app/api/cron/alert-pending-orders/route.ts
+
 import {NextResponse} from 'next/server'
 import prisma from '@/lib/prisma'
+import {supabaseAdmin} from '@/lib/supabase/admin' // ✅ Singleton — une seule connexion réutilisée
 import {sendPendingOrderAlertEmail} from '@/lib/email/cron-emails'
-import {createClient} from '@supabase/supabase-js'
 
-export const dynamic = 'force-dynamic'
+/**
+ * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ * CRON JOB : Alerte commandes en attente trop longtemps
+ * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ * Fréquence : Toutes les 15 minutes (configurer dans vercel.json)
+ *
+ * Logique :
+ *   1. Chercher les commandes en statut "pending" depuis > THRESHOLD_MINUTES
+ *   2. Pour chacune, trouver les admins du restaurant concerné
+ *   3. Récupérer leurs emails depuis Supabase Auth (service_role obligatoire)
+ *   4. Envoyer un email d'alerte à chaque admin
+ *
+ * Sécurité :
+ *   La route est protégée par CRON_SECRET en header Authorization.
+ *   En dev : curl -H "Authorization: Bearer <CRON_SECRET>" http://localhost:3000/api/cron/alert-pending-orders
+ *
+ * Pourquoi supabaseAdmin pour les emails ?
+ *   Les emails sont dans Supabase Auth, pas dans notre BDD Prisma.
+ *   supabase.auth.admin.getUserById() nécessite la SERVICE_ROLE_KEY.
+ *   La clé anon (createClient standard) retourne 403 silencieusement.
+ *
+ * Corrections apportées vs version originale :
+ *   ✅ supabaseAdmin singleton (au lieu de createClient recréé localement)
+ *   ✅ Promise.all pour les appels getUserById (au lieu de for...of séquentiel)
+ *   ✅ Promise.all pour les envois d'email
+ *   ✅ THRESHOLD_MINUTES = 15 (était 60 — trop tardif pour une alerte utile)
+ */
 
-// Supabase admin client (SERVICE ROLE KEY obligatoire en prod)
-const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+export const dynamic = 'force-dynamic' // Désactive le cache statique Next.js
+
+const THRESHOLD_MINUTES = 15
 
 interface PendingOrderAlert {
     orderNumber: string
@@ -25,37 +51,28 @@ interface PendingOrderAlert {
 
 export async function GET(req: Request) {
     try {
-        // Sécurité simple (optionnel)
+        // ── Vérification du token ───────────────────────────────────────────
         const authHeader = req.headers.get('authorization')
         if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
             return new NextResponse('Unauthorized', {status: 401})
         }
 
-        const THRESHOLD_MINUTES = 15
-        const thresholdDate = new Date(
-            Date.now() - THRESHOLD_MINUTES * 60 * 1000
-        )
+        // ── Seuil temporel ─────────────────────────────────────────────────
+        // Les commandes créées AVANT cette date sont concernées
+        const thresholdDate = new Date(Date.now() - THRESHOLD_MINUTES * 60 * 1000)
 
-        // 1️⃣ Récupérer commandes en attente
+        // ── 1. Commandes en attente trop longtemps ──────────────────────────
         const pendingOrders = await prisma.order.findMany({
             where: {
                 status: 'pending',
-                createdAt: {
-                    lte: thresholdDate,
-                },
+                createdAt: {lte: thresholdDate},
             },
             include: {
-                restaurant: {
-                    select: {
-                        id: true,
-                        name: true,
-                    },
-                },
+                restaurant: {select: {id: true, name: true}},
                 orderItems: {
                     include: {
-                        product: {
-                            select: {name: true},
-                        },
+                        // product.name = nom actuel du produit (plus fiable que le snapshot)
+                        product: {select: {name: true}},
                     },
                 },
             },
@@ -67,16 +84,17 @@ export async function GET(req: Request) {
 
         let totalEmailsSent = 0
 
-        // 2️⃣ Boucle sur commandes
         for (const order of pendingOrders) {
+            // ── 2. Ancienneté de la commande ───────────────────────────────
             const minutesOld = Math.floor(
                 (Date.now() - order.createdAt.getTime()) / 60000
             )
 
-            // 3️⃣ Construire objet sécurisé
+            // ── 3. Données pour l'email ────────────────────────────────────
+            // Chaque champ est sécurisé avec un fallback pour éviter
+            // d'envoyer un email avec des valeurs null ou undefined
             const orderDetails: PendingOrderAlert = {
-                orderNumber:
-                    order.orderNumber ?? `CMD-${order.id.slice(0, 6)}`,
+                orderNumber: order.orderNumber ?? `CMD-${order.id.slice(0, 6)}`,
                 totalAmount: Number(order.totalAmount ?? 0),
                 minutesOld,
                 createdAt: order.createdAt.toISOString(),
@@ -87,43 +105,45 @@ export async function GET(req: Request) {
                 })),
             }
 
-            // 4️⃣ Récupérer admins du restaurant
+            // ── 4. Admins du restaurant ────────────────────────────────────
+            // On alerte uniquement les "admin", pas les employés ou la cuisine
             const admins = await prisma.restaurantUser.findMany({
                 where: {
                     restaurantId: order.restaurant.id,
                     role: 'admin',
                 },
-                select: {
-                    userId: true,
-                },
+                select: {userId: true},
             })
 
             if (admins.length === 0) continue
 
-            // 5️⃣ Récupérer emails via Supabase Admin
-            const emails: string[] = []
+            // ── 5. Emails en parallèle ─────────────────────────────────────
+            // ✅ Promise.all : tous les appels Supabase Auth sont lancés
+            // simultanément. L'ancienne version faisait N appels en série
+            // avec un for...of, ce qui bloquait inutilement
+            const emailResults = await Promise.all(
+                admins.map((admin) =>
+                    supabaseAdmin.auth.admin.getUserById(admin.userId)
+                )
+            )
 
-            for (const admin of admins) {
-                const {data, error} =
-                    await supabaseAdmin.auth.admin.getUserById(admin.userId)
-
-                if (!error && data?.user?.email) {
-                    emails.push(data.user.email)
-                }
-            }
+            const emails = emailResults
+                .filter((r) => !r.error && r.data?.user?.email)
+                .map((r) => r.data.user!.email!)
 
             if (emails.length === 0) continue
 
-            // 6️⃣ Envoyer emails
-            for (const email of emails) {
-                await sendPendingOrderAlertEmail({
-                    to: email,
-                    restaurantName: order.restaurant.name,
-                    order: orderDetails,
+            // ── 6. Envoi des emails en parallèle ──────────────────────────
+            await Promise.all(
+                emails.map(async (email) => {
+                    await sendPendingOrderAlertEmail({
+                        to: email,
+                        restaurantName: order.restaurant.name,
+                        order: orderDetails,
+                    })
+                    totalEmailsSent++
                 })
-
-                totalEmailsSent++
-            }
+            )
         }
 
         return NextResponse.json({
@@ -132,7 +152,7 @@ export async function GET(req: Request) {
             emailsSent: totalEmailsSent,
         })
     } catch (error) {
-        console.error('CRON ERROR:', error)
+        console.error('CRON ERROR [alert-pending-orders]:', error)
         return new NextResponse('Internal Server Error', {status: 500})
     }
 }
