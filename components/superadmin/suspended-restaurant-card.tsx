@@ -25,14 +25,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import {
-    PlayCircle,
-    Calendar,
-    FileText,
-    Loader2,
-    AlertCircle,
-    Info
-} from 'lucide-react'
+import {PlayCircle, Calendar, FileText, Loader2, AlertCircle, Info} from 'lucide-react'
 import {toast} from 'sonner'
 import {reactivateSuspendedRestaurant} from '@/lib/actions/superadmin/restaurant-verification'
 
@@ -111,22 +104,18 @@ export function SuspendedRestaurantCard({restaurant, suspensionReason}: Suspende
                 <div className="space-y-2 text-sm">
                     <div className="flex items-center gap-2 text-muted-foreground">
                         <Calendar className="h-4 w-4"/>
-                        <span>
-              Créé le {new Date(restaurant.createdAt).toLocaleDateString('fr-FR')}
-            </span>
+                        <span>Créé le {new Date(restaurant.createdAt).toLocaleDateString('fr-FR')}</span>
                     </div>
                     <div className="flex items-center gap-2 text-muted-foreground">
                         <AlertCircle className="h-4 w-4"/>
-                        <span>
-              Suspendu le {new Date(restaurant.updatedAt).toLocaleDateString('fr-FR')}
-            </span>
+                        <span>Suspendu le {new Date(restaurant.updatedAt).toLocaleDateString('fr-FR')}</span>
                     </div>
                 </div>
 
                 {/* Raison de suspension */}
                 <div className="p-3 bg-destructive/50 rounded-lg border border-destructive/60">
                     <div className="flex items-start gap-2">
-                        <Info className="h-4 w-4 text-destructive mt-0.5 flex-shrink-0"/>
+                        <Info className="h-4 w-4 text-destructive mt-0.5 shrink-0"/>
                         <div className="text-sm">
                             <p className="font-medium text-destructive-foreground mb-1">
                                 Raison de la suspension
@@ -135,8 +124,8 @@ export function SuspendedRestaurantCard({restaurant, suspensionReason}: Suspende
                                 <p className="text-destructive-foreground">
                                     Fiche circuit non soumise dans les délais (deadline:{' '}
                                     {restaurant.circuitSheet &&
-                                        new Date(restaurant.circuitSheet.deadlineAt).toLocaleDateString('fr-FR')
-                                    })
+                                        new Date(restaurant.circuitSheet.deadlineAt).toLocaleDateString('fr-FR')}
+                                    )
                                 </p>
                             ) : (
                                 <p className="text-destructive-foreground">
@@ -157,8 +146,7 @@ export function SuspendedRestaurantCard({restaurant, suspensionReason}: Suspende
                         <p className="text-xs text-muted-foreground">
                             {restaurant.circuitSheet.isSubmitted
                                 ? 'Soumise - En attente de validation dans l\'onglet "Fiches circuit"'
-                                : 'Non soumise - Le restaurant doit la soumettre pour être réactivé'
-                            }
+                                : 'Non soumise - Le restaurant doit la soumettre pour être réactivé'}
                         </p>
                     </div>
                 )}
@@ -187,8 +175,8 @@ export function SuspendedRestaurantCard({restaurant, suspensionReason}: Suspende
                                 <DialogHeader>
                                     <DialogTitle>Réactiver {restaurant.name}</DialogTitle>
                                     <DialogDescription>
-                                        Cette réactivation manuelle lèvera la suspension et rendra le restaurant
-                                        actif. Utilisez cette option uniquement si nécessaire.
+                                        Cette réactivation manuelle lèvera la suspension et rendra le restaurant actif.
+                                        Utilisez cette option uniquement si nécessaire.
                                     </DialogDescription>
                                 </DialogHeader>
 
@@ -242,22 +230,20 @@ export function SuspendedRestaurantCard({restaurant, suspensionReason}: Suspende
                     <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
                         <AlertDialogContent>
                             <AlertDialogHeader>
-                                <AlertDialogTitle>
-                                    Confirmer la réactivation ?
-                                </AlertDialogTitle>
+                                <AlertDialogTitle>Confirmer la réactivation ?</AlertDialogTitle>
                                 <AlertDialogDescription>
                                     Vous êtes sur le point de réactiver {restaurant.name}.
                                     {suspensionReason === 'circuit_sheet' && (
                                         <span className="block mt-2 text-warning font-medium">
-                      ⚠️ Attention : ce restaurant n'a pas soumis sa fiche circuit. 
-                      Assurez-vous d'une raison valable.
+                      ⚠️ Attention : ce restaurant n'a pas soumis sa fiche circuit. Assurez-vous d'une raison valable.
                     </span>
                                     )}
                                 </AlertDialogDescription>
                             </AlertDialogHeader>
-                            <AlertDialogFooter>
+                            <AlertDialogFooter className="flex justify-end gap-2">
                                 <AlertDialogCancel
                                     disabled={isLoading}
+                                    className="px-4 py-2 rounded bg-muted hover:bg-muted/80"
                                     onClick={() => setShowReactivateDialog(true)}
                                 >
                                     Retour
@@ -265,11 +251,11 @@ export function SuspendedRestaurantCard({restaurant, suspensionReason}: Suspende
                                 <AlertDialogAction
                                     onClick={handleReactivate}
                                     disabled={isLoading}
-                                    variant="default"
+                                    className="px-4 py-2 rounded bg-primary text-primary-foreground hover:bg-primary/90 flex items-center justify-center gap-2"
                                 >
                                     {isLoading ? (
                                         <>
-                                            <Loader2 className="h-4 w-4 mr-2 animate-spin"/>
+                                            <Loader2 className="h-4 w-4 animate-spin"/>
                                             Réactivation...
                                         </>
                                     ) : (
