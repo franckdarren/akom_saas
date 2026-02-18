@@ -21,7 +21,7 @@ export const PLAN_CONFIGS: Record<SubscriptionPlan, PlanConfig> = {
     starter: {
         name: 'Starter',
         description: 'Parfait pour débuter',
-        monthlyPrice: 15000,
+        monthlyPrice: 3000,
         maxTables: 10,
         maxUsers: 3,
         hasStockManagement: false,

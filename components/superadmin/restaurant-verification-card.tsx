@@ -122,8 +122,8 @@ export function RestaurantVerificationCard({
 
     return (
         <Card>
-            <CardHeader className="bg-muted/40">
-                <div className="flex items-start justify-between">
+            <CardHeader className="">
+                <div className="flex items-center justify-between pb-3">
                     <div>
                         <CardTitle className="text-lg">
                             {restaurant.name}
@@ -142,7 +142,7 @@ export function RestaurantVerificationCard({
                 </div>
             </CardHeader>
 
-            <CardContent className="pt-6 space-y-6">
+            <CardContent className="pt-3 space-y-6">
                 {/* Date création */}
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Calendar className="h-4 w-4"/>
@@ -154,9 +154,10 @@ export function RestaurantVerificationCard({
                 </div>
 
                 {/* Documents */}
-                <div className="space-y-4">
-                    {/* Photo */}
-                    <div className="flex items-center justify-between p-4 bg-muted/40 rounded-xl">
+                <div className="space-y-3">
+
+                    {/* ================= PHOTO ================= */}
+                    <div className="flex items-center justify-between p-4 border rounded-xl">
                         <div className="flex items-center gap-3">
                             <div className="p-2 bg-background rounded-lg border">
                                 <User className="h-4 w-4"/>
@@ -167,10 +168,10 @@ export function RestaurantVerificationCard({
                                 </p>
                                 {docs?.profilePhotoUploadedAt && (
                                     <p className="text-xs text-muted-foreground">
-                                        Uploadée le{' '}
+                                        Uploadée le{" "}
                                         {new Date(
                                             docs.profilePhotoUploadedAt
-                                        ).toLocaleDateString('fr-FR')}
+                                        ).toLocaleDateString("fr-FR")}
                                     </p>
                                 )}
                             </div>
@@ -184,41 +185,38 @@ export function RestaurantVerificationCard({
                                         Voir
                                     </Button>
                                 </DialogTrigger>
+
                                 <DialogContent className="max-w-2xl">
                                     <DialogHeader>
-                                        <DialogTitle>
-                                            Photo de profil
-                                        </DialogTitle>
+                                        <DialogTitle>Photo de profil</DialogTitle>
                                     </DialogHeader>
+
                                     <img
                                         src={docs.profilePhotoUrl}
                                         alt="Photo de profil"
-                                        className="w-full rounded-lg border object-contain"
+                                        className="w-full rounded-lg border object-contain max-h-[70vh]"
                                     />
+
                                     <Button
                                         variant="secondary"
                                         size="sm"
                                         onClick={() =>
-                                            window.open(
-                                                docs.profilePhotoUrl!,
-                                                '_blank'
-                                            )
+                                            window.open(docs.profilePhotoUrl!, "_blank")
                                         }
                                     >
                                         <ExternalLink className="h-4 w-4 mr-2"/>
-                                        Ouvrir
+                                        Ouvrir dans un nouvel onglet
                                     </Button>
                                 </DialogContent>
                             </Dialog>
                         ) : (
-                            <Badge variant="secondary">
-                                Non uploadée
-                            </Badge>
+                            <Badge variant="secondary">Non uploadée</Badge>
                         )}
                     </div>
 
-                    {/* Pièce identité */}
-                    <div className="flex items-center justify-between p-4 bg-muted/40 rounded-xl">
+
+                    {/* ================= PIECE IDENTITE ================= */}
+                    <div className="flex items-center justify-between p-4 border rounded-xl">
                         <div className="flex items-center gap-3">
                             <div className="p-2 bg-background rounded-lg border">
                                 <FileText className="h-4 w-4"/>
@@ -227,6 +225,7 @@ export function RestaurantVerificationCard({
                                 <p className="text-sm font-medium">
                                     Pièce d'identité
                                 </p>
+
                                 {docs?.identityDocumentType && (
                                     <p className="text-xs text-muted-foreground">
                                         {
@@ -240,14 +239,53 @@ export function RestaurantVerificationCard({
                         </div>
 
                         {docs?.identityDocumentUrl ? (
-                            <Badge variant="default">Soumise</Badge>
+                            <Dialog>
+                                <DialogTrigger asChild>
+                                    <Button variant="outline" size="sm">
+                                        <Eye className="h-4 w-4 mr-2"/>
+                                        Voir
+                                    </Button>
+                                </DialogTrigger>
+
+                                <DialogContent className="max-w-3xl">
+                                    <DialogHeader>
+                                        <DialogTitle>
+                                            Pièce d'identité
+                                        </DialogTitle>
+                                    </DialogHeader>
+
+                                    {/* Gestion image ou PDF */}
+                                    {docs.identityDocumentUrl.endsWith(".pdf") ? (
+                                        <iframe
+                                            src={docs.identityDocumentUrl}
+                                            className="w-full h-[70vh] rounded-lg border"
+                                        />
+                                    ) : (
+                                        <img
+                                            src={docs.identityDocumentUrl}
+                                            alt="Pièce d'identité"
+                                            className="w-full rounded-lg border object-contain max-h-[70vh]"
+                                        />
+                                    )}
+
+                                    <Button
+                                        variant="secondary"
+                                        size="sm"
+                                        onClick={() =>
+                                            window.open(docs.identityDocumentUrl!, "_blank")
+                                        }
+                                    >
+                                        <ExternalLink className="h-4 w-4 mr-2"/>
+                                        Ouvrir dans un nouvel onglet
+                                    </Button>
+                                </DialogContent>
+                            </Dialog>
                         ) : (
-                            <Badge variant="secondary">
-                                Non uploadée
-                            </Badge>
+                            <Badge variant="secondary">Non uploadée</Badge>
                         )}
                     </div>
                 </div>
+
 
                 {/* Actions */}
                 {hasAllDocuments ? (

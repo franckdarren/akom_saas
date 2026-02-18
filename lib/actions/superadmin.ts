@@ -19,6 +19,7 @@ import {RestaurantDetails} from '@/types/restaurant'
 // ============================================================
 
 export interface PlatformStats {
+    // Business
     totalRestaurants: number
     activeRestaurants: number
     totalUsers: number
@@ -31,6 +32,14 @@ export interface PlatformStats {
     pendingPayments: number
     subscriptionRevenue: number
     monthlySubscriptionRevenue: number
+
+    // Conformité / Vérification
+    pendingDocuments: number
+    submittedDocuments: number
+    verifiedRestaurants: number
+    rejectedDocuments: number
+    suspendedRestaurants: number
+    pendingCircuitSheets: number
 }
 
 export interface ActivityDay {
@@ -67,11 +76,8 @@ async function verifySuperAdmin() {
 export async function getPlatformStats(): Promise<PlatformStats> {
     await verifySuperAdmin()
 
-    const startOfMonth = new Date(
-        new Date().getFullYear(),
-        new Date().getMonth(),
-        1
-    )
+    const now = new Date()
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
 
     const [
         totalRestaurants,
@@ -86,10 +92,23 @@ export async function getPlatformStats(): Promise<PlatformStats> {
         pendingPayments,
         subscriptionRevenue,
         monthlySubscriptionRevenue,
+
+        // 🔥 Conformité
+        pendingDocuments,
+        submittedDocuments,
+        verifiedRestaurants,
+        rejectedDocuments,
+        suspendedRestaurants,
+        pendingCircuitSheets,
     ] = await Promise.all([
+        // Restaurants
         prisma.restaurant.count(),
         prisma.restaurant.count({where: {isActive: true}}),
+
+        // Utilisateurs
         prisma.restaurantUser.count(),
+
+        // Commandes
         prisma.order.count(),
         prisma.order.aggregate({
             _sum: {totalAmount: true},
@@ -102,6 +121,8 @@ export async function getPlatformStats(): Promise<PlatformStats> {
                 },
             },
         }),
+
+        // Abonnements
         prisma.subscription.count({
             where: {status: {in: ['trial', 'active']}},
         }),
@@ -111,6 +132,8 @@ export async function getPlatformStats(): Promise<PlatformStats> {
         prisma.subscription.count({
             where: {status: {in: ['expired', 'cancelled']}},
         }),
+
+        // Paiements
         prisma.subscriptionPayment.count({
             where: {status: 'pending'},
         }),
@@ -124,6 +147,31 @@ export async function getPlatformStats(): Promise<PlatformStats> {
                 createdAt: {gte: startOfMonth},
             },
             _sum: {amount: true},
+        }),
+
+        // 🔥 Conformité restaurants
+        prisma.restaurant.count({
+            where: {verificationStatus: 'pending_documents'},
+        }),
+        prisma.restaurant.count({
+            where: {verificationStatus: 'documents_submitted'},
+        }),
+        prisma.restaurant.count({
+            where: {verificationStatus: 'verified'},
+        }),
+        prisma.restaurant.count({
+            where: {verificationStatus: 'documents_rejected'},
+        }),
+        prisma.restaurant.count({
+            where: {verificationStatus: 'suspended'},
+        }),
+
+        // 🔥 Fiches circuit
+        prisma.restaurantCircuitSheet.count({
+            where: {
+                isSubmitted: true,
+                isValidated: false,
+            },
         }),
     ])
 
@@ -139,13 +187,21 @@ export async function getPlatformStats(): Promise<PlatformStats> {
         expiredSubscriptions,
         pendingPayments,
         subscriptionRevenue: subscriptionRevenue._sum.amount ?? 0,
-        monthlySubscriptionRevenue: monthlySubscriptionRevenue._sum.amount ?? 0,
+        monthlySubscriptionRevenue:
+            monthlySubscriptionRevenue._sum.amount ?? 0,
+
+        // 🔥 Conformité
+        pendingDocuments,
+        submittedDocuments,
+        verifiedRestaurants,
+        rejectedDocuments,
+        suspendedRestaurants,
+        pendingCircuitSheets,
     }
 }
 
 // ============================================================
 // LISTE DE TOUS LES RESTAURANTS
-// ✅ Correction : verifySuperAdmin() au lieu de isSuperAdmin()
 // ============================================================
 
 export async function getAllRestaurants(): Promise<
@@ -157,7 +213,7 @@ export async function getAllRestaurants(): Promise<
         }
     })[]
 > {
-    await verifySuperAdmin() // ✅ était : await isSuperAdmin()
+    await verifySuperAdmin()
 
     return prisma.restaurant.findMany({
         include: {
@@ -274,7 +330,7 @@ export async function toggleRestaurantStatus(
 }
 
 // ============================================================
-// LISTE DE TOUS LES UTILISATEURS
+// LISTE UTILISATEURS
 // ============================================================
 
 export async function getAllUsers(): Promise<
@@ -303,7 +359,7 @@ export async function getAllUsers(): Promise<
 }
 
 // ============================================================
-// RECHERCHER UN UTILISATEUR
+// RECHERCHE UTILISATEUR
 // ============================================================
 
 export async function searchUser(
@@ -355,8 +411,7 @@ export async function searchUser(
 }
 
 // ============================================================
-// STATISTIQUES D'ACTIVITÉ (7 derniers jours)
-// ✅ Correction : requêtes parallèles au lieu de boucle séquentielle
+// ACTIVITÉ 7 DERNIERS JOURS
 // ============================================================
 
 export async function getActivityStats(): Promise<ActivityDay[]> {
@@ -397,7 +452,7 @@ export async function getActivityStats(): Promise<ActivityDay[]> {
 }
 
 // ============================================================
-// TOP 5 RESTAURANTS PAR COMMANDES
+// TOP 5 RESTAURANTS
 // ============================================================
 
 export async function getTopRestaurants(): Promise<

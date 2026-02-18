@@ -1,13 +1,17 @@
+// lib/hooks/use-restaurant.tsx
 'use client'
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
-import { getUserRestaurants } from '@/lib/actions/restaurant'
-import { isSuperAdmin as checkIsSuperAdmin } from '@/lib/actions/auth'
-import type { RestaurantWithRole, SystemRole } from '@/types/auth'
+import {createContext, useContext, useState, useEffect, ReactNode} from 'react'
+import {getUserRestaurants} from '@/lib/actions/restaurant'
+import {getRestaurantPlan} from '@/lib/services/subscription-checker' // ← NOUVEAU
+import {isSuperAdmin as checkIsSuperAdmin} from '@/lib/actions/auth'
+import type {RestaurantWithRole, SystemRole} from '@/types/auth'
+import type {SubscriptionPlan} from '@/types/subscription' // ← NOUVEAU
 
 interface RestaurantContextType {
     restaurants: RestaurantWithRole[]
     currentRestaurant: RestaurantWithRole | null
+    currentPlan: SubscriptionPlan | null // ← NOUVEAU
     loading: boolean
     setCurrentRestaurant: (restaurant: RestaurantWithRole) => void
     currentRole: SystemRole | null
@@ -21,10 +25,11 @@ const RestaurantContext = createContext<RestaurantContextType | undefined>(
     undefined
 )
 
-export function RestaurantProvider({ children }: { children: ReactNode }) {
+export function RestaurantProvider({children}: { children: ReactNode }) {
     const [restaurants, setRestaurants] = useState<RestaurantWithRole[]>([])
     const [currentRestaurant, setCurrentRestaurant] =
         useState<RestaurantWithRole | null>(null)
+    const [currentPlan, setCurrentPlan] = useState<SubscriptionPlan | null>(null) // ← NOUVEAU
     const [loading, setLoading] = useState(true)
     const [superAdmin, setSuperAdmin] = useState(false)
 
@@ -34,13 +39,27 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
         checkSuperAdmin()
     }, [])
 
+    // ✅ NOUVEAU : Charger le plan quand le restaurant change
+    useEffect(() => {
+        async function loadPlan() {
+            if (!currentRestaurant) {
+                setCurrentPlan(null)
+                return
+            }
+
+            const plan = await getRestaurantPlan(currentRestaurant.id)
+            setCurrentPlan(plan)
+        }
+
+        loadPlan()
+    }, [currentRestaurant])
+
     async function loadRestaurants() {
         setLoading(true)
         try {
             const data = await getUserRestaurants()
             setRestaurants(data)
 
-            // Sélectionner le premier restaurant par défaut
             if (data.length > 0 && !currentRestaurant) {
                 const savedRestaurantId = localStorage.getItem('currentRestaurantId')
                 const restaurant = savedRestaurantId
@@ -65,7 +84,6 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
         localStorage.setItem('currentRestaurantId', restaurant.id)
     }
 
-    // Déterminer le rôle effectif (SuperAdmin > role du restaurant)
     const effectiveRole: SystemRole | null = superAdmin
         ? 'superadmin'
         : currentRestaurant?.role || null
@@ -73,6 +91,7 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
     const value: RestaurantContextType = {
         restaurants,
         currentRestaurant,
+        currentPlan, // ← NOUVEAU
         loading,
         setCurrentRestaurant: handleSetCurrentRestaurant,
         currentRole: effectiveRole,

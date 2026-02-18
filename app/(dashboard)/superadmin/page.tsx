@@ -22,7 +22,7 @@ import {
     TableRow,
 } from '@/components/ui/table'
 
-import { Badge } from '@/components/ui/badge'
+import {Badge} from '@/components/ui/badge'
 
 import {
     Building2,
@@ -40,7 +40,7 @@ import {
     XCircle,
 } from 'lucide-react'
 
-import { formatNumber, formatPrice } from '@/lib/utils/format'
+import {formatNumber, formatPrice} from '@/lib/utils/format'
 import Link from 'next/link'
 import {
     Breadcrumb,
@@ -50,9 +50,8 @@ import {
     BreadcrumbSeparator,
     BreadcrumbPage,
 } from '@/components/ui/breadcrumb'
-import { Suspense } from 'react'
-import { Separator } from '@/components/ui/separator'
-import { SidebarTrigger } from '@/components/ui/sidebar'
+import {Separator} from '@/components/ui/separator'
+import {SidebarTrigger} from '@/components/ui/sidebar'
 
 export default async function SuperAdminDashboard() {
     const [stats, activity, topRestaurants] = await Promise.all([
@@ -65,15 +64,17 @@ export default async function SuperAdminDashboard() {
         <>
             {/* Header */}
             <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-                <SidebarTrigger className="-ml-1" />
-                <Separator orientation="vertical" className="mr-2 h-4" />
+                <SidebarTrigger className="-ml-1"/>
+                <Separator orientation="vertical" className="mr-2 h-4"/>
                 <div className="flex justify-between w-full">
                     <Breadcrumb>
                         <BreadcrumbList>
                             <BreadcrumbItem>
-                                <BreadcrumbLink href="/superadmin">Administration</BreadcrumbLink>
+                                <BreadcrumbLink href="/superadmin">
+                                    Administration
+                                </BreadcrumbLink>
                             </BreadcrumbItem>
-                            <BreadcrumbSeparator />
+                            <BreadcrumbSeparator/>
                             <BreadcrumbItem>
                                 <BreadcrumbPage>Tableau de bord</BreadcrumbPage>
                             </BreadcrumbItem>
@@ -84,7 +85,9 @@ export default async function SuperAdminDashboard() {
 
             <div className="flex flex-col gap-6 p-6">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">SuperAdmin Dashboard</h1>
+                    <h1 className="text-3xl font-bold tracking-tight">
+                        SuperAdmin Dashboard
+                    </h1>
                     <p className="text-muted-foreground mt-2">
                         Vue globale de la plateforme Akôm
                     </p>
@@ -96,26 +99,22 @@ export default async function SuperAdminDashboard() {
                         title="Restaurants"
                         value={stats.totalRestaurants}
                         subtitle={`${stats.activeRestaurants} actifs`}
-                        icon={<Building2 />}
+                        icon={<Building2/>}
                     />
 
-                    <StatCard
-                        title="Utilisateurs"
-                        value={stats.totalUsers}
-                        icon={<Users />}
-                    />
+                    <StatCard title="Utilisateurs" value={stats.totalUsers} icon={<Users/>}/>
 
                     <StatCard
                         title="Commandes"
                         value={stats.totalOrders}
                         subtitle={`${stats.ordersToday} aujourd'hui`}
-                        icon={<ShoppingCart />}
+                        icon={<ShoppingCart/>}
                     />
 
                     <StatCard
                         title="Revenus commandes"
                         value={formatPrice(stats.totalRevenue)}
-                        icon={<TrendingUp />}
+                        icon={<TrendingUp/>}
                     />
                 </div>
 
@@ -125,19 +124,19 @@ export default async function SuperAdminDashboard() {
                         title="Abonnements actifs"
                         value={stats.activeSubscriptions}
                         subtitle={`${stats.trialSubscriptions} en essai`}
-                        icon={<CheckCircle2 />}
+                        icon={<CheckCircle2/>}
                     />
 
                     <StatCard
                         title="Abonnements expirés"
                         value={stats.expiredSubscriptions}
-                        icon={<Clock />}
+                        icon={<Clock/>}
                     />
 
                     <StatCard
                         title="Paiements en attente"
                         value={stats.pendingPayments}
-                        icon={<Clock />}
+                        icon={<Clock/>}
                     />
 
                     <StatCard
@@ -147,43 +146,46 @@ export default async function SuperAdminDashboard() {
                             month: 'long',
                             year: 'numeric',
                         })}
-                        icon={<CreditCard />}
+                        icon={<CreditCard/>}
                     />
+                </div>
 
+                {/* ================= CONFORMITÉ ================= */}
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
                     <StatCard
                         title="En attente de documents"
-                        value={stats.pendingPayments}
-                        icon={<Clock />}
+                        value={stats.pendingDocuments}
+                        icon={<Clock/>}
                     />
 
                     <StatCard
                         title="Documents soumis"
-                        value={stats.pendingPayments}
-                        icon={<FileCheck />}
+                        value={stats.submittedDocuments}
+                        icon={<FileCheck/>}
                     />
 
                     <StatCard
                         title="Restaurants vérifiés"
-                        value={stats.pendingPayments}
-                        icon={<CheckCircle />}
+                        value={stats.verifiedRestaurants}
+                        icon={<CheckCircle/>}
                     />
 
                     <StatCard
                         title="Documents rejetés"
-                        value={stats.pendingPayments}
-                        icon={<XCircle />}
+                        value={stats.rejectedDocuments}
+                        icon={<XCircle/>}
                     />
 
                     <StatCard
                         title="Restaurants suspendus"
-                        value={stats.pendingPayments}
-                        icon={<AlertCircle />}
+                        value={stats.suspendedRestaurants}
+                        icon={<AlertCircle/>}
                     />
 
                     <StatCard
                         title="Fiches circuit en attente"
-                        value={stats.pendingPayments}
-                        icon={<FileText />}
+                        value={stats.pendingCircuitSheets}
+                        icon={<FileText/>}
                     />
                 </div>
 
@@ -191,9 +193,7 @@ export default async function SuperAdminDashboard() {
                 <Card>
                     <CardHeader>
                         <CardTitle>Activité des 7 derniers jours</CardTitle>
-                        <CardDescription>
-                            Commandes et revenus journaliers
-                        </CardDescription>
+                        <CardDescription>Commandes et revenus journaliers</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-2">
@@ -202,21 +202,21 @@ export default async function SuperAdminDashboard() {
                                     key={day.date}
                                     className="flex items-center justify-between py-2 border-b last:border-0"
                                 >
-                                    <span className="text-sm text-zinc-600 dark:text-zinc-400">
-                                        {new Date(day.date).toLocaleDateString('fr-FR', {
-                                            weekday: 'short',
-                                            day: 'numeric',
-                                            month: 'short',
-                                        })}
-                                    </span>
+                  <span className="text-sm text-zinc-600 dark:text-zinc-400">
+                    {new Date(day.date).toLocaleDateString('fr-FR', {
+                        weekday: 'short',
+                        day: 'numeric',
+                        month: 'short',
+                    })}
+                  </span>
 
                                     <div className="flex items-center gap-4">
-                                        <span className="text-sm font-medium">
-                                            {formatNumber(day.orders)} commandes
-                                        </span>
+                    <span className="text-sm font-medium">
+                      {formatNumber(day.orders)} commandes
+                    </span>
                                         <span className="text-sm font-bold text-green-600">
-                                            {formatPrice(day.revenue)}
-                                        </span>
+                      {formatPrice(day.revenue)}
+                    </span>
                                     </div>
                                 </div>
                             ))}
@@ -228,9 +228,7 @@ export default async function SuperAdminDashboard() {
                 <Card>
                     <CardHeader>
                         <CardTitle>Top 5 Restaurants</CardTitle>
-                        <CardDescription>
-                            Classés par nombre de commandes
-                        </CardDescription>
+                        <CardDescription>Classés par nombre de commandes</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <Table>
@@ -239,9 +237,7 @@ export default async function SuperAdminDashboard() {
                                     <TableHead>Restaurant</TableHead>
                                     <TableHead>Slug</TableHead>
                                     <TableHead>Statut</TableHead>
-                                    <TableHead className="text-right">
-                                        Commandes
-                                    </TableHead>
+                                    <TableHead className="text-right">Commandes</TableHead>
                                 </TableRow>
                             </TableHeader>
 
@@ -263,9 +259,7 @@ export default async function SuperAdminDashboard() {
 
                                         <TableCell>
                                             <Badge
-                                                variant={
-                                                    restaurant.isActive ? 'default' : 'outline'
-                                                }
+                                                variant={restaurant.isActive ? 'default' : 'outline'}
                                             >
                                                 {restaurant.isActive ? 'Actif' : 'Inactif'}
                                             </Badge>
@@ -288,11 +282,11 @@ export default async function SuperAdminDashboard() {
 /* ================= COMPONENT ================= */
 
 function StatCard({
-    title,
-    value,
-    subtitle,
-    icon,
-}: {
+                      title,
+                      value,
+                      subtitle,
+                      icon,
+                  }: {
     title: string
     value: string | number
     subtitle?: string
@@ -301,9 +295,7 @@ function StatCard({
     return (
         <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">
-                    {title}
-                </CardTitle>
+                <CardTitle className="text-sm font-medium">{title}</CardTitle>
                 <div className="h-4 w-4 text-zinc-600">{icon}</div>
             </CardHeader>
             <CardContent>
