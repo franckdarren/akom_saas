@@ -2,20 +2,16 @@ name: Scheduled CRON Tasks
 
 on:
   schedule:
-    # Toutes les heures - Vérification des abonnements
+    # Toutes les heures — Vérification des abonnements + suspension
     - cron: '0 * * * *'
-    # Tous les jours à 2h du matin (GMT) - Tâches de nettoyage
-    - cron: '0 2 * * *'
-    # Tous les jours à 9h du matin - Envoi des rappels et rapports
-    - cron: '0 9 * * *'
-    # Toutes les 15 minutes - Vérification des commandes urgentes
+    # Toutes les 15 minutes — Surveillance des commandes
     - cron: '*/15 * * * *'
-    # Tous les lundis à 10h - Rapports hebdomadaires
-    - cron: '0 10 * * 1'
-    # Le 1er de chaque mois à 8h - Statistiques mensuelles
-    - cron: '0 8 1 * *'
-  
-  # Permet aussi le déclenchement manuel
+    # Tous les jours à 2h (UTC) — Nettoyage + archivage + stocks
+    - cron: '0 2 * * *'
+    # Tous les jours à 7h (UTC) — Rappels abonnements + rapports quotidiens
+    - cron: '0 7 * * *'
+
+  # Déclenchement manuel depuis l'onglet Actions de GitHub
   workflow_dispatch:
     inputs:
       task:
@@ -25,281 +21,172 @@ on:
         options:
           - all
           - subscriptions
-          - stocks
           - orders
           - cleanup
-          - reports
+          - reminders
+
+# ─────────────────────────────────────────────────────────────────────────────
+# IMPORTANT — Architecture des jobs
+# ─────────────────────────────────────────────────────────────────────────────
+# Ces jobs appellent des routes HTTP sur l'app déployée (APP_URL).
+# Ils n'ont PAS besoin de checkout / npm ci / prisma generate.
+# La seule étape nécessaire est un appel curl avec le CRON_SECRET.
+#
+# L'erreur "prisma generate / DATABASE_URL" venait des jobs qui faisaient
+# npm ci inutilement. Tout le bloc node.js a été supprimé.
+# ─────────────────────────────────────────────────────────────────────────────
 
 jobs:
+
   # ============================================================
-  # JOB 1 : Gestion des abonnements (toutes les heures)
+  # JOB 1 — Abonnements (toutes les heures)
+  # check-subscriptions → suspend-expired-restaurants
   # ============================================================
   subscription-tasks:
     name: Gestion des abonnements
     runs-on: ubuntu-latest
     if: |
-      github.event.schedule == '0 * * * *' || 
-      github.event_name == 'workflow_dispatch' && 
-      (github.event.inputs.task == 'all' || github.event.inputs.task == 'subscriptions')
-    
+      github.event.schedule == '0 * * * *' ||
+      (github.event_name == 'workflow_dispatch' &&
+       (github.event.inputs.task == 'all' || github.event.inputs.task == 'subscriptions'))
+
     steps:
-      - name: Checkout du code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Installation des dépendances
-        run: npm ci
-
       - name: Vérification des abonnements expirés
-        env:
-          CRON_SECRET: ${{ secrets.CRON_SECRET }}
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          DIRECT_URL: ${{ secrets.DIRECT_URL }}
         run: |
           curl -f -X GET \
             "${{ secrets.APP_URL }}/api/cron/check-subscriptions" \
-            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
-            || exit 1
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
 
+      # Doit tourner APRÈS check-subscriptions (les abonnements sont d'abord
+      # passés en "expired", puis ce CRON désactive les restaurants concernés)
       - name: Suspension des restaurants expirés
-        env:
-          CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
           curl -f -X GET \
             "${{ secrets.APP_URL }}/api/cron/suspend-expired-restaurants" \
-            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
-            || exit 1
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
 
   # ============================================================
-  # JOB 2 : Rappels quotidiens (9h du matin)
+  # JOB 2 — Surveillance des commandes (toutes les 15 minutes)
+  # cancel-abandoned-orders → alert-pending-orders
   # ============================================================
-  daily-reminders:
-    name: Rappels et notifications quotidiennes
+  order-monitoring:
+    name: Surveillance des commandes
     runs-on: ubuntu-latest
     if: |
-      github.event.schedule == '0 9 * * *' || 
-      github.event_name == 'workflow_dispatch' && 
-      (github.event.inputs.task == 'all' || github.event.inputs.task == 'subscriptions')
-    
+      github.event.schedule == '*/15 * * * *' ||
+      (github.event_name == 'workflow_dispatch' &&
+       (github.event.inputs.task == 'all' || github.event.inputs.task == 'orders'))
+
     steps:
-      - name: Checkout du code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Installation des dépendances
-        run: npm ci
-
-      - name: Envoi des rappels d'abonnement
-        env:
-          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+      - name: Annulation des commandes abandonnées (> 4h en pending)
         run: |
           curl -f -X GET \
-            "${{ secrets.APP_URL }}/api/cron/send-subscription-reminders" \
-            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
-            || exit 1
+            "${{ secrets.APP_URL }}/api/cron/cancel-abandoned-orders" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
 
-
-      - name: Envoi des rapports quotidiens
-        env:
-          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+      - name: Alerte commandes non traitées (> 15min en pending)
         run: |
           curl -f -X GET \
-            "${{ secrets.APP_URL }}/api/cron/send-daily-reports" \
-            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
-            || exit 1
+            "${{ secrets.APP_URL }}/api/cron/alert-pending-orders" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
 
   # ============================================================
-  # JOB 3 : Gestion des commandes (toutes les 15 minutes)
-  # ============================================================
-#  order-monitoring:
-#    name: Surveillance des commandes
-#    runs-on: ubuntu-latest
-#    if: |
-#      github.event.schedule == '*/15 * * * *' ||
-#      github.event_name == 'workflow_dispatch' &&
-#      (github.event.inputs.task == 'all' || github.event.inputs.task == 'orders')
-#
-#    steps:
-#      - name: Checkout du code
-#        uses: actions/checkout@v4
-#
-#      - name: Setup Node.js
-#        uses: actions/setup-node@v4
-#        with:
-#          node-version: '20'
-#          cache: 'npm'
-#
-#      - name: Installation des dépendances
-#        run: npm ci
-#
-#      - name: Annulation des commandes abandonnées
-#        env:
-#          CRON_SECRET: ${{ secrets.CRON_SECRET }}
-#        run: |
-#          curl -f -X GET \
-#            "${{ secrets.APP_URL }}/api/cron/cancel-abandoned-orders" \
-#            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
-#            || exit 1
-#
-#      - name: Rappels commandes non traitées
-#        env:
-#          CRON_SECRET: ${{ secrets.CRON_SECRET }}
-#        run: |
-#          curl -f -X GET \
-#            "${{ secrets.APP_URL }}/api/cron/alert-pending-orders" \
-#            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
-#            || exit 1
-
-  # ============================================================
-  # JOB 4 : Tâches de nettoyage (2h du matin)
+  # JOB 3 — Nettoyage et maintenance (2h du matin UTC)
+  # stocks → archivage → logs
   # ============================================================
   cleanup-tasks:
     name: Nettoyage et maintenance
     runs-on: ubuntu-latest
     if: |
-      github.event.schedule == '0 2 * * *' || 
-      github.event_name == 'workflow_dispatch' && 
-      (github.event.inputs.task == 'all' || github.event.inputs.task == 'cleanup')
-    
+      github.event.schedule == '0 2 * * *' ||
+      (github.event_name == 'workflow_dispatch' &&
+       (github.event.inputs.task == 'all' || github.event.inputs.task == 'cleanup'))
+
     steps:
-      - name: Checkout du code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Installation des dépendances
-        run: npm ci
-
-      - name: Vérification des stocks
-        env:
-          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+      - name: Cohérence des stocks (désactive/réactive selon quantity)
         run: |
           curl -f -X GET \
             "${{ secrets.APP_URL }}/api/cron/verify-stock-consistency" \
-            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
-            || exit 1
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
 
-      - name: Archivage des anciennes commandes
-        env:
-          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+      - name: Archivage des commandes > 90 jours
         run: |
           curl -f -X GET \
             "${{ secrets.APP_URL }}/api/cron/archive-old-orders" \
-            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
-            || exit 1
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
 
-      - name: Nettoyage des logs système
-        env:
-          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+      - name: Nettoyage des logs système (info/warning > 30j, error > 90j)
         run: |
           curl -f -X GET \
             "${{ secrets.APP_URL }}/api/cron/clean-system-logs" \
-            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
-            || exit 1
-
-      - name: Nettoyage des sessions inactives
-        env:
-          CRON_SECRET: ${{ secrets.CRON_SECRET }}
-        run: |
-          curl -f -X GET \
-            "${{ secrets.APP_URL }}/api/cron/clean-inactive-sessions" \
-            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
-            || exit 1
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
 
   # ============================================================
-  # JOB 5 : Rapports hebdomadaires (lundi 10h)
+  # JOB 4 — Rappels et rapports quotidiens (7h UTC)
+  # send-subscription-reminders → send-daily-reports
   # ============================================================
-  weekly-reports:
-    name: Rapports hebdomadaires
+  daily-reminders:
+    name: Rappels et rapports quotidiens
     runs-on: ubuntu-latest
     if: |
-      github.event.schedule == '0 10 * * 1' || 
-      github.event_name == 'workflow_dispatch' && 
-      (github.event.inputs.task == 'all' || github.event.inputs.task == 'reports')
-    
+      github.event.schedule == '0 7 * * *' ||
+      (github.event_name == 'workflow_dispatch' &&
+       (github.event.inputs.task == 'all' || github.event.inputs.task == 'reminders'))
+
     steps:
-      - name: Checkout du code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Installation des dépendances
-        run: npm ci
-
-      - name: Envoi des rapports hebdomadaires
-        env:
-          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+      - name: Rappels d'expiration d'abonnement (J-7, J-3, J-1)
+        # Anti-doublon intégré : n'envoie qu'une fois par jour par emailType
         run: |
           curl -f -X GET \
-            "${{ secrets.APP_URL }}/api/cron/send-weekly-reports" \
-            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
-            || exit 1
+            "${{ secrets.APP_URL }}/api/cron/send-subscription-reminders" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
 
-      - name: Digest des notifications non lues
-        env:
-          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+      - name: Rapport brut d'activité du jour (calcul interne)
+        # Calcule et expose les stats du jour — utilisé comme source de données
+        # par send-daily-reports et par le dashboard SuperAdmin
         run: |
           curl -f -X GET \
-            "${{ secrets.APP_URL }}/api/cron/send-notification-digest" \
-            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
-            || exit 1
+            "${{ secrets.APP_URL }}/api/cron/daily-report" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+
+      - name: Rapports d'activité quotidiens par email (admin de chaque restaurant)
+        # Envoie le rapport formaté par email à l'admin de chaque restaurant actif
+        run: |
+          curl -f -X GET \
+            "${{ secrets.APP_URL }}/api/cron/send-daily-reports" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
 
   # ============================================================
-  # JOB 6 : Statistiques mensuelles (1er du mois à 8h)
+  # JOB 5 — Rapports hebdomadaires et mensuels (post-MVP)
+  #
+  # ⚠️  Ces routes n'existent pas encore dans le codebase.
+  #     Ce job est désactivé jusqu'à leur implémentation.
+  #     Pour réactiver : décommenter le bloc et supprimer le job vide.
   # ============================================================
-  monthly-stats:
-    name: Statistiques mensuelles
-    runs-on: ubuntu-latest
-    if: |
-      github.event.schedule == '0 8 1 * *' || 
-      github.event_name == 'workflow_dispatch' && 
-      (github.event.inputs.task == 'all' || github.event.inputs.task == 'reports')
-    
-    steps:
-      - name: Checkout du code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Installation des dépendances
-        run: npm ci
-
-      - name: Calcul des statistiques mensuelles
-        env:
-          CRON_SECRET: ${{ secrets.CRON_SECRET }}
-        run: |
-          curl -f -X GET \
-            "${{ secrets.APP_URL }}/api/cron/calculate-monthly-stats" \
-            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
-            || exit 1
-
-      - name: Envoi des rapports mensuels
-        env:
-          CRON_SECRET: ${{ secrets.CRON_SECRET }}
-        run: |
-          curl -f -X GET \
-            "${{ secrets.APP_URL }}/api/cron/send-monthly-reports" \
-            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
-            || exit 1
+  # future-reports:
+  #   name: Rapports hebdo / mensuels (post-MVP)
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Rapport hebdomadaire (lundi 10h)
+  #       run: |
+  #         curl -f -X GET \
+  #           "${{ secrets.APP_URL }}/api/cron/send-weekly-reports" \
+  #           -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+  #
+  #     - name: Stats mensuelles (1er du mois 8h)
+  #       run: |
+  #         curl -f -X GET \
+  #           "${{ secrets.APP_URL }}/api/cron/calculate-monthly-stats" \
+  #           -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+  #
+  #     - name: Envoi des rapports mensuels
+  #       run: |
+  #         curl -f -X GET \
+  #           "${{ secrets.APP_URL }}/api/cron/send-monthly-reports" \
+  #           -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+  #
+  #     - name: Digest des notifications non lues
+  #       run: |
+  #         curl -f -X GET \
+  #           "${{ secrets.APP_URL }}/api/cron/send-notification-digest" \
+  #           -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
