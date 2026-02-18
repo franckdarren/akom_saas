@@ -1,8 +1,8 @@
 'use server'
 
-import { getCurrentUserAndRestaurant } from '@/lib/auth/session'
+import {getCurrentUserAndRestaurant} from '@/lib/auth/session'
 import prisma from '@/lib/prisma'
-import { revalidatePath } from 'next/cache'
+import {revalidatePath} from 'next/cache'
 
 // ============================================================
 // Action 1 : Créer un produit d'entrepôt
@@ -23,7 +23,7 @@ export async function createWarehouseProduct(data: {
     unitCost?: number
 }) {
     try {
-        const { restaurantId, userId } = await getCurrentUserAndRestaurant()
+        const {restaurantId, userId} = await getCurrentUserAndRestaurant()
 
         if (data.linkedProductId) {
             const linkedProduct = await prisma.product.findFirst({
@@ -34,7 +34,7 @@ export async function createWarehouseProduct(data: {
             })
 
             if (!linkedProduct) {
-                return { error: 'Produit menu introuvable ou non autorisé' }
+                return {error: 'Produit menu introuvable ou non autorisé'}
             }
         }
 
@@ -83,10 +83,10 @@ export async function createWarehouseProduct(data: {
         })
 
         revalidatePath('/dashboard/warehouse')
-        return { success: true, product: warehouseProduct }
+        return {success: true, product: warehouseProduct}
     } catch (error) {
         console.error('Erreur création produit entrepôt:', error)
-        return { error: 'Erreur lors de la création du produit' }
+        return {error: 'Erreur lors de la création du produit'}
     }
 }
 
@@ -103,10 +103,10 @@ export async function warehouseStockEntry(data: {
     notes?: string
 }) {
     try {
-        const { restaurantId, userId } = await getCurrentUserAndRestaurant()
+        const {restaurantId, userId} = await getCurrentUserAndRestaurant()
 
         if (data.quantity <= 0) {
-            return { error: 'La quantité doit être positive' }
+            return {error: 'La quantité doit être positive'}
         }
 
         await prisma.$transaction(async (tx) => {
@@ -127,9 +127,7 @@ export async function warehouseStockEntry(data: {
             const newQty = previousQty + data.quantity
 
             await tx.warehouseStock.update({
-                where: {
-                    id: currentStock.id,
-                },
+                where: {id: currentStock.id},
                 data: {
                     quantity: newQty,
                     unitCost: data.unitCost ?? currentStock.unitCost,
@@ -154,15 +152,17 @@ export async function warehouseStockEntry(data: {
         })
 
         revalidatePath('/dashboard/warehouse')
-        return { success: true }
+        return {success: true}
     } catch (error) {
         console.error('Erreur entrée stock:', error)
-        return { error: 'Erreur lors de l\'entrée de stock' }
+        return {error: "Erreur lors de l'entrée de stock"}
     }
 }
 
 // ============================================================
-// Action 3 : TRANSFERT VERS STOCK OPÉRATIONNEL (action clé)
+// Action 3 : TRANSFERT VERS STOCK OPÉRATIONNEL
+// ✅ Correction : stock opérationnel récupéré via findUnique
+//    sur clé composée (relation 1-1, pas de filtre where)
 // ============================================================
 
 export async function transferWarehouseToOps(data: {
@@ -172,20 +172,17 @@ export async function transferWarehouseToOps(data: {
     notes?: string
 }) {
     try {
-        const { restaurantId, userId } = await getCurrentUserAndRestaurant()
+        const {restaurantId, userId} = await getCurrentUserAndRestaurant()
 
         if (data.warehouseQuantity <= 0) {
-            return { error: 'La quantité doit être positive' }
+            return {error: 'La quantité doit être positive'}
         }
 
         const result = await prisma.$transaction(async (tx) => {
+            // — Warehouse product + son stock (relation 1-N : warehouseProduct → warehouseStock[])
             const warehouseProduct = await tx.warehouseProduct.findUnique({
-                where: { id: data.warehouseProductId },
-                include: {
-                    stock: {
-                        where: { restaurantId },
-                    },
-                },
+                where: {id: data.warehouseProductId},
+                include: {stock: true},
             })
 
             if (!warehouseProduct || warehouseProduct.restaurantId !== restaurantId) {
@@ -198,25 +195,28 @@ export async function transferWarehouseToOps(data: {
             }
 
             const warehouseStockQty = Number(warehouseStock.quantity)
-
             if (warehouseStockQty < data.warehouseQuantity) {
                 throw new Error('Stock entrepôt insuffisant')
             }
 
+            // — Ops product (sans include stock pour éviter le filtre where invalide sur 1-1)
             const opsProduct = await tx.product.findUnique({
-                where: { id: data.opsProductId },
-                include: {
-                    stock: {
-                        where: { restaurantId },
-                    },
-                },
+                where: {id: data.opsProductId},
             })
 
             if (!opsProduct || opsProduct.restaurantId !== restaurantId) {
                 throw new Error('Produit opérationnel introuvable')
             }
 
-            const opsStock = opsProduct.stock
+            // ✅ Stock opérationnel récupéré séparément via clé composée (relation 1-1)
+            const opsStock = await tx.stock.findUnique({
+                where: {
+                    restaurantId_productId: {
+                        restaurantId,
+                        productId: data.opsProductId,
+                    },
+                },
+            })
 
             if (!opsStock) {
                 throw new Error('Stock opérationnel introuvable')
@@ -226,24 +226,27 @@ export async function transferWarehouseToOps(data: {
             const opsQuantityToAdd = data.warehouseQuantity * conversionRatio
             const opsStockQty = Number(opsStock.quantity)
 
+            // Décrémenter le stock entrepôt
             const newWarehouseQty = warehouseStockQty - data.warehouseQuantity
             await tx.warehouseStock.update({
-                where: { id: warehouseStock.id },
+                where: {id: warehouseStock.id},
                 data: {
                     quantity: newWarehouseQty,
                     updatedAt: new Date(),
                 },
             })
 
+            // Incrémenter le stock opérationnel
             const newOpsQty = opsStockQty + opsQuantityToAdd
             await tx.stock.update({
-                where: { id: opsStock.id },
+                where: {id: opsStock.id},
                 data: {
                     quantity: newOpsQty,
                     updatedAt: new Date(),
                 },
             })
 
+            // Mouvement entrepôt
             await tx.warehouseMovement.create({
                 data: {
                     restaurantId,
@@ -258,6 +261,7 @@ export async function transferWarehouseToOps(data: {
                 },
             })
 
+            // Mouvement stock opérationnel
             await tx.stockMovement.create({
                 data: {
                     restaurantId,
@@ -271,6 +275,7 @@ export async function transferWarehouseToOps(data: {
                 },
             })
 
+            // Traçabilité du transfert
             await tx.warehouseToOpsTransfer.create({
                 data: {
                     restaurantId,
@@ -284,10 +289,11 @@ export async function transferWarehouseToOps(data: {
                 },
             })
 
+            // Activer le produit si stock > 0 et était indisponible
             if (!opsProduct.isAvailable && newOpsQty > 0) {
                 await tx.product.update({
-                    where: { id: data.opsProductId },
-                    data: { isAvailable: true },
+                    where: {id: data.opsProductId},
+                    data: {isAvailable: true},
                 })
             }
 
@@ -304,11 +310,11 @@ export async function transferWarehouseToOps(data: {
         revalidatePath('/dashboard/stocks')
         revalidatePath('/dashboard/menu/products')
 
-        return { success: true, transfer: result }
+        return {success: true, transfer: result}
     } catch (error) {
         console.error('Erreur transfert:', error)
         return {
-            error: error instanceof Error ? error.message : 'Erreur lors du transfert'
+            error: error instanceof Error ? error.message : 'Erreur lors du transfert',
         }
     }
 }
@@ -323,10 +329,10 @@ export async function adjustWarehouseStock(data: {
     reason: string
 }) {
     try {
-        const { restaurantId, userId } = await getCurrentUserAndRestaurant()
+        const {restaurantId, userId} = await getCurrentUserAndRestaurant()
 
         if (data.newQuantity < 0) {
-            return { error: 'La quantité ne peut pas être négative' }
+            return {error: 'La quantité ne peut pas être négative'}
         }
 
         await prisma.$transaction(async (tx) => {
@@ -347,7 +353,7 @@ export async function adjustWarehouseStock(data: {
             const difference = data.newQuantity - previousQty
 
             await tx.warehouseStock.update({
-                where: { id: currentStock.id },
+                where: {id: currentStock.id},
                 data: {
                     quantity: data.newQuantity,
                     lastInventoryDate: new Date(),
@@ -370,29 +376,24 @@ export async function adjustWarehouseStock(data: {
         })
 
         revalidatePath('/dashboard/warehouse')
-        return { success: true }
+        return {success: true}
     } catch (error) {
         console.error('Erreur ajustement:', error)
-        return { error: 'Erreur lors de l\'ajustement' }
+        return {error: "Erreur lors de l'ajustement"}
     }
 }
 
 // ============================================================
-// Action 5 : Récupérer les statistiques globales du warehouse
+// Action 5 : Statistiques globales du warehouse
 // ============================================================
 
 export async function getWarehouseStats() {
     try {
-        const { restaurantId } = await getCurrentUserAndRestaurant()
+        const {restaurantId} = await getCurrentUserAndRestaurant()
 
         const products = await prisma.warehouseProduct.findMany({
-            where: {
-                restaurantId,
-                isActive: true,
-            },
-            include: {
-                stock: true,
-            },
+            where: {restaurantId, isActive: true},
+            include: {stock: true},
         })
 
         const stats = {
@@ -400,9 +401,9 @@ export async function getWarehouseStats() {
             totalValue: products.reduce((sum, product) => {
                 const stock = product.stock[0]
                 if (!stock || !stock.unitCost) return sum
-                return sum + (Number(stock.quantity) * Number(stock.unitCost))
+                return sum + Number(stock.quantity) * Number(stock.unitCost)
             }, 0),
-            lowStockCount: products.filter(product => {
+            lowStockCount: products.filter((product) => {
                 const stock = product.stock[0]
                 if (!stock) return false
                 return Number(stock.quantity) < Number(stock.alertThreshold)
@@ -418,19 +419,18 @@ export async function getWarehouseStats() {
             }, null as Date | null),
         }
 
-        stats.averageStockValue = stats.totalProducts > 0
-            ? stats.totalValue / stats.totalProducts
-            : 0
+        stats.averageStockValue =
+            stats.totalProducts > 0 ? stats.totalValue / stats.totalProducts : 0
 
-        return { success: true, data: stats }
+        return {success: true, data: stats}
     } catch (error) {
         console.error('Erreur récupération stats:', error)
-        return { error: 'Erreur lors de la récupération des statistiques' }
+        return {error: 'Erreur lors de la récupération des statistiques'}
     }
 }
 
 // ============================================================
-// Action 6 : Récupérer la liste des produits avec filtres
+// Action 6 : Liste des produits avec filtres
 // ============================================================
 
 export async function getWarehouseProducts(filters?: {
@@ -441,7 +441,7 @@ export async function getWarehouseProducts(filters?: {
     search?: string
 }) {
     try {
-        const { restaurantId } = await getCurrentUserAndRestaurant()
+        const {restaurantId} = await getCurrentUserAndRestaurant()
 
         const whereConditions: any = {
             restaurantId,
@@ -450,11 +450,11 @@ export async function getWarehouseProducts(filters?: {
 
         if (filters?.category) whereConditions.category = filters.category
         if (filters?.storageUnit) whereConditions.storageUnit = filters.storageUnit
-        if (filters?.linkedOnly) whereConditions.linkedProductId = { not: null }
+        if (filters?.linkedOnly) whereConditions.linkedProductId = {not: null}
         if (filters?.search) {
             whereConditions.OR = [
-                { name: { contains: filters.search, mode: 'insensitive' } },
-                { sku: { contains: filters.search, mode: 'insensitive' } },
+                {name: {contains: filters.search, mode: 'insensitive'}},
+                {sku: {contains: filters.search, mode: 'insensitive'}},
             ]
         }
 
@@ -462,12 +462,12 @@ export async function getWarehouseProducts(filters?: {
             where: whereConditions,
             include: {
                 stock: true,
-                linkedProduct: { include: { stock: true } },
+                linkedProduct: {include: {stock: true}},
             },
-            orderBy: { name: 'asc' },
+            orderBy: {name: 'asc'},
         })
 
-        const transformedProducts = products.map(product => {
+        const transformedProducts = products.map((product) => {
             const stock = product.stock[0]
 
             return {
@@ -480,12 +480,15 @@ export async function getWarehouseProducts(filters?: {
                         unitCost: stock.unitCost !== null ? Number(stock.unitCost) : null,
                     }
                     : undefined,
-                isLowStock: stock ? Number(stock.quantity) < Number(stock.alertThreshold) : false,
+                isLowStock: stock
+                    ? Number(stock.quantity) < Number(stock.alertThreshold)
+                    : false,
                 linkedProduct: product.linkedProduct
                     ? {
                         id: product.linkedProduct.id,
                         name: product.linkedProduct.name,
                         imageUrl: product.linkedProduct.imageUrl,
+                        // ✅ stock est un objet unique (1-1), pas un tableau
                         currentStock: product.linkedProduct.stock
                             ? Number(product.linkedProduct.stock.quantity)
                             : 0,
@@ -495,25 +498,20 @@ export async function getWarehouseProducts(filters?: {
         })
 
         const finalProducts = filters?.lowStockOnly
-            ? transformedProducts.filter(p => p.isLowStock)
+            ? transformedProducts.filter((p) => p.isLowStock)
             : transformedProducts
 
-        return { success: true, data: finalProducts }
+        return {success: true, data: finalProducts}
     } catch (error) {
         console.error('Erreur récupération produits:', error)
-        return { error: 'Erreur lors de la récupération des produits' }
+        return {error: 'Erreur lors de la récupération des produits'}
     }
 }
 
 // ============================================================
-// Action 7 : Récupérer un produit spécifique avec son historique
+// Action 7 : Produit spécifique avec historique
 // ============================================================
 
-/**
- * Interface définissant exactement la structure des données retournées par getWarehouseProductById.
- * Cette interface garantit la cohérence entre ce que la fonction retourne et ce que les composants attendent.
- * Tous les types Decimal de Prisma sont convertis en number, et toutes les dates en ISO strings.
- */
 interface WarehouseProductDetail {
     id: string
     restaurantId: string
@@ -572,53 +570,32 @@ interface WarehouseProductDetail {
     }>
 }
 
-/**
- * Fonction qui récupère un produit d'entrepôt complet avec son stock, ses mouvements,
- * et son produit menu lié le cas échéant. Cette fonction effectue plusieurs transformations
- * importantes pour rendre les données compatibles avec le frontend :
- *
- * 1. Conversion des types Decimal de PostgreSQL en nombres JavaScript standards
- * 2. Sérialisation des dates en ISO strings pour la transmission client-serveur
- * 3. Typage correct du movementType comme union littérale plutôt que string générique
- * 4. Gestion de la relation un-à-un entre Product et Stock
- *
- * Le type de retour est une union discriminée qui permet à TypeScript de vérifier
- * correctement si l'opération a réussi avant d'accéder aux données.
- */
 export async function getWarehouseProductById(
     productId: string
 ): Promise<{ success: true; data: WarehouseProductDetail } | { success: false; error: string }> {
     try {
-        const { restaurantId } = await getCurrentUserAndRestaurant()
+        const {restaurantId} = await getCurrentUserAndRestaurant()
 
         const product = await prisma.warehouseProduct.findFirst({
-            where: {
-                id: productId,
-                restaurantId,
-            },
+            where: {id: productId, restaurantId},
             include: {
-                stock: true, // WarehouseStock[]
+                stock: true,
                 linkedProduct: {
-                    include: {
-                        stock: true, // Stock (objet unique)
-                    },
+                    include: {stock: true}, // stock est un objet unique (1-1)
                 },
                 movements: {
-                    orderBy: { createdAt: 'desc' },
+                    orderBy: {createdAt: 'desc'},
                     take: 50,
                 },
             },
         })
 
         if (!product) {
-            return { success: false, error: 'Produit introuvable' }
+            return {success: false, error: 'Produit introuvable'}
         }
 
-        // Warehouse stock (ARRAY)
         const warehouseStock = product.stock[0]
-
-        // Linked product stock (OBJECT, not array)
-        const linkedStock = product.linkedProduct?.stock
+        const linkedStock = product.linkedProduct?.stock // objet unique, pas un tableau
 
         const transformedProduct: WarehouseProductDetail = {
             id: product.id,
@@ -634,14 +611,9 @@ export async function getWarehouseProductById(
             conversionRatio: Number(product.conversionRatio),
             notes: product.notes,
             isActive: product.isActive,
-            createdAt: product.createdAt
-                ? new Date(product.createdAt).toISOString()
-                : null,
-            updatedAt: product.updatedAt
-                ? new Date(product.updatedAt).toISOString()
-                : null,
+            createdAt: product.createdAt ? new Date(product.createdAt).toISOString() : null,
+            updatedAt: product.updatedAt ? new Date(product.updatedAt).toISOString() : null,
 
-            // ✅ Warehouse stock (correct)
             stock: warehouseStock
                 ? {
                     id: warehouseStock.id,
@@ -654,47 +626,31 @@ export async function getWarehouseProductById(
                             ? Number(warehouseStock.unitCost)
                             : null,
                     lastInventoryDate: warehouseStock.lastInventoryDate
-                        ? new Date(
-                            warehouseStock.lastInventoryDate
-                        ).toISOString()
+                        ? new Date(warehouseStock.lastInventoryDate).toISOString()
                         : null,
-                    updatedAt: new Date(
-                        warehouseStock.updatedAt
-                    ).toISOString(),
+                    updatedAt: new Date(warehouseStock.updatedAt).toISOString(),
                 }
                 : undefined,
 
             isLowStock: warehouseStock
-                ? Number(warehouseStock.quantity) <
-                Number(warehouseStock.alertThreshold)
+                ? Number(warehouseStock.quantity) < Number(warehouseStock.alertThreshold)
                 : false,
 
-            // ✅ Linked product (fixed properly)
             linkedProduct: product.linkedProduct
                 ? {
                     id: product.linkedProduct.id,
                     name: product.linkedProduct.name,
                     imageUrl: product.linkedProduct.imageUrl,
-                    currentStock: linkedStock
-                        ? Number(linkedStock.quantity)
-                        : 0,
-
-                    // IMPORTANT:
-                    // Stock model DOES NOT contain unitCost or lastInventoryDate
+                    currentStock: linkedStock ? Number(linkedStock.quantity) : 0,
+                    // ✅ On normalise en tableau pour compatibilité interface
                     stock: linkedStock
                         ? [
                             {
-                                quantity: Number(
-                                    linkedStock.quantity
-                                ),
-                                alertThreshold: Number(
-                                    linkedStock.alertThreshold
-                                ),
-                                unitCost: null, // not in Stock model
-                                lastInventoryDate: null, // not in Stock model
-                                updatedAt: new Date(
-                                    linkedStock.updatedAt
-                                ).toISOString(),
+                                quantity: Number(linkedStock.quantity),
+                                alertThreshold: Number(linkedStock.alertThreshold),
+                                unitCost: null, // pas dans le modèle Stock
+                                lastInventoryDate: null, // pas dans le modèle Stock
+                                updatedAt: new Date(linkedStock.updatedAt).toISOString(),
                             },
                         ]
                         : undefined,
@@ -720,91 +676,70 @@ export async function getWarehouseProductById(
                 reason: m.reason,
                 performedBy: m.performedBy,
                 notes: m.notes,
-                createdAt: m.createdAt
-                    ? new Date(m.createdAt).toISOString()
-                    : null,
+                createdAt: m.createdAt ? new Date(m.createdAt).toISOString() : null,
             })),
         }
 
-        return { success: true, data: transformedProduct }
+        return {success: true, data: transformedProduct}
     } catch (error) {
         console.error('Erreur récupération produit:', error)
-        return {
-            success: false,
-            error: 'Erreur lors de la récupération du produit',
-        }
+        return {success: false, error: 'Erreur lors de la récupération du produit'}
     }
 }
 
-
-
-
 // ============================================================
-// Action 8 : Récupérer les produits menu disponibles pour liaison
+// Action 8 : Produits menu disponibles pour liaison
 // ============================================================
 
 export async function getAvailableProductsForLinking() {
     try {
-        const { restaurantId } = await getCurrentUserAndRestaurant()
+        const {restaurantId} = await getCurrentUserAndRestaurant()
 
         const products = await prisma.product.findMany({
-            where: {
-                restaurantId,
-                // isActive: true,
-            },
-            select: {
-                id: true,
-                name: true,
-                imageUrl: true,
-            },
-            orderBy: {
-                name: 'asc',
-            },
+            where: {restaurantId},
+            select: {id: true, name: true, imageUrl: true},
+            orderBy: {name: 'asc'},
         })
 
-        return { success: true, data: products }
+        return {success: true, data: products}
     } catch (error) {
         console.error('Erreur récupération produits menu:', error)
-        return { error: 'Erreur lors de la récupération des produits menu' }
+        return {error: 'Erreur lors de la récupération des produits menu'}
     }
 }
 
 // ============================================================
-// Action 9 : Récupérer les catégories distinctes du warehouse
+// Action 9 : Catégories distinctes du warehouse
 // ============================================================
 
 export async function getWarehouseCategories() {
     try {
-        const { restaurantId } = await getCurrentUserAndRestaurant()
+        const {restaurantId} = await getCurrentUserAndRestaurant()
 
         const products = await prisma.warehouseProduct.findMany({
             where: {
                 restaurantId,
                 isActive: true,
-                category: {
-                    not: null,
-                },
+                category: {not: null},
             },
-            select: {
-                category: true,
-            },
+            select: {category: true},
             distinct: ['category'],
         })
 
         const categories = products
-            .map(p => p.category)
+            .map((p) => p.category)
             .filter((category): category is string => category !== null)
             .sort()
 
-        return { success: true, data: categories }
+        return {success: true, data: categories}
     } catch (error) {
         console.error('Erreur récupération catégories:', error)
-        return { error: 'Erreur lors de la récupération des catégories' }
+        return {error: 'Erreur lors de la récupération des catégories'}
     }
 }
 
 // ============================================================
-// Action 10 : Mettre à jour un produit d'entrepôt existant
+// Action 10 : Mettre à jour un produit d'entrepôt
 // ============================================================
 
 export async function updateWarehouseProduct(data: {
@@ -823,36 +758,33 @@ export async function updateWarehouseProduct(data: {
     notes?: string
 }) {
     try {
-        const { restaurantId } = await getCurrentUserAndRestaurant()
+        const {restaurantId} = await getCurrentUserAndRestaurant()
 
         const existingProduct = await prisma.warehouseProduct.findUnique({
-            where: { id: data.id },
+            where: {id: data.id},
         })
 
         if (!existingProduct) {
-            return { error: 'Produit introuvable' }
+            return {error: 'Produit introuvable'}
         }
 
         if (existingProduct.restaurantId !== restaurantId) {
-            return { error: 'Accès non autorisé à ce produit' }
+            return {error: 'Accès non autorisé à ce produit'}
         }
 
         if (data.linkedProductId && data.linkedProductId !== existingProduct.linkedProductId) {
             const linkedProduct = await prisma.product.findFirst({
-                where: {
-                    id: data.linkedProductId,
-                    restaurantId,
-                },
+                where: {id: data.linkedProductId, restaurantId},
             })
 
             if (!linkedProduct) {
-                return { error: 'Produit menu introuvable ou non autorisé' }
+                return {error: 'Produit menu introuvable ou non autorisé'}
             }
         }
 
         const updatedProduct = await prisma.$transaction(async (tx) => {
             const product = await tx.warehouseProduct.update({
-                where: { id: data.id },
+                where: {id: data.id},
                 data: {
                     name: data.name,
                     sku: data.sku,
@@ -871,13 +803,8 @@ export async function updateWarehouseProduct(data: {
 
             if (data.alertThreshold !== undefined) {
                 await tx.warehouseStock.updateMany({
-                    where: {
-                        warehouseProductId: data.id,
-                        restaurantId,
-                    },
-                    data: {
-                        alertThreshold: data.alertThreshold,
-                    },
+                    where: {warehouseProductId: data.id, restaurantId},
+                    data: {alertThreshold: data.alertThreshold},
                 })
             }
 
@@ -887,9 +814,9 @@ export async function updateWarehouseProduct(data: {
         revalidatePath('/dashboard/warehouse')
         revalidatePath(`/dashboard/warehouse/products/${data.id}`)
 
-        return { success: true, product: updatedProduct }
+        return {success: true, product: updatedProduct}
     } catch (error) {
         console.error('Erreur mise à jour produit entrepôt:', error)
-        return { error: 'Erreur lors de la mise à jour du produit' }
+        return {error: 'Erreur lors de la mise à jour du produit'}
     }
 }

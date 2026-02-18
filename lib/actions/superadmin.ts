@@ -1,8 +1,8 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import {createClient} from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
-import { isSuperAdminEmail } from '@/lib/utils/permissions'
+import {isSuperAdminEmail} from '@/lib/utils/permissions'
 import {
     logRestaurantActivated,
     logRestaurantDeactivated,
@@ -11,9 +11,8 @@ import type {
     Restaurant,
     RestaurantUser,
 } from '@prisma/client'
-import { isSuperAdmin } from './auth'
-import { notFound } from 'next/navigation'
-import { RestaurantDetails } from '@/types/restaurant'
+import {notFound} from 'next/navigation'
+import {RestaurantDetails} from '@/types/restaurant'
 
 // ============================================================
 // TYPES
@@ -26,8 +25,6 @@ export interface PlatformStats {
     totalOrders: number
     totalRevenue: number
     ordersToday: number
-
-    // 🆕 ABONNEMENTS
     activeSubscriptions: number
     trialSubscriptions: number
     expiredSubscriptions: number
@@ -49,7 +46,7 @@ export interface ActivityDay {
 async function verifySuperAdmin() {
     const supabase = await createClient()
     const {
-        data: { user },
+        data: {user},
     } = await supabase.auth.getUser()
 
     if (!user) {
@@ -83,30 +80,21 @@ export async function getPlatformStats(): Promise<PlatformStats> {
         totalOrders,
         totalRevenue,
         ordersToday,
-
         activeSubscriptions,
         trialSubscriptions,
         expiredSubscriptions,
         pendingPayments,
-
         subscriptionRevenue,
         monthlySubscriptionRevenue,
     ] = await Promise.all([
-        // Restaurants
         prisma.restaurant.count(),
-        prisma.restaurant.count({ where: { isActive: true } }),
-
-        // Utilisateurs
+        prisma.restaurant.count({where: {isActive: true}}),
         prisma.restaurantUser.count(),
-
-        // Commandes
         prisma.order.count(),
-
         prisma.order.aggregate({
-            _sum: { totalAmount: true },
-            where: { status: { in: ['delivered', 'ready'] } },
+            _sum: {totalAmount: true},
+            where: {status: {in: ['delivered', 'ready']}},
         }),
-
         prisma.order.count({
             where: {
                 createdAt: {
@@ -114,35 +102,28 @@ export async function getPlatformStats(): Promise<PlatformStats> {
                 },
             },
         }),
-
-        // 🆕 ABONNEMENTS
         prisma.subscription.count({
-            where: { status: { in: ['trial', 'active'] } },
+            where: {status: {in: ['trial', 'active']}},
         }),
-
         prisma.subscription.count({
-            where: { status: 'trial' },
+            where: {status: 'trial'},
         }),
-
         prisma.subscription.count({
-            where: { status: { in: ['expired', 'cancelled'] } },
+            where: {status: {in: ['expired', 'cancelled']}},
         }),
-
         prisma.subscriptionPayment.count({
-            where: { status: 'pending' },
+            where: {status: 'pending'},
         }),
-
         prisma.subscriptionPayment.aggregate({
-            where: { status: 'confirmed' },
-            _sum: { amount: true },
+            where: {status: 'confirmed'},
+            _sum: {amount: true},
         }),
-
         prisma.subscriptionPayment.aggregate({
             where: {
                 status: 'confirmed',
-                createdAt: { gte: startOfMonth },
+                createdAt: {gte: startOfMonth},
             },
-            _sum: { amount: true },
+            _sum: {amount: true},
         }),
     ])
 
@@ -153,21 +134,18 @@ export async function getPlatformStats(): Promise<PlatformStats> {
         totalOrders,
         totalRevenue: totalRevenue._sum.totalAmount ?? 0,
         ordersToday,
-
-        // 🆕 Abonnements
         activeSubscriptions,
         trialSubscriptions,
         expiredSubscriptions,
         pendingPayments,
         subscriptionRevenue: subscriptionRevenue._sum.amount ?? 0,
-        monthlySubscriptionRevenue:
-            monthlySubscriptionRevenue._sum.amount ?? 0,
+        monthlySubscriptionRevenue: monthlySubscriptionRevenue._sum.amount ?? 0,
     }
 }
 
-
 // ============================================================
 // LISTE DE TOUS LES RESTAURANTS
+// ✅ Correction : verifySuperAdmin() au lieu de isSuperAdmin()
 // ============================================================
 
 export async function getAllRestaurants(): Promise<
@@ -179,7 +157,7 @@ export async function getAllRestaurants(): Promise<
         }
     })[]
 > {
-    await isSuperAdmin()
+    await verifySuperAdmin() // ✅ était : await isSuperAdmin()
 
     return prisma.restaurant.findMany({
         include: {
@@ -191,7 +169,7 @@ export async function getAllRestaurants(): Promise<
                 },
             },
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy: {createdAt: 'desc'},
     })
 }
 
@@ -204,13 +182,12 @@ export async function getRestaurantDetails(
 ): Promise<RestaurantDetails> {
     await verifySuperAdmin()
 
-    // 🔒 1. Sécurisation ABSOLUE du paramètre
     if (!restaurantId || typeof restaurantId !== 'string') {
         notFound()
     }
 
     const restaurant = await prisma.restaurant.findUnique({
-        where: { id: restaurantId },
+        where: {id: restaurantId},
         include: {
             users: {
                 select: {
@@ -230,36 +207,26 @@ export async function getRestaurantDetails(
         },
     })
 
-    // 🔒 2. Gestion correcte du 404 App Router
     if (!restaurant) {
         notFound()
     }
 
-    // 🔥 3. Dates calculées UNE SEULE FOIS
     const now = new Date()
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
 
     const [totalOrders, totalRevenue, ordersThisMonth] = await Promise.all([
-        prisma.order.count({
-            where: { restaurantId },
-        }),
-
+        prisma.order.count({where: {restaurantId}}),
         prisma.order.aggregate({
             where: {
                 restaurantId,
-                status: { in: ['delivered', 'ready'] },
+                status: {in: ['delivered', 'ready']},
             },
-            _sum: {
-                totalAmount: true,
-            },
+            _sum: {totalAmount: true},
         }),
-
         prisma.order.count({
             where: {
                 restaurantId,
-                createdAt: {
-                    gte: startOfMonth,
-                },
+                createdAt: {gte: startOfMonth},
             },
         }),
     ])
@@ -274,7 +241,6 @@ export async function getRestaurantDetails(
     }
 }
 
-
 // ============================================================
 // ACTIVER / DÉSACTIVER UN RESTAURANT
 // ============================================================
@@ -285,17 +251,17 @@ export async function toggleRestaurantStatus(
     await verifySuperAdmin()
 
     const restaurant = await prisma.restaurant.findUnique({
-        where: { id: restaurantId },
-        select: { isActive: true, name: true },
+        where: {id: restaurantId},
+        select: {isActive: true, name: true},
     })
 
     if (!restaurant) {
-        return { error: 'Restaurant introuvable' }
+        return {error: 'Restaurant introuvable'}
     }
 
     const updatedRestaurant = await prisma.restaurant.update({
-        where: { id: restaurantId },
-        data: { isActive: !restaurant.isActive },
+        where: {id: restaurantId},
+        data: {isActive: !restaurant.isActive},
     })
 
     if (!updatedRestaurant.isActive) {
@@ -304,7 +270,7 @@ export async function toggleRestaurantStatus(
         await logRestaurantActivated(restaurantId, restaurant.name)
     }
 
-    return { success: true }
+    return {success: true}
 }
 
 // ============================================================
@@ -332,7 +298,7 @@ export async function getAllUsers(): Promise<
                 },
             },
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy: {createdAt: 'desc'},
     })
 }
 
@@ -361,21 +327,15 @@ export async function searchUser(
     return prisma.restaurantUser.findMany({
         where: {
             OR: [
-                ...(isUuid ? [{ userId: query }] : []),
+                ...(isUuid ? [{userId: query}] : []),
                 {
                     restaurant: {
-                        name: {
-                            contains: query,
-                            mode: 'insensitive',
-                        },
+                        name: {contains: query, mode: 'insensitive'},
                     },
                 },
                 {
                     restaurant: {
-                        slug: {
-                            contains: query,
-                            mode: 'insensitive',
-                        },
+                        slug: {contains: query, mode: 'insensitive'},
                     },
                 },
             ],
@@ -389,57 +349,51 @@ export async function searchUser(
                 },
             },
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy: {createdAt: 'desc'},
         take: 50,
     })
 }
 
 // ============================================================
 // STATISTIQUES D'ACTIVITÉ (7 derniers jours)
+// ✅ Correction : requêtes parallèles au lieu de boucle séquentielle
 // ============================================================
 
 export async function getActivityStats(): Promise<ActivityDay[]> {
     await verifySuperAdmin()
 
     const days = 7
-    const stats: ActivityDay[] = []
 
-    for (let i = days - 1; i >= 0; i--) {
-        const date = new Date()
-        date.setDate(date.getDate() - i)
-        date.setHours(0, 0, 0, 0)
+    const results = await Promise.all(
+        Array.from({length: days}, (_, i) => {
+            const date = new Date()
+            date.setDate(date.getDate() - (days - 1 - i))
+            date.setHours(0, 0, 0, 0)
 
-        const nextDate = new Date(date)
-        nextDate.setDate(nextDate.getDate() + 1)
+            const nextDate = new Date(date)
+            nextDate.setDate(nextDate.getDate() + 1)
 
-        const ordersCount = await prisma.order.count({
-            where: {
-                createdAt: {
-                    gte: date,
-                    lt: nextDate,
-                },
-            },
+            return Promise.all([
+                prisma.order.count({
+                    where: {createdAt: {gte: date, lt: nextDate}},
+                }),
+                prisma.order.aggregate({
+                    where: {
+                        createdAt: {gte: date, lt: nextDate},
+                        status: {in: ['delivered', 'ready']},
+                    },
+                    _sum: {totalAmount: true},
+                }),
+                Promise.resolve(date),
+            ] as const)
         })
+    )
 
-        const revenue = await prisma.order.aggregate({
-            where: {
-                createdAt: {
-                    gte: date,
-                    lt: nextDate,
-                },
-                status: { in: ['delivered', 'ready'] },
-            },
-            _sum: { totalAmount: true },
-        })
-
-        stats.push({
-            date: date.toISOString().split('T')[0],
-            orders: ordersCount,
-            revenue: revenue._sum.totalAmount ?? 0,
-        })
-    }
-
-    return stats
+    return results.map(([ordersCount, revenue, date]) => ({
+        date: date.toISOString().split('T')[0],
+        orders: ordersCount,
+        revenue: revenue._sum.totalAmount ?? 0,
+    }))
 }
 
 // ============================================================
@@ -454,13 +408,11 @@ export async function getTopRestaurants(): Promise<
     return prisma.restaurant.findMany({
         include: {
             _count: {
-                select: { orders: true },
+                select: {orders: true},
             },
         },
         orderBy: {
-            orders: {
-                _count: 'desc',
-            },
+            orders: {_count: 'desc'},
         },
         take: 5,
     })
