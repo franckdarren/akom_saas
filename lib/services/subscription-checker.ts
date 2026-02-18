@@ -3,8 +3,7 @@
 
 import prisma from '@/lib/prisma'
 import {PLAN_FEATURES, type FeatureKey} from '@/lib/config/subscription-features'
-import type {SubscriptionPlan} from '@/types/subscription'
-import {createClient} from '@/lib/supabase/server'
+import {toSubscriptionPlan, type SubscriptionPlan} from '@/lib/utils/subscription-helpers'
 
 /**
  * Service de vérification des permissions d'abonnement
@@ -48,8 +47,9 @@ export async function getRestaurantPlan(
         },
     })
 
-    // Par défaut, si pas d'abonnement actif → starter
-    return (subscription?.plan as SubscriptionPlan) || 'starter'
+    // Convertir la valeur Prisma en SubscriptionPlan valide
+    // Le helper garantit qu'on retourne toujours un plan valide
+    return toSubscriptionPlan(subscription?.plan)
 }
 
 /**
