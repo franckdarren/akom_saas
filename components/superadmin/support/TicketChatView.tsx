@@ -38,11 +38,15 @@ interface TicketChatViewProps {
     initialMessages: Message[]
 }
 
-export function TicketChatView({ticket, initialMessages}: TicketChatViewProps) {
+export function TicketChatView({
+                                   ticket,
+                                   initialMessages,
+                               }: TicketChatViewProps) {
     const [messages, setMessages] = useState<Message[]>(initialMessages)
     const [newMessage, setNewMessage] = useState('')
     const [isLoading, setIsLoading] = useState(false)
-    const [currentTicket, setCurrentTicket] = useState<TicketWithRelations>(ticket)
+    const [currentTicket, setCurrentTicket] =
+        useState<TicketWithRelations>(ticket)
 
     const messagesEndRef = useRef<HTMLDivElement>(null)
     const isTypingRef = useRef(false)
@@ -94,7 +98,7 @@ export function TicketChatView({ticket, initialMessages}: TicketChatViewProps) {
             message: newMessage,
             isAdmin: true,
             createdAt: new Date(),
-            userId: currentTicket.userId
+            userId: currentTicket.userId,
         }
 
         const previousMessages = messages
@@ -104,7 +108,7 @@ export function TicketChatView({ticket, initialMessages}: TicketChatViewProps) {
         try {
             const result = await sendAdminMessage({
                 ticketId: ticket.id,
-                message: newMessage
+                message: newMessage,
             })
 
             if (result.error) {
@@ -121,14 +125,17 @@ export function TicketChatView({ticket, initialMessages}: TicketChatViewProps) {
         } catch (error) {
             setMessages(previousMessages)
             setNewMessage(tempMessage.message)
-            toast.error('Erreur lors de l\'envoi')
+            toast.error("Erreur lors de l'envoi")
         } finally {
             setIsLoading(false)
         }
     }
 
     const handleTicketUpdate = (updatedTicket: Partial<SupportTicket>) => {
-        setCurrentTicket({...currentTicket, ...updatedTicket} as TicketWithRelations)
+        setCurrentTicket({
+            ...currentTicket,
+            ...updatedTicket,
+        } as TicketWithRelations)
     }
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -138,7 +145,9 @@ export function TicketChatView({ticket, initialMessages}: TicketChatViewProps) {
         }
     }
 
-    const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const handleTextareaChange = (
+        e: React.ChangeEvent<HTMLTextAreaElement>
+    ) => {
         setNewMessage(e.target.value)
         isTypingRef.current = true
         setTimeout(() => {
@@ -148,17 +157,23 @@ export function TicketChatView({ticket, initialMessages}: TicketChatViewProps) {
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-12rem)]">
-            {/* Colonne principale : Conversation */}
+
+            {/* Conversation */}
             <div className="lg:col-span-2 flex flex-col">
                 <Card className="flex-1 flex flex-col overflow-hidden">
-                    <div className="p-4 border-b bg-gray-50">
+
+                    {/* Header */}
+                    <div className="p-4 border-b bg-muted/40">
                         <div className="flex items-start justify-between">
                             <div>
-                                <h2 className="font-semibold text-lg">{currentTicket.subject}</h2>
-                                <p className="text-sm text-gray-600 mt-1">
+                                <h2 className="font-semibold text-lg">
+                                    {currentTicket.subject}
+                                </h2>
+                                <p className="text-sm text-muted-foreground mt-1">
                                     Restaurant : {currentTicket.restaurant.name}
                                 </p>
                             </div>
+
                             <TicketQuickActions
                                 ticket={currentTicket}
                                 onUpdate={handleTicketUpdate}
@@ -166,24 +181,35 @@ export function TicketChatView({ticket, initialMessages}: TicketChatViewProps) {
                         </div>
                     </div>
 
+                    {/* Messages */}
                     <div className="flex-1 overflow-y-auto p-4">
                         <TicketMessageList messages={messages}/>
                         <div ref={messagesEndRef}/>
                     </div>
 
-                    {(currentTicket.status === 'closed' || currentTicket.status === 'resolved') && (
+                    {/* Alert si fermé */}
+                    {(currentTicket.status === 'closed' ||
+                        currentTicket.status === 'resolved') && (
                         <div className="px-4 pb-2">
-                            <Alert>
+                            <Alert variant="default">
                                 <AlertCircle className="h-4 w-4"/>
                                 <AlertDescription>
-                                    Ce ticket est {currentTicket.status === 'closed' ? 'fermé' : 'résolu'}.
-                                    Vous pouvez toujours envoyer un message pour le réouvrir.
+                                    Ce ticket est{' '}
+                                    {currentTicket.status === 'closed'
+                                        ? 'fermé'
+                                        : 'résolu'}
+                                    . Vous pouvez toujours envoyer un message pour le
+                                    réouvrir.
                                 </AlertDescription>
                             </Alert>
                         </div>
                     )}
 
-                    <form onSubmit={handleSendMessage} className="p-4 border-t bg-gray-50">
+                    {/* Input */}
+                    <form
+                        onSubmit={handleSendMessage}
+                        className="p-4 border-t bg-muted/40"
+                    >
                         <div className="flex gap-2">
                             <Textarea
                                 value={newMessage}
@@ -191,26 +217,32 @@ export function TicketChatView({ticket, initialMessages}: TicketChatViewProps) {
                                 onKeyDown={handleKeyDown}
                                 placeholder="Tapez votre réponse... (Entrée pour envoyer)"
                                 rows={3}
-                                className="resize-none bg-white"
+                                className="resize-none"
                                 disabled={isLoading}
                             />
+
                             <Button
                                 type="submit"
                                 size="icon"
                                 disabled={isLoading || !newMessage.trim()}
-                                className="bg-blue-600 hover:bg-blue-700 h-auto"
                             >
-                                {isLoading ? <Loader2 className="h-5 w-5 animate-spin"/> : <Send className="h-5 w-5"/>}
+                                {isLoading ? (
+                                    <Loader2 className="h-5 w-5 animate-spin"/>
+                                ) : (
+                                    <Send className="h-5 w-5"/>
+                                )}
                             </Button>
                         </div>
-                        <p className="text-xs text-gray-500 mt-2">
+
+                        <p className="text-xs text-muted-foreground mt-2">
                             💡 Astuce : Entrée pour envoyer, Maj+Entrée pour nouvelle ligne
                         </p>
                     </form>
+
                 </Card>
             </div>
 
-            {/* Sidebar : Informations contextuelles */}
+            {/* Sidebar */}
             <div className="lg:col-span-1">
                 <TicketInfoSidebar
                     ticket={{
@@ -218,9 +250,9 @@ export function TicketChatView({ticket, initialMessages}: TicketChatViewProps) {
                         restaurant: {
                             ...currentTicket.restaurant,
                             email: currentTicket.restaurant.email || '',
-                            phone: currentTicket.restaurant.phone || ''
-                        }
-                    } as any} // ✅ force TypeScript et supprime l'erreur
+                            phone: currentTicket.restaurant.phone || '',
+                        },
+                    } as any}
                 />
             </div>
         </div>

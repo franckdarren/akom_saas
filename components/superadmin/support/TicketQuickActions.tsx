@@ -11,37 +11,36 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import {updateTicketStatus, updateTicketPriority, resolveTicket, closeTicket} from '@/lib/actions/support'
+import {
+    updateTicketStatus,
+    updateTicketPriority,
+    resolveTicket,
+    closeTicket,
+} from '@/lib/actions/support'
 import {toast} from 'sonner'
-import type {SupportTicket, TicketStatus, TicketPriority} from '@prisma/client'
+import type {
+    SupportTicket,
+    TicketStatus,
+    TicketPriority,
+} from '@prisma/client'
 
 interface TicketQuickActionsProps {
     ticket: SupportTicket
     onUpdate: (ticket: Partial<SupportTicket>) => void
 }
 
-/**
- * Composant d'actions rapides pour SuperAdmin
- *
- * Pourquoi des actions rapides ?
- * - Le SuperAdmin doit pouvoir changer le statut sans naviguer
- * - Gain de temps : tout est accessible en 1 clic
- * - Feedback immédiat avec toasts
- * - Mise à jour optimiste de l'UI
- */
-export function TicketQuickActions({ticket, onUpdate}: TicketQuickActionsProps) {
+export function TicketQuickActions({
+                                       ticket,
+                                       onUpdate,
+                                   }: TicketQuickActionsProps) {
     const [isLoading, setIsLoading] = useState(false)
 
-    /**
-     * Changer le statut du ticket
-     * Mise à jour optimiste : on est update l'UI avant la réponse serveur
-     */
     const handleStatusChange = async (status: TicketStatus) => {
         setIsLoading(true)
 
         const result = await updateTicketStatus({
             ticketId: ticket.id,
-            status
+            status,
         })
 
         if (result.error) {
@@ -54,15 +53,14 @@ export function TicketQuickActions({ticket, onUpdate}: TicketQuickActionsProps) 
         setIsLoading(false)
     }
 
-    /**
-     * Changer la priorité du ticket
-     */
-    const handlePriorityChange = async (priority: TicketPriority) => {
+    const handlePriorityChange = async (
+        priority: TicketPriority
+    ) => {
         setIsLoading(true)
 
         const result = await updateTicketPriority({
             ticketId: ticket.id,
-            priority
+            priority,
         })
 
         if (result.error) {
@@ -75,9 +73,6 @@ export function TicketQuickActions({ticket, onUpdate}: TicketQuickActionsProps) 
         setIsLoading(false)
     }
 
-    /**
-     * Marquer comme résolu
-     */
     const handleResolve = async () => {
         setIsLoading(true)
 
@@ -86,16 +81,16 @@ export function TicketQuickActions({ticket, onUpdate}: TicketQuickActionsProps) 
         if (result.error) {
             toast.error(result.error)
         } else {
-            onUpdate({status: 'resolved', resolvedAt: new Date()})
-            toast.success('✅ Ticket résolu')
+            onUpdate({
+                status: 'resolved',
+                resolvedAt: new Date(),
+            })
+            toast.success('Ticket résolu')
         }
 
         setIsLoading(false)
     }
 
-    /**
-     * Fermer le ticket
-     */
     const handleClose = async () => {
         setIsLoading(true)
 
@@ -113,27 +108,43 @@ export function TicketQuickActions({ticket, onUpdate}: TicketQuickActionsProps) 
 
     return (
         <div className="flex items-center gap-2">
+
             {/* Dropdown Statut */}
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" disabled={isLoading}>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={isLoading}
+                    >
                         <Clock className="h-4 w-4 mr-2"/>
                         Statut
                     </Button>
                 </DropdownMenuTrigger>
+
                 <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Changer le statut</DropdownMenuLabel>
+                    <DropdownMenuLabel>
+                        Changer le statut
+                    </DropdownMenuLabel>
                     <DropdownMenuSeparator/>
-                    <DropdownMenuItem onClick={() => handleStatusChange('open')}>
+                    <DropdownMenuItem
+                        onClick={() => handleStatusChange('open')}
+                    >
                         Ouvert
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleStatusChange('in_progress')}>
+                    <DropdownMenuItem
+                        onClick={() => handleStatusChange('in_progress')}
+                    >
                         En cours
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleStatusChange('resolved')}>
+                    <DropdownMenuItem
+                        onClick={() => handleStatusChange('resolved')}
+                    >
                         Résolu
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleStatusChange('closed')}>
+                    <DropdownMenuItem
+                        onClick={() => handleStatusChange('closed')}
+                    >
                         Fermé
                     </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -142,35 +153,50 @@ export function TicketQuickActions({ticket, onUpdate}: TicketQuickActionsProps) 
             {/* Dropdown Priorité */}
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" disabled={isLoading}>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={isLoading}
+                    >
                         <AlertTriangle className="h-4 w-4 mr-2"/>
                         Priorité
                     </Button>
                 </DropdownMenuTrigger>
+
                 <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Changer la priorité</DropdownMenuLabel>
+                    <DropdownMenuLabel>
+                        Changer la priorité
+                    </DropdownMenuLabel>
                     <DropdownMenuSeparator/>
-                    <DropdownMenuItem onClick={() => handlePriorityChange('low')}>
-                        🟢 Basse
+                    <DropdownMenuItem
+                        onClick={() => handlePriorityChange('low')}
+                    >
+                        Basse
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handlePriorityChange('medium')}>
-                        🔵 Moyenne
+                    <DropdownMenuItem
+                        onClick={() => handlePriorityChange('medium')}
+                    >
+                        Moyenne
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handlePriorityChange('high')}>
-                        🟠 Haute
+                    <DropdownMenuItem
+                        onClick={() => handlePriorityChange('high')}
+                    >
+                        Haute
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handlePriorityChange('urgent')}>
-                        🔴 Urgente
+                    <DropdownMenuItem
+                        onClick={() => handlePriorityChange('urgent')}
+                    >
+                        Urgente
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* Boutons actions directes */}
+            {/* Résoudre */}
             {ticket.status !== 'resolved' && (
                 <Button
                     onClick={handleResolve}
                     size="sm"
-                    className="bg-green-600 hover:bg-green-700"
+                    variant="default"
                     disabled={isLoading}
                 >
                     <Check className="h-4 w-4 mr-2"/>
@@ -178,17 +204,19 @@ export function TicketQuickActions({ticket, onUpdate}: TicketQuickActionsProps) 
                 </Button>
             )}
 
+            {/* Fermer */}
             {ticket.status !== 'closed' && (
                 <Button
                     onClick={handleClose}
                     size="sm"
-                    variant="outline"
+                    variant="destructive"
                     disabled={isLoading}
                 >
                     <X className="h-4 w-4 mr-2"/>
                     Fermer
                 </Button>
             )}
+
         </div>
     )
 }
