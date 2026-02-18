@@ -1,23 +1,23 @@
 // lib/actions/product.ts
 'use server'
 
-import { revalidatePath } from 'next/cache'
-import { createClient } from '@/lib/supabase/server'
+import {revalidatePath} from 'next/cache'
+import {createClient} from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
-import { capitalizeFirst, formatDescription } from '@/lib/utils/format-text'
-import type { ProductType } from '@/types/product'
+import {capitalizeFirst, formatDescription} from '@/lib/utils/format-text'
+import type {ProductType} from '@/types/product'
 
 interface ProductData {
     name: string
     description?: string
     categoryId?: string
     familyId?: string
-    
+
     // Type et tarification
     productType: ProductType
     price?: number | null
     includePrice: boolean
-    
+
     // Image
     imageUrl?: string
 }
@@ -29,7 +29,7 @@ interface ProductData {
 async function getCurrentRestaurantId() {
     const supabase = await createClient()
     const {
-        data: { user },
+        data: {user},
     } = await supabase.auth.getUser()
 
     if (!user) {
@@ -37,8 +37,8 @@ async function getCurrentRestaurantId() {
     }
 
     const restaurantUser = await prisma.restaurantUser.findFirst({
-        where: { userId: user.id },
-        select: { restaurantId: true },
+        where: {userId: user.id},
+        select: {restaurantId: true},
     })
 
     if (!restaurantUser) {
@@ -58,32 +58,27 @@ export async function createProduct(data: ProductData) {
 
         // Validation selon le type de produit
         if (data.productType === 'good') {
-            // Un bien DOIT avoir un prix
             if (data.includePrice && (!data.price || data.price < 0)) {
-                return { error: 'Le prix est obligatoire pour un bien' }
+                return {error: 'Le prix est obligatoire pour un bien'}
             }
         }
 
         if (data.productType === 'service') {
-            // Un service peut ne pas avoir de prix (sur devis)
             if (!data.includePrice && data.price) {
-                return { error: 'Un service "sur devis" ne peut pas avoir de prix' }
+                return {error: 'Un service "sur devis" ne peut pas avoir de prix'}
             }
         }
 
-        // Déterminer has_stock selon productType
         const hasStock = data.productType === 'good'
 
-        // Déterminer is_available selon productType
         // Services → disponibles par défaut
         // Biens → indisponibles jusqu'à ajout de stock
         const isAvailable = data.productType === 'service'
 
-        // Formatage des données
         const formattedData = {
             name: capitalizeFirst(data.name),
-            description: data.description 
-                ? formatDescription(data.description) 
+            description: data.description
+                ? formatDescription(data.description)
                 : null,
             categoryId: data.categoryId || null,
             familyId: data.familyId || null,
@@ -95,9 +90,7 @@ export async function createProduct(data: ProductData) {
             isAvailable,
         }
 
-        // Transaction pour créer le produit + son stock (si bien)
         const product = await prisma.$transaction(async (tx) => {
-            // Créer le produit
             const newProduct = await tx.product.create({
                 data: {
                     restaurantId,
@@ -121,10 +114,10 @@ export async function createProduct(data: ProductData) {
         })
 
         revalidatePath('/dashboard/menu/products')
-        return { success: true, product }
+        return {success: true, product}
     } catch (error) {
         console.error('Erreur création produit:', error)
-        return { error: 'Erreur lors de la création du produit' }
+        return {error: 'Erreur lors de la création du produit'}
     }
 }
 
@@ -136,65 +129,80 @@ export async function updateProduct(id: string, data: ProductData) {
     try {
         const restaurantId = await getCurrentRestaurantId()
 
-        // Récupérer le produit existant
         const existingProduct = await prisma.product.findUnique({
-            where: { id, restaurantId },
-            select: { productType: true, hasStock: true },
+            where: {id, restaurantId},
+            select: {productType: true, hasStock: true},
         })
 
         if (!existingProduct) {
-            return { error: 'Produit introuvable' }
+            return {error: 'Produit introuvable'}
         }
 
-        // Validation selon le type de produit
         if (data.productType === 'good') {
             if (data.includePrice && (!data.price || data.price < 0)) {
-                return { error: 'Le prix est obligatoire pour un bien' }
+                return {error: 'Le prix est obligatoire pour un bien'}
             }
         }
 
         if (data.productType === 'service') {
             if (!data.includePrice && data.price) {
-                return { error: 'Un service "sur devis" ne peut pas avoir de prix' }
+                return {error: 'Un service "sur devis" ne peut pas avoir de prix'}
             }
         }
 
-        // ⚠️ IMPORTANT : Vérifier le changement de type
+        // Gestion du changement de type
         if (existingProduct.productType !== data.productType) {
-            // Changement de type détecté
             if (data.productType === 'service' && existingProduct.hasStock) {
-                // Passage de bien → service
-                // Supprimer le stock existant
-                await prisma.stock.delete({
-                    where: { 
+                // Passage bien → service : supprimer le stock si il existe
+                const existingStock = await prisma.stock.findUnique({
+                    where: {
                         restaurantId_productId: {
                             restaurantId,
                             productId: id,
-                        }
+                        },
                     },
                 })
+
+                if (existingStock) {
+                    await prisma.stock.delete({
+                        where: {
+                            restaurantId_productId: {
+                                restaurantId,
+                                productId: id,
+                            },
+                        },
+                    })
+                }
             } else if (data.productType === 'good' && !existingProduct.hasStock) {
-                // Passage de service → bien
-                // Créer le stock
-                await prisma.stock.create({
-                    data: {
-                        restaurantId,
-                        productId: id,
-                        quantity: 0,
-                        alertThreshold: 5,
+                // Passage service → bien : créer le stock s'il n'existe pas
+                const existingStock = await prisma.stock.findUnique({
+                    where: {
+                        restaurantId_productId: {
+                            restaurantId,
+                            productId: id,
+                        },
                     },
                 })
+
+                if (!existingStock) {
+                    await prisma.stock.create({
+                        data: {
+                            restaurantId,
+                            productId: id,
+                            quantity: 0,
+                            alertThreshold: 5,
+                        },
+                    })
+                }
             }
         }
 
-        // Déterminer has_stock selon productType
         const hasStock = data.productType === 'good'
 
-        // Formatage des données
         const formattedData = {
             name: capitalizeFirst(data.name),
-            description: data.description 
-                ? formatDescription(data.description) 
+            description: data.description
+                ? formatDescription(data.description)
                 : null,
             categoryId: data.categoryId || null,
             familyId: data.familyId || null,
@@ -206,15 +214,15 @@ export async function updateProduct(id: string, data: ProductData) {
         }
 
         const product = await prisma.product.update({
-            where: { id, restaurantId },
+            where: {id, restaurantId},
             data: formattedData,
         })
 
         revalidatePath('/dashboard/menu/products')
-        return { success: true, product }
+        return {success: true, product}
     } catch (error) {
         console.error('Erreur mise à jour produit:', error)
-        return { error: 'Erreur lors de la mise à jour du produit' }
+        return {error: 'Erreur lors de la mise à jour du produit'}
     }
 }
 
@@ -227,8 +235,8 @@ export async function toggleProductAvailability(id: string) {
         const restaurantId = await getCurrentRestaurantId()
 
         const product = await prisma.product.findUnique({
-            where: { id, restaurantId },
-            select: { 
+            where: {id, restaurantId},
+            select: {
                 isAvailable: true,
                 productType: true,
                 hasStock: true,
@@ -236,7 +244,7 @@ export async function toggleProductAvailability(id: string) {
         })
 
         if (!product) {
-            return { error: 'Produit introuvable' }
+            return {error: 'Produit introuvable'}
         }
 
         // Si c'est un bien avec stock, vérifier qu'il a du stock avant d'activer
@@ -246,28 +254,29 @@ export async function toggleProductAvailability(id: string) {
                     restaurantId_productId: {
                         restaurantId,
                         productId: id,
-                    }
+                    },
                 },
-                select: { quantity: true },
+                select: {quantity: true},
             })
 
-            if (stock && stock.quantity === 0) {
-                return { 
-                    error: 'Impossible d\'activer un produit sans stock. Ajoutez du stock d\'abord.' 
+            // ✅ Guard : stock inexistant ou vide → bloquer
+            if (!stock || stock.quantity === 0) {
+                return {
+                    error: "Impossible d'activer un produit sans stock. Ajoutez du stock d'abord.",
                 }
             }
         }
 
         await prisma.product.update({
-            where: { id },
-            data: { isAvailable: !product.isAvailable },
+            where: {id},
+            data: {isAvailable: !product.isAvailable},
         })
 
         revalidatePath('/dashboard/menu/products')
-        return { success: true }
+        return {success: true}
     } catch (error) {
         console.error('Erreur toggle disponibilité:', error)
-        return { error: 'Erreur lors du changement de disponibilité' }
+        return {error: 'Erreur lors du changement de disponibilité'}
     }
 }
 
@@ -281,14 +290,14 @@ export async function deleteProduct(id: string) {
 
         // Le stock sera automatiquement supprimé grâce au onDelete: Cascade
         await prisma.product.delete({
-            where: { id, restaurantId },
+            where: {id, restaurantId},
         })
 
         revalidatePath('/dashboard/menu/products')
-        return { success: true }
+        return {success: true}
     } catch (error) {
         console.error('Erreur suppression produit:', error)
-        return { error: 'Erreur lors de la suppression du produit' }
+        return {error: 'Erreur lors de la suppression du produit'}
     }
 }
 
@@ -301,27 +310,27 @@ export async function getProductWithDetails(id: string) {
         const restaurantId = await getCurrentRestaurantId()
 
         const product = await prisma.product.findUnique({
-            where: { id, restaurantId },
+            where: {id, restaurantId},
             include: {
                 category: {
-                    select: { id: true, name: true },
+                    select: {id: true, name: true},
                 },
                 family: {
-                    select: { id: true, name: true },
+                    select: {id: true, name: true},
                 },
                 stock: {
-                    select: { quantity: true, alertThreshold: true },
+                    select: {quantity: true, alertThreshold: true},
                 },
             },
         })
 
         if (!product) {
-            return { error: 'Produit introuvable' }
+            return {error: 'Produit introuvable'}
         }
 
-        return { success: true, product }
+        return {success: true, product}
     } catch (error) {
         console.error('Erreur récupération produit:', error)
-        return { error: 'Erreur lors de la récupération du produit' }
+        return {error: 'Erreur lors de la récupération du produit'}
     }
 }

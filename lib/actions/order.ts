@@ -1,8 +1,8 @@
 // lib/actions/order.ts
 'use server'
 
-import { revalidatePath } from 'next/cache'
-import { createClient } from '@/lib/supabase/server'
+import {revalidatePath} from 'next/cache'
+import {createClient} from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
 
 export type OrderStatus = 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled'
@@ -18,18 +18,18 @@ export async function updateOrderStatus(
     const supabase = await createClient()
 
     const {
-        data: { user },
+        data: {user},
     } = await supabase.auth.getUser()
 
-    if (!user) return { error: 'Non authentifié' }
+    if (!user) return {error: 'Non authentifié'}
 
-    // 1️⃣ Vérifications via Prisma (OK)
+    // Vérifications via Prisma
     const order = await prisma.order.findUnique({
-        where: { id: orderId },
-        select: { status: true, restaurantId: true },
+        where: {id: orderId},
+        select: {status: true, restaurantId: true},
     })
 
-    if (!order) return { error: 'Commande introuvable' }
+    if (!order) return {error: 'Commande introuvable'}
 
     const hasAccess = await prisma.restaurantUser.findUnique({
         where: {
@@ -40,9 +40,9 @@ export async function updateOrderStatus(
         },
     })
 
-    if (!hasAccess) return { error: 'Accès refusé' }
+    if (!hasAccess) return {error: 'Accès refusé'}
 
-    // 2️⃣ Validation transition
+    // Validation transition
     const transitions: Record<OrderStatus, OrderStatus[]> = {
         pending: ['preparing', 'cancelled'],
         preparing: ['ready', 'cancelled'],
@@ -52,23 +52,25 @@ export async function updateOrderStatus(
     }
 
     if (!transitions[order.status].includes(newStatus)) {
-        return { error: 'Transition invalide' }
+        return {error: 'Transition invalide'}
     }
 
-    // 3️⃣ UPDATE VIA SUPABASE (🔥 clé du Realtime)
-    const { error } = await supabase
+    // UPDATE via Supabase pour déclencher le Realtime
+    const {error} = await supabase
         .from('orders')
-        .update({ status: newStatus })
+        .update({status: newStatus})
         .eq('id', orderId)
 
     if (error) {
         console.error(error)
-        return { error: 'Erreur mise à jour' }
+        return {error: 'Erreur mise à jour'}
     }
 
-    return { success: true }
-}
+    // ✅ Revalider les pages SSR après le update
+    revalidatePath('/dashboard/orders')
 
+    return {success: true}
+}
 
 // ============================================================
 // RÉCUPÉRER LES COMMANDES DU RESTAURANT
@@ -77,14 +79,13 @@ export async function updateOrderStatus(
 export async function getRestaurantOrders(restaurantId: string) {
     const supabase = await createClient()
     const {
-        data: { user },
+        data: {user},
     } = await supabase.auth.getUser()
 
     if (!user) {
-        return { error: 'Non authentifié' }
+        return {error: 'Non authentifié'}
     }
 
-    // Vérifier l'accès au restaurant
     const hasAccess = await prisma.restaurantUser.findUnique({
         where: {
             userId_restaurantId: {
@@ -95,7 +96,7 @@ export async function getRestaurantOrders(restaurantId: string) {
     })
 
     if (!hasAccess) {
-        return { error: 'Accès refusé' }
+        return {error: 'Accès refusé'}
     }
 
     try {
@@ -128,13 +129,12 @@ export async function getRestaurantOrders(restaurantId: string) {
             },
         })
 
-        return { success: true, orders }
+        return {success: true, orders}
     } catch (error) {
         console.error('Erreur récupération commandes:', error)
-        return { error: 'Erreur lors de la récupération' }
+        return {error: 'Erreur lors de la récupération'}
     }
 }
-
 
 // ============================================================
 // Récupérer les commandes actives d'une table
@@ -148,19 +148,40 @@ interface ActiveOrder {
     createdAt: Date
 }
 
-/**
- * Récupère toutes les commandes non terminées pour une table donnée
- * Une commande est considérée comme active si elle n'est pas "delivered" ou "cancelled"
- */
 export async function getActiveOrdersForTable(
     tableId: string
 ): Promise<ActiveOrder[]> {
     try {
+        const supabase = await createClient()
+        const {
+            data: {user},
+        } = await supabase.auth.getUser()
+
+        if (!user) return []
+
+        // ✅ Vérifier que la table appartient au restaurant de l'utilisateur
+        const table = await prisma.table.findUnique({
+            where: {id: tableId},
+            select: {restaurantId: true},
+        })
+
+        if (!table) return []
+
+        const hasAccess = await prisma.restaurantUser.findUnique({
+            where: {
+                userId_restaurantId: {
+                    userId: user.id,
+                    restaurantId: table.restaurantId,
+                },
+            },
+        })
+
+        if (!hasAccess) return []
+
         const orders = await prisma.order.findMany({
             where: {
                 tableId,
                 status: {
-                    // On exclut les commandes déjà servies ou annulées
                     notIn: ['delivered', 'cancelled'],
                 },
             },
@@ -176,7 +197,7 @@ export async function getActiveOrdersForTable(
             },
         })
 
-        return orders
+        return orders as ActiveOrder[]
     } catch (error) {
         console.error('Erreur récupération commandes actives:', error)
         return []
@@ -189,8 +210,34 @@ export async function getActiveOrdersForTable(
 
 export async function getOrderDetails(orderId: string) {
     try {
+        const supabase = await createClient()
+        const {
+            data: {user},
+        } = await supabase.auth.getUser()
+
+        if (!user) return null
+
+        // ✅ Vérifier que la commande appartient au restaurant de l'utilisateur
         const order = await prisma.order.findUnique({
-            where: { id: orderId },
+            where: {id: orderId},
+            select: {restaurantId: true},
+        })
+
+        if (!order) return null
+
+        const hasAccess = await prisma.restaurantUser.findUnique({
+            where: {
+                userId_restaurantId: {
+                    userId: user.id,
+                    restaurantId: order.restaurantId,
+                },
+            },
+        })
+
+        if (!hasAccess) return null
+
+        const orderDetails = await prisma.order.findUnique({
+            where: {id: orderId},
             include: {
                 table: {
                     select: {
@@ -207,7 +254,7 @@ export async function getOrderDetails(orderId: string) {
             },
         })
 
-        return order
+        return orderDetails
     } catch (error) {
         console.error('Erreur récupération détails commande:', error)
         return null
