@@ -5,7 +5,7 @@ import {
     getRestaurantSubscription,
     getDaysRemaining,
 } from '@/lib/actions/subscription'
-import {formatPrice} from '@/lib/subscription/config'
+import {SUBSCRIPTION_CONFIG, calculatePrice, formatPrice} from '@/lib/config/subscription'
 import Link from 'next/link'
 import {
     Calendar,
@@ -126,12 +126,12 @@ export default async function SubscriptionPage() {
                     <Alert className="border-orange-800 ">
                         <AlertCircle className="h-4 w-4 text-orange-600"/>
                         <AlertTitle className="text-primary">
-                            Période d'essai bientôt terminée
+                            Période d&#39;essai bientôt terminée
                         </AlertTitle>
                         <AlertDescription className="text-orange-600">
                             Il vous reste {daysRemaining} jour{daysRemaining! > 1 ? 's' : ''}{' '}
-                            d'essai gratuit. Choisissez votre plan dès maintenant pour ne pas
-                            perdre l'accès.
+                            d&apos;essai gratuit. Choisissez votre plan dès maintenant pour ne pas
+                            perdre l&apos;accès.
                         </AlertDescription>
                     </Alert>
                 )}
@@ -146,7 +146,7 @@ export default async function SubscriptionPage() {
                         <AlertDescription className="text-blue-700">
                             Vous avez {pendingPayments.length} paiement
                             {pendingPayments.length > 1 ? 's' : ''} en attente de validation.
-                            Notre équipe vérifie votre paiement, cela peut prendre jusqu'à 24h.
+                            Notre équipe vérifie votre paiement, cela peut prendre jusqu&apos;à 24h.
                         </AlertDescription>
                     </Alert>
                 )}
@@ -210,7 +210,7 @@ export default async function SubscriptionPage() {
                                             </p>
                                         </div>
                                         <div>
-                                            <p className="text-sm text-muted-foreground">Fin de l'essai</p>
+                                            <p className="text-sm text-muted-foreground">Fin de l&apos;essai</p>
                                             <p className="text-lg font-medium flex items-center gap-2">
                                                 <Calendar className="h-4 w-4"/>
                                                 {new Date(subscription.trialEndsAt).toLocaleDateString(

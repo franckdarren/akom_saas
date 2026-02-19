@@ -2,7 +2,7 @@
 'use server'
 
 import prisma from '@/lib/prisma'
-import {PLAN_FEATURES, type FeatureKey} from '@/lib/config/subscription-features'
+import {PLAN_FEATURES, type FeatureKey} from '@/lib/config/subscription'
 import {toSubscriptionPlan, type SubscriptionPlan} from '@/lib/utils/subscription-helpers'
 
 /**

@@ -11,7 +11,7 @@ import {generateUniqueSlug} from '@/lib/actions/slug'
 import {restaurantSettingsSchema, type RestaurantSettingsInput} from '@/lib/validations/restaurant'
 import {logRestaurantCreated} from '@/lib/actions/logs'
 import {formatRestaurantName} from '@/lib/utils/format-text'
-import {PLAN_CONFIGS} from '@/lib/subscription/config'
+import {SUBSCRIPTION_CONFIG} from '@/lib/config/subscription'
 
 
 interface CreateRestaurantData {
@@ -39,7 +39,7 @@ export async function createRestaurant(data: CreateRestaurantData) {
     }
 
     const slug = await generateUniqueSlug(data.name)
-    const config = PLAN_CONFIGS['business']
+    const config = SUBSCRIPTION_CONFIG['business']
     const now = new Date()
     const trialEnd = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000) // 14 jours d'essai
 
@@ -74,13 +74,12 @@ export async function createRestaurant(data: CreateRestaurantData) {
                 trialEndsAt: trialEnd,
                 monthlyPrice: config.monthlyPrice,
                 billingCycle: 1,
-                maxTables: config.maxTables,
-                maxUsers: config.maxUsers,
-                hasStockManagement: config.hasStockManagement,
-                hasAdvancedStats: config.hasAdvancedStats,
-                hasDataExport: config.hasDataExport,
-                hasMobilePayment: config.hasMobilePayment,
-                hasMultiRestaurants: config.hasMultiRestaurants,
+                maxTables: config.limits.max_tables,
+                maxUsers: config.limits.max_users,
+                hasStockManagement: config.features.stock_management,
+                hasAdvancedStats: config.features.advanced_stats,
+                hasDataExport: config.features.data_export,
+                // hasMobilePmaxTablesayment: config.features.mobile_payment,
             },
         })
     })

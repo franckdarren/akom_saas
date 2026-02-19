@@ -6,11 +6,11 @@ import prisma from '@/lib/prisma'
 import {revalidatePath} from 'next/cache'
 import {isSuperAdminEmail} from '@/lib/utils/permissions'
 import {
-    PLAN_CONFIGS,
+    SUBSCRIPTION_CONFIG,
     calculatePrice,
     type SubscriptionPlan,
     type BillingCycle,
-} from '@/lib/subscription/config'
+} from '@/lib/config/subscription'
 
 // ============================================================
 // FONCTION CENTRALE : ensureSubscription
@@ -43,7 +43,7 @@ export async function ensureSubscription(restaurantId: string) {
 
     // Créer automatiquement un trial pour les restaurants
     // créés avant le système d'abonnements
-    const config = PLAN_CONFIGS['business']
+    const config = SUBSCRIPTION_CONFIG['business']
     const now = new Date()
     const trialEnd = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
 
@@ -56,13 +56,13 @@ export async function ensureSubscription(restaurantId: string) {
             trialEndsAt: trialEnd,
             monthlyPrice: config.monthlyPrice,
             billingCycle: 1,
-            maxTables: config.maxTables,
-            maxUsers: config.maxUsers,
-            hasStockManagement: config.hasStockManagement,
-            hasAdvancedStats: config.hasAdvancedStats,
-            hasDataExport: config.hasDataExport,
-            hasMobilePayment: config.hasMobilePayment,
-            hasMultiRestaurants: config.hasMultiRestaurants,
+            maxTables: config.limits.max_tables,
+            maxUsers: config.limits.max_users,
+            hasStockManagement: config.features.stock_management,
+            hasAdvancedStats: config.features.advanced_stats,
+            hasDataExport: config.features.data_export,
+            hasMobilePayment: config.features.mobile_payment,
+            // hasMultiRestaurants: config.features.hasMultiRestaurants,
         },
         include: {
             payments: true,
@@ -82,7 +82,7 @@ export async function createTrialSubscription(
     plan: SubscriptionPlan = 'business'
 ) {
     try {
-        const config = PLAN_CONFIGS[plan]
+        const config = SUBSCRIPTION_CONFIG[plan]
         const now = new Date()
         const trialEnd = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000)
 
@@ -95,13 +95,13 @@ export async function createTrialSubscription(
                 trialEndsAt: trialEnd,
                 monthlyPrice: config.monthlyPrice,
                 billingCycle: 1,
-                maxTables: config.maxTables,
-                maxUsers: config.maxUsers,
-                hasStockManagement: config.hasStockManagement,
-                hasAdvancedStats: config.hasAdvancedStats,
-                hasDataExport: config.hasDataExport,
-                hasMobilePayment: config.hasMobilePayment,
-                hasMultiRestaurants: config.hasMultiRestaurants,
+                maxTables: config.limits.max_tables,
+                maxUsers: config.limits.max_users,
+                hasStockManagement: config.features.stock_management,
+                hasAdvancedStats: config.features.advanced_stats,
+                hasDataExport: config.features.data_export,
+                hasMobilePayment: config.features.mobile_payment,
+                hasMultiRestaurants: config.features.multi_restaurants,
             },
         })
 
@@ -329,20 +329,20 @@ export async function changePlan(
     newPlan: SubscriptionPlan
 ) {
     try {
-        const config = PLAN_CONFIGS[newPlan]
+        const config = SUBSCRIPTION_CONFIG[newPlan]
 
         const subscription = await prisma.subscription.update({
             where: {restaurantId},
             data: {
                 plan: newPlan,
                 monthlyPrice: config.monthlyPrice,
-                maxTables: config.maxTables,
-                maxUsers: config.maxUsers,
-                hasStockManagement: config.hasStockManagement,
-                hasAdvancedStats: config.hasAdvancedStats,
-                hasDataExport: config.hasDataExport,
-                hasMobilePayment: config.hasMobilePayment,
-                hasMultiRestaurants: config.hasMultiRestaurants,
+                maxTables: config.limits.max_tables,
+                maxUsers: config.limits.max_users,
+                hasStockManagement: config.features.stock_management,
+                hasAdvancedStats: config.features.advanced_stats,
+                hasDataExport: config.features.data_export,
+                hasMobilePayment: config.features.mobile_payment,
+                hasMultiRestaurants: config.features.multi_restaurants,
             },
         })
 
