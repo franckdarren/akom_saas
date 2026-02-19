@@ -5,7 +5,7 @@ import {getQuotaStatus, type QuotaStatus} from '@/lib/services/subscription-chec
 import {useRestaurant} from '@/lib/hooks/use-restaurant'
 import {Progress} from '@/components/ui/progress'
 import {AlertTriangle} from 'lucide-react'
-import {FEATURE_LABELS, type FeatureKey} from '@/lib/config/subscription-features'
+import {FEATURE_LABELS, type FeatureKey} from '@/lib/config/subscription'
 
 interface QuotaDisplayProps {
     quota: Extract<'max_tables' | 'max_products' | 'max_categories' | 'max_orders_per_day', FeatureKey>
