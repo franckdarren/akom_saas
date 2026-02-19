@@ -3,7 +3,7 @@
 
 import {ReactNode} from 'react'
 import {useRestaurant} from '@/lib/hooks/use-restaurant'
-import {PLAN_FEATURES, FEATURE_LABELS, type FeatureKey} from '@/lib/config/subscription-features'
+import {PLAN_FEATURES, FEATURE_LABELS, type FeatureKey} from '@/lib/config/subscription'
 import {Button} from '@/components/ui/button'
 import {Lock} from 'lucide-react'
 import Link from 'next/link'
@@ -69,7 +69,7 @@ export function FeatureGate({
                 </h3>
 
                 <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
-                    {FEATURE_LABELS[feature]} est disponible à partir de l'offre Business.
+                    {FEATURE_LABELS[feature]} est disponible à partir de l&apos;offre Business.
                 </p>
 
                 <Button asChild>
