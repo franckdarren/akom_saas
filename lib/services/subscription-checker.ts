@@ -86,13 +86,25 @@ export async function checkQuota(
     quota: Extract<FeatureKey, 'max_tables' | 'max_products' | 'max_categories' | 'max_orders_per_day'>
 ): Promise<FeatureCheckResult> {
     const plan = await getRestaurantPlan(restaurantId)
-    const limit = PLAN_FEATURES[plan][quota]
 
+    // Récupérer la limite du plan
+    // TypeScript sait que limit peut être : number | boolean | 'unlimited'
+    const limitValue = PLAN_FEATURES[plan][quota]
+
+    // Type guard : vérifier explicitement le type de la limite
+    // En stockant dans une variable typée, on aide TypeScript à comprendre
+    const limit: number | 100000 =
+        typeof limitValue === 'number' || limitValue === 100000
+            ? limitValue
+            : 0 // Fallback (ne devrait jamais arriver avec notre config actuelle)
+
+    // Maintenant TypeScript comprend que limit est soit number soit 'unlimited'
     // Si unlimited, toujours autorisé
-    if (limit === 'unlimited') {
+    if (limit === 100000) {
         return {allowed: true, limit: 'unlimited'}
     }
 
+    // À partir d'ici, TypeScript sait que limit est forcément un number
     // Compter l'utilisation actuelle selon le type de quota
     let currentUsage = 0
 
@@ -128,6 +140,7 @@ export async function checkQuota(
             break
     }
 
+    // limit est maintenant garanti d'être un number
     const allowed = currentUsage < limit
 
     return {
