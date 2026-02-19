@@ -7,6 +7,7 @@ import {getAllPlans} from '@/lib/config/subscription'
 import {ArrowLeft} from 'lucide-react'
 import Link from 'next/link'
 import {Button} from '@/components/ui/button'
+import {Card, CardContent, CardHeader} from "@/components/ui/card"
 
 /**
  * Page de sélection du plan d'abonnement
@@ -80,110 +81,107 @@ export default async function ChoosePlanPage() {
     // ============================================================
 
     return (
-        <div className="min-h-screen bg-gray-50 py-12 px-4">
+        <div className="min-h-screen bg-background py-12 px-4">
             <div className="max-w-7xl mx-auto">
 
                 {/* ========================================
-            SECTION HEADER
-            ======================================== */}
+          SECTION HEADER
+      ======================================== */}
                 <div className="text-center mb-12">
-                    {/* Bouton de retour vers la page d'abonnement principale */}
+
                     <Button asChild variant="ghost" className="mb-6">
                         <Link href="/dashboard/subscription">
                             <ArrowLeft className="mr-2 h-4 w-4"/>
-                            Retour à l'abonnement
+                            Retour à l&apos;abonnement
                         </Link>
                     </Button>
 
-                    {/* Titre principal de la page */}
-                    <h1 className="text-4xl font-bold mb-3">
+                    <h1 className="text-4xl font-bold tracking-tight mb-3">
                         Choisissez votre plan
                     </h1>
 
-                    {/* Sous-titre explicatif */}
-                    <p className="text-xl text-gray-600">
-                        Sélectionnez l'offre qui correspond le mieux à vos besoins
+                    <p className="text-xl text-muted-foreground">
+                        Sélectionnez l&apos;offre qui correspond le mieux à vos besoins
                     </p>
                 </div>
 
                 {/* ========================================
-            GRILLE DES PLANS
-            ======================================== */}
+          GRILLE DES PLANS
+      ======================================== */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-                    {/*
-            On génère dynamiquement une carte pour chaque plan disponible
-
-            Pourquoi cette approche est meilleure que d'écrire 3 fois <PlanCard> :
-            1. Si on ajoute un 4ème plan dans le futur, il apparaîtra automatiquement
-            2. Le code est DRY (Don't Repeat Yourself)
-            3. La logique de recommandation est centralisée
-          */}
                     {plans.map((plan) => (
                         <PlanCard
                             key={plan}
                             plan={plan}
                             currentPlan={currentPlan}
                             restaurantId={restaurantId}
-                            // Le plan Business est recommandé (c'est notre stratégie marketing)
                             recommended={plan === 'business'}
                         />
                     ))}
                 </div>
 
                 {/* ========================================
-            SECTION FAQ
-            ======================================== */}
-                <div className="bg-white rounded-lg p-8 shadow-sm">
-                    <h2 className="text-2xl font-bold mb-6 text-center">
-                        Questions fréquentes
-                    </h2>
+          SECTION FAQ
+      ======================================== */}
+                <Card>
+                    <CardHeader>
+                        <h2 className="text-2xl font-bold text-center">
+                            Questions fréquentes
+                        </h2>
+                    </CardHeader>
 
-                    <div className="grid md:grid-cols-2 gap-6">
-                        {/* Question 1 : Changement de plan */}
-                        <div>
-                            <h3 className="font-semibold mb-2">
-                                Puis-je changer de plan plus tard ?
-                            </h3>
-                            <p className="text-gray-600 text-sm">
-                                Oui, vous pouvez changer de plan à tout moment. Le changement
-                                prendra effet à la fin de votre période en cours.
-                            </p>
-                        </div>
+                    <CardContent>
+                        <div className="grid md:grid-cols-2 gap-6 text-sm">
 
-                        {/* Question 2 : Annulation */}
-                        <div>
-                            <h3 className="font-semibold mb-2">
-                                Que se passe-t-il si j'annule ?
-                            </h3>
-                            <p className="text-gray-600 text-sm">
-                                Vos données restent sauvegardées pendant 90 jours. Vous pouvez
-                                réactiver votre compte à tout moment durant cette période.
-                            </p>
-                        </div>
+                            {/* Question 1 */}
+                            <div>
+                                <h3 className="font-semibold mb-2">
+                                    Puis-je changer de plan plus tard ?
+                                </h3>
+                                <p className="text-muted-foreground">
+                                    Oui, vous pouvez changer de plan à tout moment.
+                                    Le changement prendra effet à la fin de votre période en cours.
+                                </p>
+                            </div>
 
-                        {/* Question 3 : TVA */}
-                        <div>
-                            <h3 className="font-semibold mb-2">
-                                Les prix incluent-ils la TVA ?
-                            </h3>
-                            <p className="text-gray-600 text-sm">
-                                Oui, tous nos prix sont TTC (toutes taxes comprises).
-                            </p>
-                        </div>
+                            {/* Question 2 */}
+                            <div>
+                                <h3 className="font-semibold mb-2">
+                                    Que se passe-t-il si j'annule ?
+                                </h3>
+                                <p className="text-muted-foreground">
+                                    Vos données restent sauvegardées pendant 90 jours.
+                                    Vous pouvez réactiver votre compte à tout moment durant cette période.
+                                </p>
+                            </div>
 
-                        {/* Question 4 : Réductions */}
-                        <div>
-                            <h3 className="font-semibold mb-2">
-                                Puis-je bénéficier d'une réduction ?
-                            </h3>
-                            <p className="text-gray-600 text-sm">
-                                Oui ! En payant pour 3, 6 ou 12 mois d'avance, vous bénéficiez
-                                de réductions allant jusqu'à 20%.
-                            </p>
+                            {/* Question 3 */}
+                            <div>
+                                <h3 className="font-semibold mb-2">
+                                    Les prix incluent-ils la TVA ?
+                                </h3>
+                                <p className="text-muted-foreground">
+                                    Oui, tous nos prix sont TTC (toutes taxes comprises).
+                                </p>
+                            </div>
+
+                            {/* Question 4 */}
+                            <div>
+                                <h3 className="font-semibold mb-2">
+                                    Puis-je bénéficier d'une réduction ?
+                                </h3>
+                                <p className="text-muted-foreground">
+                                    Oui ! En payant pour 3, 6 ou 12 mois d'avance,
+                                    vous bénéficiez de réductions allant jusqu'à 20%.
+                                </p>
+                            </div>
+
                         </div>
-                    </div>
-                </div>
+                    </CardContent>
+                </Card>
+
             </div>
         </div>
     )
+
 }
