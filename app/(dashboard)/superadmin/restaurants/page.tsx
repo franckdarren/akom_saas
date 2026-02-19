@@ -8,14 +8,14 @@ import {
     BreadcrumbSeparator,
     BreadcrumbPage,
 } from '@/components/ui/breadcrumb'
-import { Suspense } from 'react'
-import { Separator } from '@/components/ui/separator'
-import { SidebarTrigger } from '@/components/ui/sidebar'
-import { Badge } from '@/components/ui/badge'
-import { Card, CardContent } from '@/components/ui/card'
-import { formatPrice } from '@/lib/subscription/config'
+import {Suspense} from 'react'
+import {Separator} from '@/components/ui/separator'
+import {SidebarTrigger} from '@/components/ui/sidebar'
+import {Badge} from '@/components/ui/badge'
+import {Card, CardContent} from '@/components/ui/card'
+import {formatPrice} from '@/lib/config/subscription'
 import Link from 'next/link'
-import { ExternalLink } from 'lucide-react'
+import {ExternalLink} from 'lucide-react'
 
 export default async function RestaurantsPage() {
     const restaurants = await prisma.restaurant.findMany({
@@ -29,22 +29,22 @@ export default async function RestaurantsPage() {
                 },
             },
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy: {createdAt: 'desc'},
     })
 
     return (
         <>
             {/* Header */}
             <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-                <SidebarTrigger className="-ml-1" />
-                <Separator orientation="vertical" className="mr-2 h-4" />
+                <SidebarTrigger className="-ml-1"/>
+                <Separator orientation="vertical" className="mr-2 h-4"/>
                 <div className="flex justify-between w-full">
                     <Breadcrumb>
                         <BreadcrumbList>
                             <BreadcrumbItem>
                                 <BreadcrumbLink href="/superadmin">Administration</BreadcrumbLink>
                             </BreadcrumbItem>
-                            <BreadcrumbSeparator />
+                            <BreadcrumbSeparator/>
                             <BreadcrumbItem>
                                 <BreadcrumbPage>Restaurants</BreadcrumbPage>
                             </BreadcrumbItem>
@@ -177,7 +177,7 @@ export default async function RestaurantsPage() {
                                             className="inline-flex items-center gap-1 text-sm text-purple-600 hover:text-purple-700"
                                         >
                                             Voir le restaurant
-                                            <ExternalLink className="h-4 w-4" />
+                                            <ExternalLink className="h-4 w-4"/>
                                         </Link>
 
                                     </div>
