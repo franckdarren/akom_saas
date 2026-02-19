@@ -1,19 +1,19 @@
 // app/dashboard/subscription/payment/PaymentForm.tsx
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { createManualPayment } from '@/lib/actions/subscription'
-import { uploadPaymentProof } from '@/lib/utils/upload'
-import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Upload, CheckCircle2, Loader2, AlertCircle } from 'lucide-react'
-import { Alert, AlertDescription } from '@/components/ui/alert'
+import {useState} from 'react'
+import {useRouter} from 'next/navigation'
+import {createManualPayment} from '@/lib/actions/subscription'
+import {uploadPaymentProof} from '@/lib/utils/upload'
+import {Button} from '@/components/ui/button'
+import {Label} from '@/components/ui/label'
+import {Textarea} from '@/components/ui/textarea'
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card'
+import {Upload, CheckCircle2, Loader2, AlertCircle} from 'lucide-react'
+import {Alert, AlertDescription} from '@/components/ui/alert'
 import Image from 'next/image'
-import { toast } from 'sonner'
-import type { SubscriptionPlan, BillingCycle } from '@/lib/subscription/config'
+import {toast} from 'sonner'
+import type {SubscriptionPlan, BillingCycle} from '@/lib/config/subscription'
 
 interface PaymentFormProps {
     restaurantId: string
@@ -23,11 +23,11 @@ interface PaymentFormProps {
 }
 
 export function PaymentForm({
-    restaurantId,
-    plan,
-    billingCycle,
-    amount,
-}: PaymentFormProps) {
+                                restaurantId,
+                                plan,
+                                billingCycle,
+                                amount,
+                            }: PaymentFormProps) {
     const router = useRouter()
     const [file, setFile] = useState<File | null>(null)
     const [preview, setPreview] = useState<string | null>(null)
@@ -77,7 +77,7 @@ export function PaymentForm({
         try {
             // 1. Upload de la preuve
             setUploading(true)
-            const { url, error: uploadError } = await uploadPaymentProof(
+            const {url, error: uploadError} = await uploadPaymentProof(
                 file,
                 restaurantId
             )
@@ -141,7 +141,7 @@ export function PaymentForm({
                                 htmlFor="proof-upload"
                                 className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
                             >
-                                <Upload className="h-10 w-10 text-gray-400 mb-2" />
+                                <Upload className="h-10 w-10 text-gray-400 mb-2"/>
                                 <span className="text-sm text-gray-600">
                                     Cliquez pour choisir une image
                                 </span>
@@ -197,7 +197,7 @@ export function PaymentForm({
                     {/* Erreur */}
                     {error && (
                         <Alert variant="destructive">
-                            <AlertCircle className="h-4 w-4" />
+                            <AlertCircle className="h-4 w-4"/>
                             <AlertDescription>{error}</AlertDescription>
                         </Alert>
                     )}
@@ -211,17 +211,17 @@ export function PaymentForm({
                     >
                         {uploading ? (
                             <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
                                 Upload en cours...
                             </>
                         ) : submitting ? (
                             <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
                                 Soumission...
                             </>
                         ) : (
                             <>
-                                <CheckCircle2 className="mr-2 h-4 w-4" />
+                                <CheckCircle2 className="mr-2 h-4 w-4"/>
                                 Soumettre le paiement
                             </>
                         )}
