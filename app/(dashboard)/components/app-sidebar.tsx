@@ -36,6 +36,7 @@ import {
     Activity,
     User,
     Loader2,
+    Wallet,
 } from "lucide-react"
 
 import {
@@ -141,6 +142,8 @@ export function AppSidebar({
                     {title: "Stocks", href: "/dashboard/stocks", icon: Package},
                     {title: "Paiements", href: "/dashboard/payments", icon: CreditCard},
                     {title: "Abonnements", href: "/dashboard/subscription", icon: CalendarSync},
+                    {title: "Caisse", href: "/dashboard/caisse", icon: Wallet},
+                    
                 ],
             },
             {

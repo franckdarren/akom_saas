@@ -1,9 +1,9 @@
 // lib/actions/stats.ts
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import {createClient} from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
-import { getPeriodRange } from '@/lib/utils/period'
+import {getPeriodRange} from '@/lib/utils/period'
 import type {
     TimePeriod,
     CustomPeriod,
@@ -16,8 +16,11 @@ import type {
     RecentOrder,
     DashboardStats,
 } from '@/types/stats'
-import { format, eachDayOfInterval } from 'date-fns'
-import { OrderStatus } from '@prisma/client'
+import {format, eachDayOfInterval} from 'date-fns'
+import {getCurrentUserAndRestaurant} from '@/lib/auth/session'
+import {getFinancialStats} from '@/lib/stats/financial-aggregates'
+import type {FinancialPeriodStats} from '@/lib/stats/financial-aggregates'
+import {OrderStatus} from '@prisma/client'
 
 // ============================================================
 // Récupérer le restaurant de l'utilisateur connecté
@@ -26,7 +29,7 @@ import { OrderStatus } from '@prisma/client'
 async function getCurrentRestaurantId() {
     const supabase = await createClient()
     const {
-        data: { user },
+        data: {user},
     } = await supabase.auth.getUser()
 
     if (!user) {
@@ -34,8 +37,8 @@ async function getCurrentRestaurantId() {
     }
 
     const restaurantUser = await prisma.restaurantUser.findFirst({
-        where: { userId: user.id },
-        select: { restaurantId: true },
+        where: {userId: user.id},
+        select: {restaurantId: true},
     })
 
     if (!restaurantUser) {
@@ -55,7 +58,7 @@ export async function getRevenueStats(
 ): Promise<RevenueStats> {
     try {
         const restaurantId = await getCurrentRestaurantId()
-        const { startDate, endDate, previousStartDate, previousEndDate } =
+        const {startDate, endDate, previousStartDate, previousEndDate} =
             getPeriodRange(period, customPeriod)
 
         // ✅ FIX : On compte toutes les commandes confirmées (sauf cancelled)
@@ -63,10 +66,10 @@ export async function getRevenueStats(
         const currentRevenue = await prisma.order.aggregate({
             where: {
                 restaurantId,
-                status: { in: ['delivered'] },
-                createdAt: { gte: startDate, lte: endDate },
+                status: {in: ['delivered']},
+                createdAt: {gte: startDate, lte: endDate},
             },
-            _sum: { totalAmount: true },
+            _sum: {totalAmount: true},
             _count: true,
         })
 
@@ -74,10 +77,10 @@ export async function getRevenueStats(
         const previousRevenue = await prisma.order.aggregate({
             where: {
                 restaurantId,
-                status: { in: ['delivered'] },
-                createdAt: { gte: previousStartDate, lte: previousEndDate },
+                status: {in: ['delivered']},
+                createdAt: {gte: previousStartDate, lte: previousEndDate},
             },
-            _sum: { totalAmount: true },
+            _sum: {totalAmount: true},
         })
 
         const total = currentRevenue._sum.totalAmount || 0
@@ -112,13 +115,13 @@ export async function getOrdersStats(
         // console.log('🟢 restaurantId used in stats:', restaurantId)
 
         // 🔹 Déterminer la plage via getPeriodRange
-        let { startDate, endDate } = getPeriodRange(period, customPeriod)
+        let {startDate, endDate} = getPeriodRange(period, customPeriod)
 
         // 🔹 Vérifier s’il y a des commandes dans cette période
         const lastOrder = await prisma.order.findFirst({
-            where: { restaurantId },
-            orderBy: { createdAt: 'desc' },
-            select: { createdAt: true },
+            where: {restaurantId},
+            orderBy: {createdAt: 'desc'},
+            select: {createdAt: true},
         })
 
         if (lastOrder && lastOrder.createdAt < startDate) {
@@ -136,10 +139,10 @@ export async function getOrdersStats(
             by: ['status'],
             where: {
                 restaurantId,
-                createdAt: { gte: startDate, lte: endDate },
+                createdAt: {gte: startDate, lte: endDate},
             },
-            _count: { _all: true },
-            _sum: { totalAmount: true },
+            _count: {_all: true},
+            _sum: {totalAmount: true},
         })
 
         // console.log('🟢 GROUP BY RESULT:', ordersGrouped)
@@ -203,9 +206,6 @@ export async function getOrdersStats(
 }
 
 
-
-
-
 // ============================================================
 // ALERTES STOCK BAS
 // ============================================================
@@ -225,12 +225,12 @@ export async function getStockAlerts(): Promise<StockAlert[]> {
                     select: {
                         name: true,
                         category: {
-                            select: { name: true },
+                            select: {name: true},
                         },
                     },
                 },
             },
-            orderBy: { quantity: 'asc' },
+            orderBy: {quantity: 'asc'},
         })
 
         // Filtrer les stocks bas côté application
@@ -261,14 +261,14 @@ export async function getDailySales(
 ): Promise<DailySales[]> {
     try {
         const restaurantId = await getCurrentRestaurantId()
-        const { startDate, endDate } = getPeriodRange(period, customPeriod)
+        const {startDate, endDate} = getPeriodRange(period, customPeriod)
 
         // ✅ FIX : On récupère toutes les commandes confirmées (pas uniquement delivered)
         const orders = await prisma.order.findMany({
             where: {
                 restaurantId,
-                status: { notIn: ['cancelled'] },
-                createdAt: { gte: startDate, lte: endDate },
+                status: {notIn: ['cancelled']},
+                createdAt: {gte: startDate, lte: endDate},
             },
             select: {
                 createdAt: true,
@@ -277,14 +277,14 @@ export async function getDailySales(
         })
 
         // Générer tous les jours de la période
-        const allDays = eachDayOfInterval({ start: startDate, end: endDate })
+        const allDays = eachDayOfInterval({start: startDate, end: endDate})
 
         // Map pour accès rapide
         const salesByDate = new Map<string, { revenue: number; orders: number }>()
 
         orders.forEach((order) => {
             const date = format(order.createdAt, 'yyyy-MM-dd')
-            const existing = salesByDate.get(date) || { revenue: 0, orders: 0 }
+            const existing = salesByDate.get(date) || {revenue: 0, orders: 0}
             salesByDate.set(date, {
                 revenue: existing.revenue + order.totalAmount,
                 orders: existing.orders + 1,
@@ -294,7 +294,7 @@ export async function getDailySales(
         // Remplir avec zéros pour les jours sans ventes
         return allDays.map((day) => {
             const date = format(day, 'yyyy-MM-dd')
-            const sales = salesByDate.get(date) || { revenue: 0, orders: 0 }
+            const sales = salesByDate.get(date) || {revenue: 0, orders: 0}
             return {
                 date,
                 revenue: sales.revenue,
@@ -318,7 +318,7 @@ export async function getTopProducts(
 ): Promise<TopProduct[]> {
     try {
         const restaurantId = await getCurrentRestaurantId()
-        const { startDate, endDate } = getPeriodRange(period, customPeriod)
+        const {startDate, endDate} = getPeriodRange(period, customPeriod)
 
         // ✅ FIX : On compte tous les produits vendus (sauf commandes annulées)
         const topProducts = await prisma.orderItem.groupBy({
@@ -326,8 +326,8 @@ export async function getTopProducts(
             where: {
                 order: {
                     restaurantId,
-                    status: { notIn: ['cancelled'] },
-                    createdAt: { gte: startDate, lte: endDate },
+                    status: {notIn: ['cancelled']},
+                    createdAt: {gte: startDate, lte: endDate},
                 },
             },
             _sum: {
@@ -346,10 +346,10 @@ export async function getTopProducts(
         // Récupérer les catégories
         const productIds = topProducts.map((p) => p.productId)
         const products = await prisma.product.findMany({
-            where: { id: { in: productIds } },
+            where: {id: {in: productIds}},
             select: {
                 id: true,
-                category: { select: { name: true } },
+                category: {select: {name: true}},
             },
         })
 
@@ -380,15 +380,15 @@ export async function getSalesByCategory(
 ): Promise<CategorySales[]> {
     try {
         const restaurantId = await getCurrentRestaurantId()
-        const { startDate, endDate } = getPeriodRange(period, customPeriod)
+        const {startDate, endDate} = getPeriodRange(period, customPeriod)
 
         // ✅ FIX : On récupère tous les items vendus (sauf commandes annulées)
         const orderItems = await prisma.orderItem.findMany({
             where: {
                 order: {
                     restaurantId,
-                    status: { notIn: ['cancelled'] },
-                    createdAt: { gte: startDate, lte: endDate },
+                    status: {notIn: ['cancelled']},
+                    createdAt: {gte: startDate, lte: endDate},
                 },
             },
             include: {
@@ -396,7 +396,7 @@ export async function getSalesByCategory(
                     select: {
                         categoryId: true,
                         category: {
-                            select: { name: true },
+                            select: {name: true},
                         },
                     },
                 },
@@ -461,12 +461,12 @@ export async function getRecentOrders(limit: number = 10): Promise<RecentOrder[]
         const restaurantId = await getCurrentRestaurantId()
 
         const orders = await prisma.order.findMany({
-            where: { restaurantId },
+            where: {restaurantId},
             include: {
-                table: { select: { number: true } },
-                orderItems: { select: { id: true } },
+                table: {select: {number: true}},
+                orderItems: {select: {id: true}},
             },
-            orderBy: { createdAt: 'desc' },
+            orderBy: {createdAt: 'desc'},
             take: limit,
         })
 
@@ -525,5 +525,24 @@ export async function getDashboardStats(
     } catch (error) {
         console.error('Erreur récupération dashboard:', error)
         throw error
+    }
+}
+
+
+// ============================================================
+// STATS DE LA CAISSE
+// ============================================================
+export async function getFinancialOverviewStats(
+    startDate: Date,
+    endDate: Date,
+): Promise<FinancialPeriodStats | null> {
+    try {
+        const {restaurantId} = await getCurrentUserAndRestaurant()
+        if (!restaurantId) return null
+
+        return await getFinancialStats(restaurantId, startDate, endDate)
+    } catch (error) {
+        console.error('Erreur chargement stats financières:', error)
+        return null
     }
 }
