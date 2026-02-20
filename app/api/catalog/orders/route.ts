@@ -6,7 +6,7 @@ import {z} from 'zod'
 
 const PublicOrderSchema = z.object({
     restaurantId: z.string().uuid(),
-    fulfillmentType: z.enum(['TAKEAWAY', 'RESERVATION']),
+    fulfillmentType: z.enum(['table', 'takeway', 'delivery', 'reservation']),
     customerName: z.string().min(2),
     customerPhone: z.string().min(8),
     items: z.array(z.object({
@@ -43,7 +43,7 @@ export async function POST(req: Request) {
         data: {
             restaurantId: data.restaurantId,
             tableId: null,          // ← Pas de table pour une commande publique
-            source: 'PUBLIC_LINK',  // ← Le marqueur statistique clé
+            source: 'public_link',  // ← Le marqueur statistique clé
             fulfillmentType: data.fulfillmentType,
             customerName: data.customerName,
             customerPhone: data.customerPhone,
