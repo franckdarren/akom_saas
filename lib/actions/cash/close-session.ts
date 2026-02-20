@@ -18,7 +18,9 @@ export async function closeCashSession(input: CloseSessionInput) {
 
     const balanceData = await getSessionBalance(input.sessionId, restaurantId)
 
-    const session = await prisma.cashSession.update({
+    // On sépare update et findFirst car prisma.update ne supporte pas include
+    // sur les relations qui ne sont pas des clés étrangères directes.
+    await prisma.cashSession.update({
         where: {id: input.sessionId},
         data: {
             status: 'closed',
@@ -30,6 +32,24 @@ export async function closeCashSession(input: CloseSessionInput) {
             notes: input.notes,
         },
     })
+
+    // Recharge avec les relations complètes pour que SessionSummary
+    // ait accès à manualRevenues et expenses sans crash.
+    const session = await prisma.cashSession.findFirst({
+        where: {id: input.sessionId},
+        include: {
+            manualRevenues: {
+                orderBy: {createdAt: 'desc'},
+                include: {product: {select: {name: true}}},
+            },
+            expenses: {
+                orderBy: {createdAt: 'desc'},
+                include: {product: {select: {name: true}}},
+            },
+        },
+    })
+
+    if (!session) throw new Error('Session introuvable après clôture')
 
     revalidatePath('/dashboard/caisse')
     return {success: true, session, balanceData}

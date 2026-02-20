@@ -37,8 +37,11 @@ enum PaymentStatus {
 }
 
 enum PaymentMethod {
-  mobile_money
   cash
+  mobile_money
+  airtel_money // Airtel Money Gabon
+  moov_money // Moov Money Gabon
+  card
 
   @@map("payment_method")
 }
@@ -143,7 +146,9 @@ enum SubscriptionStatus {
 
 enum SubscriptionPaymentMethod {
   manual // Virement/dépôt manuel (MVP)
-  mobile_money // Airtel/Moov (V2)
+  airtel_money
+  moov_money
+  mobile_money
   card // Carte bancaire (futur)
 
   @@map("subscription_payment_method")

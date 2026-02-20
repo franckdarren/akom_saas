@@ -4,6 +4,7 @@
 import prisma from '@/lib/prisma'
 import {getCurrentUserAndRestaurant} from '@/lib/auth/session'
 import {revalidatePath} from 'next/cache'
+import {PaymentMethod, RevenueType} from '@prisma/client'
 
 interface AddRevenueInput {
     sessionId: string
@@ -20,17 +21,24 @@ export async function addManualRevenue(input: AddRevenueInput) {
     const {userId, restaurantId} = await getCurrentUserAndRestaurant()
     if (!userId || !restaurantId) throw new Error('Non autorisé')
 
+    const paymentMethod = input.paymentMethod as PaymentMethod
+    if (!Object.values(PaymentMethod).includes(paymentMethod)) {
+        throw new Error(`Mode de paiement invalide : ${input.paymentMethod}. Valeurs acceptées : ${Object.values(PaymentMethod).join(', ')}`)
+    }
+
+    const revenueType = input.revenueType as RevenueType
+    if (!Object.values(RevenueType).includes(revenueType)) {
+        throw new Error(`Type de recette invalide : ${input.revenueType}`)
+    }
+
     const totalAmount = input.quantity * input.unitAmount
 
     const revenue = await prisma.$transaction(async (tx) => {
         let stockMovementId: string | undefined
 
-        if (input.revenueType === 'good' && input.productId) {
+        if (revenueType === RevenueType.good && input.productId) {
             const currentStock = await tx.stock.findFirst({
-                where: {
-                    productId: input.productId,
-                    restaurantId,
-                },
+                where: {productId: input.productId, restaurantId},
             })
 
             if (!currentStock) throw new Error('Produit introuvable dans le stock')
@@ -46,7 +54,7 @@ export async function addManualRevenue(input: AddRevenueInput) {
                 data: {
                     restaurantId,
                     productId: input.productId,
-                    userId,           // ← userId directement, pas user.id
+                    userId,
                     type: 'sale_manual',
                     quantity: -input.quantity,
                     previousQty: currentStock.quantity,
@@ -66,8 +74,8 @@ export async function addManualRevenue(input: AddRevenueInput) {
                 quantity: input.quantity,
                 unitAmount: input.unitAmount,
                 totalAmount,
-                paymentMethod: input.paymentMethod as any,
-                revenueType: input.revenueType,
+                paymentMethod,
+                revenueType,
                 productId: input.productId,
                 notes: input.notes,
                 stockMovementId,

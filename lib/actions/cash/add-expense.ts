@@ -4,6 +4,7 @@
 import prisma from '@/lib/prisma'
 import {getCurrentUserAndRestaurant} from '@/lib/auth/session'
 import {revalidatePath} from 'next/cache'
+import {PaymentMethod, ExpenseCategory} from '@prisma/client'
 
 interface AddExpenseInput {
     sessionId: string
@@ -19,6 +20,19 @@ interface AddExpenseInput {
 export async function addExpense(input: AddExpenseInput) {
     const {userId, restaurantId} = await getCurrentUserAndRestaurant()
     if (!userId || !restaurantId) throw new Error('Non autorisé')
+
+    // Validation des enums avant d'entrer dans la transaction.
+    // Si la valeur reçue n'existe pas dans l'enum, on lève une erreur
+    // claire plutôt qu'une PrismaClientValidationError cryptique.
+    const paymentMethod = input.paymentMethod as PaymentMethod
+    if (!Object.values(PaymentMethod).includes(paymentMethod)) {
+        throw new Error(`Mode de paiement invalide : ${input.paymentMethod}`)
+    }
+
+    const category = input.category as ExpenseCategory
+    if (!Object.values(ExpenseCategory).includes(category)) {
+        throw new Error(`Catégorie invalide : ${input.category}`)
+    }
 
     const expense = await prisma.$transaction(async (tx) => {
         let stockMovementId: string | undefined
@@ -48,7 +62,7 @@ export async function addExpense(input: AddExpenseInput) {
                 data: {
                     restaurantId,
                     productId: input.productId,
-                    userId,           // ← userId directement, pas user.id
+                    userId,
                     type: 'purchase',
                     quantity: input.quantityAdded,
                     previousQty: currentStock.quantity,
@@ -66,8 +80,8 @@ export async function addExpense(input: AddExpenseInput) {
                 sessionId: input.sessionId,
                 description: input.description,
                 amount: input.amount,
-                category: input.category as any,
-                paymentMethod: input.paymentMethod as any,
+                category,        // ← enum typé, plus de cast as any
+                paymentMethod,   // ← enum typé, plus de cast as any
                 productId: input.productId,
                 quantityAdded: input.quantityAdded,
                 notes: input.notes,

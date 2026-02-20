@@ -1,7 +1,7 @@
+// app/(dashboard)/caisse/_components/SessionDashboard.tsx
 'use client'
 
-import {useState} from 'react'
-import {useRouter} from 'next/navigation'
+import {useState, useTransition} from 'react'
 import {Lock} from 'lucide-react'
 import {Button} from '@/components/ui/button'
 import {Tabs, TabsContent, TabsList, TabsTrigger} from '@/components/ui/tabs'
@@ -10,6 +10,7 @@ import {RevenuePanel} from './revenues/RevenuePanel'
 import {ExpensePanel} from './expenses/ExpensePanel'
 import {CloseSessionDialog} from './balance/CloseSessionDialog'
 import {cn} from '@/lib/utils'
+import {getCashSession} from '@/lib/actions/cash/get-session'
 import type {SessionWithRelations, ProductWithStock} from '../_types'
 
 interface SessionDashboardProps {
@@ -23,43 +24,56 @@ export function SessionDashboard({
                                      products,
                                      onSessionUpdated,
                                  }: SessionDashboardProps) {
-    const router = useRouter()
     const [showCloseDialog, setShowCloseDialog] = useState(false)
+    const [isPending, startTransition] = useTransition()
 
     const manualRevenues = session.manualRevenues ?? []
     const expenses = session.expenses ?? []
 
+    // Au lieu de router.refresh() qui ne met pas à jour l'état React local,
+    // on recharge la session complète depuis le serveur via la Server Action
+    // et on propage les nouvelles données vers CaisseShell via onSessionUpdated.
+    // Cela met à jour toute la chaîne : CaisseShell → SessionDashboard → panels.
     function handleActionCompleted() {
-        router.refresh()
+        startTransition(async () => {
+            try {
+                const updated = await getCashSession(session.id)
+                onSessionUpdated(updated as SessionWithRelations)
+            } catch (e) {
+                console.error('Erreur rechargement session:', e)
+            }
+        })
     }
 
     return (
         <div className="space-y-4">
             {/* Badge session historique */}
             {session.isHistorical && (
-                <div
-                    className={cn(
-                        'flex items-center gap-2 px-4 py-2 rounded-lg border text-sm w-fit',
-                        'bg-accent/5 border-accent/10 text-accent-foreground'
-                    )}
-                >
+                <div className={cn(
+                    'flex items-center gap-2 px-4 py-2 rounded-lg border text-sm w-fit',
+                    'bg-accent/5 border-accent/10 text-accent-foreground'
+                )}>
                     <span>📅</span>
                     <span>
             Saisie historique —{' '}
                         <strong>
               {new Date(session.sessionDate).toLocaleDateString('fr-FR', {
-                  weekday: 'long',
-                  day: 'numeric',
-                  month: 'long',
-                  year: 'numeric',
+                  weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
               })}
             </strong>
           </span>
                 </div>
             )}
 
-            {/* Widget de balance */}
+            {/* Widget de balance — se met à jour automatiquement car session est en props */}
             <BalanceCard session={{...session, manualRevenues, expenses}}/>
+
+            {/* Indicateur de chargement discret pendant le rechargement */}
+            {isPending && (
+                <p className="text-xs text-muted-foreground text-center animate-pulse">
+                    Mise à jour en cours...
+                </p>
+            )}
 
             {/* Desktop : deux colonnes */}
             <div className="hidden md:grid md:grid-cols-2 md:gap-4">

@@ -1,20 +1,24 @@
 // app/(dashboard)/dashboard/_components/FinancialOverview.tsx
-// On supprime complètement les imports Prisma de ce fichier.
-// Ce composant reçoit ses données en props — il n'appelle plus jamais Prisma.
 
-import {TrendingUp, TrendingDown, Minus, BookOpen} from 'lucide-react'
-import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
+import {
+    TrendingUp,
+    TrendingDown,
+    Minus,
+    BookOpen,
+} from 'lucide-react'
+import {
+    Card,
+    CardContent,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card'
 import {Badge} from '@/components/ui/badge'
 import {Separator} from '@/components/ui/separator'
 import {cn} from '@/lib/utils'
 import type {FinancialPeriodStats} from '@/lib/stats/financial-aggregates'
 
-// On importe le TYPE uniquement — jamais la fonction getFinancialStats ici.
-// Un import de type est effacé à la compilation et ne crée aucune dépendance
-// vers pg ou Prisma dans le bundle client.
-
 interface FinancialOverviewProps {
-    stats: FinancialPeriodStats  // Les données arrivent déjà calculées
+    stats: FinancialPeriodStats
     title?: string
 }
 
@@ -33,37 +37,38 @@ const EXPENSE_LABELS: Record<string, string> = {
     other: '❓ Autres',
 }
 
-// Ce composant n'a pas de 'use client' — il reste un Server Component.
-// Mais comme il ne fait AUCUN import Node.js, Next.js peut l'utiliser
-// partout sans risque de pollution du bundle client.
-export function FinancialOverview({stats, title = 'Aperçu financier'}: FinancialOverviewProps) {
+export function FinancialOverview({
+                                      stats,
+                                      title = 'Aperçu financier',
+                                  }: FinancialOverviewProps) {
+    const isPositive = stats.netResult >= 0
+
     const cards = [
         {
             label: 'Recettes totales',
             value: stats.totalRevenue,
             icon: <TrendingUp className="h-4 w-4"/>,
-            color: 'text-emerald-600',
-            bg: 'bg-emerald-50',
-            detail: stats.manualRevenue > 0
-                ? `dont ${fmt(stats.manualRevenue)} manuels`
-                : undefined,
+            textColor: 'text-primary',
+            detail:
+                stats.manualRevenue > 0
+                    ? `dont ${fmt(stats.manualRevenue)} manuels`
+                    : undefined,
         },
         {
             label: 'Dépenses',
             value: stats.totalExpenses,
             icon: <TrendingDown className="h-4 w-4"/>,
-            color: 'text-red-500',
-            bg: 'bg-red-50',
-            detail: stats.expensesByCategory.length > 0
-                ? `${stats.expensesByCategory.length} catégorie(s)`
-                : undefined,
+            textColor: 'text-destructive',
+            detail:
+                stats.expensesByCategory.length > 0
+                    ? `${stats.expensesByCategory.length} catégorie(s)`
+                    : undefined,
         },
         {
             label: 'Résultat net',
             value: stats.netResult,
             icon: <Minus className="h-4 w-4"/>,
-            color: stats.netResult >= 0 ? 'text-primary' : 'text-red-600',
-            bg: stats.netResult >= 0 ? 'bg-primary/5' : 'bg-red-50',
+            textColor: isPositive ? 'text-primary' : 'text-destructive',
             detail: undefined,
         },
     ]
@@ -73,6 +78,7 @@ export function FinancialOverview({stats, title = 'Aperçu financier'}: Financia
             <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                     <CardTitle className="text-base">{title}</CardTitle>
+
                     {stats.manualRevenue > 0 && (
                         <Badge variant="secondary" className="gap-1 text-xs">
                             <BookOpen className="h-3 w-3"/>
@@ -82,48 +88,79 @@ export function FinancialOverview({stats, title = 'Aperçu financier'}: Financia
                 </div>
             </CardHeader>
 
-            <CardContent className="space-y-4">
-                <div className="grid grid-cols-3 gap-3">
-                    {cards.map(card => (
-                        <div key={card.label} className={cn('rounded-xl p-3 space-y-1', card.bg)}>
-                            <div className={cn('flex items-center gap-1.5 text-xs font-medium', card.color)}>
+            <CardContent className="space-y-5">
+                {/* Top summary cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {cards.map((card) => (
+                        <div
+                            key={card.label}
+                            className="rounded-xl border bg-card p-4 space-y-1"
+                        >
+                            <div
+                                className={cn(
+                                    'flex items-center gap-1.5 text-xs font-medium',
+                                    card.textColor
+                                )}
+                            >
                                 {card.icon}
                                 {card.label}
                             </div>
-                            <p className={cn('text-xl font-bold tabular-nums leading-tight', card.color)}>
+
+                            <p
+                                className={cn(
+                                    'text-xl font-bold tabular-nums leading-tight',
+                                    card.textColor
+                                )}
+                            >
                                 {fmt(Math.abs(card.value))}
                             </p>
+
                             {card.detail && (
-                                <p className="text-xs text-muted-foreground">{card.detail}</p>
+                                <p className="text-xs text-muted-foreground">
+                                    {card.detail}
+                                </p>
                             )}
                         </div>
                     ))}
                 </div>
 
+                {/* Expenses by category */}
                 {stats.expensesByCategory.length > 0 && (
                     <>
                         <Separator/>
-                        <div className="space-y-1.5">
+
+                        <div className="space-y-2">
                             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                                 Dépenses par catégorie
                             </p>
+
                             {stats.expensesByCategory
                                 .sort((a, b) => b.total - a.total)
-                                .map(cat => {
-                                    const pct = stats.totalExpenses > 0
-                                        ? Math.round((cat.total / stats.totalExpenses) * 100)
-                                        : 0
+                                .map((cat) => {
+                                    const pct =
+                                        stats.totalExpenses > 0
+                                            ? Math.round(
+                                                (cat.total / stats.totalExpenses) * 100
+                                            )
+                                            : 0
+
                                     return (
-                                        <div key={cat.category} className="flex items-center gap-2">
+                                        <div
+                                            key={cat.category}
+                                            className="flex items-center gap-3"
+                                        >
                       <span className="text-xs text-muted-foreground w-32 truncate">
-                        {EXPENSE_LABELS[cat.category] ?? cat.category}
+                        {EXPENSE_LABELS[cat.category] ??
+                            cat.category}
                       </span>
-                                            <div className="flex-1 bg-muted rounded-full h-1.5 overflow-hidden">
+
+                                            <div className="flex-1 bg-muted rounded-full h-2 overflow-hidden">
                                                 <div
-                                                    className="h-full bg-red-400 rounded-full transition-all"
+                                                    className="h-full bg-destructive transition-all"
                                                     style={{width: `${pct}%`}}
                                                 />
                                             </div>
+
                                             <span className="text-xs font-medium tabular-nums w-28 text-right">
                         {fmt(cat.total)}
                       </span>
