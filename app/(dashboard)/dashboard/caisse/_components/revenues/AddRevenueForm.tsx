@@ -111,7 +111,9 @@ export function AddRevenueForm({sessionId, products, onAdded, onCancel}: AddReve
                     <div className="relative">
                         <Input
                             ref={amountRef}
-                            type="number"
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
                             value={unitAmount}
                             onChange={e => setUnitAmount(e.target.value)}
                             placeholder="0"
@@ -126,7 +128,9 @@ export function AddRevenueForm({sessionId, products, onAdded, onCancel}: AddReve
                 <div className="space-y-1.5">
                     <Label className="text-xs">Qté</Label>
                     <Input
-                        type="number"
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
                         value={quantity}
                         onChange={e => setQuantity(e.target.value)}
                         min="1"

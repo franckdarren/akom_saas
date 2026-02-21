@@ -1,10 +1,10 @@
 'use client'
 
-import { useState } from 'react'
-import { updateAlertThreshold } from '@/lib/actions/stock'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import {useState} from 'react'
+import {updateAlertThreshold} from '@/lib/actions/stock'
+import {Button} from '@/components/ui/button'
+import {Input} from '@/components/ui/input'
+import {Label} from '@/components/ui/label'
 import {
     Dialog,
     DialogContent,
@@ -14,8 +14,8 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog'
-import { toast } from 'sonner'
-import { Settings } from 'lucide-react'
+import {toast} from 'sonner'
+import {Settings} from 'lucide-react'
 
 interface AlertThresholdEditorProps {
     productId: string
@@ -24,10 +24,10 @@ interface AlertThresholdEditorProps {
 }
 
 export function AlertThresholdEditor({
-    productId,
-    productName,
-    currentThreshold,
-}: AlertThresholdEditorProps) {
+                                         productId,
+                                         productName,
+                                         currentThreshold,
+                                     }: AlertThresholdEditorProps) {
     const [open, setOpen] = useState(false)
     const [threshold, setThreshold] = useState(currentThreshold)
     const [loading, setLoading] = useState(false)
@@ -52,7 +52,7 @@ export function AlertThresholdEditor({
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
                 <Button variant="ghost" size="icon-sm">
-                    <Settings className="h-4 w-4" />
+                    <Settings className="h-4 w-4"/>
                 </Button>
             </DialogTrigger>
             <DialogContent>
@@ -71,7 +71,9 @@ export function AlertThresholdEditor({
                             </Label>
                             <Input
                                 id="threshold"
-                                type="number"
+                                type="text"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
                                 min="0"
                                 max="1000"
                                 value={threshold}
@@ -87,7 +89,8 @@ export function AlertThresholdEditor({
                         </div>
 
                         {threshold !== currentThreshold && (
-                            <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md p-3">
+                            <div
+                                className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md p-3">
                                 <p className="text-sm text-yellow-800 dark:text-yellow-200">
                                     Seuil actuel : {currentThreshold} → Nouveau
                                     seuil : {threshold}

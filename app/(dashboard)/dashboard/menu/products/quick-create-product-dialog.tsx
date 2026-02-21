@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import {useState} from 'react'
+import {useRouter} from 'next/navigation'
 import {
     Dialog,
     DialogContent,
@@ -10,9 +10,9 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import {Button} from '@/components/ui/button'
+import {Input} from '@/components/ui/input'
+import {Label} from '@/components/ui/label'
 import {
     Select,
     SelectContent,
@@ -20,9 +20,9 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select'
-import { Loader2 } from 'lucide-react'
-import { createProduct } from '@/lib/actions/product'
-import { toast } from 'sonner'
+import {Loader2} from 'lucide-react'
+import {createProduct} from '@/lib/actions/product'
+import {toast} from 'sonner'
 
 type Category = {
     id: string
@@ -32,9 +32,9 @@ type Category = {
 type ProductType = 'good' | 'service'
 
 export function QuickCreateProductDialog({
-    categories,
-    children,
-}: {
+                                             categories,
+                                             children,
+                                         }: {
     categories: Category[]
     children: React.ReactNode
 }) {
@@ -110,7 +110,7 @@ export function QuickCreateProductDialog({
                         <Label htmlFor="name">
                             Nom du produit <span className="text-red-500">*</span>
                         </Label>
-                        <Input id="name" name="name" placeholder="Ex: Poulet Curry" required disabled={isLoading} />
+                        <Input id="name" name="name" placeholder="Ex: Poulet Curry" required disabled={isLoading}/>
                     </div>
 
                     {/* Prix */}
@@ -121,7 +121,9 @@ export function QuickCreateProductDialog({
                         <Input
                             id="price"
                             name="price"
-                            type="number"
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
                             min="0"
                             step="25"
                             placeholder="3500"
@@ -151,7 +153,7 @@ export function QuickCreateProductDialog({
                             disabled={isLoading}
                         >
                             <SelectTrigger>
-                                <SelectValue placeholder="Sélectionner le type" />
+                                <SelectValue placeholder="Sélectionner le type"/>
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="good">Bien (stockable)</SelectItem>
@@ -165,7 +167,7 @@ export function QuickCreateProductDialog({
                         <Label htmlFor="category">Catégorie</Label>
                         <Select value={selectedCategory} onValueChange={setSelectedCategory} disabled={isLoading}>
                             <SelectTrigger>
-                                <SelectValue placeholder="Sélectionner une catégorie" />
+                                <SelectValue placeholder="Sélectionner une catégorie"/>
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="none">Aucune catégorie</SelectItem>
@@ -180,7 +182,8 @@ export function QuickCreateProductDialog({
 
                     {/* Erreur */}
                     {error && (
-                        <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-lg text-sm">
+                        <div
+                            className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-lg text-sm">
                             {error}
                         </div>
                     )}
@@ -193,7 +196,7 @@ export function QuickCreateProductDialog({
                         <Button type="submit" disabled={isLoading}>
                             {isLoading ? (
                                 <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
                                     Création...
                                 </>
                             ) : (

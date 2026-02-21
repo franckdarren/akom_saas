@@ -154,7 +154,9 @@ export function OpenSessionCard({
                         <div className="relative">
                             <Input
                                 id="opening-balance"
-                                type="number"
+                                type="text"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
                                 value={openingBalance}
                                 onChange={e => setOpeningBalance(e.target.value)}
                                 placeholder="0"

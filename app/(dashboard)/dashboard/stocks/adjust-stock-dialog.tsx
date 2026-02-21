@@ -1,8 +1,8 @@
 // app/(dashboard)/dashboard/stocks/adjust-stock-dialog.tsx
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import {useState} from 'react'
+import {useRouter} from 'next/navigation'
 import {
     Dialog,
     DialogContent,
@@ -11,10 +11,10 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
+import {Button} from '@/components/ui/button'
+import {Input} from '@/components/ui/input'
+import {Label} from '@/components/ui/label'
+import {Textarea} from '@/components/ui/textarea'
 import {
     Select,
     SelectContent,
@@ -22,9 +22,9 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select'
-import { Loader2, Plus, Minus, RefreshCw } from 'lucide-react'
-import { adjustStock } from '@/lib/actions/stock'
-import { formatNumber } from '@/lib/utils/format'
+import {Loader2, Plus, Minus, RefreshCw} from 'lucide-react'
+import {adjustStock} from '@/lib/actions/stock'
+import {formatNumber} from '@/lib/utils/format'
 
 type Stock = {
     id: string
@@ -36,10 +36,10 @@ type Stock = {
 }
 
 export function AdjustStockDialog({
-    stock,
-    children,
-    onSuccess,
-}: {
+                                      stock,
+                                      children,
+                                      onSuccess,
+                                  }: {
     stock: Stock
     children: React.ReactNode
     onSuccess?: () => void
@@ -119,24 +119,24 @@ export function AdjustStockDialog({
                         <Label>Type de mouvement</Label>
                         <Select value={type} onValueChange={(v: any) => setType(v)} disabled={isLoading}>
                             <SelectTrigger>
-                                <SelectValue />
+                                <SelectValue/>
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="manual_in">
                                     <div className="flex items-center gap-2">
-                                        <Plus className="h-4 w-4 text-green-500" />
+                                        <Plus className="h-4 w-4 text-green-500"/>
                                         <span>Entrée (livraison, production)</span>
                                     </div>
                                 </SelectItem>
                                 <SelectItem value="manual_out">
                                     <div className="flex items-center gap-2">
-                                        <Minus className="h-4 w-4 text-red-500" />
+                                        <Minus className="h-4 w-4 text-red-500"/>
                                         <span>Sortie (casse, perte)</span>
                                     </div>
                                 </SelectItem>
                                 <SelectItem value="adjustment">
                                     <div className="flex items-center gap-2">
-                                        <RefreshCw className="h-4 w-4 text-blue-500" />
+                                        <RefreshCw className="h-4 w-4 text-blue-500"/>
                                         <span>Ajustement (inventaire)</span>
                                     </div>
                                 </SelectItem>
@@ -152,7 +152,9 @@ export function AdjustStockDialog({
                         <Input
                             id="quantity"
                             name="quantity"
-                            type="number"
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
                             min="1"
                             value={quantity}
                             onChange={(e) => setQuantity(e.target.value)}
@@ -179,7 +181,8 @@ export function AdjustStockDialog({
                     </div>
 
                     {error && (
-                        <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-lg text-sm">
+                        <div
+                            className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-lg text-sm">
                             {error}
                         </div>
                     )}
@@ -196,7 +199,7 @@ export function AdjustStockDialog({
                         <Button type="submit" disabled={isLoading}>
                             {isLoading ? (
                                 <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
                                     Enregistrement...
                                 </>
                             ) : (

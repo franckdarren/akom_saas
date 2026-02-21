@@ -165,7 +165,9 @@ export function CloseSessionDialog({
                             <div className="relative">
                                 <Input
                                     id="closing-balance"
-                                    type="number"
+                                    type="text"
+                                    inputMode="numeric"
+                                    pattern="[0-9]*"
                                     value={closingBalance}
                                     onChange={(e) => setClosingBalance(e.target.value)}
                                     placeholder="0"

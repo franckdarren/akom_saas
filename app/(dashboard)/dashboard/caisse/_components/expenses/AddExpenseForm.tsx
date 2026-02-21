@@ -114,7 +114,9 @@ export function AddExpenseForm({
                 <Label className="text-xs">Montant (FCFA)</Label>
                 <Input
                     ref={amountRef}
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                     value={amount}
                     onChange={e => setAmount(e.target.value)}
                     placeholder="0"
@@ -181,7 +183,9 @@ export function AddExpenseForm({
                     </Select>
 
                     <Input
-                        type="number"
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
                         value={quantityAdded}
                         onChange={e => setQuantityAdded(e.target.value)}
                         min="1"

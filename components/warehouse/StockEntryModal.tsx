@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { TrendingUp, Loader2 } from 'lucide-react'
-import { toast } from 'sonner'
+import {useState} from 'react'
+import {useRouter} from 'next/navigation'
+import {TrendingUp, Loader2} from 'lucide-react'
+import {toast} from 'sonner'
 
 import {
     Dialog,
@@ -12,12 +12,12 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { WarehouseProductWithStock } from '@/types/warehouse'
-import { warehouseStockEntry } from '@/lib/actions/warehouse'
+import {Button} from '@/components/ui/button'
+import {Input} from '@/components/ui/input'
+import {Label} from '@/components/ui/label'
+import {Textarea} from '@/components/ui/textarea'
+import {WarehouseProductWithStock} from '@/types/warehouse'
+import {warehouseStockEntry} from '@/lib/actions/warehouse'
 
 interface StockEntryModalProps {
     warehouseProduct: WarehouseProductWithStock
@@ -99,7 +99,7 @@ export function StockEntryModal({
             <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
-                        <TrendingUp className="h-5 w-5 text-blue-600" />
+                        <TrendingUp className="h-5 w-5 text-blue-600"/>
                         Entrée de stock
                     </DialogTitle>
                     <DialogDescription>
@@ -123,10 +123,13 @@ export function StockEntryModal({
                     <div className="space-y-1">
                         <Label htmlFor="quantity">Quantité reçue ({warehouseProduct.storageUnit})</Label>
                         <div className="flex items-center gap-2">
-                            <Button type="button" size="sm" variant="outline" onClick={() => adjustQuantity(-1)} disabled={formData.quantity <= 1}>-</Button>
+                            <Button type="button" size="sm" variant="outline" onClick={() => adjustQuantity(-1)}
+                                    disabled={formData.quantity <= 1}>-</Button>
                             <Input
                                 id="quantity"
-                                type="number"
+                                type="text"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
                                 min={1}
                                 value={formData.quantity}
                                 onChange={e => setFormData(prev => ({
@@ -136,7 +139,8 @@ export function StockEntryModal({
                                 className="text-center font-semibold"
                                 required
                             />
-                            <Button type="button" size="sm" variant="outline" onClick={() => adjustQuantity(1)}>+</Button>
+                            <Button type="button" size="sm" variant="outline"
+                                    onClick={() => adjustQuantity(1)}>+</Button>
                         </div>
                     </div>
 
@@ -148,7 +152,7 @@ export function StockEntryModal({
                                 id="supplierName"
                                 placeholder="Ex: Brasseries du Gabon"
                                 value={formData.supplierName}
-                                onChange={e => setFormData(prev => ({ ...prev, supplierName: e.target.value }))}
+                                onChange={e => setFormData(prev => ({...prev, supplierName: e.target.value}))}
                             />
                         </div>
                         <div className="space-y-1">
@@ -157,7 +161,7 @@ export function StockEntryModal({
                                 id="invoiceReference"
                                 placeholder="Ex: FAC-2024-001"
                                 value={formData.invoiceReference}
-                                onChange={e => setFormData(prev => ({ ...prev, invoiceReference: e.target.value }))}
+                                onChange={e => setFormData(prev => ({...prev, invoiceReference: e.target.value}))}
                             />
                         </div>
                     </div>
@@ -170,12 +174,14 @@ export function StockEntryModal({
                         </Label>
                         <Input
                             id="unitCost"
-                            type="number"
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
                             min={0}
                             step={0.01}
                             placeholder="0"
                             value={formData.unitCost || ''}
-                            onChange={e => setFormData(prev => ({ ...prev, unitCost: parseFloat(e.target.value) || 0 }))}
+                            onChange={e => setFormData(prev => ({...prev, unitCost: parseFloat(e.target.value) || 0}))}
                         />
                     </div>
 
@@ -186,7 +192,7 @@ export function StockEntryModal({
                             id="notes"
                             placeholder="Informations complémentaires..."
                             value={formData.notes}
-                            onChange={e => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+                            onChange={e => setFormData(prev => ({...prev, notes: e.target.value}))}
                             rows={2}
                         />
                     </div>
@@ -196,7 +202,8 @@ export function StockEntryModal({
                         <h4 className="font-semibold text-sm">Après cette entrée</h4>
                         <div className="flex justify-between text-sm">
                             <span>Nouveau stock</span>
-                            <span className="font-bold">{newStock} {warehouseProduct.storageUnit} <span className="text-xs ml-2">(+{formData.quantity})</span></span>
+                            <span className="font-bold">{newStock} {warehouseProduct.storageUnit} <span
+                                className="text-xs ml-2">(+{formData.quantity})</span></span>
                         </div>
                         {newValue !== null && (
                             <div className="flex justify-between text-sm">
@@ -210,7 +217,7 @@ export function StockEntryModal({
                     <div className="flex gap-3 justify-end pt-4 border-t">
                         <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>Annuler</Button>
                         <Button type="submit" disabled={isLoading} className="gap-2">
-                            {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+                            {isLoading && <Loader2 className="h-4 w-4 animate-spin"/>}
                             Enregistrer
                         </Button>
                     </div>

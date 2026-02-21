@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { Edit, Loader2, AlertTriangle } from 'lucide-react'
-import { toast } from 'sonner'
+import {useState} from 'react'
+import {useRouter} from 'next/navigation'
+import {Edit, Loader2, AlertTriangle} from 'lucide-react'
+import {toast} from 'sonner'
 
 import {
     Dialog,
@@ -12,12 +12,12 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { WarehouseProductWithStock } from '@/types/warehouse'
-import { adjustWarehouseStock } from '@/lib/actions/warehouse'
+import {Button} from '@/components/ui/button'
+import {Input} from '@/components/ui/input'
+import {Label} from '@/components/ui/label'
+import {Textarea} from '@/components/ui/textarea'
+import {WarehouseProductWithStock} from '@/types/warehouse'
+import {adjustWarehouseStock} from '@/lib/actions/warehouse'
 
 interface StockAdjustmentModalProps {
     warehouseProduct: WarehouseProductWithStock
@@ -26,10 +26,10 @@ interface StockAdjustmentModalProps {
 }
 
 export function StockAdjustmentModal({
-    warehouseProduct,
-    onClose,
-    onSuccess,
-}: StockAdjustmentModalProps) {
+                                         warehouseProduct,
+                                         onClose,
+                                         onSuccess,
+                                     }: StockAdjustmentModalProps) {
 
     const router = useRouter()
     const [isLoading, setIsLoading] = useState(false)
@@ -109,7 +109,7 @@ export function StockAdjustmentModal({
             <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
-                        <Edit className="h-5 w-5 text-orange-600" />
+                        <Edit className="h-5 w-5 text-orange-600"/>
                         Ajuster l'inventaire
                     </DialogTitle>
                     <DialogDescription>
@@ -149,7 +149,9 @@ export function StockAdjustmentModal({
                         </Label>
                         <Input
                             id="newQuantity"
-                            type="number"
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
                             min={0}
                             step={0.01}
                             value={newQuantity}
@@ -194,7 +196,7 @@ export function StockAdjustmentModal({
                             variant={difference < 0 ? "destructive" : "default"}
                         >
                             {isLoading && (
-                                <Loader2 className="h-4 w-4 animate-spin" />
+                                <Loader2 className="h-4 w-4 animate-spin"/>
                             )}
                             Confirmer
                         </Button>

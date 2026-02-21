@@ -1,10 +1,10 @@
 // components/warehouse/TransferModal.tsx
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { Package, ArrowRight, Loader2 } from 'lucide-react'
-import { toast } from 'sonner'
+import {useState} from 'react'
+import {useRouter} from 'next/navigation'
+import {Package, ArrowRight, Loader2} from 'lucide-react'
+import {toast} from 'sonner'
 
 import {
     Dialog,
@@ -13,12 +13,12 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { WarehouseProductWithStock } from '@/types/warehouse'
-import { transferWarehouseToOps } from '@/lib/actions/warehouse'
+import {Button} from '@/components/ui/button'
+import {Input} from '@/components/ui/input'
+import {Label} from '@/components/ui/label'
+import {Textarea} from '@/components/ui/textarea'
+import {WarehouseProductWithStock} from '@/types/warehouse'
+import {transferWarehouseToOps} from '@/lib/actions/warehouse'
 
 interface TransferModalProps {
     warehouseProduct: WarehouseProductWithStock
@@ -27,10 +27,10 @@ interface TransferModalProps {
 }
 
 export function TransferModal({
-    warehouseProduct,
-    onClose,
-    onSuccess,
-}: TransferModalProps) {
+                                  warehouseProduct,
+                                  onClose,
+                                  onSuccess,
+                              }: TransferModalProps) {
     const router = useRouter()
     const [isLoading, setIsLoading] = useState(false)
     const [quantity, setQuantity] = useState(1)
@@ -122,7 +122,7 @@ export function TransferModal({
                     <div className="rounded-lg border p-4 bg-blue-50 dark:bg-blue-950/20">
                         <div className="flex items-start gap-3">
                             <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/40">
-                                <Package className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                                <Package className="h-5 w-5 text-blue-600 dark:text-blue-400"/>
                             </div>
                             <div className="flex-1">
                                 <h3 className="font-semibold text-sm">
@@ -170,7 +170,9 @@ export function TransferModal({
 
                                 <Input
                                     id="quantity"
-                                    type="number"
+                                    type="text"
+                                    inputMode="numeric"
+                                    pattern="[0-9]*"
                                     min={1}
                                     max={maxQuantity}
                                     value={quantity}
@@ -216,14 +218,14 @@ export function TransferModal({
                     {/* Conversion */}
                     <div className="flex items-center justify-center">
                         <div className="flex items-center gap-3 text-muted-foreground">
-                            <ArrowRight className="h-5 w-5" />
+                            <ArrowRight className="h-5 w-5"/>
                             <span className="text-sm font-medium">
                                 Conversion: ×
                                 {
                                     warehouseProduct.conversionRatio
                                 }
                             </span>
-                            <ArrowRight className="h-5 w-5" />
+                            <ArrowRight className="h-5 w-5"/>
                         </div>
                     </div>
 
@@ -231,7 +233,7 @@ export function TransferModal({
                     <div className="rounded-lg border p-4 bg-green-50 dark:bg-green-950/20">
                         <div className="flex items-start gap-3">
                             <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/40">
-                                <Package className="h-5 w-5 text-green-600 dark:text-green-400" />
+                                <Package className="h-5 w-5 text-green-600 dark:text-green-400"/>
                             </div>
                             <div className="flex-1">
                                 <h3 className="font-semibold text-sm">
@@ -335,7 +337,7 @@ export function TransferModal({
                             className="gap-2"
                         >
                             {isLoading && (
-                                <Loader2 className="h-4 w-4 animate-spin" />
+                                <Loader2 className="h-4 w-4 animate-spin"/>
                             )}
                             Transférer
                         </Button>

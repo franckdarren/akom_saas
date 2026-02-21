@@ -1,8 +1,8 @@
 // app/(dashboard)/dashboard/stocks/alert-threshold-editor.tsx
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import {useState} from 'react'
+import {useRouter} from 'next/navigation'
 import {
     Dialog,
     DialogContent,
@@ -12,11 +12,11 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Settings, Loader2 } from 'lucide-react'
-import { updateAlertThreshold } from '@/lib/actions/stock'
+import {Button} from '@/components/ui/button'
+import {Input} from '@/components/ui/input'
+import {Label} from '@/components/ui/label'
+import {Settings, Loader2} from 'lucide-react'
+import {updateAlertThreshold} from '@/lib/actions/stock'
 
 type AlertThresholdEditorProps = {
     productId: string
@@ -25,10 +25,10 @@ type AlertThresholdEditorProps = {
 }
 
 export function AlertThresholdEditor({
-    productId,
-    productName,
-    currentThreshold,
-}: AlertThresholdEditorProps) {
+                                         productId,
+                                         productName,
+                                         currentThreshold,
+                                     }: AlertThresholdEditorProps) {
     const router = useRouter()
     const [open, setOpen] = useState(false)
     const [threshold, setThreshold] = useState(currentThreshold.toString())
@@ -79,7 +79,7 @@ export function AlertThresholdEditor({
         <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogTrigger asChild>
                 <Button variant="ghost" size="icon-sm" title="Modifier le seuil d'alerte">
-                    <Settings className="h-4 w-4" />
+                    <Settings className="h-4 w-4"/>
                 </Button>
             </DialogTrigger>
             <DialogContent>
@@ -106,7 +106,9 @@ export function AlertThresholdEditor({
                             </Label>
                             <Input
                                 id="threshold"
-                                type="number"
+                                type="text"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
                                 min="0"
                                 max="1000"
                                 value={threshold}
@@ -122,7 +124,8 @@ export function AlertThresholdEditor({
 
                         {/* Aperçu du changement */}
                         {thresholdChanged && !isNaN(parseInt(threshold)) && (
-                            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md p-3">
+                            <div
+                                className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md p-3">
                                 <p className="text-sm text-blue-800 dark:text-blue-200">
                                     📊 Changement : {currentThreshold} → {parseInt(threshold)}
                                 </p>
@@ -131,7 +134,8 @@ export function AlertThresholdEditor({
 
                         {/* Message d'erreur */}
                         {error && (
-                            <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-lg text-sm">
+                            <div
+                                className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-lg text-sm">
                                 {error}
                             </div>
                         )}
@@ -149,7 +153,7 @@ export function AlertThresholdEditor({
                         <Button type="submit" disabled={isLoading || !thresholdChanged}>
                             {isLoading ? (
                                 <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
                                     Enregistrement...
                                 </>
                             ) : (

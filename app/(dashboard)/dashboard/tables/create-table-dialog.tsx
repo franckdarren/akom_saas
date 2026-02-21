@@ -1,9 +1,9 @@
 // app/(dashboard)/dashboard/tables/create-table-dialog.tsx
 'use client'
 
-import { useState } from 'react'
-import { toast } from "sonner"
-import { useRouter } from 'next/navigation'
+import {useState} from 'react'
+import {toast} from "sonner"
+import {useRouter} from 'next/navigation'
 import {
     Dialog,
     DialogContent,
@@ -12,13 +12,13 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Loader2 } from 'lucide-react'
-import { createTable } from '@/lib/actions/table'
+import {Button} from '@/components/ui/button'
+import {Input} from '@/components/ui/input'
+import {Label} from '@/components/ui/label'
+import {Loader2} from 'lucide-react'
+import {createTable} from '@/lib/actions/table'
 
-export function CreateTableDialog({ children }: { children: React.ReactNode }) {
+export function CreateTableDialog({children}: { children: React.ReactNode }) {
     const router = useRouter()
     const [open, setOpen] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
@@ -56,7 +56,7 @@ export function CreateTableDialog({ children }: { children: React.ReactNode }) {
             setOpen(false)
             toast.success("La table a été créée avec succès.")
             router.refresh()
-                ; (e.target as HTMLFormElement).reset()
+            ;(e.target as HTMLFormElement).reset()
         }
     }
 
@@ -79,7 +79,9 @@ export function CreateTableDialog({ children }: { children: React.ReactNode }) {
                         <Input
                             id="number"
                             name="number"
-                            type="number"
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
                             min="1"
                             placeholder="Ex: 5"
                             required
@@ -91,7 +93,8 @@ export function CreateTableDialog({ children }: { children: React.ReactNode }) {
                     </div>
 
                     {error && (
-                        <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-lg text-sm">
+                        <div
+                            className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-lg text-sm">
                             {error}
                         </div>
                     )}
@@ -108,7 +111,7 @@ export function CreateTableDialog({ children }: { children: React.ReactNode }) {
                         <Button type="submit" disabled={isLoading}>
                             {isLoading ? (
                                 <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
                                     Création...
                                 </>
                             ) : (

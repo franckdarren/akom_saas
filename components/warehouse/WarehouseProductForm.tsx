@@ -1,15 +1,15 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { toast } from 'sonner'
-import { Loader2, Upload, X } from 'lucide-react'
+import {useState} from 'react'
+import {useRouter} from 'next/navigation'
+import {toast} from 'sonner'
+import {Loader2, Upload, X} from 'lucide-react'
 import Image from 'next/image'
 
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
+import {Button} from '@/components/ui/button'
+import {Input} from '@/components/ui/input'
+import {Label} from '@/components/ui/label'
+import {Textarea} from '@/components/ui/textarea'
 import {
     Select,
     SelectContent,
@@ -17,10 +17,10 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { storageUnits } from '@/lib/validations/warehouse'
-import { createWarehouseProduct, updateWarehouseProduct } from '@/lib/actions/warehouse'
-import { WarehouseProduct } from '@/types/warehouse'
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card'
+import {storageUnits} from '@/lib/validations/warehouse'
+import {createWarehouseProduct, updateWarehouseProduct} from '@/lib/actions/warehouse'
+import {WarehouseProduct} from '@/types/warehouse'
 
 
 interface WarehouseProductFormProps {
@@ -95,7 +95,7 @@ export function WarehouseProductForm({
      * ce qui est la méthode recommandée pour mettre à jour l'état en React.
      */
     function handleChange(field: string, value: any) {
-        setFormData(prev => ({ ...prev, [field]: value }))
+        setFormData(prev => ({...prev, [field]: value}))
     }
 
     /**
@@ -379,7 +379,7 @@ export function WarehouseProductForm({
                                     }}
                                     disabled={isLoading}
                                 >
-                                    <X className="h-4 w-4" />
+                                    <X className="h-4 w-4"/>
                                 </Button>
                             </div>
                         ) : (
@@ -396,7 +396,7 @@ export function WarehouseProductForm({
                                     htmlFor="image"
                                     className="flex items-center gap-2 px-4 py-2 border rounded-lg cursor-pointer hover:bg-muted transition-colors"
                                 >
-                                    <Upload className="h-4 w-4" />
+                                    <Upload className="h-4 w-4"/>
                                     Choisir une image
                                 </Label>
                                 <p className="text-xs text-muted-foreground">
@@ -432,7 +432,7 @@ export function WarehouseProductForm({
                                 disabled={isLoading}
                             >
                                 <SelectTrigger id="storageUnit">
-                                    <SelectValue />
+                                    <SelectValue/>
                                 </SelectTrigger>
                                 <SelectContent>
                                     {storageUnits.map((unit) => (
@@ -454,7 +454,9 @@ export function WarehouseProductForm({
                             </Label>
                             <Input
                                 id="unitsPerStorage"
-                                type="number"
+                                type="text"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
                                 min={1}
                                 placeholder="Ex: 24"
                                 value={formData.unitsPerStorage}
@@ -471,7 +473,8 @@ export function WarehouseProductForm({
                     {/* Exemple explicatif pour aider l'utilisateur à comprendre */}
                     <div className="rounded-lg border p-3 bg-muted/50">
                         <p className="text-sm text-muted-foreground">
-                            <strong>Exemple :</strong> Un casier de vingt-quatre bouteilles correspond à Type "Casier" plus vingt-quatre unités par emballage
+                            <strong>Exemple :</strong> Un casier de vingt-quatre bouteilles correspond à Type "Casier"
+                            plus vingt-quatre unités par emballage
                         </p>
                     </div>
                 </CardContent>
@@ -498,7 +501,7 @@ export function WarehouseProductForm({
                             disabled={isLoading}
                         >
                             <SelectTrigger id="linkedProductId">
-                                <SelectValue placeholder="Aucun lien" />
+                                <SelectValue placeholder="Aucun lien"/>
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="none">Aucun lien</SelectItem>
@@ -523,7 +526,9 @@ export function WarehouseProductForm({
                                 </Label>
                                 <Input
                                     id="conversionRatio"
-                                    type="number"
+                                    type="text"
+                                    inputMode="numeric"
+                                    pattern="[0-9]*"
                                     min={0.01}
                                     step={0.01}
                                     placeholder="Ex: 24"
@@ -539,7 +544,8 @@ export function WarehouseProductForm({
 
                             {/* Aperçu visuel de la conversion en temps réel */}
                             {selectedProduct && (
-                                <div className="rounded-lg border p-4 bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800">
+                                <div
+                                    className="rounded-lg border p-4 bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800">
                                     <p className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-2">
                                         Aperçu de la conversion
                                     </p>
@@ -551,7 +557,8 @@ export function WarehouseProductForm({
                     </span>
                                     </div>
                                     <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">
-                                        Lors d'un transfert, un {formData.storageUnit} de votre entrepôt ajoutera automatiquement {formData.conversionRatio} unités dans votre stock opérationnel
+                                        Lors d'un transfert, un {formData.storageUnit} de votre entrepôt ajoutera
+                                        automatiquement {formData.conversionRatio} unités dans votre stock opérationnel
                                     </p>
                                 </div>
                             )}
@@ -578,7 +585,9 @@ export function WarehouseProductForm({
                                 <Label htmlFor="initialQuantity">Quantité initiale</Label>
                                 <Input
                                     id="initialQuantity"
-                                    type="number"
+                                    type="text"
+                                    inputMode="numeric"
+                                    pattern="[0-9]*"
                                     min={0}
                                     placeholder="0"
                                     value={formData.initialQuantity}
@@ -594,7 +603,9 @@ export function WarehouseProductForm({
                                 <Label htmlFor="unitCost">Coût unitaire (FCFA)</Label>
                                 <Input
                                     id="unitCost"
-                                    type="number"
+                                    type="text"
+                                    inputMode="numeric"
+                                    pattern="[0-9]*"
                                     min={0}
                                     step={0.01}
                                     placeholder="0"
@@ -611,7 +622,9 @@ export function WarehouseProductForm({
                                 <Label htmlFor="alertThreshold">Seuil d'alerte</Label>
                                 <Input
                                     id="alertThreshold"
-                                    type="number"
+                                    type="text"
+                                    inputMode="numeric"
+                                    pattern="[0-9]*"
                                     min={0}
                                     placeholder="10"
                                     value={formData.alertThreshold}
@@ -626,7 +639,8 @@ export function WarehouseProductForm({
 
                         {/* Calcul automatique de la valeur totale du stock initial */}
                         {formData.initialQuantity > 0 && formData.unitCost > 0 && (
-                            <div className="rounded-lg border p-3 bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800">
+                            <div
+                                className="rounded-lg border p-3 bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800">
                                 <p className="text-sm text-green-900 dark:text-green-100">
                                     <strong>Valeur totale initiale :</strong>{' '}
                                     {(formData.initialQuantity * formData.unitCost).toLocaleString('fr-FR')} FCFA
@@ -654,7 +668,7 @@ export function WarehouseProductForm({
                     Annuler
                 </Button>
                 <Button type="submit" disabled={isLoading} className="gap-2 min-w-[200px]">
-                    {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+                    {isLoading && <Loader2 className="h-4 w-4 animate-spin"/>}
                     {isLoading
                         ? 'Enregistrement en cours...'
                         : isEditing
