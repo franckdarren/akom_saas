@@ -7,9 +7,9 @@ import {SidebarProvider, SidebarInset} from "@/components/ui/sidebar"
 import {RestaurantProvider} from "@/lib/hooks/use-restaurant"
 import prisma from "@/lib/prisma"
 import {FloatingSupportButton} from "@/components/support/FloatingSupportButton"
+// On importe simplement notre nouveau provider client
+import {IdleTimeoutProvider} from "@/providers/IdleTimeoutProvider"
 
-// Routes du dashboard accessibles même sans vérification complète
-// (ex: settings pour soumettre les documents, subscription, support)
 const VERIFICATION_EXEMPT_ROUTES = [
     '/dashboard/settings',
     '/dashboard/subscription',
@@ -23,7 +23,6 @@ export default async function DashboardLayout({
 }) {
     const supabase = await createClient()
 
-    // Vérifier l'authentification
     const {
         data: {user},
     } = await supabase.auth.getUser()
@@ -32,14 +31,11 @@ export default async function DashboardLayout({
         redirect("/login")
     }
 
-    // Récupérer le rôle de l'utilisateur
     const userRole = await getUserRole()
 
-    // Les SuperAdmins passent directement
     if (userRole === "superadmin") {
-        // On laisse passer, le middleware gère la redirection vers /superadmin
+        // SuperAdmin passe directement, le middleware gère la suite
     } else {
-        // Vérifier que l'utilisateur a bien un restaurant
         const restaurantUser = await prisma.restaurantUser.findFirst({
             where: {userId: user.id},
             include: {
@@ -61,18 +57,9 @@ export default async function DashboardLayout({
 
         const restaurant = restaurantUser!.restaurant
         const verificationStatus = restaurant.verificationStatus
-
-        // ============================================================
-        // VÉRIFICATION DU STATUT DE VÉRIFICATION
-        // Un restaurant non vérifié ne peut pas accéder au dashboard complet
-        // Statuts bloquants : pending_documents, documents_submitted, documents_rejected, suspended
-        // Seul "verified" donne accès complet
-        // ============================================================
-
         const isVerified = verificationStatus === 'verified'
 
         if (!isVerified) {
-            // Récupérer le pathname depuis les headers (disponible côté server)
             const {headers} = await import('next/headers')
             const headersList = await headers()
             const pathname = headersList.get('x-pathname') || ''
@@ -82,7 +69,6 @@ export default async function DashboardLayout({
             )
 
             if (!isExempt) {
-                // Rediriger selon le statut
                 if (verificationStatus === 'suspended') {
                     redirect('/onboarding/suspended')
                 } else {
@@ -92,7 +78,6 @@ export default async function DashboardLayout({
         }
     }
 
-    // Récupérer les infos du restaurant (seulement si pas SuperAdmin)
     const restaurantUser = userRole !== "superadmin"
         ? await prisma.restaurantUser.findFirst({
             where: {userId: user.id},
@@ -118,24 +103,34 @@ export default async function DashboardLayout({
     }
 
     return (
-        <RestaurantProvider>
-            <SidebarProvider>
-                <AppSidebar
-                    user={{
-                        email: user.email || "",
-                        id: user.id,
-                    }}
-                    role={userRole}
-                    restaurantName={restaurantName}
-                    restaurantId={restaurantId}
-                    restaurantLogoUrl={restaurantLogoUrl ? restaurantLogoUrl : ""}
-                    onSignOut={handleSignOut}
-                />
-                <SidebarInset>
-                    {children}
-                </SidebarInset>
-                <FloatingSupportButton/>
-            </SidebarProvider>
-        </RestaurantProvider>
+        // IdleTimeoutProvider englobe tout le layout dashboard.
+        // Il reçoit le rôle depuis le serveur et décide lui-même
+        // d'activer ou non le timer selon le rôle (admin, manager).
+        <IdleTimeoutProvider userRole={userRole ?? undefined}>
+            <RestaurantProvider>
+                <SidebarProvider>
+                    <AppSidebar
+                        user={{
+                            email: user.email || "",
+                            id: user.id,
+                        }}
+                        role={userRole}
+                        restaurantName={restaurantName}
+                        restaurantId={restaurantId}
+                        restaurantLogoUrl={restaurantLogoUrl ? restaurantLogoUrl : ""}
+                        onSignOut={handleSignOut}
+                    />
+                    <SidebarInset>
+                        {/*
+                            children est passé à l'intérieur du provider,
+                            ce qui signifie que toutes les pages du dashboard
+                            sont automatiquement protégées par le timer d'inactivité.
+                        */}
+                        {children}
+                    </SidebarInset>
+                    <FloatingSupportButton/>
+                </SidebarProvider>
+            </RestaurantProvider>
+        </IdleTimeoutProvider>
     )
 }
