@@ -1,16 +1,16 @@
 // app/r/[slug]/t/[number]/components/menu-layout.tsx
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
-import { Loader2, MapPin, Phone } from 'lucide-react'
-import { useCart } from '../cart-context'
-import { CartDialog } from '../cart-dialog'
-import { RestaurantHeader } from './restaurant-header'
-import { RestaurantInfo } from './restaurant-info'
-import { SearchFilterBar } from './search-filter-bar'
-import { ProductCard } from '../product-card'
-import { FixedBottomBar } from './fixed-bottom-bar'
-import { ActiveOrdersBanner } from '@/components/menu/ActiveOrdersBanner'
+import {useEffect, useState, useMemo} from 'react'
+import {Loader2, MapPin, Phone} from 'lucide-react'
+import {useCart} from '../cart-context'
+import {CartDialog} from '../cart-dialog'
+import {RestaurantHeader} from './restaurant-header'
+import {RestaurantInfo} from './restaurant-info'
+import {SearchFilterBar} from './search-filter-bar'
+import {ProductCard} from '../product-card'
+import {FixedBottomBar} from './fixed-bottom-bar'
+import {ActiveOrdersBanner} from '@/components/menu/ActiveOrdersBanner'
 
 interface Product {
     id: string
@@ -47,11 +47,11 @@ interface MenuLayoutProps {
 }
 
 export function MenuLayout({
-    restaurantId,
-    restaurantSlug,
-    tableId,
-    tableNumber,
-}: MenuLayoutProps) {
+                               restaurantId,
+                               restaurantSlug,
+                               tableId,
+                               tableNumber,
+                           }: MenuLayoutProps) {
     const [menuData, setMenuData] = useState<MenuData | null>(null)
     const [isLoading, setIsLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
@@ -61,7 +61,10 @@ export function MenuLayout({
     const [searchQuery, setSearchQuery] = useState('')
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
 
-    const { totalItems, totalAmount } = useCart()
+    const {totalItems, totalAmount} = useCart()
+
+    // Détection automatique : si pas de tableId, on est en mode catalogue
+    const isPublicCatalog = !tableId || tableId === null
 
     // Charger le menu
     useEffect(() => {
@@ -118,7 +121,7 @@ export function MenuLayout({
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-zinc-900">
                 <div className="text-center">
-                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mx-auto mb-4" />
+                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mx-auto mb-4"/>
                     <p className="text-muted-foreground">Chargement du menu...</p>
                 </div>
             </div>
@@ -150,13 +153,19 @@ export function MenuLayout({
                 onCartClick={() => setShowCartDialog(true)}
             />
 
-            {/* Card infos restaurant */}
-            <RestaurantInfo
-                restaurantName={menuData.restaurant.name}
-                address={menuData.restaurant.address}
-                phone={menuData.restaurant.phone}
-                tableNumber={tableNumber}
-            />
+            {/*
+                Card infos restaurant - Affichée seulement si on a une table
+                Logique : Dans le catalogue public, pas besoin d'afficher
+                "Table 0" car le client n'est pas physiquement au restaurant
+            */}
+            {!isPublicCatalog && (
+                <RestaurantInfo
+                    restaurantName={menuData.restaurant.name}
+                    address={menuData.restaurant.address}
+                    phone={menuData.restaurant.phone}
+                    tableNumber={tableNumber}
+                />
+            )}
 
             {/* 
                 Bandeau des commandes actives
@@ -166,7 +175,7 @@ export function MenuLayout({
                 d'y accéder en un clic pour suivre leur progression.
             */}
             <div className="max-w-3xl mx-auto px-4 mt-6">
-                <ActiveOrdersBanner 
+                <ActiveOrdersBanner
                     tableId={tableId}
                     tableNumber={tableNumber}
                     restaurantSlug={restaurantSlug}
@@ -206,7 +215,7 @@ export function MenuLayout({
                                 </h2>
                                 <div className="space-y-3">
                                     {category.products.map((product) => (
-                                        <ProductCard key={product.id} product={product} />
+                                        <ProductCard key={product.id} product={product}/>
                                     ))}
                                 </div>
                             </div>
@@ -250,13 +259,13 @@ export function MenuLayout({
                     <div className="flex gap-3 justify-center">
                         {menuData.restaurant.phone && (
                             <div className="flex gap-2 items-center text-xs">
-                                <Phone className="h-4 w-4" />
+                                <Phone className="h-4 w-4"/>
                                 <span>{menuData.restaurant.phone}</span>
                             </div>
                         )}
                         {menuData.restaurant.address && (
                             <div className="flex gap-2 items-center text-xs">
-                                <MapPin className="h-4 w-4" />
+                                <MapPin className="h-4 w-4"/>
                                 <span>{menuData.restaurant.address}</span>
                             </div>
                         )}
