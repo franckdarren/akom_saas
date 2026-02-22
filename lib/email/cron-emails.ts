@@ -1,3 +1,5 @@
+// lib/email/cron-emails.ts
+
 /**
  * FONCTIONS D'ENVOI D'EMAIL POUR LES TÂCHES CRON
  *
@@ -9,15 +11,32 @@
  * - Les données qu'elle reçoit
  * - Le format de l'email généré
  *
- * Configuration requise :
- * - RESEND_API_KEY dans .env
- * - FROM_EMAIL configuré (email vérifié dans Resend)
+ * Configuration requise (variables d'environnement) :
+ * - SMTP_HOST=smtp-relay.brevo.com
+ * - SMTP_PORT=587
+ * - SMTP_USER=votre-email@exemple.com
+ * - SMTP_PASS=votre-cle-smtp-brevo
+ * - FROM_EMAIL=votre-email@exemple.com
+ * - FROM_NAME=Akôm (optionnel)
  */
 
-import {Resend} from 'resend'
+import nodemailer from 'nodemailer'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@akom.app'
+// ============================================================
+// CONFIGURATION DU TRANSPORTEUR SMTP
+// ============================================================
+
+const transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST || 'smtp-relay.brevo.com',
+    port: parseInt(process.env.SMTP_PORT || '587'),
+    secure: false, // false pour STARTTLS (port 587)
+    auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+    },
+})
+
+const FROM_EMAIL = `"${process.env.FROM_NAME || 'Akôm'}" <${process.env.FROM_EMAIL || 'noreply@akom.app'}>`
 
 // ============================================================
 // TYPES POUR LES DONNÉES D'EMAIL
@@ -33,6 +52,7 @@ export interface StockAlert {
 
 export interface PendingOrderAlert {
     orderNumber: string
+    tableNumber: string | number
     totalAmount: number
     minutesOld: number
     createdAt: string
@@ -172,18 +192,16 @@ export async function sendStockAlertEmail({
 </html>
     `
 
-    const {data, error} = await resend.emails.send({
-        from: FROM_EMAIL,
-        to,
-        subject,
-        html,
-    })
-
-    if (error) {
-        throw new Error(`Erreur envoi email alerte stock: ${error.message}`)
+    try {
+        await transporter.sendMail({
+            from: FROM_EMAIL,
+            to,
+            subject,
+            html,
+        })
+    } catch (error) {
+        throw new Error(`Erreur envoi email alerte stock: ${error instanceof Error ? error.message : 'Erreur inconnue'}`)
     }
-
-    return data
 }
 
 // ============================================================
@@ -233,6 +251,7 @@ export async function sendPendingOrderAlertEmail({
             <div class="order-box">
                 <div class="order-number">Commande ${order.orderNumber}</div>
                 <p style="margin: 5px 0;">
+                    <strong>Table :</strong> ${order.tableNumber}<br>
                     <strong>Montant :</strong> ${order.totalAmount.toLocaleString()} FCFA<br>
                     <strong>Créée à :</strong> ${new Date(order.createdAt).toLocaleString('fr-FR')}
                 </p>
@@ -266,18 +285,16 @@ export async function sendPendingOrderAlertEmail({
 </html>
     `
 
-    const {data, error} = await resend.emails.send({
-        from: FROM_EMAIL,
-        to,
-        subject,
-        html,
-    })
-
-    if (error) {
-        throw new Error(`Erreur envoi email alerte commande: ${error.message}`)
+    try {
+        await transporter.sendMail({
+            from: FROM_EMAIL,
+            to,
+            subject,
+            html,
+        })
+    } catch (error) {
+        throw new Error(`Erreur envoi email alerte commande: ${error instanceof Error ? error.message : 'Erreur inconnue'}`)
     }
-
-    return data
 }
 
 // ============================================================
@@ -393,18 +410,16 @@ export async function sendDailyReportEmail({
 </html>
     `
 
-    const {data, error} = await resend.emails.send({
-        from: FROM_EMAIL,
-        to,
-        subject,
-        html,
-    })
-
-    if (error) {
-        throw new Error(`Erreur envoi rapport quotidien: ${error.message}`)
+    try {
+        await transporter.sendMail({
+            from: FROM_EMAIL,
+            to,
+            subject,
+            html,
+        })
+    } catch (error) {
+        throw new Error(`Erreur envoi rapport quotidien: ${error instanceof Error ? error.message : 'Erreur inconnue'}`)
     }
-
-    return data
 }
 
 // ============================================================
@@ -545,18 +560,16 @@ export async function sendWeeklyReportEmail({
 </html>
     `
 
-    const {data, error} = await resend.emails.send({
-        from: FROM_EMAIL,
-        to,
-        subject,
-        html,
-    })
-
-    if (error) {
-        throw new Error(`Erreur envoi rapport hebdomadaire: ${error.message}`)
+    try {
+        await transporter.sendMail({
+            from: FROM_EMAIL,
+            to,
+            subject,
+            html,
+        })
+    } catch (error) {
+        throw new Error(`Erreur envoi rapport hebdomadaire: ${error instanceof Error ? error.message : 'Erreur inconnue'}`)
     }
-
-    return data
 }
 
 // ============================================================
