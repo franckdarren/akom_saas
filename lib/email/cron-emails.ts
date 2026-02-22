@@ -2,22 +2,6 @@
 
 /**
  * FONCTIONS D'ENVOI D'EMAIL POUR LES TÂCHES CRON
- *
- * Ce fichier contient toutes les fonctions d'envoi d'email utilisées
- * par les différentes tâches CRON automatisées d'Akôm.
- *
- * Chaque fonction est documentée avec :
- * - Son objectif
- * - Les données qu'elle reçoit
- * - Le format de l'email généré
- *
- * Configuration requise (variables d'environnement) :
- * - SMTP_HOST=smtp-relay.brevo.com
- * - SMTP_PORT=587
- * - SMTP_USER=votre-email@exemple.com
- * - SMTP_PASS=votre-cle-smtp-brevo
- * - FROM_EMAIL=votre-email@exemple.com
- * - FROM_NAME=Akôm (optionnel)
  */
 
 import nodemailer from 'nodemailer'
@@ -29,7 +13,7 @@ import nodemailer from 'nodemailer'
 const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST || 'smtp-relay.brevo.com',
     port: parseInt(process.env.SMTP_PORT || '587'),
-    secure: false, // false pour STARTTLS (port 587)
+    secure: false,
     auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
@@ -52,7 +36,7 @@ export interface StockAlert {
 
 export interface PendingOrderAlert {
     orderNumber: string
-    tableNumber: string | number
+    // ❌ tableNumber retiré
     totalAmount: number
     minutesOld: number
     createdAt: string
@@ -251,7 +235,6 @@ export async function sendPendingOrderAlertEmail({
             <div class="order-box">
                 <div class="order-number">Commande ${order.orderNumber}</div>
                 <p style="margin: 5px 0;">
-                    <strong>Table :</strong> ${order.tableNumber}<br>
                     <strong>Montant :</strong> ${order.totalAmount.toLocaleString()} FCFA<br>
                     <strong>Créée à :</strong> ${new Date(order.createdAt).toLocaleString('fr-FR')}
                 </p>
