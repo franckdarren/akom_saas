@@ -8,12 +8,11 @@ import {
     BreadcrumbSeparator,
     BreadcrumbPage,
 } from '@/components/ui/breadcrumb'
-import {Suspense} from 'react'
 import {Separator} from '@/components/ui/separator'
 import {SidebarTrigger} from '@/components/ui/sidebar'
 import {Badge} from '@/components/ui/badge'
 import {Card, CardContent} from '@/components/ui/card'
-import {formatPrice} from '@/lib/config/subscription'
+import {formatPrice, calculateMonthlyPrice} from '@/lib/config/subscription'
 import Link from 'next/link'
 import {ExternalLink} from 'lucide-react'
 
@@ -52,14 +51,15 @@ export default async function RestaurantsPage() {
                     </Breadcrumb>
                 </div>
             </header>
+
             <div className='flex flex-col gap-6 p-6'>
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">Tous les Restaurants</h1>
                     <p className="text-muted-foreground mt-2">
-                        {restaurants.length} restaurant{restaurants.length > 1 ? 's' : ''}{' '}
-                        inscrit{restaurants.length > 1 ? 's' : ''}
+                        {restaurants.length} restaurant{restaurants.length > 1 ? 's' : ''} inscrit{restaurants.length > 1 ? 's' : ''}
                     </p>
                 </div>
+
                 {/* Liste */}
                 <div className="grid gap-4">
                     {restaurants.map((restaurant) => {
@@ -93,9 +93,8 @@ export default async function RestaurantsPage() {
                                     <div className="flex items-start justify-between">
                                         <div className="flex-1">
                                             <div className="flex items-center gap-3 mb-2">
-                                                <h3 className="text-lg font-semibold">
-                                                    {restaurant.name}
-                                                </h3>
+                                                <h3 className="text-lg font-semibold">{restaurant.name}</h3>
+
                                                 <Badge
                                                     variant={
                                                         isActive
@@ -113,6 +112,7 @@ export default async function RestaurantsPage() {
                                                     {sub?.status === 'suspended' && 'Suspendu'}
                                                     {sub?.status === 'cancelled' && 'Annulé'}
                                                 </Badge>
+
                                                 {sub && (
                                                     <Badge variant="outline" className="capitalize">
                                                         {sub.plan}
@@ -127,9 +127,7 @@ export default async function RestaurantsPage() {
                                                 </div>
                                                 <div>
                                                     <p className="text-gray-600">Produits</p>
-                                                    <p className="font-medium">
-                                                        {restaurant._count.products}
-                                                    </p>
+                                                    <p className="font-medium">{restaurant._count.products}</p>
                                                 </div>
                                                 <div>
                                                     <p className="text-gray-600">Commandes</p>
@@ -138,9 +136,7 @@ export default async function RestaurantsPage() {
                                                 {sub && (
                                                     <div>
                                                         <p className="text-gray-600">Jours restants</p>
-                                                        <p className="font-medium">
-                                                            {isActive ? daysRemaining : 0} jours
-                                                        </p>
+                                                        <p className="font-medium">{isActive ? daysRemaining : 0} jours</p>
                                                     </div>
                                                 )}
                                             </div>
@@ -150,22 +146,19 @@ export default async function RestaurantsPage() {
                                                     <div>
                                                         <span className="text-gray-600">Prix : </span>
                                                         <span className="font-medium">
-                                                            {formatPrice(sub.monthlyPrice)}/mois
+                                                            {formatPrice(calculateMonthlyPrice(sub.plan, sub.basePlanPrice))}/mois
                                                         </span>
                                                     </div>
                                                     <div>
                                                         <span className="text-gray-600">Créé le : </span>
                                                         <span className="font-medium">
-                                                            {new Date(restaurant.createdAt).toLocaleDateString(
-                                                                'fr-FR'
-                                                            )}
+                                                            {new Date(restaurant.createdAt).toLocaleDateString('fr-FR')}
                                                         </span>
                                                     </div>
                                                     <div>
                                                         <span className="text-gray-600">Termine le : </span>
-                                                        <span className="font-medium">
-                                                            {endDate?.toLocaleDateString('fr-FR')}
-                                                        </span>
+                                                        <span
+                                                            className="font-medium">{endDate?.toLocaleDateString('fr-FR')}</span>
                                                     </div>
                                                 </div>
                                             )}
@@ -187,7 +180,6 @@ export default async function RestaurantsPage() {
                     })}
                 </div>
             </div>
-
         </>
     )
 }
