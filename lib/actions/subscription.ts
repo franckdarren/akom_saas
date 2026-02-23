@@ -430,3 +430,59 @@ export async function validateManualPayment(paymentId: string) {
         }
     }
 }
+
+
+export async function getSubscriptionWithPayments(
+    restaurantId: string
+): Promise<{
+    id: string
+    restaurantId: string
+    plan: string
+    status: 'trial' | 'active' | 'expired' | 'canceled'
+    trialEndsAt: Date | null
+    currentPeriodEnd: Date | null
+    payments: {
+        id: string
+        amount: number
+        status: 'pending' | 'confirmed' | 'failed'
+        userCount: number
+        createdAt: Date
+    }[]
+}> {
+    const subscription = await prisma.subscription.findUnique({
+        where: {restaurantId},
+        include: {
+            payments: {
+                orderBy: {createdAt: 'desc'},
+                take: 20, // les 20 derniers paiements
+                select: {
+                    id: true,
+                    amount: true,
+                    status: true,
+                    userCount: true,
+                    createdAt: true,
+                },
+            },
+        },
+    })
+
+    if (!subscription) {
+        throw new Error('Abonnement introuvable')
+    }
+
+    return {
+        id: subscription.id,
+        restaurantId: subscription.restaurantId,
+        plan: subscription.plan,
+        status: subscription.status as 'trial' | 'active' | 'expired' | 'canceled',
+        trialEndsAt: subscription.trialEndsAt,
+        currentPeriodEnd: subscription.currentPeriodEnd,
+        payments: subscription.payments.map((p) => ({
+            id: p.id,
+            amount: p.amount,
+            status: p.status as 'pending' | 'confirmed' | 'failed',
+            userCount: p.userCount,
+            createdAt: p.createdAt,
+        })),
+    }
+}
