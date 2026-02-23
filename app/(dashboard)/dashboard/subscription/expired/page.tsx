@@ -1,8 +1,7 @@
-'use client'
-
+// app/(dashboard)/dashboard/subscription/expired/page.tsx
 import {redirect} from 'next/navigation'
 import {createClient} from '@/lib/supabase/server'
-import {getSubscriptionWithPayments} from '@/lib/actions/subscription'
+import {getRestaurantSubscription} from '@/lib/actions/subscription'
 import Link from 'next/link'
 import {Calendar, CreditCard, AlertCircle} from 'lucide-react'
 import {Button} from '@/components/ui/button'
@@ -15,15 +14,18 @@ import {
 } from '@/components/ui/card'
 import {Alert, AlertDescription, AlertTitle} from '@/components/ui/alert'
 
+// Cette page est un Server Component
 export default async function SubscriptionExpiredPage() {
     const supabase = await createClient()
+
+    // Récupérer l'utilisateur connecté
     const {
         data: {user},
     } = await supabase.auth.getUser()
 
     if (!user) redirect('/login')
 
-    // Récupérer le restaurant de l'utilisateur
+    // Récupérer le restaurant associé à l'utilisateur
     const {data: restaurantUser} = await supabase
         .from('restaurant_users')
         .select('restaurant_id, restaurants(name)')
@@ -33,10 +35,10 @@ export default async function SubscriptionExpiredPage() {
     if (!restaurantUser) redirect('/dashboard')
 
     const restaurantId = restaurantUser.restaurant_id
-    const restaurantName = (restaurantUser.restaurants as any)?.name
+    const restaurantName = (restaurantUser.restaurants as any)?.name || 'votre restaurant'
 
-    // Récupérer l'abonnement avec paiements
-    const subscription = await getSubscriptionWithPayments(restaurantId)
+    // Récupérer l'abonnement et ses paiements
+    const {subscription} = await getRestaurantSubscription(restaurantId)
     if (!subscription) redirect('/dashboard/subscription/choose-plan')
 
     // Vérifier si l'abonnement est encore actif
@@ -47,6 +49,7 @@ export default async function SubscriptionExpiredPage() {
     } else if (subscription.status === 'active' && subscription.currentPeriodEnd) {
         isActive = new Date(subscription.currentPeriodEnd) > now
     }
+
     if (isActive) redirect('/dashboard')
 
     const pendingPayments = subscription.payments?.filter((p) => p.status === 'pending') || []
@@ -58,8 +61,8 @@ export default async function SubscriptionExpiredPage() {
                 {/* Alerte abonnement expiré */}
                 <Alert variant="destructive" className="border-2">
                     <AlertCircle className="h-5 w-5"/>
-                    <AlertTitle>Abonnement expiré</AlertTitle>
-                    <AlertDescription>
+                    <AlertTitle className="text-lg font-semibold">Abonnement expiré</AlertTitle>
+                    <AlertDescription className="text-base">
                         Votre accès à Akôm est actuellement suspendu. Pour continuer à utiliser toutes les
                         fonctionnalités, veuillez renouveler votre abonnement.
                     </AlertDescription>
@@ -68,7 +71,7 @@ export default async function SubscriptionExpiredPage() {
                 {/* Carte d’abonnement */}
                 <Card>
                     <CardHeader>
-                        <CardTitle>Renouveler {restaurantName}</CardTitle>
+                        <CardTitle className="text-2xl">Renouveler {restaurantName}</CardTitle>
                         <CardDescription>
                             {subscription.status === 'trial'
                                 ? "Votre période d'essai gratuite est terminée."
@@ -87,6 +90,7 @@ export default async function SubscriptionExpiredPage() {
                   {subscription.plan}
                 </span>
                             </div>
+
                             <div className="flex items-center justify-between">
                                 <span className="text-sm font-medium text-foreground">Statut</span>
                                 <span
@@ -94,6 +98,7 @@ export default async function SubscriptionExpiredPage() {
                   {subscription.status === 'trial' ? 'Essai expiré' : 'Expiré'}
                 </span>
                             </div>
+
                             {subscription.currentPeriodEnd && (
                                 <div className="flex items-center justify-between">
                                     <span className="text-sm font-medium text-foreground">Date d'expiration</span>
@@ -130,7 +135,6 @@ export default async function SubscriptionExpiredPage() {
                                 <Link href="/dashboard/subscription">Voir mes paiements</Link>
                             </Button>
                         </div>
-
                     </CardContent>
                 </Card>
 
