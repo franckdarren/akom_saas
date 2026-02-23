@@ -10,6 +10,11 @@ import {toSubscriptionPlan, type SubscriptionPlan} from '@/lib/utils/subscriptio
  *
  * Ce service est le point central pour toutes les vérifications
  * liées aux limites de l'offre d'abonnement.
+ *
+ * ARCHITECTURE :
+ * =============
+ * Ce service lit les limites depuis PLAN_FEATURES (source de vérité unique)
+ * et vérifie l'utilisation réelle en base de données.
  */
 
 // Types pour les résultats de vérification
@@ -24,12 +29,16 @@ export interface QuotaStatus {
     used: number
     limit: number | 'unlimited'
     percentage: number
-    isNearLimit: boolean // true si > 80%
-    isAtLimit: boolean
+    isNearLimit: boolean // true si >= 80%
+    isAtLimit: boolean   // true si >= 100%
 }
 
 /**
  * Récupère le plan d'abonnement actuel d'un restaurant
+ *
+ * Cette fonction cherche l'abonnement actif le plus récent.
+ * Si aucun n'est trouvé, elle retourne 'starter' par défaut
+ * (via le helper toSubscriptionPlan qui gère la conversion).
  */
 export async function getRestaurantPlan(
     restaurantId: string
@@ -37,25 +46,24 @@ export async function getRestaurantPlan(
     const subscription = await prisma.subscription.findFirst({
         where: {
             restaurantId,
-            status: 'active',
+            status: {in: ['active', 'trial']}, // on considère trial comme actif
         },
-        orderBy: {
-            currentPeriodEnd: 'desc',
-        },
-        select: {
-            plan: true,
-        },
+        orderBy: {currentPeriodEnd: 'desc'},
+        select: {plan: true},
     })
 
     // Convertir la valeur Prisma en SubscriptionPlan valide
-    // Le helper garantit qu'on retourne toujours un plan valide
     return toSubscriptionPlan(subscription?.plan)
 }
 
 /**
  * Vérifie si une fonctionnalité booléenne est disponible
  *
- * Exemple : hasFeature(restaurantId, 'advanced_stats')
+ * Utilisée pour les features on/off comme :
+ * - advanced_stats
+ * - stock_management
+ * - mobile_payment
+ * etc.
  */
 export async function hasFeature(
     restaurantId: string,
@@ -63,15 +71,13 @@ export async function hasFeature(
 ): Promise<boolean> {
     const plan = await getRestaurantPlan(restaurantId)
     const planFeatures = PLAN_FEATURES[plan]
-
     const featureValue = planFeatures[feature]
 
-    // Si c'est un booléen, retourner directement
     if (typeof featureValue === 'boolean') {
         return featureValue
     }
 
-    // Si c'est un nombre ou 'unlimited', considérer comme activé
+    // Pour les quotas numériques, la feature est considérée comme activée
     return true
 }
 
@@ -79,32 +85,31 @@ export async function hasFeature(
  * Vérifie si un quota quantitatif est atteint
  *
  * Cette fonction est le cœur de la logique de limitation.
- * Elle compte l'utilisation actuelle et la compare à la limite.
+ * Elle compte l'utilisation actuelle et la compare à la limite du plan.
  */
 export async function checkQuota(
     restaurantId: string,
-    quota: Extract<FeatureKey, 'max_tables' | 'max_products' | 'max_categories' | 'max_orders_per_day'>
+    quota: 'max_tables' | 'max_products' | 'max_categories' | 'max_orders_per_day'
 ): Promise<FeatureCheckResult> {
     const plan = await getRestaurantPlan(restaurantId)
-
-    // Récupérer la limite du plan
-    // TypeScript sait que limit peut être : number | boolean | 'unlimited'
     const limitValue = PLAN_FEATURES[plan][quota]
 
-    // Type guard : vérifier explicitement le type de la limite
-    // En stockant dans une variable typée, on aide TypeScript à comprendre
-    const limit: number | 100000 =
-        typeof limitValue === 'number' || limitValue === 100000
-            ? limitValue
-            : 0 // Fallback (ne devrait jamais arriver avec notre config actuelle)
-
-    // Maintenant TypeScript comprend que limit est soit number soit 'unlimited'
-    // Si unlimited, toujours autorisé
-    if (limit === 100000) {
-        return {allowed: true, limit: 'unlimited'}
+    // Cas 'unlimited'
+    if (limitValue === 'unlimited') {
+        return {allowed: true, limit: 'unlimited', currentUsage: 0}
     }
 
-    // À partir d'ici, TypeScript sait que limit est forcément un number
+    // Sécurité : convertir en nombre si possible
+    const limit: number = typeof limitValue === 'number' ? limitValue : 0
+    if (limit === 0) {
+        return {
+            allowed: false,
+            limit: 0,
+            currentUsage: 0,
+            reason: 'Configuration de limite invalide',
+        }
+    }
+
     // Compter l'utilisation actuelle selon le type de quota
     let currentUsage = 0
 
@@ -130,56 +135,54 @@ export async function checkQuota(
         case 'max_orders_per_day':
             const today = new Date()
             today.setHours(0, 0, 0, 0)
-
+            const tomorrow = new Date(today)
+            tomorrow.setDate(tomorrow.getDate() + 1)
             currentUsage = await prisma.order.count({
                 where: {
                     restaurantId,
-                    createdAt: {gte: today},
+                    createdAt: {gte: today, lt: tomorrow},
                 },
             })
             break
     }
 
-    // limit est maintenant garanti d'être un number
     const allowed = currentUsage < limit
-
     return {
         allowed,
         currentUsage,
         limit,
-        reason: allowed
-            ? undefined
-            : `Limite atteinte : ${currentUsage}/${limit}`,
+        reason: allowed ? undefined : `Limite atteinte : ${currentUsage}/${limit}`,
     }
 }
 
 /**
- * Obtient le statut d'un quota (pour affichage dans l'UI)
+ * Obtient le statut complet d'un quota (pour l'UI)
+ *
+ * Retourne :
+ * - used : nombre utilisé
+ * - limit : limite du plan
+ * - percentage : pourcentage utilisé
+ * - isNearLimit : >= 80%
+ * - isAtLimit : >= 100%
  */
 export async function getQuotaStatus(
     restaurantId: string,
-    quota: Extract<FeatureKey, 'max_tables' | 'max_products' | 'max_categories' | 'max_orders_per_day'>
+    quota: 'max_tables' | 'max_products' | 'max_categories' | 'max_orders_per_day'
 ): Promise<QuotaStatus> {
     const result = await checkQuota(restaurantId, quota)
 
     if (result.limit === 'unlimited') {
-        return {
-            used: result.currentUsage || 0,
-            limit: 'unlimited',
-            percentage: 0,
-            isNearLimit: false,
-            isAtLimit: false,
-        }
+        return {used: result.currentUsage || 0, limit: 'unlimited', percentage: 0, isNearLimit: false, isAtLimit: false}
     }
 
     const used = result.currentUsage || 0
     const limit = result.limit as number
-    const percentage = (used / limit) * 100
+    const percentage = limit > 0 ? (used / limit) * 100 : 0
 
     return {
         used,
         limit,
-        percentage,
+        percentage: Math.min(100, percentage),
         isNearLimit: percentage >= 80,
         isAtLimit: percentage >= 100,
     }
@@ -187,13 +190,16 @@ export async function getQuotaStatus(
 
 /**
  * Vérifie toutes les permissions pour un restaurant
- * Utile pour afficher un récapitulatif complet
+ *
+ * Retourne un objet complet avec :
+ * - plan
+ * - features booléennes
+ * - statuts des quotas
  */
 export async function getAllFeatures(restaurantId: string) {
     const plan = await getRestaurantPlan(restaurantId)
     const features = PLAN_FEATURES[plan]
 
-    // Récupérer les statuts des quotas
     const [tablesStatus, productsStatus, categoriesStatus, ordersStatus] =
         await Promise.all([
             getQuotaStatus(restaurantId, 'max_tables'),
