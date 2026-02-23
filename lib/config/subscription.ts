@@ -152,7 +152,7 @@ export const SUBSCRIPTION_CONFIG: Record<SubscriptionPlan, CompletePlanConfig> =
             max_tables: 10,
             max_products: 30,
             max_categories: 5,
-            max_orders_per_day: 10000,
+            max_orders_per_day: 100000,
         },
 
         features: {
@@ -173,7 +173,8 @@ export const SUBSCRIPTION_CONFIG: Record<SubscriptionPlan, CompletePlanConfig> =
 
         marketingFeatures: [
             'Jusqu\'à 10 tables avec QR codes',
-            'Maximum 50 produits au menu',
+            'Maximum 30 produits au menu',
+            'Maximum 5 catégories produits',
             'Maximum 3 utilisateurs (1 admin + 2 comptes)',
             'Prix de base : 3 000 FCFA/mois (admin seul)',
             '+ 5 000 FCFA/mois par utilisateur supplémentaire',
@@ -212,9 +213,9 @@ export const SUBSCRIPTION_CONFIG: Record<SubscriptionPlan, CompletePlanConfig> =
 
         limits: {
             max_tables: 50,
-            max_products: 200,
-            max_categories: 20,
-            max_orders_per_day: 10000,
+            max_products: 80,
+            max_categories: 15,
+            max_orders_per_day: 100000,
         },
 
         features: {
@@ -234,8 +235,9 @@ export const SUBSCRIPTION_CONFIG: Record<SubscriptionPlan, CompletePlanConfig> =
         },
 
         marketingFeatures: [
-            'Jusqu\'à 20 tables avec QR codes',
-            'Maximum 200 produits au menu',
+            'Jusqu\'à 50 tables avec QR codes',
+            'Maximum 50 produits au menu',
+            'Maximum 15 catégories produits',
             'Maximum 5 utilisateurs (1 admin + 4 comptes)',
             'Prix de base : 5 000 FCFA/mois (admin seul)',
             '+ 7 500 FCFA/mois par utilisateur supplémentaire',
@@ -302,13 +304,13 @@ export const SUBSCRIPTION_CONFIG: Record<SubscriptionPlan, CompletePlanConfig> =
             '🔥 Tables illimitées',
             '🔥 Produits illimités',
             '🔥 Utilisateurs illimités',
+            '🔥 Catégories illimitées',
             'Prix de base : 8 000 FCFA/mois (admin seul)',
             '+ 10 000 FCFA/mois par utilisateur supplémentaire',
             'Multi-restaurants (jusqu\'à 3 établissements)',
             'Paiement Mobile Money intégré',
             'Module caisse et entrepôt avancés',
             'Dashboard avancé avec prévisions IA',
-            'API REST pour intégrations',
             'Personnalisation complète (logo, couleurs)',
             'Support WhatsApp prioritaire 7j/7',
             'Formation personnalisée sur site',

@@ -108,7 +108,7 @@ export default async function ChoosePlanPage() {
                     <Button asChild variant="ghost" className="mb-4">
                         <Link href="/dashboard/subscription">
                             <ArrowLeft className="mr-2 h-4 w-4"/>
-                            Retour à l'abonnement
+                            Retour à l&apos;abonnement
                         </Link>
                     </Button>
 
@@ -117,8 +117,8 @@ export default async function ChoosePlanPage() {
                     </h1>
 
                     <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                        Sélectionnez l'offre qui correspond à vos besoins.
-                        Ajustez le nombre d'utilisateurs pour voir le prix en temps réel.
+                        Sélectionnez l&apos;offre qui correspond à vos besoins.
+                        Ajustez le nombre d&apos;utilisateurs pour voir le prix en temps réel.
                     </p>
                 </div>
 
@@ -129,7 +129,7 @@ export default async function ChoosePlanPage() {
                     <Info className="h-4 w-4 text-blue-600"/>
                     <AlertDescription className="text-sm text-blue-900">
                         <strong>💡 Comment fonctionne notre tarification :</strong> Chaque plan
-                        a un prix de base qui inclut uniquement l'administrateur. Chaque
+                        a un prix de base qui inclut uniquement l&apos;administrateur. Chaque
                         utilisateur supplémentaire (cuisinier, serveur, etc.) coûte un montant
                         additionnel par mois. Vous ne payez que pour ce que vous utilisez vraiment !
                         <br/>
@@ -212,15 +212,15 @@ export default async function ChoosePlanPage() {
                                 <tr>
                                     <td className="py-3 px-4">Tables</td>
                                     <td className="text-center py-3 px-4">10</td>
-                                    <td className="text-center py-3 px-4 bg-primary/5">20</td>
+                                    <td className="text-center py-3 px-4 bg-primary/5">50</td>
                                     <td className="text-center py-3 px-4">
                                         <span className="text-primary font-semibold">Illimité</span>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td className="py-3 px-4">Produits</td>
-                                    <td className="text-center py-3 px-4">50</td>
-                                    <td className="text-center py-3 px-4 bg-primary/5">200</td>
+                                    <td className="text-center py-3 px-4">30</td>
+                                    <td className="text-center py-3 px-4 bg-primary/5">80</td>
                                     <td className="text-center py-3 px-4">
                                         <span className="text-primary font-semibold">Illimité</span>
                                     </td>
@@ -269,19 +269,19 @@ export default async function ChoosePlanPage() {
                                 </h3>
                                 <p className="text-muted-foreground">
                                     Chaque compte créé dans votre restaurant compte comme un
-                                    utilisateur : l'administrateur, les cuisiniers, les serveurs, etc.
-                                    L'admin est toujours inclus dans le prix de base.
+                                    utilisateur : l&apos;administrateur, les cuisiniers, les serveurs, etc.
+                                    L&apos;admin est toujours inclus dans le prix de base.
                                 </p>
                             </div>
 
                             {/* Question 2 - Nouvelle question sur les limites */}
                             <div>
                                 <h3 className="font-semibold mb-2">
-                                    Que se passe-t-il si j'atteins ma limite d'utilisateurs ?
+                                    Que se passe-t-il si j&apos;atteins ma limite d&apos;utilisateurs ?
                                 </h3>
                                 <p className="text-muted-foreground">
                                     Sur les plans Starter et Business, vous devrez passer au plan
-                                    supérieur pour ajouter plus d'utilisateurs. Sur Premium, il n'y a
+                                    supérieur pour ajouter plus d&apos;utilisateurs. Sur Premium, il n&apos;y a
                                     aucune limite.
                                 </p>
                             </div>
@@ -310,11 +310,11 @@ export default async function ChoosePlanPage() {
                             {/* Question 5 */}
                             <div>
                                 <h3 className="font-semibold mb-2">
-                                    Puis-je bénéficier d'une réduction ?
+                                    Puis-je bénéficier d&apos;une réduction ?
                                 </h3>
                                 <p className="text-muted-foreground">
-                                    Oui ! En payant pour 3, 6 ou 12 mois d'avance, vous bénéficiez
-                                    de réductions allant jusqu'à 20%.
+                                    Oui ! En payant pour 3, 6 ou 12 mois d&apos;avance, vous bénéficiez
+                                    de réductions allant jusqu&apos;à 20%.
                                 </p>
                             </div>
 
@@ -325,7 +325,7 @@ export default async function ChoosePlanPage() {
                                 </h3>
                                 <p className="text-muted-foreground">
                                     Oui, votre facturation mensuelle sera ajustée à la baisse lors
-                                    du prochain renouvellement si vous avez moins d'utilisateurs.
+                                    du prochain renouvellement si vous avez moins d&apos;utilisateurs.
                                 </p>
                             </div>
 
