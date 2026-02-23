@@ -1,389 +1,233 @@
 // lib/actions/subscription.ts
 'use server'
 
-import {createClient} from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
 import {revalidatePath} from 'next/cache'
-import {isSuperAdminEmail} from '@/lib/utils/permissions'
+import type {SubscriptionPlan, BillingCycle} from '@/lib/config/subscription'
 import {
     SUBSCRIPTION_CONFIG,
-    calculatePrice,
-    type SubscriptionPlan,
-    type BillingCycle,
+    calculateMonthlyPrice,
+    calculateTotalPrice,
 } from '@/lib/config/subscription'
 
-// ============================================================
-// FONCTION CENTRALE : ensureSubscription
-//
-// Point d'entrée unique pour s'assurer qu'un restaurant a
-// bien un abonnement. Utilisée partout avant toute opération
-// liée à l'abonnement.
-//
-// Logique :
-//   1. Chercher l'abonnement existant
-//   2. S'il existe → le retourner tel quel
-//   3. S'il n'existe pas → en créer un (trial 30 jours)
-//      puis le retourner
-// ============================================================
-
-export async function ensureSubscription(restaurantId: string) {
-    const existing = await prisma.subscription.findUnique({
-        where: {restaurantId},
-        include: {
-            payments: {
-                orderBy: {createdAt: 'desc'},
-                take: 10,
-            },
-        },
-    })
-
-    if (existing) {
-        return existing
-    }
-
-    // Créer automatiquement un trial pour les restaurants
-    // créés avant le système d'abonnements
-    const config = SUBSCRIPTION_CONFIG['business']
-    const now = new Date()
-    const trialEnd = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
-
-    const created = await prisma.subscription.create({
-        data: {
-            restaurantId,
-            plan: 'business',
-            status: 'trial',
-            trialStartsAt: now,
-            trialEndsAt: trialEnd,
-            monthlyPrice: config.monthlyPrice,
-            billingCycle: 1,
-            maxTables: config.limits.max_tables,
-            maxUsers: config.limits.max_users,
-            hasStockManagement: config.features.stock_management,
-            hasAdvancedStats: config.features.advanced_stats,
-            hasDataExport: config.features.data_export,
-            hasMobilePayment: config.features.mobile_payment,
-            // hasMultiRestaurants: config.features.hasMultiRestaurants,
-        },
-        include: {
-            payments: true,
-        },
-    })
-
-    return created
+/**
+ * Interface pour la création d'un paiement manuel
+ *
+ * NOUVEAU : Inclut maintenant userCount pour enregistrer
+ * le nombre d'utilisateurs pour lesquels le paiement est effectué
+ */
+interface CreateManualPaymentInput {
+    restaurantId: string
+    plan: SubscriptionPlan
+    billingCycle: BillingCycle
+    userCount: number         // NOUVEAU : nombre d'utilisateurs
+    proofUrl: string
+    notes?: string
 }
 
-// ============================================================
-// CRÉER UN ABONNEMENT D'ESSAI
-// Pour les nouveaux restaurants à l'inscription.
-// ============================================================
-
-export async function createTrialSubscription(
-    restaurantId: string,
-    plan: SubscriptionPlan = 'business'
-) {
+/**
+ * Crée un nouveau paiement manuel en attente de validation
+ *
+ * MODIFICATIONS :
+ * - Accepte maintenant userCount dans les paramètres
+ * - Calcule le montant basé sur le nombre d'utilisateurs
+ * - Stocke userCount dans la table subscription_payments
+ * - Met à jour active_users_count dans la subscription
+ */
+export async function createManualPayment(input: CreateManualPaymentInput) {
     try {
-        const config = SUBSCRIPTION_CONFIG[plan]
-        const now = new Date()
-        const trialEnd = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000)
+        const {
+            restaurantId,
+            plan,
+            billingCycle,
+            userCount,
+            proofUrl,
+            notes,
+        } = input
 
-        const subscription = await prisma.subscription.create({
+        // ============================================================
+        // ÉTAPE 1 : Valider les données d'entrée
+        // ============================================================
+
+        // Valider que le plan existe
+        if (!['starter', 'business', 'premium'].includes(plan)) {
+            return {
+                success: false,
+                error: 'Plan invalide',
+            }
+        }
+
+        // Valider que le cycle est valide
+        if (![1, 3, 6, 12].includes(billingCycle)) {
+            return {
+                success: false,
+                error: 'Cycle de facturation invalide',
+            }
+        }
+
+        // Valider le nombre d'utilisateurs
+        if (userCount < 1) {
+            return {
+                success: false,
+                error: 'Le nombre d\'utilisateurs doit être au minimum 1',
+            }
+        }
+
+        // Valider que le nombre d'utilisateurs respecte la limite du plan
+        const planConfig = SUBSCRIPTION_CONFIG[plan]
+        const maxUsers = planConfig.userPricing.maxUsers
+
+        if (maxUsers !== 'unlimited' && userCount > maxUsers) {
+            return {
+                success: false,
+                error: `Le plan ${plan} permet un maximum de ${maxUsers} utilisateurs`,
+            }
+        }
+
+        // ============================================================
+        // ÉTAPE 2 : Calculer le montant total
+        // ============================================================
+
+        // Calculer le montant total en tenant compte du nombre d'utilisateurs
+        // ET du cycle de facturation (avec réductions éventuelles)
+        const amount = calculateTotalPrice(plan, userCount, billingCycle)
+
+        // Calculer la date d'expiration (début de période + durée du cycle)
+        const now = new Date()
+        const expiresAt = new Date(now)
+        expiresAt.setMonth(expiresAt.getMonth() + billingCycle)
+
+        // ============================================================
+        // ÉTAPE 3 : Récupérer l'abonnement existant
+        // ============================================================
+
+        const subscription = await prisma.subscription.findUnique({
+            where: {restaurantId},
+        })
+
+        if (!subscription) {
+            return {
+                success: false,
+                error: 'Aucun abonnement trouvé pour ce restaurant',
+            }
+        }
+
+        // ============================================================
+        // ÉTAPE 4 : Créer le paiement en base de données
+        // ============================================================
+
+        const payment = await prisma.subscriptionPayment.create({
             data: {
+                subscriptionId: subscription.id,
                 restaurantId,
-                plan,
-                status: 'trial',
-                trialStartsAt: now,
-                trialEndsAt: trialEnd,
-                monthlyPrice: config.monthlyPrice,
-                billingCycle: 1,
-                maxTables: config.limits.max_tables,
-                maxUsers: config.limits.max_users,
-                hasStockManagement: config.features.stock_management,
-                hasAdvancedStats: config.features.advanced_stats,
-                hasDataExport: config.features.data_export,
-                hasMobilePayment: config.features.mobile_payment,
-                hasMultiRestaurants: config.features.multi_restaurants,
+                amount,
+                method: 'manual', // Paiement manuel (Mobile Money ou virement)
+                status: 'pending', // En attente de validation par l'équipe
+                billingCycle,
+                userCount,        // NOUVEAU : enregistrer le nombre d'utilisateurs
+                proofUrl,
+                manualNotes: notes,
+                expiresAt,
             },
         })
 
-        return {success: true, subscription}
+        // ============================================================
+        // ÉTAPE 5 : Mettre à jour l'abonnement si nécessaire
+        // ============================================================
+
+        // Si le plan change ou si le nombre d'utilisateurs change,
+        // on met à jour l'abonnement (mais il reste en attente jusqu'à validation)
+        if (subscription.plan !== plan) {
+            await prisma.subscription.update({
+                where: {id: subscription.id},
+                data: {
+                    plan,
+                    basePlanPrice: planConfig.baseMonthlyPrice,
+                    // Note : active_users_count sera mis à jour automatiquement
+                    // par le trigger quand des utilisateurs seront ajoutés/supprimés
+                },
+            })
+        }
+
+        // ============================================================
+        // ÉTAPE 6 : Revalider le cache et retourner le succès
+        // ============================================================
+
+        revalidatePath('/dashboard/subscription')
+
+        return {
+            success: true,
+            payment: {
+                id: payment.id,
+                amount: payment.amount,
+                status: payment.status,
+            },
+        }
     } catch (error) {
-        console.error('Erreur création abonnement:', error)
+        console.error('Erreur création paiement manuel:', error)
         return {
             success: false,
-            error: "Erreur lors de la création de l'abonnement",
+            error: 'Erreur lors de la création du paiement. Veuillez réessayer.',
         }
     }
 }
 
-// ============================================================
-// VÉRIFIER SI ABONNEMENT ACTIF
-// ============================================================
+/**
+ * Récupère l'abonnement d'un restaurant avec tous ses détails
+ *
+ * MODIFICATIONS :
+ * - Inclut maintenant active_users_count et base_plan_price
+ * - Les paiements incluent user_count
+ */
+export async function getRestaurantSubscription(restaurantId: string) {
+    try {
+        const subscription = await prisma.subscription.findUnique({
+            where: {restaurantId},
+            include: {
+                payments: {
+                    orderBy: {createdAt: 'desc'},
+                    take: 20, // Les 20 derniers paiements
+                },
+            },
+        })
 
-export async function isSubscriptionActive(
-    restaurantId: string
-): Promise<boolean> {
+        if (!subscription) {
+            return {subscription: null}
+        }
+
+        return {subscription}
+    } catch (error) {
+        console.error('Erreur récupération abonnement:', error)
+        return {subscription: null}
+    }
+}
+
+/**
+ * Calcule le nombre de jours restants avant expiration
+ */
+export async function getDaysRemaining(restaurantId: string) {
     try {
         const subscription = await prisma.subscription.findUnique({
             where: {restaurantId},
             select: {
                 status: true,
-                currentPeriodEnd: true,
                 trialEndsAt: true,
+                currentPeriodEnd: true,
             },
         })
 
-        if (!subscription) return false
+        if (!subscription) return null
 
         const now = new Date()
+        let endDate: Date | null = null
 
-        if (subscription.status === 'trial') {
-            const trialEnd = new Date(subscription.trialEndsAt)
-            return now < trialEnd
-        }
-
-        if (subscription.status === 'active') {
-            if (!subscription.currentPeriodEnd) {
-                console.warn(
-                    `⚠️ Abonnement actif sans currentPeriodEnd pour restaurant ${restaurantId}`
-                )
-                return false
-            }
-
-            const periodEnd = new Date(subscription.currentPeriodEnd)
-
-            if (isNaN(periodEnd.getTime())) {
-                console.error(
-                    `❌ Date invalide pour currentPeriodEnd: ${subscription.currentPeriodEnd}`
-                )
-                return false
-            }
-
-            const isActive = now < periodEnd
-
-            console.log(`🔍 Vérification abonnement ${restaurantId}:`, {
-                status: subscription.status,
-                now: now.toISOString(),
-                periodEnd: periodEnd.toISOString(),
-                isActive,
-                daysRemaining: Math.ceil(
-                    (periodEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
-                ),
-            })
-
-            return isActive
-        }
-
-        console.log(
-            `❌ Abonnement ${restaurantId} avec statut ${subscription.status} → accès refusé`
-        )
-        return false
-    } catch (error) {
-        console.error('Erreur vérification abonnement:', error)
-        return false
-    }
-}
-
-// ============================================================
-// RÉCUPÉRER L'ABONNEMENT D'UN RESTAURANT
-// ============================================================
-
-export async function getRestaurantSubscription(restaurantId: string) {
-    try {
-        const subscription = await ensureSubscription(restaurantId)
-        return {success: true, subscription}
-    } catch (error) {
-        console.error('Erreur récupération abonnement:', error)
-        return {
-            success: false,
-            error: "Erreur lors de la récupération de l'abonnement",
-            subscription: null,
-        }
-    }
-}
-
-// ============================================================
-// CRÉER UN PAIEMENT MANUEL
-// ============================================================
-
-export async function createManualPayment(data: {
-    restaurantId: string
-    plan: SubscriptionPlan
-    billingCycle: BillingCycle
-    proofUrl?: string
-    notes?: string
-}) {
-    try {
-        const supabase = await createClient()
-        const {
-            data: {user},
-        } = await supabase.auth.getUser()
-
-        if (!user) {
-            return {success: false, error: 'Non authentifié'}
-        }
-
-        const subscription = await ensureSubscription(data.restaurantId)
-        const amount = calculatePrice(data.plan, data.billingCycle)
-
-        const now = new Date()
-        const expiresAt = new Date(
-            now.getTime() + data.billingCycle * 30 * 24 * 60 * 60 * 1000
-        )
-
-        const payment = await prisma.subscriptionPayment.create({
-            data: {
-                subscriptionId: subscription.id,
-                restaurantId: data.restaurantId,
-                amount,
-                method: 'manual',
-                status: 'pending',
-                billingCycle: data.billingCycle,
-                proofUrl: data.proofUrl,
-                manualNotes: data.notes,
-                expiresAt,
-            },
-        })
-
-        revalidatePath('/dashboard/subscription')
-        return {success: true, payment}
-    } catch (error) {
-        console.error('Erreur création paiement:', error)
-        return {
-            success: false,
-            error: 'Erreur lors de la création du paiement',
-        }
-    }
-}
-
-// ============================================================
-// VALIDER UN PAIEMENT MANUEL (SuperAdmin uniquement)
-// ✅ Utilise isSuperAdminEmail() au lieu d'une logique dupliquée
-// ============================================================
-
-export async function validateManualPayment(paymentId: string) {
-    try {
-        const supabase = await createClient()
-        const {
-            data: {user},
-        } = await supabase.auth.getUser()
-
-        if (!user) {
-            return {success: false, error: 'Non authentifié'}
-        }
-
-        // ✅ Vérification centralisée via utilitaire partagé
-        if (!isSuperAdminEmail(user.email ?? '')) {
-            return {success: false, error: 'Accès réservé aux super admins'}
-        }
-
-        const payment = await prisma.subscriptionPayment.findUnique({
-            where: {id: paymentId},
-            include: {subscription: true},
-        })
-
-        if (!payment) {
-            return {success: false, error: 'Paiement introuvable'}
-        }
-
-        const now = new Date()
-
-        await prisma.$transaction(async (tx) => {
-            await tx.subscriptionPayment.update({
-                where: {id: paymentId},
-                data: {
-                    status: 'confirmed',
-                    validatedBy: user.id,
-                    validatedAt: now,
-                    paidAt: now,
-                },
-            })
-
-            await tx.subscription.update({
-                where: {id: payment.subscriptionId},
-                data: {
-                    status: 'active',
-                    currentPeriodStart: now,
-                    currentPeriodEnd: payment.expiresAt,
-                },
-            })
-        })
-
-        revalidatePath('/superadmin/payments')
-        revalidatePath('/dashboard/subscription')
-        return {success: true}
-    } catch (error) {
-        console.error('Erreur validation paiement:', error)
-        return {
-            success: false,
-            error: 'Erreur lors de la validation du paiement',
-        }
-    }
-}
-
-// ============================================================
-// CHANGER DE PLAN
-// ============================================================
-
-export async function changePlan(
-    restaurantId: string,
-    newPlan: SubscriptionPlan
-) {
-    try {
-        const config = SUBSCRIPTION_CONFIG[newPlan]
-
-        const subscription = await prisma.subscription.update({
-            where: {restaurantId},
-            data: {
-                plan: newPlan,
-                monthlyPrice: config.monthlyPrice,
-                maxTables: config.limits.max_tables,
-                maxUsers: config.limits.max_users,
-                hasStockManagement: config.features.stock_management,
-                hasAdvancedStats: config.features.advanced_stats,
-                hasDataExport: config.features.data_export,
-                hasMobilePayment: config.features.mobile_payment,
-                hasMultiRestaurants: config.features.multi_restaurants,
-            },
-        })
-
-        revalidatePath('/dashboard/subscription')
-        return {success: true, subscription}
-    } catch (error) {
-        console.error('Erreur changement de plan:', error)
-        return {
-            success: false,
-            error: 'Erreur lors du changement de plan',
-        }
-    }
-}
-
-// ============================================================
-// OBTENIR LES JOURS RESTANTS
-// ============================================================
-
-export async function getDaysRemaining(
-    restaurantId: string
-): Promise<number | null> {
-    try {
-        const subscription = await ensureSubscription(restaurantId)
-        const now = new Date()
-        let endDate: Date
-
-        if (subscription.status === 'trial') {
+        if (subscription.status === 'trial' && subscription.trialEndsAt) {
             endDate = new Date(subscription.trialEndsAt)
-        } else if (
-            subscription.status === 'active' &&
-            subscription.currentPeriodEnd
-        ) {
+        } else if (subscription.currentPeriodEnd) {
             endDate = new Date(subscription.currentPeriodEnd)
-        } else {
-            return 0
         }
 
-        if (isNaN(endDate.getTime())) {
-            console.error('Date invalide dans getDaysRemaining')
-            return 0
-        }
+        if (!endDate) return null
 
         const diffTime = endDate.getTime() - now.getTime()
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
@@ -392,5 +236,119 @@ export async function getDaysRemaining(
     } catch (error) {
         console.error('Erreur calcul jours restants:', error)
         return null
+    }
+}
+
+/**
+ * NOUVELLE FONCTION : Vérifie si un restaurant peut ajouter un utilisateur
+ *
+ * Cette fonction est cruciale pour la gestion des utilisateurs.
+ * Elle vérifie que le restaurant n'a pas atteint sa limite d'utilisateurs
+ * selon son plan actuel.
+ */
+export async function canAddUser(restaurantId: string): Promise<{
+    allowed: boolean
+    currentCount: number
+    maxUsers: number | 'unlimited'
+    reason?: string
+}> {
+    try {
+        // Récupérer l'abonnement
+        const subscription = await prisma.subscription.findUnique({
+            where: {restaurantId},
+            select: {
+                plan: true,
+                activeUsersCount: true,
+            },
+        })
+
+        if (!subscription) {
+            return {
+                allowed: false,
+                currentCount: 0,
+                maxUsers: 0,
+                reason: 'Aucun abonnement trouvé',
+            }
+        }
+
+        // Récupérer la configuration du plan
+        const planConfig = SUBSCRIPTION_CONFIG[subscription.plan]
+        const maxUsers = planConfig.userPricing.maxUsers
+        const currentCount = subscription.activeUsersCount
+
+        // Premium est illimité
+        if (maxUsers === 'unlimited') {
+            return {
+                allowed: true,
+                currentCount,
+                maxUsers: 'unlimited',
+            }
+        }
+
+        // Vérifier si on peut encore ajouter
+        if (currentCount >= maxUsers) {
+            return {
+                allowed: false,
+                currentCount,
+                maxUsers,
+                reason: `Limite de ${maxUsers} utilisateurs atteinte pour le plan ${subscription.plan}`,
+            }
+        }
+
+        return {
+            allowed: true,
+            currentCount,
+            maxUsers,
+        }
+    } catch (error) {
+        console.error('Erreur vérification ajout utilisateur:', error)
+        return {
+            allowed: false,
+            currentCount: 0,
+            maxUsers: 0,
+            reason: 'Erreur lors de la vérification',
+        }
+    }
+}
+
+/**
+ * NOUVELLE FONCTION : Crée un abonnement d'essai pour un nouveau restaurant
+ *
+ * Cette fonction est appelée lors de la création d'un nouveau restaurant.
+ * Elle initialise l'abonnement avec le plan Starter en mode essai.
+ */
+export async function ensureSubscription(restaurantId: string) {
+    try {
+        // Vérifier si un abonnement existe déjà
+        let subscription = await prisma.subscription.findUnique({
+            where: {restaurantId},
+        })
+
+        if (subscription) {
+            return subscription
+        }
+
+        // Créer un nouvel abonnement d'essai
+        const now = new Date()
+        const trialEndsAt = new Date(now)
+        trialEndsAt.setDate(trialEndsAt.getDate() + 14) // 14 jours d'essai
+
+        subscription = await prisma.subscription.create({
+            data: {
+                restaurantId,
+                plan: 'starter',
+                status: 'trial',
+                trialStartsAt: now,
+                trialEndsAt,
+                basePlanPrice: 3000, // Prix de base Starter
+                activeUsersCount: 1, // L'admin qui vient de créer le restaurant
+                billingCycle: 1,
+            },
+        })
+
+        return subscription
+    } catch (error) {
+        console.error('Erreur création abonnement:', error)
+        throw new Error('Impossible de créer l\'abonnement')
     }
 }

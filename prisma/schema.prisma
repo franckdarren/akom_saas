@@ -681,29 +681,30 @@ model Invitation {
 }
 
 model Subscription {
-  id           String             @id @default(uuid()) @db.Uuid
-  restaurantId String             @unique @map("restaurant_id") @db.Uuid
-  plan         SubscriptionPlan
-  status       SubscriptionStatus @default(trial)
+  id           String @id @default(uuid()) @db.Uuid
+  restaurantId String @unique @map("restaurant_id") @db.Uuid
 
-  // Dates importantes
+  // Plan de base sélectionné (starter, business, premium)
+  plan SubscriptionPlan
+
+  // Statut de l'abonnement
+  status SubscriptionStatus @default(trial)
+
+  // Dates importantes pour gérer les périodes d'essai et de facturation
   trialStartsAt      DateTime  @map("trial_starts_at")
   trialEndsAt        DateTime  @map("trial_ends_at")
   currentPeriodStart DateTime? @map("current_period_start")
   currentPeriodEnd   DateTime? @map("current_period_end")
 
-  // Informations plan
-  monthlyPrice Int @map("monthly_price") // Prix en FCFA
-  billingCycle Int @default(1) @map("billing_cycle") // 1, 3, 6, 12 mois
+  // NOUVEAU : Nombre d'utilisateurs actuellement actifs dans ce restaurant
+  // Cette valeur est maintenue à jour automatiquement quand on ajoute/supprime des users
+  activeUsersCount Int @default(1) @map("active_users_count")
 
-  // Limites du plan
-  maxTables           Int?    @map("max_tables") // null = illimité
-  maxUsers            Int     @map("max_users")
-  hasStockManagement  Boolean @default(false) @map("has_stock_management")
-  hasAdvancedStats    Boolean @default(false) @map("has_advanced_stats")
-  hasDataExport       Boolean @default(false) @map("has_data_export")
-  hasMobilePayment    Boolean @default(false) @map("has_mobile_payment")
-  hasMultiRestaurants Boolean @default(false) @map("has_multi_restaurants")
+  // Prix de base du plan choisi (sans les utilisateurs supplémentaires)
+  basePlanPrice Int @map("base_plan_price")
+
+  // Cycle de facturation en mois (1, 3, 6, ou 12)
+  billingCycle Int @default(1) @map("billing_cycle")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -740,6 +741,8 @@ model SubscriptionPayment {
   provider      String? // "airtel" ou "moov"
 
   errorMessage String? @map("error_message")
+
+  userCount Int @default(1)
 
   // Dates
   paidAt    DateTime? @map("paid_at")

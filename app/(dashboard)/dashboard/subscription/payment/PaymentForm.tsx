@@ -1,4 +1,3 @@
-// app/dashboard/subscription/payment/PaymentForm.tsx
 'use client'
 
 import {useState} from 'react'
@@ -8,17 +7,29 @@ import {uploadPaymentProof} from '@/lib/utils/upload'
 import {Button} from '@/components/ui/button'
 import {Label} from '@/components/ui/label'
 import {Textarea} from '@/components/ui/textarea'
-import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card'
-import {Upload, CheckCircle2, Loader2, AlertCircle} from 'lucide-react'
+import {Input} from '@/components/ui/input'
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card'
+import {Upload, CheckCircle2, Loader2, AlertCircle, Users} from 'lucide-react'
 import {Alert, AlertDescription} from '@/components/ui/alert'
 import Image from 'next/image'
 import {toast} from 'sonner'
 import type {SubscriptionPlan, BillingCycle} from '@/lib/config/subscription'
+import {
+    formatPrice,
+    calculateMonthlyPrice,
+} from '@/lib/config/subscription'
 
 interface PaymentFormProps {
     restaurantId: string
     plan: SubscriptionPlan
     billingCycle: BillingCycle
+    userCount: number
     amount: number
 }
 
@@ -26,9 +37,11 @@ export function PaymentForm({
                                 restaurantId,
                                 plan,
                                 billingCycle,
+                                userCount,
                                 amount,
                             }: PaymentFormProps) {
     const router = useRouter()
+
     const [file, setFile] = useState<File | null>(null)
     const [preview, setPreview] = useState<string | null>(null)
     const [notes, setNotes] = useState('')
@@ -40,22 +53,20 @@ export function PaymentForm({
         const selectedFile = e.target.files?.[0]
         if (!selectedFile) return
 
-        // Vérifier le type
         if (!selectedFile.type.startsWith('image/')) {
-            setError('Le fichier doit être une image')
+            setError('Le fichier doit être une image (PNG, JPG, JPEG)')
             return
         }
 
-        // Vérifier la taille (max 5MB)
-        if (selectedFile.size > 5 * 1024 * 1024) {
-            setError('L\'image ne doit pas dépasser 5MB')
+        const maxSize = 5 * 1024 * 1024
+        if (selectedFile.size > maxSize) {
+            setError("L'image ne doit pas dépasser 5MB")
             return
         }
 
         setFile(selectedFile)
         setError(null)
 
-        // Créer un aperçu
         const reader = new FileReader()
         reader.onloadend = () => {
             setPreview(reader.result as string)
@@ -75,48 +86,50 @@ export function PaymentForm({
         setError(null)
 
         try {
-            // 1. Upload de la preuve
             setUploading(true)
+
             const {url, error: uploadError} = await uploadPaymentProof(
                 file,
                 restaurantId
             )
+
             setUploading(false)
 
             if (uploadError || !url) {
-                throw new Error(uploadError || 'Erreur lors de l\'upload')
+                throw new Error(uploadError || "Erreur lors de l'upload")
             }
 
-            // 2. Créer le paiement
             const result = await createManualPayment({
                 restaurantId,
                 plan,
                 billingCycle,
+                userCount,
                 proofUrl: url,
                 notes: notes.trim() || undefined,
             })
 
             if (!result.success) {
-                throw new Error(result.error || 'Erreur lors de la création du paiement')
+                throw new Error(result.error)
             }
 
-            // 3. Succès
             toast.success('Paiement soumis avec succès', {
-                description: 'Paiement en cours de validation (max 24h)',
+                description: 'Validation sous 24h',
             })
 
-            // Rediriger vers la page abonnement
             router.push('/dashboard/subscription')
         } catch (err) {
-            console.error('Erreur soumission paiement:', err)
             setError(
-                err instanceof Error ? err.message : 'Erreur lors de la soumission'
+                err instanceof Error
+                    ? err.message
+                    : 'Erreur lors de la soumission'
             )
         } finally {
             setSubmitting(false)
             setUploading(false)
         }
     }
+
+    const monthlyPrice = calculateMonthlyPrice(plan, userCount)
 
     return (
         <Card>
@@ -126,55 +139,58 @@ export function PaymentForm({
                     Uploadez la preuve de votre paiement pour validation
                 </CardDescription>
             </CardHeader>
+
             <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-6">
-                    {/* Upload de la preuve */}
-                    <div>
-                        <Label>Preuve de paiement *</Label>
-                        <p className="text-xs text-gray-600 mb-3">
-                            Capture d'écran de la confirmation Mobile Money ou du reçu de
-                            virement
+
+                    {/* Récapitulatif abonnement */}
+                    <Alert>
+                        <Users className="h-4 w-4"/>
+                        <AlertDescription>
+              <span className="font-medium">
+                Abonnement pour {userCount} utilisateur
+                  {userCount > 1 ? 's' : ''}
+              </span>
+                            <br/>
+                            Plan {plan} — {formatPrice(monthlyPrice)}/mois
+                        </AlertDescription>
+                    </Alert>
+
+                    {/* Upload */}
+                    <div className="space-y-2">
+                        <Label htmlFor="proof">Preuve de paiement *</Label>
+                        <p className="text-xs text-muted-foreground">
+                            PNG, JPG, JPEG (max 5MB)
                         </p>
 
                         {!preview ? (
-                            <label
-                                htmlFor="proof-upload"
-                                className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
-                            >
-                                <Upload className="h-10 w-10 text-gray-400 mb-2"/>
-                                <span className="text-sm text-gray-600">
-                                    Cliquez pour choisir une image
-                                </span>
-                                <span className="text-xs text-gray-500 mt-1">
-                                    PNG, JPG, JPEG (max 5MB)
-                                </span>
-                                <input
-                                    id="proof-upload"
+                            <div className="relative">
+                                <Input
+                                    id="proof"
                                     type="file"
                                     accept="image/*"
                                     onChange={handleFileChange}
-                                    className="hidden"
                                 />
-                            </label>
+                            </div>
                         ) : (
-                            <div className="relative">
-                                <div className="relative w-full h-64 bg-gray-100 rounded-lg overflow-hidden">
+                            <div className="space-y-3">
+                                <div className="relative h-64 w-full rounded-md border bg-muted overflow-hidden">
                                     <Image
                                         src={preview}
-                                        alt="Aperçu"
+                                        alt="Aperçu preuve paiement"
                                         fill
                                         className="object-contain"
                                     />
                                 </div>
+
                                 <Button
                                     type="button"
                                     variant="outline"
-                                    size="sm"
                                     onClick={() => {
                                         setFile(null)
                                         setPreview(null)
                                     }}
-                                    className="mt-2 w-full"
+                                    className="w-full"
                                 >
                                     Changer l'image
                                 </Button>
@@ -182,14 +198,14 @@ export function PaymentForm({
                         )}
                     </div>
 
-                    {/* Notes optionnelles */}
-                    <div>
-                        <Label htmlFor="notes" className="mb-1">Notes (optionnel)</Label>
+                    {/* Notes */}
+                    <div className="space-y-2">
+                        <Label htmlFor="notes">Notes (optionnel)</Label>
                         <Textarea
                             id="notes"
                             value={notes}
                             onChange={(e) => setNotes(e.target.value)}
-                            placeholder="Ajoutez des informations complémentaires si nécessaire (numéro de transaction, date du virement, etc.)"
+                            placeholder="Numéro de transaction, date..."
                             rows={4}
                         />
                     </div>
@@ -202,34 +218,28 @@ export function PaymentForm({
                         </Alert>
                     )}
 
-                    {/* Bouton submit */}
+                    {/* Submit */}
                     <Button
                         type="submit"
                         disabled={!file || submitting || uploading}
                         className="w-full"
                         size="lg"
                     >
-                        {uploading ? (
+                        {uploading || submitting ? (
                             <>
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
-                                Upload en cours...
-                            </>
-                        ) : submitting ? (
-                            <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
-                                Soumission...
+                                Traitement...
                             </>
                         ) : (
                             <>
                                 <CheckCircle2 className="mr-2 h-4 w-4"/>
-                                Soumettre le paiement
+                                Soumettre {formatPrice(amount)}
                             </>
                         )}
                     </Button>
 
-                    <p className="text-xs text-gray-500 text-center">
-                        En soumettant ce paiement, vous acceptez nos conditions générales
-                        de vente. Notre équipe validera votre paiement sous 24h.
+                    <p className="text-xs text-muted-foreground text-center">
+                        Validation sous 24h ouvrées. Notification envoyée par email.
                     </p>
                 </form>
             </CardContent>
