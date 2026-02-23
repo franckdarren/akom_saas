@@ -352,3 +352,81 @@ export async function ensureSubscription(restaurantId: string) {
         throw new Error('Impossible de créer l\'abonnement')
     }
 }
+
+/**
+ * NOUVELLE FONCTION : Valide un paiement manuel
+ *
+ * Cette fonction est utilisée par le superadmin
+ * pour approuver un paiement manuel en attente.
+ */
+export async function validateManualPayment(paymentId: string) {
+    try {
+        // ============================================================
+        // ÉTAPE 1 : Récupérer le paiement
+        // ============================================================
+
+        const payment = await prisma.subscriptionPayment.findUnique({
+            where: {id: paymentId},
+            include: {
+                subscription: true,
+            },
+        })
+
+        if (!payment) {
+            return {
+                success: false,
+                error: 'Paiement introuvable',
+            }
+        }
+
+        if (payment.status !== 'pending') {
+            return {
+                success: false,
+                error: 'Ce paiement a déjà été traité',
+            }
+        }
+
+        // ============================================================
+        // ÉTAPE 2 : Mettre à jour le paiement
+        // ============================================================
+
+        await prisma.subscriptionPayment.update({
+            where: {id: paymentId},
+            data: {
+                status: 'confirmed',
+            },
+        })
+
+        // ============================================================
+        // ÉTAPE 3 : Mettre à jour l'abonnement
+        // ============================================================
+
+        await prisma.subscription.update({
+            where: {id: payment.subscriptionId},
+            data: {
+                status: 'active',
+                billingCycle: payment.billingCycle,
+                currentPeriodStart: new Date(),
+                currentPeriodEnd: payment.expiresAt,
+            },
+        })
+
+        // ============================================================
+        // ÉTAPE 4 : Revalidation du cache
+        // ============================================================
+
+        revalidatePath('/dashboard/superadmin/payments')
+        revalidatePath('/dashboard/subscription')
+
+        return {
+            success: true,
+        }
+    } catch (error) {
+        console.error('Erreur validation paiement manuel:', error)
+
+        return {
+            success: false,
+            error: 'Erreur lors de la validation du paiement',
+        }
+    }
+}
