@@ -11,81 +11,78 @@ import {generateUniqueSlug} from '@/lib/actions/slug'
 import {restaurantSettingsSchema, type RestaurantSettingsInput} from '@/lib/validations/restaurant'
 import {logRestaurantCreated} from '@/lib/actions/logs'
 import {formatRestaurantName} from '@/lib/utils/format-text'
-import {SUBSCRIPTION_CONFIG} from '@/lib/config/subscription'
+import {SUBSCRIPTION_CONFIG, SubscriptionPlan} from '@/lib/config/subscription'
 
 
-interface CreateRestaurantData {
+interface CreateRestaurantInput {
     name: string
-    phone?: string
-    address?: string
+    plan: SubscriptionPlan
+    userId: string
 }
 
-// ============================================================
-// CRÉER UN RESTAURANT (SaaS flow complet)
-// ============================================================
+export async function createRestaurantAction({
+                                                 name,
+                                                 plan,
+                                                 userId,
+                                             }: CreateRestaurantInput) {
+    try {
+        const now = new Date()
+        const trialEnd = new Date()
+        trialEnd.setDate(now.getDate() + 14)
 
-export async function createRestaurant(data: CreateRestaurantData) {
-    const supabase = await createClient()
-    const {
-        data: {user},
-    } = await supabase.auth.getUser()
+        const config = SUBSCRIPTION_CONFIG[plan]
+        const formattedName = formatRestaurantName(name)
 
-    if (!user) {
-        return {error: 'Non authentifié'}
+        const result = await prisma.$transaction(async (tx) => {
+            // 1️⃣ Créer le restaurant
+            const restaurant = await tx.restaurant.create({
+                data: {
+                    name: formattedName,
+                    slug: formattedName.toLowerCase().replace(/\s+/g, '-'),
+                    isActive: true,
+                },
+            })
+
+            // 2️⃣ Créer la relation RestaurantUser (ADMIN)
+            await tx.restaurantUser.create({
+                data: {
+                    userId,
+                    restaurantId: restaurant.id,
+                    role: 'admin',
+                },
+            })
+
+            // 3️⃣ Créer l'abonnement
+            await tx.subscription.create({
+                data: {
+                    restaurantId: restaurant.id,
+                    plan,
+                    status: 'trial',
+                    trialStartsAt: now,
+                    trialEndsAt: trialEnd,
+                    basePlanPrice: config.baseMonthlyPrice,
+                    billingCycle: 1,
+                    activeUsersCount: 1,
+                },
+            })
+
+            return restaurant
+        })
+
+        revalidatePath('/dashboard')
+
+        return {
+            success: true,
+            restaurant: result,
+        }
+    } catch (error) {
+        console.error('Erreur création restaurant:', error)
+
+        return {
+            success: false,
+            error: 'Impossible de créer le restaurant',
+        }
     }
-
-    if (!data.name || data.name.trim().length === 0) {
-        return {error: 'Le nom du restaurant est obligatoire'}
-    }
-
-    const slug = await generateUniqueSlug(data.name)
-    const config = SUBSCRIPTION_CONFIG['business']
-    const now = new Date()
-    const trialEnd = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000) // 14 jours d'essai
-
-    await prisma.$transaction(async (tx) => {
-        // Créer le restaurant
-        const restaurant = await tx.restaurant.create({
-            data: {
-                name: data.name.trim(),
-                slug,
-                phone: data.phone?.trim() || null,
-                address: data.address?.trim() || null,
-                isActive: true,
-            },
-        })
-
-        // Créer le lien utilisateur-restaurant (admin)
-        await tx.restaurantUser.create({
-            data: {
-                userId: user.id,
-                restaurantId: restaurant.id,
-                role: 'admin',
-            },
-        })
-
-        // Créer automatiquement l'abonnement d'essai
-        await tx.subscription.create({
-            data: {
-                restaurantId: restaurant.id,
-                plan: 'business',
-                status: 'trial',
-                trialStartsAt: now,
-                trialEndsAt: trialEnd,
-                monthlyPrice: config.monthlyPrice,
-                billingCycle: 1,
-                maxTables: config.limits.max_tables,
-                maxUsers: config.limits.max_users,
-                hasStockManagement: config.features.stock_management,
-                hasAdvancedStats: config.features.advanced_stats,
-                hasDataExport: config.features.data_export,
-                // hasMobilePmaxTablesayment: config.features.mobile_payment,
-            },
-        })
-    })
-
-    revalidatePath('/dashboard')
-    redirect('/onboarding/verification')
 }
 
 // ============================================================
