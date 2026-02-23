@@ -16,43 +16,94 @@ import {SUBSCRIPTION_CONFIG, SubscriptionPlan} from '@/lib/config/subscription'
 
 interface CreateRestaurantInput {
     name: string
-    plan: SubscriptionPlan
-    userId: string
+    phone?: string
+    address?: string
+    plan?: SubscriptionPlan
 }
 
-export async function createRestaurant({
-                                           name,
-                                           plan,
-                                           userId,
-                                       }: CreateRestaurantInput) {
+export async function createRestaurant(data: CreateRestaurantInput) {
+    const supabase = await createClient()
+
+    const {
+        data: {user},
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+        return {success: false, error: 'Non authentifié'}
+    }
+
     try {
+        // 🔎 Vérifier si l'utilisateur possède déjà un restaurant
+        const existingRestaurantUser = await prisma.restaurantUser.findFirst({
+            where: {
+                userId: user.id,
+                role: 'admin',
+            },
+            include: {
+                restaurant: {
+                    include: {
+                        subscription: true,
+                    },
+                },
+            },
+        })
+
+        if (existingRestaurantUser) {
+            const subscription = existingRestaurantUser.restaurant.subscription
+
+            // Si pas d'abonnement → on bloque
+            if (!subscription) {
+                return {
+                    success: false,
+                    error: "Abonnement invalide.",
+                }
+            }
+
+            // 🔒 Si abonnement actif ou trial
+            if (subscription.status === 'trial' || subscription.status === 'active') {
+                // Si pas premium → interdit multi-restaurant
+                if (subscription.plan !== 'premium') {
+                    return {
+                        success: false,
+                        error:
+                            "Passez en Premium pour gérer plusieurs restaurants.",
+                    }
+                }
+            }
+        }
+
+        // ===============================
+        // Création autorisée
+        // ===============================
+
         const now = new Date()
         const trialEnd = new Date()
         trialEnd.setDate(now.getDate() + 14)
 
+        const plan: SubscriptionPlan = data.plan ?? 'starter'
         const config = SUBSCRIPTION_CONFIG[plan]
-        const formattedName = formatRestaurantName(name)
+
+        const formattedName = formatRestaurantName(data.name)
 
         const result = await prisma.$transaction(async (tx) => {
-            // 1️⃣ Créer le restaurant
             const restaurant = await tx.restaurant.create({
                 data: {
                     name: formattedName,
                     slug: formattedName.toLowerCase().replace(/\s+/g, '-'),
+                    phone: data.phone || null,
+                    address: data.address || null,
                     isActive: true,
                 },
             })
 
-            // 2️⃣ Créer la relation RestaurantUser (ADMIN)
             await tx.restaurantUser.create({
                 data: {
-                    userId,
+                    userId: user.id,
                     restaurantId: restaurant.id,
                     role: 'admin',
                 },
             })
 
-            // 3️⃣ Créer l'abonnement
             await tx.subscription.create({
                 data: {
                     restaurantId: restaurant.id,
@@ -71,17 +122,10 @@ export async function createRestaurant({
 
         revalidatePath('/dashboard')
 
-        return {
-            success: true,
-            restaurant: result,
-        }
+        return {success: true, restaurant: result}
     } catch (error) {
         console.error('Erreur création restaurant:', error)
-
-        return {
-            success: false,
-            error: 'Impossible de créer le restaurant',
-        }
+        return {success: false, error: 'Impossible de créer le restaurant'}
     }
 }
 
