@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import * as React from "react"
 import {useState} from "react"
@@ -67,10 +67,7 @@ import {
 type UserRole = "admin" | "kitchen" | "superadmin"
 
 interface AppSidebarProps {
-    user: {
-        email: string
-        id: string
-    }
+    user: { email: string; id: string }
     role: UserRole
     restaurantName?: string
     restaurantId?: string
@@ -91,25 +88,26 @@ export function AppSidebar({
     const [isSigningOut, setIsSigningOut] = useState(false)
 
     // ============================================================
-    // DÉCONNEXION — géré localement pour éviter la latence
+    // Helper pour activer uniquement le chemin exact
     // ============================================================
+    const isPathActive = (itemHref: string, currentPath: string) => itemHref === currentPath
 
+    // ============================================================
+    // Déconnexion
+    // ============================================================
     async function handleSignOut() {
-        if (isSigningOut) return // Empêcher les clics multiples
+        if (isSigningOut) return
         setIsSigningOut(true)
         try {
             await signOut()
         } catch {
-            // signOut fait un redirect() donc on ne passera jamais ici
-            // mais on remet le state au cas où
             setIsSigningOut(false)
         }
     }
 
     // ============================================================
-    // MENUS PAR RÔLE
+    // Configuration des menus par rôle
     // ============================================================
-
     const menuConfig: Record<UserRole, Array<{
         title: string
         items: Array<{
@@ -123,9 +121,7 @@ export function AppSidebar({
         admin: [
             {
                 title: "Général",
-                items: [
-                    {title: "Tableau de bord", href: "/dashboard", icon: LayoutDashboard},
-                ],
+                items: [{title: "Tableau de bord", href: "/dashboard", icon: LayoutDashboard}],
             },
             {
                 title: "Menu",
@@ -143,7 +139,6 @@ export function AppSidebar({
                     {title: "Paiements", href: "/dashboard/payments", icon: CreditCard},
                     {title: "Abonnements", href: "/dashboard/subscription", icon: CalendarSync},
                     {title: "Caisse", href: "/dashboard/caisse", icon: Wallet},
-                    
                 ],
             },
             {
@@ -157,9 +152,7 @@ export function AppSidebar({
             },
             {
                 title: "Analyse",
-                items: [
-                    {title: "Statistiques", href: "/dashboard/stats", icon: BarChart3},
-                ],
+                items: [{title: "Statistiques", href: "/dashboard/stats", icon: BarChart3}],
             },
             {
                 title: "Configuration",
@@ -214,7 +207,6 @@ export function AppSidebar({
         <>
             <NavigationLoader loading={loading}/>
 
-            {/* Overlay de déconnexion */}
             {isSigningOut && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
                     <div className="flex flex-col items-center gap-3">
@@ -235,12 +227,7 @@ export function AppSidebar({
                     >
                         {restaurantLogoUrl && (
                             <div className="flex h-10 w-10 items-center justify-center rounded-lg">
-                                <Image
-                                    src={restaurantLogoUrl}
-                                    width={100}
-                                    height={100}
-                                    alt="logo"
-                                />
+                                <Image src={restaurantLogoUrl} width={100} height={100} alt="logo"/>
                             </div>
                         )}
                         <div className="flex">
@@ -258,7 +245,7 @@ export function AppSidebar({
                             <SidebarGroupContent>
                                 <SidebarMenu>
                                     {group.items.map((item) => {
-                                        const isActive = pathname.startsWith(item.href)
+                                        const isActive = isPathActive(item.href, pathname)
                                         const isDisabled = item.disabled
 
                                         return (
@@ -345,7 +332,7 @@ export function AppSidebar({
                                 className="text-destructive focus:text-destructive"
                                 disabled={isSigningOut}
                                 onSelect={(e) => {
-                                    e.preventDefault() // Empêcher la fermeture du menu avant l'action
+                                    e.preventDefault()
                                     handleSignOut()
                                 }}
                             >
