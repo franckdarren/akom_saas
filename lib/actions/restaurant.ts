@@ -20,11 +20,11 @@ interface CreateRestaurantInput {
     userId: string
 }
 
-export async function createRestaurantAction({
-                                                 name,
-                                                 plan,
-                                                 userId,
-                                             }: CreateRestaurantInput) {
+export async function createRestaurant({
+                                           name,
+                                           plan,
+                                           userId,
+                                       }: CreateRestaurantInput) {
     try {
         const now = new Date()
         const trialEnd = new Date()
