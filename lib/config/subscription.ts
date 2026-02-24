@@ -159,7 +159,7 @@ export const SUBSCRIPTION_CONFIG: Record<SubscriptionPlan, CompletePlanConfig> =
             kitchen_display: true,
             basic_stats: true,
             advanced_stats: false,
-            stock_management: false,
+            stock_management: true,
             stock_alerts: false,
             data_export: false,
             mobile_payment: false,

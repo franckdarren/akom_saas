@@ -1,25 +1,28 @@
 // app/(dashboard)/dashboard/warehouse/page.tsx
-import { Suspense } from 'react'
-import { Metadata } from 'next'
+import {Suspense} from 'react'
+import {Metadata} from 'next'
 import Link from 'next/link'
-import { Package, Plus, TrendingDown, AlertTriangle } from 'lucide-react'
+import {Package, Plus, TrendingDown, AlertTriangle} from 'lucide-react'
 
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
-import { WarehouseStatsCards } from '@/components/warehouse/WarehouseStatsCards'
-import { WarehouseProductsTable } from '@/components/warehouse/WarehouseProductsTable'
-import { WarehouseFilters } from '@/components/warehouse/WarehouseFilters'
-import { getWarehouseStats, getWarehouseProducts } from '@/lib/actions/warehouse'
-import { WarehouseProductWithStock } from '@/types/warehouse'
-import {SidebarTrigger} from "@/components/ui/sidebar";
-import {Separator} from "@/components/ui/separator";
+import {Button} from '@/components/ui/button'
+import {Card} from '@/components/ui/card'
+import {WarehouseStatsCards} from '@/components/warehouse/WarehouseStatsCards'
+import {WarehouseProductsTable} from '@/components/warehouse/WarehouseProductsTable'
+import {WarehouseFilters} from '@/components/warehouse/WarehouseFilters'
+import {getWarehouseStats, getWarehouseProducts} from '@/lib/actions/warehouse'
+import {WarehouseProductWithStock} from '@/types/warehouse'
+import {FeatureGuard} from '@/components/guards/FeatureGuard'
+import {getCurrentUserAndRestaurant} from '@/lib/auth/session'
+import {SidebarTrigger} from "@/components/ui/sidebar"
+import {Separator} from "@/components/ui/separator"
 import {
     Breadcrumb,
     BreadcrumbItem,
     BreadcrumbLink,
-    BreadcrumbList, BreadcrumbPage,
+    BreadcrumbList,
+    BreadcrumbPage,
     BreadcrumbSeparator
-} from "@/components/ui/breadcrumb";
+} from "@/components/ui/breadcrumb"
 
 export const metadata: Metadata = {
     title: 'Magasin de stockage | Akôm',
@@ -36,6 +39,9 @@ export default async function WarehousePage({
         search?: string
     }
 }) {
+    // Récupérer le restaurantId pour la protection
+    const {restaurantId} = await getCurrentUserAndRestaurant()
+
     // Récupérer les statistiques du magasin
     const statsResult = await getWarehouseStats()
     const stats = statsResult.success ? statsResult.data : null
@@ -48,12 +54,9 @@ export default async function WarehousePage({
         search: searchParams.search,
     })
 
-    // Conversion complète Decimal -> number pour correspondre à WarehouseProductWithStock
-    // Cette étape est cruciale, car Prisma retourne des objets Decimal pour les colonnes DECIMAL de PostgresSQL
-    // alors que notre interface TypeScript attend des nombres JavaScript classiques
+    // Conversion complète Decimal → number
     const products: WarehouseProductWithStock[] = productsResult.success
         ? productsResult.data.map(p => {
-            // On garantit un stock valide même si p.stock est null
             const stock = p.stock
                 ? {
                     id: p.stock.id,
@@ -70,7 +73,6 @@ export default async function WarehousePage({
                     updatedAt: p.stock.updatedAt,
                 }
                 : {
-                    // Stock “vide” par défaut
                     id: '',
                     restaurantId: p.restaurantId,
                     warehouseProductId: p.id,
@@ -98,11 +100,8 @@ export default async function WarehousePage({
                 isActive: p.isActive,
                 createdAt: p.createdAt,
                 updatedAt: p.updatedAt,
-
-                stock, // toujours défini
-
+                stock,
                 isLowStock: p.isLowStock,
-
                 linkedProduct: p.linkedProduct
                     ? {
                         id: p.linkedProduct.id,
@@ -115,21 +114,26 @@ export default async function WarehousePage({
         })
         : []
 
-
+    // ============================================================
+    // PROTECTION : Vérifier que l'utilisateur a accès au module warehouse
+    // ============================================================
 
     return (
-        <>
-            {/* Header avec titre et action principale */}
+        <FeatureGuard
+            restaurantId={restaurantId}
+            requiredFeature="warehouse_module"
+            showError={true}
+        >
             <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-                <SidebarTrigger className="-ml-1" />
-                <Separator orientation="vertical" className="mr-2 h-4" />
+                <SidebarTrigger className="-ml-1"/>
+                <Separator orientation="vertical" className="mr-2 h-4"/>
                 <div className="flex justify-between w-full">
                     <Breadcrumb>
                         <BreadcrumbList>
                             <BreadcrumbItem>
                                 <BreadcrumbLink href="/dashboard">Magasin</BreadcrumbLink>
                             </BreadcrumbItem>
-                            <BreadcrumbSeparator />
+                            <BreadcrumbSeparator/>
                             <BreadcrumbItem>
                                 <BreadcrumbPage>Magasin de stockage</BreadcrumbPage>
                             </BreadcrumbItem>
@@ -149,26 +153,24 @@ export default async function WarehousePage({
 
                     <Button asChild size="lg" className="gap-2">
                         <Link href="/dashboard/warehouse/products/new">
-                            <Plus className="h-4 w-4" />
+                            <Plus className="h-4 w-4"/>
                             Nouveau produit
                         </Link>
                     </Button>
                 </div>
 
-                {/* Cartes de statistiques KPI */}
-                <Suspense fallback={<StatsCardsSkeleton />}>
-                    <WarehouseStatsCards stats={stats} />
+                <Suspense fallback={<StatsCardsSkeleton/>}>
+                    <WarehouseStatsCards stats={stats}/>
                 </Suspense>
 
-                {/* Section principale : filtres + tableau */}
                 <Card className="p-6">
                     <div className="space-y-6">
-                        <WarehouseFilters />
+                        <WarehouseFilters/>
 
-                        {/* Message si stock bas détecté */}
                         {stats && stats.lowStockCount > 0 && (
-                            <div className="flex items-center gap-3 rounded-lg bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 p-4">
-                                <AlertTriangle className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                            <div
+                                className="flex items-center gap-3 rounded-lg bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 p-4">
+                                <AlertTriangle className="h-5 w-5 text-orange-600 dark:text-orange-400"/>
                                 <div className="flex-1">
                                     <p className="font-medium text-orange-900 dark:text-orange-100">
                                         {stats.lowStockCount}{' '}
@@ -184,20 +186,18 @@ export default async function WarehousePage({
                             </div>
                         )}
 
-                        {/* Tableau des produits */}
-                        <Suspense fallback={<TableSkeleton />}>
-                            <WarehouseProductsTable products={products} />
+                        <Suspense fallback={<TableSkeleton/>}>
+                            <WarehouseProductsTable products={products}/>
                         </Suspense>
                     </div>
                 </Card>
 
-                {/* Liens rapides */}
                 <div className="grid gap-4 md:grid-cols-2">
                     <Card className="p-6 hover:shadow-md transition-shadow cursor-pointer">
                         <Link href="/dashboard/warehouse/movements" className="block">
                             <div className="flex items-start gap-4">
                                 <div className="p-3 rounded-lg bg-blue-100 dark:bg-blue-900/20">
-                                    <TrendingDown className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                                    <TrendingDown className="h-6 w-6 text-blue-600 dark:text-blue-400"/>
                                 </div>
                                 <div className="flex-1">
                                     <h3 className="font-semibold text-lg">Mouvements de stock</h3>
@@ -213,7 +213,7 @@ export default async function WarehousePage({
                         <Link href="/dashboard/warehouse/transfers" className="block">
                             <div className="flex items-start gap-4">
                                 <div className="p-3 rounded-lg bg-green-100 dark:bg-green-900/20">
-                                    <Package className="h-6 w-6 text-green-600 dark:text-green-400" />
+                                    <Package className="h-6 w-6 text-green-600 dark:text-green-400"/>
                                 </div>
                                 <div className="flex-1">
                                     <h3 className="font-semibold text-lg">Transferts vers restaurant</h3>
@@ -226,19 +226,19 @@ export default async function WarehousePage({
                     </Card>
                 </div>
             </div>
-        </>
+        </FeatureGuard>
     )
 }
 
-// Skeletons pour UX
+// Skeletons
 function StatsCardsSkeleton() {
     return (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             {[...Array(4)].map((_, i) => (
                 <Card key={i} className="p-6">
                     <div className="animate-pulse space-y-3">
-                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4" />
-                        <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
+                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"/>
+                        <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/2"/>
                     </div>
                 </Card>
             ))}
@@ -250,7 +250,7 @@ function TableSkeleton() {
     return (
         <div className="animate-pulse space-y-4">
             {[...Array(5)].map((_, i) => (
-                <div key={i} className="h-16 bg-gray-100 dark:bg-gray-800 rounded" />
+                <div key={i} className="h-16 bg-gray-100 dark:bg-gray-800 rounded"/>
             ))}
         </div>
     )

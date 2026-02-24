@@ -12,6 +12,7 @@ import {MovementsFilters} from '@/components/warehouse/MovementsFilters'
 import {MovementsStats} from '@/components/warehouse/MovementsStats'
 import {SidebarTrigger} from '@/components/ui/sidebar'
 import {Separator} from '@/components/ui/separator'
+import {FeatureGuard} from '@/components/guards/FeatureGuard'
 import {
     Breadcrumb,
     BreadcrumbItem,
@@ -109,67 +110,73 @@ export default async function WarehouseMovementsPage({searchParams}: PageProps) 
     })
 
     return (
-        <>
-            {/* Header */}
-            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-                <SidebarTrigger className="-ml-1"/>
-                <Separator orientation="vertical" className="mr-2 h-4"/>
-                <div className="flex justify-between w-full">
-                    <Breadcrumb>
-                        <BreadcrumbList>
-                            <BreadcrumbItem>
-                                <BreadcrumbLink href="/dashboard/warehouse">Magasin</BreadcrumbLink>
-                            </BreadcrumbItem>
-                            <BreadcrumbSeparator/>
-                            <BreadcrumbItem>
-                                <BreadcrumbPage>Mouvements de stock</BreadcrumbPage>
-                            </BreadcrumbItem>
-                        </BreadcrumbList>
-                    </Breadcrumb>
-                </div>
-            </header>
-
-            <div className="flex flex-1 flex-col gap-4 p-4">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h1 className="text-3xl font-bold tracking-tight">Mouvements de stock</h1>
-                        <p className="text-muted-foreground mt-1">
-                            Historique complet de tous les mouvements d&#39;entrepôt
-                        </p>
+        <FeatureGuard
+            restaurantId={restaurantId}
+            requiredFeature="warehouse_module"
+            showError={true}
+        >
+            <>
+                {/* Header */}
+                <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+                    <SidebarTrigger className="-ml-1"/>
+                    <Separator orientation="vertical" className="mr-2 h-4"/>
+                    <div className="flex justify-between w-full">
+                        <Breadcrumb>
+                            <BreadcrumbList>
+                                <BreadcrumbItem>
+                                    <BreadcrumbLink href="/dashboard/warehouse">Magasin</BreadcrumbLink>
+                                </BreadcrumbItem>
+                                <BreadcrumbSeparator/>
+                                <BreadcrumbItem>
+                                    <BreadcrumbPage>Mouvements de stock</BreadcrumbPage>
+                                </BreadcrumbItem>
+                            </BreadcrumbList>
+                        </Breadcrumb>
                     </div>
-                    <Button variant="outline" disabled className="gap-2">
-                        <Download className="h-4 w-4"/>
-                        Exporter (à venir)
-                    </Button>
-                </div>
+                </header>
 
-                {/* Statistiques */}
-                <Suspense fallback={<StatsCardsSkeleton/>}>
-                    <MovementsStats stats={stats}/>
-                </Suspense>
+                <div className="flex flex-1 flex-col gap-4 p-4">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h1 className="text-3xl font-bold tracking-tight">Mouvements de stock</h1>
+                            <p className="text-muted-foreground mt-1">
+                                Historique complet de tous les mouvements d&#39;entrepôt
+                            </p>
+                        </div>
+                        <Button variant="outline" disabled className="gap-2">
+                            <Download className="h-4 w-4"/>
+                            Exporter (à venir)
+                        </Button>
+                    </div>
 
-                {/* Filtres et timeline */}
-                <Card className="p-6 space-y-6">
-                    <MovementsFilters products={products}/>
+                    {/* Statistiques */}
+                    <Suspense fallback={<StatsCardsSkeleton/>}>
+                        <MovementsStats stats={stats}/>
+                    </Suspense>
 
-                    <div className="flex items-center justify-between text-sm text-muted-foreground">
+                    {/* Filtres et timeline */}
+                    <Card className="p-6 space-y-6">
+                        <MovementsFilters products={products}/>
+
+                        <div className="flex items-center justify-between text-sm text-muted-foreground">
                         <span>
                             {movements.length} mouvement{movements.length > 1 ? 's' : ''} trouvé
                             {movements.length > 1 ? 's' : ''}
                         </span>
-                        {movements.length === 100 && (
-                            <span className="text-orange-600">
+                            {movements.length === 100 && (
+                                <span className="text-orange-600">
                                 Limite de 100 résultats atteinte. Affinez vos filtres.
                             </span>
-                        )}
-                    </div>
+                            )}
+                        </div>
 
-                    <Suspense fallback={<TimelineSkeleton/>}>
-                        <WarehouseMovementsTimeline movements={movements}/>
-                    </Suspense>
-                </Card>
-            </div>
-        </>
+                        <Suspense fallback={<TimelineSkeleton/>}>
+                            <WarehouseMovementsTimeline movements={movements}/>
+                        </Suspense>
+                    </Card>
+                </div>
+            </>
+        </FeatureGuard>
     )
 }
 

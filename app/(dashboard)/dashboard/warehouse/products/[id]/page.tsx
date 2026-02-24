@@ -1,14 +1,15 @@
 // app/(dashboard)/dashboard/warehouse/products/[id]/page.tsx
-import { Metadata } from "next"
-import { notFound } from "next/navigation"
+import {Metadata} from "next"
+import {notFound} from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
-import { Edit, Package } from "lucide-react"
+import {Edit, Package} from "lucide-react"
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
-import { SidebarTrigger } from "@/components/ui/sidebar"
+import {Button} from "@/components/ui/button"
+import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card"
+import {Separator} from "@/components/ui/separator"
+import {SidebarTrigger} from "@/components/ui/sidebar"
+import {FeatureGuard} from '@/components/guards/FeatureGuard'
 import {
     Breadcrumb,
     BreadcrumbItem,
@@ -18,10 +19,11 @@ import {
     BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
 
-import { getWarehouseProductById } from "@/lib/actions/warehouse"
-import { formatPrice } from "@/lib/utils/format"
-import { WarehouseMovementsTimeline } from "@/components/warehouse/WarehouseMovementsTimeline"
-import { QuickActionsButtons } from "@/components/warehouse/QuickActionsButtons"
+import {getWarehouseProductById} from "@/lib/actions/warehouse"
+import {formatPrice} from "@/lib/utils/format"
+import {WarehouseMovementsTimeline} from "@/components/warehouse/WarehouseMovementsTimeline"
+import {QuickActionsButtons} from "@/components/warehouse/QuickActionsButtons"
+import {getCurrentUserAndRestaurant} from '@/lib/auth/session'
 
 export const metadata: Metadata = {
     title: "Détail produit entrepôt | Akôm",
@@ -31,8 +33,9 @@ interface PageProps {
     params: Promise<{ id: string }>
 }
 
-export default async function WarehouseProductDetailPage({ params }: PageProps) {
-    const { id } = await params
+export default async function WarehouseProductDetailPage({params}: PageProps) {
+    const {id} = await params
+    const {restaurantId} = await getCurrentUserAndRestaurant()
     if (!id) notFound()
 
     const res = await getWarehouseProductById(id)
@@ -138,114 +141,121 @@ export default async function WarehouseProductDetailPage({ params }: PageProps) 
     const isLowStock = stock.quantity < stock.alertThreshold
 
     return (
-        <>
-            {/* HEADER */}
-            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-                <SidebarTrigger className="-ml-1" />
-                <Separator orientation="vertical" className="mr-2 h-4" />
-                <div className="flex justify-between w-full">
-                    <Breadcrumb>
-                        <BreadcrumbList>
-                            <BreadcrumbItem>
-                                <BreadcrumbLink href="/dashboard/warehouse">Magasin</BreadcrumbLink>
-                            </BreadcrumbItem>
-                            <BreadcrumbSeparator />
-                            <BreadcrumbItem>
-                                <BreadcrumbPage>Détails d&apos;un produit</BreadcrumbPage>
-                            </BreadcrumbItem>
-                        </BreadcrumbList>
-                    </Breadcrumb>
-                </div>
-            </header>
-
-            <div className="flex flex-1 flex-col gap-4 p-4">
-                {/* IMAGE + INFOS */}
-                <div className="grid gap-6 md:grid-cols-[300px_1fr]">
-                    <div className="relative aspect-square rounded-lg border overflow-hidden bg-muted">
-                        {product.imageUrl ? (
-                            <Image
-                                src={product.imageUrl}
-                                alt={product.name}
-                                fill
-                                className="object-contain"
-                            />
-                        ) : (
-                            <div className="flex items-center justify-center h-full">
-                                <Package className="h-24 w-24 text-muted-foreground" />
-                            </div>
-                        )}
+        <FeatureGuard
+            restaurantId={restaurantId}
+            requiredFeature="warehouse_module"
+            showError={true}
+        >
+            <>
+                {/* HEADER */}
+                <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+                    <SidebarTrigger className="-ml-1"/>
+                    <Separator orientation="vertical" className="mr-2 h-4"/>
+                    <div className="flex justify-between w-full">
+                        <Breadcrumb>
+                            <BreadcrumbList>
+                                <BreadcrumbItem>
+                                    <BreadcrumbLink href="/dashboard/warehouse">Magasin</BreadcrumbLink>
+                                </BreadcrumbItem>
+                                <BreadcrumbSeparator/>
+                                <BreadcrumbItem>
+                                    <BreadcrumbPage>Détails d&apos;un produit</BreadcrumbPage>
+                                </BreadcrumbItem>
+                            </BreadcrumbList>
+                        </Breadcrumb>
                     </div>
+                </header>
 
-                    <div className="space-y-6">
-                        <div className="flex items-start justify-between">
-                            <div>
-                                <h1 className="text-3xl font-bold tracking-tight">{product.name}</h1>
-                                {product.sku && (
-                                    <p className="text-sm text-muted-foreground font-mono mt-1">
-                                        SKU: {product.sku}
-                                    </p>
-                                )}
-                            </div>
-
-                            <Button asChild size="sm" variant="outline">
-                                <Link href={`/dashboard/warehouse/products/${product.id}/edit`}>
-                                    <Edit className="h-4 w-4 mr-2" />
-                                    Modifier
-                                </Link>
-                            </Button>
-                        </div>
-
-                        {/* Passer le stock singulier au composant, pas le tableau */}
-                        <QuickActionsButtons product={product} stock={stock} />
-                    </div>
-                </div>
-
-                {/* STOCK - Afficher avec Badge si stock bas */}
-                <Card>
-                    <CardHeader>
-                        <div className="flex items-center justify-between">
-                            <CardTitle>Stock actuel</CardTitle>
-                            {isLowStock && (
-                                <span className="inline-flex items-center rounded-md bg-orange-50 px-2 py-1 text-xs font-medium text-orange-700 ring-1 ring-inset ring-orange-600/20 dark:bg-orange-900/20 dark:text-orange-400 dark:ring-orange-600/30">
-                                    Stock bas
-                                </span>
+                <div className="flex flex-1 flex-col gap-4 p-4">
+                    {/* IMAGE + INFOS */}
+                    <div className="grid gap-6 md:grid-cols-[300px_1fr]">
+                        <div className="relative aspect-square rounded-lg border overflow-hidden bg-muted">
+                            {product.imageUrl ? (
+                                <Image
+                                    src={product.imageUrl}
+                                    alt={product.name}
+                                    fill
+                                    className="object-contain"
+                                />
+                            ) : (
+                                <div className="flex items-center justify-center h-full">
+                                    <Package className="h-24 w-24 text-muted-foreground"/>
+                                </div>
                             )}
                         </div>
-                    </CardHeader>
-                    <CardContent>
-                        <p className="text-3xl font-bold">{stock.quantity}</p>
-                        <p className="text-sm text-muted-foreground mt-1">
-                            Seuil d'alerte : {stock.alertThreshold}
-                        </p>
-                        {stock.unitCost && (
-                            <p className="mt-3 text-muted-foreground">
-                                Valeur totale : <span className="font-semibold text-foreground">
+
+                        <div className="space-y-6">
+                            <div className="flex items-start justify-between">
+                                <div>
+                                    <h1 className="text-3xl font-bold tracking-tight">{product.name}</h1>
+                                    {product.sku && (
+                                        <p className="text-sm text-muted-foreground font-mono mt-1">
+                                            SKU: {product.sku}
+                                        </p>
+                                    )}
+                                </div>
+
+                                <Button asChild size="sm" variant="outline">
+                                    <Link href={`/dashboard/warehouse/products/${product.id}/edit`}>
+                                        <Edit className="h-4 w-4 mr-2"/>
+                                        Modifier
+                                    </Link>
+                                </Button>
+                            </div>
+
+                            {/* Passer le stock singulier au composant, pas le tableau */}
+                            <QuickActionsButtons product={product} stock={stock}/>
+                        </div>
+                    </div>
+
+                    {/* STOCK - Afficher avec Badge si stock bas */}
+                    <Card>
+                        <CardHeader>
+                            <div className="flex items-center justify-between">
+                                <CardTitle>Stock actuel</CardTitle>
+                                {isLowStock && (
+                                    <span
+                                        className="inline-flex items-center rounded-md bg-orange-50 px-2 py-1 text-xs font-medium text-orange-700 ring-1 ring-inset ring-orange-600/20 dark:bg-orange-900/20 dark:text-orange-400 dark:ring-orange-600/30">
+                                    Stock bas
+                                </span>
+                                )}
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <p className="text-3xl font-bold">{stock.quantity}</p>
+                            <p className="text-sm text-muted-foreground mt-1">
+                                Seuil d'alerte : {stock.alertThreshold}
+                            </p>
+                            {stock.unitCost && (
+                                <p className="mt-3 text-muted-foreground">
+                                    Valeur totale : <span className="font-semibold text-foreground">
                                     {formatPrice(stock.quantity * stock.unitCost)}
                                 </span>
-                            </p>
-                        )}
-                        {stock.lastInventoryDate && (
-                            <p className="text-xs text-muted-foreground mt-2">
-                                Dernier inventaire : {stock.lastInventoryDate.toLocaleDateString('fr-FR', {
-                                day: 'numeric',
-                                month: 'long',
-                                year: 'numeric',
-                            })}
-                            </p>
-                        )}
-                    </CardContent>
-                </Card>
+                                </p>
+                            )}
+                            {stock.lastInventoryDate && (
+                                <p className="text-xs text-muted-foreground mt-2">
+                                    Dernier inventaire : {stock.lastInventoryDate.toLocaleDateString('fr-FR', {
+                                    day: 'numeric',
+                                    month: 'long',
+                                    year: 'numeric',
+                                })}
+                                </p>
+                            )}
+                        </CardContent>
+                    </Card>
 
-                {/* HISTORIQUE */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Historique des mouvements</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <WarehouseMovementsTimeline movements={product.movements} />
-                    </CardContent>
-                </Card>
-            </div>
-        </>
+                    {/* HISTORIQUE */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Historique des mouvements</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <WarehouseMovementsTimeline movements={product.movements}/>
+                        </CardContent>
+                    </Card>
+                </div>
+            </>
+        </FeatureGuard>
     )
 }
