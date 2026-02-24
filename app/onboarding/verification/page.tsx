@@ -156,15 +156,15 @@ export default async function VerificationPage() {
                     </div>
                 </div>
 
-                {/* CTA secondaire */}
-                {/*<div className="mt-8 text-center">*/}
-                {/*    <a*/}
-                {/*        href="/dashboard"*/}
-                {/*        className="text-sm text-muted-foreground hover:text-foreground transition-colors"*/}
-                {/*    >*/}
-                {/*        Je compléterai cette étape plus tard →*/}
-                {/*    </a>*/}
-                {/*</div>*/}
+                {/*CTA secondaire*/}
+                <div className="mt-8 text-center">
+                    <a
+                        href="/login"
+                        className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                        Se connecter →
+                    </a>
+                </div>
 
             </div>
         </div>
