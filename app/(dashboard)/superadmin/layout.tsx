@@ -1,65 +1,55 @@
-import { ReactNode } from 'react'
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { SignOutButton } from '@/components/auth/SignOutButton'
-import {
-    LayoutDashboard,
-    Building2,
-    Users,
-    BarChart3,
-    ArrowLeft,
-    MessageSquare,
-    FileText,
-} from 'lucide-react'
-import { redirect } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
-import { signOut, getUserRole } from "@/lib/actions/auth"
-import { AppSidebar } from "../components/app-sidebar"
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
-import { RestaurantProvider } from "@/lib/hooks/use-restaurant"
-import prisma from "@/lib/prisma"
+// app/(dashboard)/superadmin/layout.tsx
 
-export default async function SuperAdminLayout({ children }: { children: ReactNode }) {
+import {ReactNode} from "react"
+import {redirect} from "next/navigation"
+import {createClient} from "@/lib/supabase/server"
+import {signOut, getUserRole} from "@/lib/actions/auth"
+import {AppSidebar} from "../components/app-sidebar"
+import {SidebarProvider, SidebarInset} from "@/components/ui/sidebar"
+import {RestaurantProvider} from "@/lib/hooks/use-restaurant"
 
+export default async function SuperAdminLayout({
+                                                   children,
+                                               }: {
+    children: ReactNode
+}) {
     const supabase = await createClient()
 
-    // Vérifier l'authentification
+    // ============================================================
+    // 1️⃣ Vérification authentification
+    // ============================================================
+
     const {
-        data: { user },
+        data: {user},
     } = await supabase.auth.getUser()
 
     if (!user) {
         redirect("/login")
     }
 
-    // Récupérer le rôle de l'utilisateur EN PREMIER
+    // ============================================================
+    // 2️⃣ Vérification rôle
+    // ============================================================
+
     const userRole = await getUserRole()
 
-    // Récupérer les infos du restaurant actuel (seulement si pas SuperAdmin)
-    const restaurantUser = userRole !== "superadmin"
-        ? await prisma.restaurantUser.findFirst({
-            where: { userId: user.id },
-            include: {
-                restaurant: {
-                    select: {
-                        id: true,
-                        name: true,
-                        logoUrl: true
-                    },
-                },
-            },
-        })
-        : null
+    if (userRole !== "superadmin") {
+        redirect("/dashboard")
+    }
 
-    const restaurantName = restaurantUser?.restaurant.name
-    const restaurantId = restaurantUser?.restaurant.id
-    const restaurantLogoUrl = restaurantUser?.restaurant.logoUrl
+    // ============================================================
+    // 3️⃣ Server action déconnexion
+    // ============================================================
 
-    // Server action pour déconnexion
     async function handleSignOut() {
         "use server"
         await signOut()
     }
+
+    // ============================================================
+    // 4️⃣ Render
+    // ============================================================
+
     return (
         <RestaurantProvider>
             <SidebarProvider>
@@ -69,12 +59,12 @@ export default async function SuperAdminLayout({ children }: { children: ReactNo
                         id: user.id,
                     }}
                     role={userRole}
-                    restaurantName='Akôm Superadmin'
+                    restaurantName="Akôm"
+                    restaurantId={undefined}
+                    restaurantLogoUrl=""
                     onSignOut={handleSignOut}
                 />
-                <SidebarInset>
-                    {children}
-                </SidebarInset>
+                <SidebarInset>{children}</SidebarInset>
             </SidebarProvider>
         </RestaurantProvider>
     )

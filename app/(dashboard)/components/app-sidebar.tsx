@@ -83,7 +83,7 @@ interface AppSidebarProps {
     restaurantName?: string
     restaurantId?: string
     restaurantLogoUrl?: string
-    currentPlan: SubscriptionPlan  // NOUVEAU : ajouter le plan actuel
+    currentPlan?: SubscriptionPlan  // NOUVEAU : ajouter le plan actuel
     onSignOut: () => void
 }
 
