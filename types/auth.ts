@@ -1,7 +1,7 @@
-import type { User } from '@supabase/supabase-js'
+import type {User} from '@supabase/supabase-js'
 
 // Rôles utilisateur
-export type UserRole = 'admin' | 'kitchen'
+export type UserRole = 'admin' | 'cashier' | 'kitchen'
 export type SystemRole = 'superadmin' | UserRole
 
 // Utilisateur avec ses restaurants
@@ -49,12 +49,19 @@ export const PERMISSIONS = {
         'manage_orders',
         'view_menu',
     ] as const,
+    cashier: [
+        'manage_orders',     // Créer et mettre à jour les commandes
+        'manage_payments',   // Encaisser les paiements
+        'view_menu',         // Lire les produits/catégories pour la saisie
+        'view_tables',       // Voir les tables disponibles
+    ] as const,
 }
 
 // Type pour les permissions individuelles
 export type SuperAdminPermission = typeof PERMISSIONS.superadmin[number]
 export type AdminPermission = typeof PERMISSIONS.admin[number]
 export type KitchenPermission = typeof PERMISSIONS.kitchen[number]
+export type CashierPermission = typeof PERMISSIONS.cashier[number]
 
 // Union de toutes les permissions possibles
-export type Permission = SuperAdminPermission | AdminPermission | KitchenPermission
+export type Permission = SuperAdminPermission | AdminPermission | KitchenPermission | CashierPermission

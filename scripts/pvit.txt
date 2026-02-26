@@ -1,0 +1,5 @@
+Pour commencer votre intégration, vous devez d'abord créer un compte sur la plateforme https://mypvit.pro
+Vous trouverez les étapes à suivre pour l'intégration sur le lien suivant
+https://docs.mypvit.pro/fr/intro/integration-steps
+
+La documentation des API est disponible en ligne à l'adresse https://docs.mypvit.pro

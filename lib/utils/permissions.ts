@@ -1,4 +1,4 @@
-import { PERMISSIONS, type SystemRole, type Permission } from '@/types/auth'
+import {PERMISSIONS, type SystemRole, type Permission} from '@/types/auth'
 
 
 /*************************************************************
@@ -87,6 +87,9 @@ export function canAccessRoute(role: SystemRole | null, path: string): boolean {
         '/dashboard/stats',
         '/dashboard/payments',
         '/dashboard/users',
+        '/dashboard/caisse',
+        '/dashboard/warehouse',
+        '/dashboard/subscription',
     ]
     if (adminRoutes.some((route) => path.startsWith(route))) {
         return role === 'admin'
@@ -96,6 +99,12 @@ export function canAccessRoute(role: SystemRole | null, path: string): boolean {
     const kitchenRoutes = ['/dashboard/orders']
     if (kitchenRoutes.some((route) => path.startsWith(route))) {
         return role === 'kitchen' || role === 'admin'
+    }
+
+    // ← NOUVEAU : Routes caissière + admin
+    const cashierRoutes = ['/dashboard/pos']
+    if (cashierRoutes.some((route) => path.startsWith(route))) {
+        return role === 'cashier' || role === 'admin'
     }
 
     return false
@@ -123,6 +132,11 @@ export function getRoleBadge(role: SystemRole): {
             return {
                 label: 'Cuisine',
                 color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+            }
+        case 'cashier':
+            return {
+                label: 'Caissière',
+                color: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
             }
     }
 }

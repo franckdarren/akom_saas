@@ -41,7 +41,7 @@ import {
     Loader2,
     Wallet,
     Lock,
-    TrendingUp,
+    TrendingUp, ClipboardList,
 } from "lucide-react"
 
 import {
@@ -75,7 +75,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
-type UserRole = "admin" | "kitchen" | "superadmin"
+type UserRole = "admin" | "kitchen" | "superadmin" | "cashier"
 
 interface AppSidebarProps {
     user: { email: string; id: string }
@@ -144,6 +144,8 @@ export function AppSidebar({
     // Configuration des menus par rôle avec features requises
     // ============================================================
     const menuConfig: Record<UserRole, MenuGroup[]> = {
+
+        // ROLE ADMIN
         admin: [
             {
                 title: "Général",
@@ -162,7 +164,7 @@ export function AppSidebar({
                 title: "Opérations",
                 items: [
                     {title: "Tables", href: "/dashboard/tables", icon: Users},
-                    {title: "Commandes", href: "/dashboard/orders", icon: ShoppingCart},
+                    {title: "Commandes", href: "", icon: ShoppingCart},
                     {
                         title: "Stocks",
                         href: "/dashboard/stocks",
@@ -177,6 +179,13 @@ export function AppSidebar({
                         icon: Wallet,
                         requiredFeature: 'caisse_module'  // NOUVEAU
                     },
+                ],
+            },
+            {
+                title: "Comptoir",
+                items: [
+                    {title: "Nouvelle commande", href: "/dashboard/pos", icon: ShoppingCart},
+                    {title: "Commandes du jour", href: "/dashboard/pos/orders", icon: ClipboardList},
                 ],
             },
             {
@@ -238,6 +247,8 @@ export function AppSidebar({
                 ],
             },
         ],
+
+        // ROLE CUISINE
         kitchen: [
             {
                 title: "Cuisine",
@@ -246,6 +257,19 @@ export function AppSidebar({
                 ],
             },
         ],
+
+        // ROLE COMPTOIR
+        cashier: [
+            {
+                title: "Comptoir",
+                items: [
+                    {title: "Nouvelle commande", href: "/dashboard/pos", icon: ShoppingCart},
+                    {title: "Commandes du jour", href: "/dashboard/pos/orders", icon: ClipboardList},
+                ],
+            },
+        ],
+
+        // ROLE SUPERADMIN
         superadmin: [
             {
                 title: "Administration",

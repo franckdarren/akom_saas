@@ -12,18 +12,18 @@ CREATE OR REPLACE FUNCTION upsert_permission(
     p_category text
 ) RETURNS uuid AS $$
 DECLARE
-    v_permission_id uuid;
+v_permission_id uuid;
 BEGIN
-    INSERT INTO permissions (resource, action, name, description, category, is_system)
-    VALUES (p_resource::permission_resource, p_action::permission_action, p_name, p_description, p_category, true)
+INSERT INTO permissions (resource, action, name, description, category, is_system)
+VALUES (p_resource::permission_resource, p_action::permission_action, p_name, p_description, p_category, true)
     ON CONFLICT (resource, action) 
-    DO UPDATE SET 
-        name = EXCLUDED.name,
-        description = EXCLUDED.description,
-        category = EXCLUDED.category
-    RETURNING id INTO v_permission_id;
-    
-    RETURN v_permission_id;
+    DO UPDATE SET
+    name = EXCLUDED.name,
+               description = EXCLUDED.description,
+               category = EXCLUDED.category
+               RETURNING id INTO v_permission_id;
+
+RETURN v_permission_id;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -87,10 +87,10 @@ SELECT upsert_permission('roles', 'delete', 'Supprimer des rôles', 'Permet de s
 
 DO $$
 DECLARE
-    v_permission_count integer;
+v_permission_count integer;
 BEGIN
-    SELECT COUNT(*) INTO v_permission_count FROM permissions;
-    RAISE NOTICE '✅ % permissions créées', v_permission_count;
+SELECT COUNT(*) INTO v_permission_count FROM permissions;
+RAISE NOTICE '✅ % permissions créées', v_permission_count;
 END $$;
 
 -- ============================================================
@@ -99,7 +99,7 @@ END $$;
 
 DO $$
 DECLARE
-    v_restaurant RECORD;
+v_restaurant RECORD;
     v_admin_role_id uuid;
     v_kitchen_role_id uuid;
     v_permission RECORD;
@@ -111,80 +111,95 @@ BEGIN
     RAISE NOTICE '👥 Création des rôles pour chaque restaurant...';
     
     -- Parcourir tous les restaurants
-    FOR v_restaurant IN SELECT * FROM restaurants LOOP
-        RAISE NOTICE '';
-        RAISE NOTICE '📍 Configuration du restaurant: %', v_restaurant.name;
+FOR v_restaurant IN SELECT * FROM restaurants LOOP
+    RAISE NOTICE '';
+RAISE NOTICE '📍 Configuration du restaurant: %', v_restaurant.name;
         
         -- Créer le rôle Administrateur
-        INSERT INTO roles (restaurant_id, name, description, is_system, is_active)
-        VALUES (
-            v_restaurant.id,
-            'Administrateur',
-            'Accès complet à toutes les fonctionnalités du restaurant',
-            true,
-            true
-        )
-        ON CONFLICT (restaurant_id, name) 
+INSERT INTO roles (restaurant_id, name, description, is_system, is_active)
+VALUES (
+           v_restaurant.id,
+           'Administrateur',
+           'Accès complet à toutes les fonctionnalités du restaurant',
+           true,
+           true
+       )
+    ON CONFLICT (restaurant_id, name)
         DO UPDATE SET description = EXCLUDED.description
-        RETURNING id INTO v_admin_role_id;
-        
-        -- Associer TOUTES les permissions au rôle Admin
-        v_admin_perms_count := 0;
-        FOR v_permission IN SELECT * FROM permissions LOOP
-            INSERT INTO role_permissions (role_id, permission_id)
-            VALUES (v_admin_role_id, v_permission.id)
-            ON CONFLICT (role_id, permission_id) DO NOTHING;
-            v_admin_perms_count := v_admin_perms_count + 1;
-        END LOOP;
+                   RETURNING id INTO v_admin_role_id;
+
+-- Associer TOUTES les permissions au rôle Admin
+v_admin_perms_count := 0;
+FOR v_permission IN SELECT * FROM permissions LOOP
+    INSERT INTO role_permissions (role_id, permission_id)
+                    VALUES (v_admin_role_id, v_permission.id)
+                    ON CONFLICT (role_id, permission_id) DO NOTHING;
+v_admin_perms_count := v_admin_perms_count + 1;
+END LOOP;
         
         -- Créer le rôle Cuisine
-        INSERT INTO roles (restaurant_id, name, description, is_system, is_active)
-        VALUES (
-            v_restaurant.id,
-            'Cuisine',
-            'Accès à la gestion des commandes en cuisine',
-            true,
-            true
-        )
-        ON CONFLICT (restaurant_id, name) 
+INSERT INTO roles (restaurant_id, name, description, is_system, is_active)
+VALUES (
+           v_restaurant.id,
+           'Cuisine',
+           'Accès à la gestion des commandes en cuisine',
+           true,
+           true
+       )
+    ON CONFLICT (restaurant_id, name)
         DO UPDATE SET description = EXCLUDED.description
-        RETURNING id INTO v_kitchen_role_id;
-        
-        -- Associer les permissions spécifiques au rôle Cuisine
-        v_kitchen_perms_count := 0;
-        FOR v_permission IN 
-            SELECT * FROM permissions 
-            WHERE 
-                -- Voir et gérer les commandes
-                (resource = 'orders' AND action IN ('read', 'update'))
-                -- Voir le menu
-                OR (resource = 'menu' AND action = 'read')
-                -- Voir les tables
-                OR (resource = 'tables' AND action = 'read')
-        LOOP
-            INSERT INTO role_permissions (role_id, permission_id)
-            VALUES (v_kitchen_role_id, v_permission.id)
-            ON CONFLICT (role_id, permission_id) DO NOTHING;
-            v_kitchen_perms_count := v_kitchen_perms_count + 1;
-        END LOOP;
-        
-        -- Migrer les utilisateurs existants vers le nouveau système
-        v_users_count := 0;
-        UPDATE restaurant_users
-        SET role_id = CASE 
-            WHEN role = 'admin' THEN v_admin_role_id
-            WHEN role = 'kitchen' THEN v_kitchen_role_id
-            ELSE v_kitchen_role_id  -- Par défaut, kitchen
-        END
-        WHERE restaurant_id = v_restaurant.id
-        AND role_id IS NULL;  -- Ne migrer que ceux qui n'ont pas encore de roleId
-        
-        GET DIAGNOSTICS v_users_count = ROW_COUNT;
-        
-        RAISE NOTICE '  ✅ Rôle Admin créé avec % permissions', v_admin_perms_count;
+                   RETURNING id INTO v_kitchen_role_id;
+
+-- Associer les permissions spécifiques au rôle Cuisine
+v_kitchen_perms_count := 0;
+FOR v_permission IN
+SELECT * FROM permissions
+WHERE
+   -- Voir et gérer les commandes
+    (resource = 'orders' AND action IN ('read', 'update'))
+   -- Voir le menu
+   OR (resource = 'menu' AND action = 'read')
+   -- Voir les tables
+   OR (resource = 'tables' AND action = 'read')
+    LOOP
+INSERT INTO role_permissions (role_id, permission_id)
+VALUES (v_kitchen_role_id, v_permission.id)
+ON CONFLICT (role_id, permission_id) DO NOTHING;
+v_kitchen_perms_count := v_kitchen_perms_count + 1;
+END LOOP;
+
+        -- Rôle Caissière : créer et voir commandes + paiements
+INSERT INTO roles (restaurant_id, name, description, is_system, is_active)
+VALUES (v_restaurant.id, 'Caissière', 'Prise de commande et encaissement au comptoir', true, true)
+    RETURNING id INTO v_cashier_role_id;
+
+-- Permissions caissière
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT v_cashier_role_id, id FROM permissions
+WHERE (resource = 'orders' AND action IN ('create', 'read', 'update'))
+   OR (resource = 'payments' AND action IN ('create', 'read'))
+   OR (resource = 'products' AND action = 'read')
+   OR (resource = 'categories' AND action = 'read')
+   OR (resource = 'tables' AND action = 'read')
+    ON CONFLICT DO NOTHING;
+
+-- Migrer les utilisateurs existants vers le nouveau système
+v_users_count := 0;
+UPDATE restaurant_users
+SET role_id = CASE
+                  WHEN role = 'admin' THEN v_admin_role_id
+                  WHEN role = 'kitchen' THEN v_kitchen_role_id
+                  ELSE v_kitchen_role_id  -- Par défaut, kitchen
+    END
+WHERE restaurant_id = v_restaurant.id
+  AND role_id IS NULL;  -- Ne migrer que ceux qui n'ont pas encore de roleId
+
+GET DIAGNOSTICS v_users_count = ROW_COUNT;
+
+RAISE NOTICE '  ✅ Rôle Admin créé avec % permissions', v_admin_perms_count;
         RAISE NOTICE '  ✅ Rôle Cuisine créé avec % permissions', v_kitchen_perms_count;
         RAISE NOTICE '  ✅ % utilisateur(s) migré(s)', v_users_count;
-    END LOOP;
+END LOOP;
     
     RAISE NOTICE '';
     RAISE NOTICE '🎉 Initialisation terminée avec succès!';
@@ -202,17 +217,17 @@ DROP FUNCTION IF EXISTS upsert_permission(text, text, text, text, text);
 
 DO $$
 DECLARE
-    v_permissions_count integer;
+v_permissions_count integer;
     v_roles_count integer;
     v_role_permissions_count integer;
     v_restaurants_count integer;
 BEGIN
-    SELECT COUNT(*) INTO v_permissions_count FROM permissions;
-    SELECT COUNT(*) INTO v_roles_count FROM roles WHERE is_system = true;
-    SELECT COUNT(*) INTO v_role_permissions_count FROM role_permissions;
-    SELECT COUNT(*) INTO v_restaurants_count FROM restaurants;
-    
-    RAISE NOTICE '';
+SELECT COUNT(*) INTO v_permissions_count FROM permissions;
+SELECT COUNT(*) INTO v_roles_count FROM roles WHERE is_system = true;
+SELECT COUNT(*) INTO v_role_permissions_count FROM role_permissions;
+SELECT COUNT(*) INTO v_restaurants_count FROM restaurants;
+
+RAISE NOTICE '';
     RAISE NOTICE '========================================';
     RAISE NOTICE '📊 RÉSUMÉ DE L''INITIALISATION';
     RAISE NOTICE '========================================';
@@ -241,20 +256,20 @@ END $$;
 4. **Vérifier les résultats** :
    - Vous devriez voir des messages comme :
 ```
-     🔐 Création des permissions système...
-     ✅ 32 permissions créées
-     
-     👥 Création des rôles pour chaque restaurant...
-     
-     📍 Configuration du restaurant: Mon Restaurant
-       ✅ Rôle Admin créé avec 32 permissions
-       ✅ Rôle Cuisine créé avec 4 permissions
-       ✅ 2 utilisateur(s) migré(s)
-     
-     🎉 Initialisation terminée avec succès!
+🔐 Création des permissions système...
+✅ 32 permissions créées
+
+👥 Création des rôles pour chaque restaurant...
+
+📍 Configuration du restaurant: Mon Restaurant
+✅ Rôle Admin créé avec 32 permissions
+✅ Rôle Cuisine créé avec 4 permissions
+✅ 2 utilisateur(s) migré(s)
+
+🎉 Initialisation terminée avec succès!
      
      ========================================
-     📊 RÉSUMÉ DE L'INITIALISATION
+📊 RÉSUMÉ DE L'INITIALISATION
      ========================================
      ✅ 32 permissions système créées
      ✅ 2 rôles système créés (1 restaurants × 2)

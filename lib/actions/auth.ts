@@ -1,10 +1,10 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
-import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import {revalidatePath} from 'next/cache'
+import {redirect} from 'next/navigation'
+import {createClient} from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
-import { isSuperAdminEmail } from '@/lib/utils/permissions'
+import {isSuperAdminEmail} from '@/lib/utils/permissions'
 import {
     loginSchema,
     registerSchema,
@@ -26,20 +26,21 @@ type ActionResult = {
 
 // ============================================================
 // HELPER : Déterminer la redirection après auth
+// ← MODIFIÉ : redirige kitchen → /dashboard/orders
+//             redirige cashier → /dashboard/pos
 // ============================================================
 
 async function getRedirectUrl(user: { id: string; email: string }): Promise<string> {
     // 1. Vérifier si SuperAdmin
     const isSuperAdmin = isSuperAdminEmail(user.email)
-    
+
     if (isSuperAdmin) {
-        // SuperAdmin → /superadmin directement
         return '/superadmin'
     }
 
     // 2. Vérifier si l'utilisateur a un restaurant
     const restaurantUser = await prisma.restaurantUser.findFirst({
-        where: { userId: user.id },
+        where: {userId: user.id},
     })
 
     // Pas de restaurant → Onboarding
@@ -47,8 +48,16 @@ async function getRedirectUrl(user: { id: string; email: string }): Promise<stri
         return '/onboarding'
     }
 
-    // A un restaurant → Dashboard normal
-    return '/dashboard'
+    // 3. Rediriger selon le rôle
+    switch (restaurantUser.role) {
+        case 'kitchen':
+            return '/dashboard/orders'
+        case 'cashier':
+            return '/dashboard/pos'
+        default:
+            // admin → dashboard principal
+            return '/dashboard'
+    }
 }
 
 // ============================================================
@@ -67,8 +76,7 @@ export async function signUp(data: RegisterInput): Promise<ActionResult> {
 
     const supabase = await createClient()
 
-    // Créer l'utilisateur
-    const { data: authData, error: authError } = await supabase.auth.signUp({
+    const {data: authData, error: authError} = await supabase.auth.signUp({
         email: parsed.data.email,
         password: parsed.data.password,
         options: {
@@ -79,7 +87,7 @@ export async function signUp(data: RegisterInput): Promise<ActionResult> {
     if (authError) {
         return {
             success: false,
-            message: 'Erreur lors de l\'inscription',
+            message: "Erreur lors de l'inscription",
             error: authError.message,
         }
     }
@@ -91,23 +99,19 @@ export async function signUp(data: RegisterInput): Promise<ActionResult> {
         }
     }
 
-    // ✅ Revalider pour que le middleware détecte la nouvelle session
     revalidatePath('/', 'layout')
 
-    // ✅ Juste retourner le succès - le middleware s'occupera du reste
     return {
         success: true,
         message: 'Compte créé avec succès',
     }
 }
 
-
 // ============================================================
 // CONNEXION
 // ============================================================
 
 export async function signIn(data: LoginInput): Promise<ActionResult> {
-    // Validation
     const parsed = loginSchema.safeParse(data)
     if (!parsed.success) {
         return {
@@ -119,8 +123,7 @@ export async function signIn(data: LoginInput): Promise<ActionResult> {
 
     const supabase = await createClient()
 
-    // Connexion
-    const { data: authData, error } = await supabase.auth.signInWithPassword({
+    const {data: authData, error} = await supabase.auth.signInWithPassword({
         email: parsed.data.email,
         password: parsed.data.password,
     })
@@ -140,19 +143,17 @@ export async function signIn(data: LoginInput): Promise<ActionResult> {
         }
     }
 
-    // ✅ FIX : Déterminer la redirection selon le type d'utilisateur
-    const redirectUrl = await getRedirectUrl({
+    // Calcule la redirection — le middleware ou le client l'utilisera
+    await getRedirectUrl({
         id: authData.user.id,
         email: authData.user.email || '',
     })
 
-    // Retourne juste le succès sans rediriger
     return {
         success: true,
         message: 'Connexion réussie',
     }
 }
-
 
 // ============================================================
 // DÉCONNEXION
@@ -167,7 +168,6 @@ export async function signOut(): Promise<void> {
     redirect('/login')
 }
 
-
 // ============================================================
 // MOT DE PASSE OUBLIÉ
 // ============================================================
@@ -175,7 +175,6 @@ export async function signOut(): Promise<void> {
 export async function forgotPassword(
     data: ForgotPasswordInput
 ): Promise<ActionResult> {
-    // Validation
     const parsed = forgotPasswordSchema.safeParse(data)
     if (!parsed.success) {
         return {
@@ -187,8 +186,7 @@ export async function forgotPassword(
 
     const supabase = await createClient()
 
-    // Envoyer l'email de réinitialisation
-    const { error } = await supabase.auth.resetPasswordForEmail(
+    const {error} = await supabase.auth.resetPasswordForEmail(
         parsed.data.email,
         {
             redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/callback?next=/reset-password`,
@@ -198,7 +196,7 @@ export async function forgotPassword(
     if (error) {
         return {
             success: false,
-            message: 'Erreur lors de l\'envoi de l\'email',
+            message: "Erreur lors de l'envoi de l'email",
             error: error.message,
         }
     }
@@ -209,7 +207,6 @@ export async function forgotPassword(
     }
 }
 
-
 // ============================================================
 // RÉINITIALISER LE MOT DE PASSE
 // ============================================================
@@ -218,7 +215,6 @@ export async function resetPassword(
     password: string,
     confirmPassword: string
 ): Promise<ActionResult> {
-    // Validation
     if (password !== confirmPassword) {
         return {
             success: false,
@@ -235,10 +231,7 @@ export async function resetPassword(
 
     const supabase = await createClient()
 
-    // Mettre à jour le mot de passe
-    const { error } = await supabase.auth.updateUser({
-        password: password,
-    })
+    const {error} = await supabase.auth.updateUser({password})
 
     if (error) {
         return {
@@ -254,7 +247,6 @@ export async function resetPassword(
     }
 }
 
-
 // ============================================================
 // METTRE À JOUR LE MOT DE PASSE (depuis le profil)
 // ============================================================
@@ -264,7 +256,6 @@ export async function updatePassword(
     newPassword: string,
     confirmPassword: string
 ): Promise<ActionResult> {
-    // Validation
     if (newPassword !== confirmPassword) {
         return {
             success: false,
@@ -281,9 +272,8 @@ export async function updatePassword(
 
     const supabase = await createClient()
 
-    // Récupérer l'utilisateur
     const {
-        data: { user },
+        data: {user},
     } = await supabase.auth.getUser()
 
     if (!user) {
@@ -293,8 +283,7 @@ export async function updatePassword(
         }
     }
 
-    // Vérifier le mot de passe actuel en essayant de se connecter
-    const { error: signInError } = await supabase.auth.signInWithPassword({
+    const {error: signInError} = await supabase.auth.signInWithPassword({
         email: user.email!,
         password: currentPassword,
     })
@@ -306,10 +295,7 @@ export async function updatePassword(
         }
     }
 
-    // Mettre à jour le mot de passe
-    const { error } = await supabase.auth.updateUser({
-        password: newPassword,
-    })
+    const {error} = await supabase.auth.updateUser({password: newPassword})
 
     if (error) {
         return {
@@ -325,49 +311,44 @@ export async function updatePassword(
     }
 }
 
-
 // ============================================================
 // RÉCUPÉRER L'UTILISATEUR CONNECTÉ
 // ============================================================
 
 export async function getUser() {
     const supabase = await createClient()
-
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
-
+    const {data: {user}} = await supabase.auth.getUser()
     return user
 }
 
-
 // ============================================================
-// RECUPERER LE ROLE DE L'UTILISATEUR
+// RÉCUPÉRER LE RÔLE DE L'UTILISATEUR
+// ← MODIFIÉ : retourne désormais 'cashier' en plus de 'admin' | 'kitchen' | 'superadmin'
 // ============================================================
 
-export async function getUserRole(): Promise<"admin" | "kitchen" | "superadmin"> {
+export async function getUserRole(): Promise<'admin' | 'kitchen' | 'cashier' | 'superadmin'> {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const {data: {user}} = await supabase.auth.getUser()
 
     if (!user) {
-        throw new Error("Not authenticated")
+        throw new Error('Not authenticated')
     }
 
     // Vérifier si SuperAdmin
     const isSuperAdminUser = await isSuperAdmin()
     if (isSuperAdminUser) {
-        return "superadmin"
+        return 'superadmin'
     }
 
     // Récupérer le rôle dans restaurant_users
     const restaurantUser = await prisma.restaurantUser.findFirst({
-        where: { userId: user.id },
-        select: { role: true },
+        where: {userId: user.id},
+        select: {role: true},
     })
 
-    return restaurantUser?.role || "kitchen"
+    // cashier est reconnu nativement par l'enum Prisma après migration
+    return (restaurantUser?.role as 'admin' | 'kitchen' | 'cashier') || 'kitchen'
 }
-
 
 // ============================================================
 // VÉRIFIER SI L'UTILISATEUR EST SUPERADMIN
@@ -375,7 +356,7 @@ export async function getUserRole(): Promise<"admin" | "kitchen" | "superadmin">
 
 export async function isSuperAdmin(): Promise<boolean> {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const {data: {user}} = await supabase.auth.getUser()
 
     if (!user) return false
 

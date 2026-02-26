@@ -1,7 +1,7 @@
 // app/(dashboard)/dashboard/menu/categories/categories-list.tsx
 'use client'
 
-import { useState } from 'react'
+import {useState} from 'react'
 import Link from 'next/link'
 import {
     Card,
@@ -10,8 +10,8 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import {Button} from '@/components/ui/button'
+import {Badge} from '@/components/ui/badge'
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -41,8 +41,8 @@ import {
     moveCategoryUp,
     moveCategoryDown,
 } from '@/lib/actions/category'
-import { EditCategoryDialog } from './edit-category-dialog'
-import { toast } from 'sonner'
+import {EditCategoryDialog} from './edit-category-dialog'
+import {toast} from 'sonner'
 
 // ============================================================
 // TYPES
@@ -68,7 +68,7 @@ interface CategoriesListProps {
 // COMPOSANT PRINCIPAL
 // ============================================================
 
-export function CategoriesList({ categories }: CategoriesListProps) {
+export function CategoriesList({categories}: CategoriesListProps) {
     const [isDeleting, setIsDeleting] = useState<string | null>(null)
     const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null)
 
@@ -120,10 +120,10 @@ export function CategoriesList({ categories }: CategoriesListProps) {
         return (
             <Card>
                 <CardContent className="flex flex-col items-center justify-center py-10">
-                    <Package className="h-12 w-12 text-muted-foreground mb-4" />
+                    <Package className="h-12 w-12 text-muted-foreground mb-4"/>
                     <p className="text-muted-foreground text-center">
                         Aucune catégorie pour le moment.
-                        <br />
+                        <br/>
                         Créez votre première catégorie pour organiser votre menu.
                     </p>
                 </CardContent>
@@ -162,7 +162,7 @@ export function CategoriesList({ categories }: CategoriesListProps) {
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                         <Button variant="ghost" size="icon" className="h-8 w-8">
-                                            <MoreVertical className="h-4 w-4" />
+                                            <MoreVertical className="h-4 w-4"/>
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
@@ -191,11 +191,11 @@ export function CategoriesList({ categories }: CategoriesListProps) {
                             {/* Stats produits et familles */}
                             <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
                                 <div className="flex items-center gap-1">
-                                    <Package className="h-4 w-4" />
+                                    <Package className="h-4 w-4"/>
                                     <span>{category._count.products} produit{category._count.products !== 1 ? 's' : ''}</span>
                                 </div>
                                 <div className="flex items-center gap-1">
-                                    <FolderTree className="h-4 w-4" />
+                                    <FolderTree className="h-4 w-4"/>
                                     <span>{category._count.families} famille{category._count.families !== 1 ? 's' : ''}</span>
                                 </div>
                             </div>
@@ -209,7 +209,7 @@ export function CategoriesList({ categories }: CategoriesListProps) {
                                         size="sm"
                                         className="w-full justify-start"
                                     >
-                                        <FolderTree className="mr-2 h-4 w-4" />
+                                        <FolderTree className="mr-2 h-4 w-4"/>
                                         Gérer les familles
                                         {category._count.families > 0 && (
                                             <Badge variant="secondary" className="ml-auto">
@@ -228,7 +228,7 @@ export function CategoriesList({ categories }: CategoriesListProps) {
                                         disabled={index === 0}
                                         className="flex-1"
                                     >
-                                        <ArrowUp className="h-4 w-4" />
+                                        <ArrowUp className="h-4 w-4"/>
                                     </Button>
                                     <Button
                                         variant="outline"
@@ -237,7 +237,7 @@ export function CategoriesList({ categories }: CategoriesListProps) {
                                         disabled={index === categories.length - 1}
                                         className="flex-1"
                                     >
-                                        <ArrowDown className="h-4 w-4" />
+                                        <ArrowDown className="h-4 w-4"/>
                                     </Button>
                                 </div>
                             </div>
@@ -264,7 +264,7 @@ export function CategoriesList({ categories }: CategoriesListProps) {
                             ) : (
                                 <>
                                     Impossible de supprimer <strong>{categoryToDelete?.name}</strong>.
-                                    <br />
+                                    <br/>
                                     Cette catégorie contient{' '}
                                     <strong>{categoryToDelete?._count.products} produit(s)</strong>.
                                     Veuillez d'abord supprimer ou déplacer ces produits.
@@ -278,7 +278,7 @@ export function CategoriesList({ categories }: CategoriesListProps) {
                             <AlertDialogAction
                                 onClick={() => categoryToDelete && handleDelete(categoryToDelete)}
                                 disabled={!!isDeleting}
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                className="bg-destructive text-white hover:bg-destructive/90"
                             >
                                 {isDeleting ? 'Suppression...' : 'Supprimer'}
                             </AlertDialogAction>

@@ -13,6 +13,7 @@ datasource db {
 enum UserRole {
   admin
   kitchen
+  cashier
 
   @@map("user_role")
 }
@@ -184,6 +185,7 @@ enum OrderSource {
   qr_table // Via QR code sur une table physique
   public_link // Via le lien catalogue public
   dashboard // Créée manuellement par le staff
+  counter // Prise de commande au comptoir par la caissière
 
   @@map("order_source")
 }
@@ -431,6 +433,7 @@ model Order {
   status       OrderStatus @default(pending)
   totalAmount  Int         @default(0) @map("total_amount") // Montant en FCFA (entier)
   notes        String?
+  tableLabel   String?     @map("table_label") // ← NOUVEAU : ex: "Comptoir", "Terrasse"
   createdAt    DateTime    @default(now()) @map("created_at")
   updatedAt    DateTime    @updatedAt @map("updated_at")
 
