@@ -164,7 +164,7 @@ export function AppSidebar({
                 title: "Opérations",
                 items: [
                     {title: "Tables", href: "/dashboard/tables", icon: Users},
-                    {title: "Commandes", href: "", icon: ShoppingCart},
+                    {title: "Commandes", href: "/dashboard/orders", icon: ShoppingCart},
                     {
                         title: "Stocks",
                         href: "/dashboard/stocks",

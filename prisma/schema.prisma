@@ -441,6 +441,7 @@ model Order {
 
   source          OrderSource      @default(qr_table)
   fulfillmentType FulfillmentType?
+  stockDeducted   Boolean          @default(false) @map("stock_deducted")
 
   // Pour les commandes PUBLIC_LINK sans table connue
   customerPhone String?   @map("customer_phone")

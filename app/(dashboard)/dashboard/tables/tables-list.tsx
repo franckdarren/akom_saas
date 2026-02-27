@@ -89,7 +89,8 @@ export function TablesList({tables}: { tables: Table[] }) {
         <>
             <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-3">
                 {tables.map((table) => (
-                    <Card key={table.id} className="hover:shadow-md transition-shadow h-full flex flex-col">
+                    <Card key={table.id}
+                          className={!table.isActive ? "opacity-60 hover:border-primary/50 hover:shadow-md" : "hover:shadow-md transition-shadow h-full flex flex-col hover:border-primary/50"}>
                         <CardHeader>
                             <div className="flex items-center justify-between">
                                 <CardTitle>Table {table.number}</CardTitle>

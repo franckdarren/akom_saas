@@ -143,9 +143,9 @@ export function PlanCard({
     return (
         <Card
             className={cn(
-                'relative transition-all duration-200',
-                recommended && 'border-primary shadow-lg scale-105',
-                isCurrent && 'bg-muted/50'
+                'relative transition-all duration-200 hover:border-primary/50 hover:shadow-md',
+                recommended && 'border-primary shadow-lg scale-105 hover:border-primary/50 hover:shadow-md',
+                isCurrent && 'bg-muted/50 hover:border-primary/50 hover:shadow-md'
             )}
         >
             {/* Badge "Recommandé" ou "Plan actuel" */}

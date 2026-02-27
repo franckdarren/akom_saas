@@ -1,13 +1,13 @@
 // components/kitchen/OrderCard.tsx
 'use client'
 
-import { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { formatDate, formatPrice } from '@/lib/utils/format'
-import { Clock, CheckCircle, XCircle, ChefHat, Package } from 'lucide-react'
-import { toast } from 'sonner'
+import {useState} from 'react'
+import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
+import {Badge} from '@/components/ui/badge'
+import {Button} from '@/components/ui/button'
+import {formatDate, formatPrice} from '@/lib/utils/format'
+import {Clock, CheckCircle, XCircle, ChefHat, Package} from 'lucide-react'
+import {toast} from 'sonner'
 import {
     AlertDialog,
     AlertDialogAction,
@@ -18,7 +18,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { useRouter } from 'next/navigation'
+import {useRouter} from 'next/navigation'
 
 type OrderStatus = 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled'
 
@@ -86,7 +86,7 @@ const statusConfig = {
     },
 }
 
-export function OrderCard({ order }: OrderCardProps) {
+export function OrderCard({order}: OrderCardProps) {
     const [isUpdating, setIsUpdating] = useState(false)
     const config = statusConfig[order.status]
     const Icon = config.icon
@@ -106,8 +106,8 @@ export function OrderCard({ order }: OrderCardProps) {
         try {
             const res = await fetch(`/api/orders/${order.id}/status`, {
                 method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status: newStatus }),
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({status: newStatus}),
             })
 
             const data = await res.json()
@@ -128,11 +128,11 @@ export function OrderCard({ order }: OrderCardProps) {
 
     // Fonction pour annuler
     async function handleCancel(id: string, orderNumber: string) {
-        setDeleteTarget({ id, orderNumber })
+        setDeleteTarget({id, orderNumber})
     }
 
     function handleDelete(id: string, orderNumber: string) {
-        setDeleteTarget({ id, orderNumber })
+        setDeleteTarget({id, orderNumber})
     }
 
     async function confirmCancel() {
@@ -147,14 +147,15 @@ export function OrderCard({ order }: OrderCardProps) {
 
     return (
         <>
-            <Card className={order.status === 'pending' ? 'border-yellow-500 shadow-lg' : ''}>
+            <Card
+                className={order.status === 'pending' ? 'border-yellow-500 shadow-lg hover:border-primary/50 hover:shadow-md' : 'hover:border-primary/50 hover:shadow-md'}>
                 <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
                         <CardTitle className="text-lg font-bold">
                             {order.orderNumber}
                         </CardTitle>
                         <Badge className={config.color}>
-                            <Icon className="h-3 w-3 mr-1" />
+                            <Icon className="h-3 w-3 mr-1"/>
                             {config.label}
                         </Badge>
                     </div>

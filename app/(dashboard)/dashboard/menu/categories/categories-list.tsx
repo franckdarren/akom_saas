@@ -139,7 +139,8 @@ export function CategoriesList({categories}: CategoriesListProps) {
         <>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {categories.map((category, index) => (
-                    <Card key={category.id} className={!category.isActive ? 'opacity-60' : ''}>
+                    <Card key={category.id}
+                          className={!category.isActive ? 'opacity-60 hover:border-primary/50 hover:shadow-md' : 'hover:border-primary/50 hover:shadow-md'}>
                         <CardHeader>
                             <div className="flex items-start justify-between">
                                 <div className="flex-1 min-w-0">

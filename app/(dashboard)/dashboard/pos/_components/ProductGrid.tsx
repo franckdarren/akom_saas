@@ -3,6 +3,7 @@
 import {Plus} from 'lucide-react'
 import {cn} from '@/lib/utils'
 import type {POSProduct} from '../_types/index'
+import Image from 'next/image'
 
 interface ProductGridProps {
     products: POSProduct[]
@@ -32,16 +33,22 @@ export function ProductGrid({products, onAdd}: ProductGridProps) {
                             )}
                         >
                             {/* Image ou placeholder */}
-                            <div className="relative w-full aspect-4/3 bg-muted overflow-hidden">
+                            {/* ✅ FIX 1 : aspect-[4/3] avec crochets (arbitrary value Tailwind) */}
+                            <div className="relative w-full aspect-[4/3] bg-muted overflow-hidden">
                                 {product.imageUrl ? (
-                                    <img
+                                    // ✅ FIX 2 : next/image requiert fill + sizes OU width/height
+                                    // On utilise fill avec un conteneur relatif (déjà en place)
+                                    <Image
                                         src={product.imageUrl}
                                         alt={product.name}
-                                        className="w-full h-full object-contain transition-transform duration-200 group-hover:scale-105"
+                                        fill
+                                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                                        className="object-contain transition-transform duration-200 group-hover:scale-105"
                                     />
                                 ) : (
+                                    // ✅ FIX 3 : bg-gradient-to-br (bg-linear-to-br n'existe pas en Tailwind v3)
                                     <div
-                                        className="w-full h-full flex items-center justify-center bg-linear-to-br from-muted to-muted/50">
+                                        className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted to-muted/50">
                                         <span className="text-4xl select-none">🍽️</span>
                                     </div>
                                 )}
