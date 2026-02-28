@@ -2,9 +2,7 @@
 'use server'
 
 import {revalidatePath} from 'next/cache'
-import {redirect} from 'next/navigation'
 import {createClient} from '@/lib/supabase/server'
-import {supabaseAdmin} from '@/lib/supabase/admin'
 import prisma from '@/lib/prisma'
 import type {UserRole, RestaurantWithRole} from '@/types/auth'
 import {generateUniqueSlug} from '@/lib/actions/slug'
@@ -21,6 +19,16 @@ interface CreateRestaurantInput {
     plan?: SubscriptionPlan
 }
 
+// ============================================================
+// CRÉER UN RESTAURANT
+// ============================================================
+// Logique :
+//  1. Vérifier l'authentification
+//  2. Vérifier si l'utilisateur a déjà un restaurant (règle SaaS)
+//  3. Générer un slug unique AVANT la transaction (important !)
+//  4. Créer restaurant + lien utilisateur + abonnement en une seule transaction atomique
+// ============================================================
+
 export async function createRestaurant(data: CreateRestaurantInput) {
     const supabase = await createClient()
 
@@ -32,8 +40,16 @@ export async function createRestaurant(data: CreateRestaurantInput) {
         return {success: false, error: 'Non authentifié'}
     }
 
+    // Validation minimale du nom avant tout traitement
+    if (!data.name || data.name.trim().length === 0) {
+        return {success: false, error: 'Le nom du restaurant est obligatoire'}
+    }
+
     try {
-        // 🔎 Vérifier si l'utilisateur possède déjà un restaurant
+        // -------------------------------------------------------
+        // ÉTAPE 1 : Vérifier les droits multi-restaurant
+        // Un utilisateur non-premium ne peut posséder qu'un seul restaurant
+        // -------------------------------------------------------
         const existingRestaurantUser = await prisma.restaurantUser.findFirst({
             where: {
                 userId: user.id,
@@ -51,7 +67,7 @@ export async function createRestaurant(data: CreateRestaurantInput) {
         if (existingRestaurantUser) {
             const subscription = existingRestaurantUser.restaurant.subscription
 
-            // Si pas d'abonnement → on bloque
+            // Pas d'abonnement du tout → situation anormale, on bloque
             if (!subscription) {
                 return {
                     success: false,
@@ -59,43 +75,67 @@ export async function createRestaurant(data: CreateRestaurantInput) {
                 }
             }
 
-            // 🔒 Si abonnement actif ou trial
+            // Si l'abonnement est actif ou en trial, vérifier le plan
             if (subscription.status === 'trial' || subscription.status === 'active') {
-                // Si pas premium → interdit multi-restaurant
                 if (subscription.plan !== 'premium') {
                     return {
                         success: false,
-                        error:
-                            "Passez en Premium pour gérer plusieurs restaurants.",
+                        error: "Passez en Premium pour gérer plusieurs restaurants.",
                     }
                 }
             }
         }
 
-        // ===============================
-        // Création autorisée
-        // ===============================
+        // -------------------------------------------------------
+        // ÉTAPE 2 : Préparer les données AVANT la transaction
+        //
+        // ⚠️ POINT CLÉ : generateUniqueSlug() doit être appelée
+        // EN DEHORS de la transaction Prisma. Pourquoi ?
+        //
+        // generateUniqueSlug() exécute des requêtes SELECT en boucle
+        // pour vérifier l'unicité du slug. Si on les met DANS la
+        // transaction interactive ($transaction avec callback async),
+        // Prisma peut créer des conflits de connexion ou des deadlocks
+        // car la transaction occupe une connexion pendant que
+        // generateUniqueSlug essaie d'en ouvrir une autre.
+        //
+        // La bonne pratique : calculer tout ce dont on a besoin AVANT,
+        // puis n'utiliser la transaction que pour les écritures atomiques.
+        // -------------------------------------------------------
+
+        const formattedName = formatRestaurantName(data.name)
+
+        // Génère un slug URL-friendly et garanti unique en base
+        // Ex: "Chez Maman" → "chez-maman" ou "chez-maman-2" si déjà pris
+        const slug = await generateUniqueSlug(formattedName)
 
         const now = new Date()
         const trialEnd = new Date()
-        trialEnd.setDate(now.getDate() + 14)
+        trialEnd.setDate(now.getDate() + 14) // 14 jours d'essai gratuit
 
         const plan: SubscriptionPlan = data.plan ?? 'starter'
         const config = SUBSCRIPTION_CONFIG[plan]
 
-        const formattedName = formatRestaurantName(data.name)
-
+        // -------------------------------------------------------
+        // ÉTAPE 3 : Transaction atomique
+        //
+        // Les 3 créations (restaurant, restaurantUser, subscription)
+        // sont liées : si l'une échoue, tout est annulé.
+        // C'est ce qu'on appelle l'atomicité — soit tout passe, soit rien.
+        // -------------------------------------------------------
         const result = await prisma.$transaction(async (tx) => {
+            // Créer le restaurant avec le slug pré-calculé
             const restaurant = await tx.restaurant.create({
                 data: {
                     name: formattedName,
-                    slug: formattedName.toLowerCase().replace(/\s+/g, '-'),
-                    phone: data.phone || null,
-                    address: data.address || null,
+                    slug,                       // ✅ Slug unique généré avant la transaction
+                    phone: data.phone?.trim() || null,
+                    address: data.address?.trim() || null,
                     isActive: true,
                 },
             })
 
+            // Associer l'utilisateur au restaurant avec le rôle admin
             await tx.restaurantUser.create({
                 data: {
                     userId: user.id,
@@ -104,6 +144,7 @@ export async function createRestaurant(data: CreateRestaurantInput) {
                 },
             })
 
+            // Créer l'abonnement en période d'essai (trial)
             await tx.subscription.create({
                 data: {
                     restaurantId: restaurant.id,
@@ -117,12 +158,15 @@ export async function createRestaurant(data: CreateRestaurantInput) {
                 },
             })
 
+            // On retourne le restaurant pour pouvoir l'utiliser après la transaction
             return restaurant
         })
 
+        // Invalider le cache Next.js pour que le dashboard se rafraîchisse
         revalidatePath('/dashboard')
 
         return {success: true, restaurant: result}
+
     } catch (error) {
         console.error('Erreur création restaurant:', error)
         return {success: false, error: 'Impossible de créer le restaurant'}
@@ -160,6 +204,8 @@ export async function getUserRestaurants(): Promise<RestaurantWithRole[]> {
         },
     })
 
+    // On transforme le résultat Prisma en type métier RestaurantWithRole
+    // pour ne pas exposer la structure interne de la BDD au reste de l'app
     return restaurantUsers.map((ru) => ({
         id: ru.restaurant.id,
         name: ru.restaurant.name,
@@ -209,6 +255,7 @@ export async function hasAccessToRestaurant(
     restaurantId: string
 ): Promise<boolean> {
     const role = await getUserRoleInRestaurant(restaurantId)
+    // Si le rôle existe (même 'employé'), l'accès est autorisé
     return role !== null
 }
 
@@ -238,12 +285,15 @@ export async function changeUserRole(
         throw new Error('Non authentifié')
     }
 
+    // Seul un admin peut modifier les rôles des autres membres
     const currentUserRole = await getUserRoleInRestaurant(restaurantId)
 
     if (currentUserRole !== 'admin') {
         throw new Error('Seuls les admins peuvent changer les rôles')
     }
 
+    // Sécurité : un admin ne peut pas changer son propre rôle
+    // (évite de se retrouver sans admin dans le restaurant)
     if (user.id === targetUserId) {
         throw new Error('Vous ne pouvez pas changer votre propre rôle')
     }
@@ -287,6 +337,8 @@ export async function removeUserFromRestaurant(
         throw new Error('Seuls les admins peuvent retirer des utilisateurs')
     }
 
+    // Sécurité : impossible de se retirer soi-même
+    // (évite un restaurant sans admin)
     if (user.id === targetUserId) {
         throw new Error('Vous ne pouvez pas vous retirer vous-même')
     }
@@ -320,6 +372,7 @@ export async function updateRestaurantCover(
         return {error: 'Non authentifié'}
     }
 
+    // Vérifier que l'utilisateur est admin de ce restaurant
     const userRole = await prisma.restaurantUser.findUnique({
         where: {
             userId_restaurantId: {
@@ -340,6 +393,7 @@ export async function updateRestaurantCover(
             data: {coverImageUrl},
         })
 
+        // Invalider le cache des pages concernées
         revalidatePath('/dashboard/restaurants')
         revalidatePath(`/dashboard/restaurants/${restaurantId}`)
 
@@ -367,6 +421,8 @@ export async function updateRestaurantSettings(
         return {error: 'Non authentifié'}
     }
 
+    // Valider les données avec le schema Zod avant toute écriture en BDD
+    // safeParse ne lève pas d'exception — il retourne un objet avec success/error
     const parsed = restaurantSettingsSchema.safeParse(data)
     if (!parsed.success) {
         return {
@@ -389,6 +445,7 @@ export async function updateRestaurantSettings(
     }
 
     try {
+        // Formater le nom avant de le sauvegarder (casse, espaces, etc.)
         const formattedName = formatRestaurantName(parsed.data.name)
 
         const restaurant = await prisma.restaurant.update({
@@ -432,6 +489,8 @@ export async function getRestaurantDetails(restaurantId: string) {
         throw new Error('Restaurant non sélectionné')
     }
 
+    // Vérifier l'appartenance avant de retourner les données
+    // (même logique que le RLS, mais côté applicatif pour Prisma)
     const userRole = await prisma.restaurantUser.findUnique({
         where: {
             userId_restaurantId: {
@@ -447,6 +506,8 @@ export async function getRestaurantDetails(restaurantId: string) {
     }
 
     try {
+        // On utilise select pour ne retourner que les champs nécessaires
+        // et ne pas exposer des données internes inutilement
         const restaurant = await prisma.restaurant.findUnique({
             where: {id: restaurantId},
             select: {
