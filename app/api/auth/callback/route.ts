@@ -7,10 +7,16 @@ import {isSuperAdminEmail} from '@/lib/utils/permissions'
 export async function GET(request: NextRequest) {
     const {searchParams, origin} = new URL(request.url)
     const code = searchParams.get('code')
-    const next = searchParams.get('next') // ← pas de fallback ici, on le gère plus bas
+    const next = searchParams.get('next')
 
     if (code) {
         const supabase = await createClient()
+
+        // ✅ Flow recovery : déconnecter la session existante avant d'échanger le code
+        if (next === '/reset-password') {
+            await supabase.auth.signOut()
+        }
+
         const {data, error} = await supabase.auth.exchangeCodeForSession(code)
 
         if (!error && data?.user) {
@@ -44,7 +50,6 @@ export async function GET(request: NextRequest) {
                 }
             }
 
-            // Ajouter le paramètre verified pour afficher un message de succès
             const finalUrl = new URL(redirectUrl)
             finalUrl.searchParams.set('verified', 'true')
 
