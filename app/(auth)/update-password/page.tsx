@@ -1,18 +1,21 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import {useState} from 'react'
+import {useRouter} from 'next/navigation'
 import Link from 'next/link'
-import { updatePassword } from '@/lib/actions/auth'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import {updatePassword} from '@/lib/actions/auth'
+import {Button} from '@/components/ui/button'
+import {Input} from '@/components/ui/input'
+import {Label} from '@/components/ui/label'
+import {Loader2, Eye, EyeOff} from 'lucide-react'
 
 export default function UpdatePasswordPage() {
     const router = useRouter()
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [success, setSuccess] = useState(false)
+    const [showCurrentPassword, setShowCurrentPassword] = useState(false)
+    const [showNewPassword, setShowNewPassword] = useState(false)
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault()
@@ -24,15 +27,10 @@ export default function UpdatePasswordPage() {
         const newPassword = formData.get('newPassword') as string
         const confirmPassword = formData.get('confirmPassword') as string
 
-        const result = await updatePassword(
-            currentPassword,
-            newPassword,
-            confirmPassword
-        )
+        const result = await updatePassword(currentPassword, newPassword, confirmPassword)
 
         if (result.success) {
             setSuccess(true)
-            // Rediriger vers le dashboard après 2 secondes
             setTimeout(() => {
                 router.push('/dashboard')
             }, 2000)
@@ -51,14 +49,13 @@ export default function UpdatePasswordPage() {
                         Mot de passe modifié
                     </h2>
                 </div>
-
-                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 mb-6">
+                <div
+                    className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 mb-6">
                     <p className="text-sm text-green-800 dark:text-green-200">
                         Votre mot de passe a été mis à jour avec succès.
                         Redirection vers le tableau de bord...
                     </p>
                 </div>
-
                 <Link href="/dashboard">
                     <Button variant="outline" className="w-full">
                         Retour au tableau de bord
@@ -82,28 +79,50 @@ export default function UpdatePasswordPage() {
             <form onSubmit={handleSubmit} className="space-y-4">
                 {/* Current Password */}
                 <div>
-                    <Label htmlFor="currentPassword">Mot de passe actuel</Label>
-                    <Input
-                        id="currentPassword"
-                        name="currentPassword"
-                        type="password"
-                        autoComplete="current-password"
-                        required
-                        placeholder="••••••••"
-                    />
+                    <Label htmlFor="currentPassword" className="pb-1">Mot de passe actuel</Label>
+                    <div className="relative">
+                        <Input
+                            id="currentPassword"
+                            name="currentPassword"
+                            type={showCurrentPassword ? 'text' : 'password'}
+                            autoComplete="current-password"
+                            required
+                            placeholder="••••••••"
+                            className="pr-10"
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                            aria-label={showCurrentPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                        >
+                            {showCurrentPassword ? <EyeOff className="h-4 w-4"/> : <Eye className="h-4 w-4"/>}
+                        </button>
+                    </div>
                 </div>
 
                 {/* New Password */}
                 <div>
-                    <Label htmlFor="newPassword">Nouveau mot de passe</Label>
-                    <Input
-                        id="newPassword"
-                        name="newPassword"
-                        type="password"
-                        autoComplete="new-password"
-                        required
-                        placeholder="••••••••"
-                    />
+                    <Label htmlFor="newPassword" className="pb-1">Nouveau mot de passe</Label>
+                    <div className="relative">
+                        <Input
+                            id="newPassword"
+                            name="newPassword"
+                            type={showNewPassword ? 'text' : 'password'}
+                            autoComplete="new-password"
+                            required
+                            placeholder="••••••••"
+                            className="pr-10"
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowNewPassword(!showNewPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                            aria-label={showNewPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                        >
+                            {showNewPassword ? <EyeOff className="h-4 w-4"/> : <Eye className="h-4 w-4"/>}
+                        </button>
+                    </div>
                     <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
                         Minimum 6 caractères
                     </p>
@@ -111,28 +130,41 @@ export default function UpdatePasswordPage() {
 
                 {/* Confirm Password */}
                 <div>
-                    <Label htmlFor="confirmPassword">
+                    <Label htmlFor="confirmPassword" className="pb-1">
                         Confirmer le nouveau mot de passe
                     </Label>
-                    <Input
-                        id="confirmPassword"
-                        name="confirmPassword"
-                        type="password"
-                        autoComplete="new-password"
-                        required
-                        placeholder="••••••••"
-                    />
+                    <div className="relative">
+                        <Input
+                            id="confirmPassword"
+                            name="confirmPassword"
+                            type={showNewPassword ? 'text' : 'password'}
+                            autoComplete="new-password"
+                            required
+                            placeholder="••••••••"
+                            className="pr-10"
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowNewPassword(!showNewPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                            aria-label={showNewPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                        >
+                            {showNewPassword ? <EyeOff className="h-4 w-4"/> : <Eye className="h-4 w-4"/>}
+                        </button>
+                    </div>
                 </div>
 
                 {/* Error Message */}
                 {error && (
-                    <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
+                    <div
+                        className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
                         <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
                     </div>
                 )}
 
                 {/* Submit Button */}
                 <Button type="submit" className="w-full" disabled={loading}>
+                    {loading && <Loader2 className="h-4 w-4 animate-spin"/>}
                     {loading ? 'Mise à jour...' : 'Modifier le mot de passe'}
                 </Button>
             </form>
