@@ -186,10 +186,13 @@ export async function forgotPassword(
 
     const supabase = await createClient()
 
+    // ✅ next encodé pour éviter que Supabase tronque l'URL
+    const next = encodeURIComponent('/reset-password')
+
     const {error} = await supabase.auth.resetPasswordForEmail(
         parsed.data.email,
         {
-            redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/callback?next=/reset-password`,
+            redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/callback?next=${next}`,
         }
     )
 

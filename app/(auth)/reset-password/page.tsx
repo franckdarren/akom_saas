@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import {useState, useEffect} from 'react'
+import {useRouter} from 'next/navigation'
 import Link from 'next/link'
-import { resetPassword, signOut, getUser } from '@/lib/actions/auth'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Loader2 } from "lucide-react"
+import {resetPassword, signOut, getUser} from '@/lib/actions/auth'
+import {Button} from '@/components/ui/button'
+import {Input} from '@/components/ui/input'
+import {Label} from '@/components/ui/label'
+import {Loader2} from "lucide-react"
 
 
 export default function ResetPasswordPage() {
@@ -48,8 +48,6 @@ export default function ResetPasswordPage() {
         if (result.success) {
             setSuccess(true)
 
-            // 🔐 Important : supprimer la session temporaire
-            await signOut()
         } else {
             setError(result.error || result.message)
             setLoading(false)
@@ -127,7 +125,7 @@ export default function ResetPasswordPage() {
 
                 <Button type="submit" className="w-full" disabled={loading}>
                     {loading && (
-                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <Loader2 className="h-4 w-4 animate-spin"/>
                     )}
                     {loading ? 'Mise à jour…' : 'Réinitialiser le mot de passe'}
                 </Button>

@@ -12,21 +12,18 @@ export async function GET(request: NextRequest) {
     if (code) {
         const supabase = await createClient()
 
-        // ✅ Flow recovery : déconnecter la session existante avant d'échanger le code
-        if (next === '/reset-password') {
-            await supabase.auth.signOut()
-        }
-
+        // ✅ Plus de signOut ici — le PKCE est stocké en cookie,
+        // signOut() le détruirait avant l'échange
         const {data, error} = await supabase.auth.exchangeCodeForSession(code)
 
         if (!error && data?.user) {
 
-            // ✅ Si `next` est fourni (ex: reset-password), on redirige directement
+            // ✅ Redirection directe si next fourni (ex: /reset-password)
             if (next) {
                 return NextResponse.redirect(`${origin}${next}`)
             }
 
-            // Sinon, calcul de la redirection normale post-login
+            // Calcul de la redirection normale post-login
             let redirectUrl = `${origin}/dashboard`
 
             if (isSuperAdminEmail(data.user.email || '')) {
