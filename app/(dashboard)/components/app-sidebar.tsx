@@ -74,6 +74,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import {useRouter} from "next/navigation"
 
 type UserRole = "admin" | "kitchen" | "superadmin" | "cashier"
 
@@ -118,6 +119,7 @@ export function AppSidebar({
     const {currentRestaurant} = useRestaurant()
     const {loading, startLoading} = useNavigationLoading()
     const [isSigningOut, setIsSigningOut] = useState(false)
+    const router = useRouter()
 
     // NOUVEAU : Hook de vérification des features
     const {hasFeature, getRequiredPlan, planName} = useSubscriptionFeatures(currentPlan)
@@ -467,15 +469,18 @@ export function AppSidebar({
                         <DropdownMenuContent side="top" align="start" className="w-56">
                             <DropdownMenuLabel>Mon compte</DropdownMenuLabel>
 
-                            <DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => {
+                                startLoading()
+                                router.push('/update-password')
+                            }}>
                                 <User className="mr-2 h-4 w-4"/>
-                                Profil
+                                Changer mot de passe
                             </DropdownMenuItem>
 
-                            <DropdownMenuItem>
-                                <Settings className="mr-2 h-4 w-4"/>
-                                Paramètres
-                            </DropdownMenuItem>
+                            {/*<DropdownMenuItem>*/}
+                            {/*    <Settings className="mr-2 h-4 w-4"/>*/}
+                            {/*    Paramètres*/}
+                            {/*</DropdownMenuItem>*/}
 
                             <DropdownMenuSeparator/>
 

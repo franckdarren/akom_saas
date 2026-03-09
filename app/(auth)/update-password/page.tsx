@@ -2,20 +2,33 @@
 
 import {useState} from 'react'
 import {useRouter} from 'next/navigation'
-import Link from 'next/link'
 import {updatePassword} from '@/lib/actions/auth'
 import {Button} from '@/components/ui/button'
 import {Input} from '@/components/ui/input'
 import {Label} from '@/components/ui/label'
 import {Loader2, Eye, EyeOff} from 'lucide-react'
 
+function PageSpinner() {
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm">
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent"/>
+        </div>
+    )
+}
+
 export default function UpdatePasswordPage() {
     const router = useRouter()
     const [loading, setLoading] = useState(false)
+    const [navigating, setNavigating] = useState(false) // ← spinner navigation
     const [error, setError] = useState<string | null>(null)
     const [success, setSuccess] = useState(false)
     const [showCurrentPassword, setShowCurrentPassword] = useState(false)
     const [showNewPassword, setShowNewPassword] = useState(false)
+
+    function goToDashboard() {
+        setNavigating(true)
+        router.push('/dashboard')
+    }
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault()
@@ -32,14 +45,16 @@ export default function UpdatePasswordPage() {
         if (result.success) {
             setSuccess(true)
             setTimeout(() => {
+                setNavigating(true)
                 router.push('/dashboard')
             }, 2000)
         } else {
             setError(result.error || result.message)
+            setLoading(false)
         }
-
-        setLoading(false)
     }
+
+    if (navigating) return <PageSpinner/>
 
     if (success) {
         return (
@@ -56,11 +71,9 @@ export default function UpdatePasswordPage() {
                         Redirection vers le tableau de bord...
                     </p>
                 </div>
-                <Link href="/dashboard">
-                    <Button variant="outline" className="w-full">
-                        Retour au tableau de bord
-                    </Button>
-                </Link>
+                <Button variant="outline" className="w-full" onClick={goToDashboard}>
+                    Retour au tableau de bord
+                </Button>
             </div>
         )
     }
@@ -94,7 +107,6 @@ export default function UpdatePasswordPage() {
                             type="button"
                             onClick={() => setShowCurrentPassword(!showCurrentPassword)}
                             className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                            aria-label={showCurrentPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
                         >
                             {showCurrentPassword ? <EyeOff className="h-4 w-4"/> : <Eye className="h-4 w-4"/>}
                         </button>
@@ -118,7 +130,6 @@ export default function UpdatePasswordPage() {
                             type="button"
                             onClick={() => setShowNewPassword(!showNewPassword)}
                             className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                            aria-label={showNewPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
                         >
                             {showNewPassword ? <EyeOff className="h-4 w-4"/> : <Eye className="h-4 w-4"/>}
                         </button>
@@ -147,14 +158,13 @@ export default function UpdatePasswordPage() {
                             type="button"
                             onClick={() => setShowNewPassword(!showNewPassword)}
                             className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                            aria-label={showNewPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
                         >
                             {showNewPassword ? <EyeOff className="h-4 w-4"/> : <Eye className="h-4 w-4"/>}
                         </button>
                     </div>
                 </div>
 
-                {/* Error Message */}
+                {/* Error */}
                 {error && (
                     <div
                         className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
@@ -162,21 +172,20 @@ export default function UpdatePasswordPage() {
                     </div>
                 )}
 
-                {/* Submit Button */}
+                {/* Submit */}
                 <Button type="submit" className="w-full" disabled={loading}>
-                    {loading && <Loader2 className="h-4 w-4 animate-spin"/>}
+                    {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
                     {loading ? 'Mise à jour...' : 'Modifier le mot de passe'}
                 </Button>
             </form>
 
-            {/* Back to Dashboard */}
             <div className="mt-6 text-center">
-                <Link
-                    href="/dashboard"
+                <button
+                    onClick={goToDashboard}
                     className="text-sm text-blue-600 hover:text-blue-500"
                 >
                     ← Retour au tableau de bord
-                </Link>
+                </button>
             </div>
         </div>
     )
