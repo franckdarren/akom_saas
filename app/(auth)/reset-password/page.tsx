@@ -2,12 +2,12 @@
 
 import {useState, useEffect} from 'react'
 import {useRouter} from 'next/navigation'
-import Link from 'next/link'
-import {resetPassword, signOut, getUser} from '@/lib/actions/auth'
+import {resetPassword, getUser} from '@/lib/actions/auth'
 import {Button} from '@/components/ui/button'
 import {Input} from '@/components/ui/input'
 import {Label} from '@/components/ui/label'
-import {Loader2} from "lucide-react"
+import {Loader2, Eye, EyeOff} from "lucide-react"
+import Link from 'next/link'
 
 
 export default function ResetPasswordPage() {
@@ -16,18 +16,15 @@ export default function ResetPasswordPage() {
     const [checkingSession, setCheckingSession] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [success, setSuccess] = useState(false)
+    const [showPassword, setShowPassword] = useState(false)
 
-    // Vérifier la session SUPABASE (PAS l’URL)
     useEffect(() => {
         async function checkSession() {
             const user = await getUser()
-
-            // Pas de session → accès direct interdit
             if (!user) {
                 router.replace('/forgot-password')
                 return
             }
-
             setCheckingSession(false)
         }
 
@@ -47,33 +44,28 @@ export default function ResetPasswordPage() {
 
         if (result.success) {
             setSuccess(true)
-
         } else {
             setError(result.error || result.message)
             setLoading(false)
         }
     }
 
-    // Vérification de session
     if (checkingSession) {
         return null
     }
 
-    // Succès
     if (success) {
         return (
             <div>
                 <h2 className="text-2xl font-bold mb-6">
                     Mot de passe réinitialisé
                 </h2>
-
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
                     <p className="text-sm">
                         Votre mot de passe a été mis à jour avec succès.
                         Vous pouvez maintenant vous connecter.
                     </p>
                 </div>
-
                 <Link href="/login">
                     <Button className="w-full">
                         Se connecter maintenant
@@ -83,13 +75,11 @@ export default function ResetPasswordPage() {
         )
     }
 
-    // Formulaire
     return (
         <div>
             <h2 className="text-2xl font-bold mb-2">
                 Nouveau mot de passe
             </h2>
-
             <p className="text-sm text-zinc-600 mb-6">
                 Choisissez un nouveau mot de passe
             </p>
@@ -97,36 +87,62 @@ export default function ResetPasswordPage() {
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                     <Label htmlFor="password" className='pb-1'>Nouveau mot de passe</Label>
-                    <Input
-                        id="password"
-                        name="password"
-                        type="password"
-                        required
-                        autoComplete="new-password"
-                    />
+                    <div className="relative">
+                        <Input
+                            id="password"
+                            name="password"
+                            type={showPassword ? 'text' : 'password'}
+                            required
+                            autoComplete="new-password"
+                            placeholder="••••••••"
+                            className="pr-10"
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                            aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                        >
+                            {showPassword ? <EyeOff className="h-4 w-4"/> : <Eye className="h-4 w-4"/>}
+                        </button>
+                    </div>
+                    <p className="text-xs text-zinc-500 mt-1">Minimum 6 caractères</p>
                 </div>
 
                 <div>
                     <Label htmlFor="confirmPassword" className='pb-1'>
                         Confirmer le mot de passe
                     </Label>
-                    <Input
-                        id="confirmPassword"
-                        name="confirmPassword"
-                        type="password"
-                        required
-                        autoComplete="new-password"
-                    />
+                    <div className="relative">
+                        <Input
+                            id="confirmPassword"
+                            name="confirmPassword"
+                            type={showPassword ? 'text' : 'password'}
+                            required
+                            autoComplete="new-password"
+                            placeholder="••••••••"
+                            className="pr-10"
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                            aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                        >
+                            {showPassword ? <EyeOff className="h-4 w-4"/> : <Eye className="h-4 w-4"/>}
+                        </button>
+                    </div>
                 </div>
 
                 {error && (
-                    <p className="text-sm text-red-600">{error}</p>
+                    <div
+                        className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
+                        <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
+                    </div>
                 )}
 
                 <Button type="submit" className="w-full" disabled={loading}>
-                    {loading && (
-                        <Loader2 className="h-4 w-4 animate-spin"/>
-                    )}
+                    {loading && <Loader2 className="h-4 w-4 animate-spin"/>}
                     {loading ? 'Mise à jour…' : 'Réinitialiser le mot de passe'}
                 </Button>
             </form>
