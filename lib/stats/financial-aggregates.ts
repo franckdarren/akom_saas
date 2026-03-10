@@ -61,7 +61,7 @@ export async function getFinancialStats(
             where: {
                 restaurantId,
                 sessionDate: {gte: startDate, lte: endDate},
-                status: 'closed',
+                // status: 'closed', On ne filtre pas
             },
             select: {balanceDifference: true},
         }),
