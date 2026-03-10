@@ -47,12 +47,10 @@ export function getPeriodRange(period: TimePeriod, customPeriod?: CustomPeriod):
 
   switch (period) {
     case 'today': {
-      // Pour "aujourd'hui", on utilise la date actuelle du système
       const startDate = toUtcStartOfDay(now)
       const endDate = toUtcEndOfDay(now)
       const previousStartDate = subUtcDays(startDate, 1)
       const previousEndDate = subUtcDays(endDate, 1)
-      
       return { startDate, endDate, previousStartDate, previousEndDate }
     }
 
@@ -60,11 +58,8 @@ export function getPeriodRange(period: TimePeriod, customPeriod?: CustomPeriod):
       const duration = 7
       const endDate = toUtcEndOfDay(now)
       const startDate = subUtcDays(toUtcStartOfDay(now), duration - 1)
-      
-      // Période précédente = même durée, juste avant
       const previousEndDate = subUtcDays(startDate, 1)
       const previousStartDate = subUtcDays(previousEndDate, duration - 1)
-      
       return { startDate, endDate, previousStartDate, previousEndDate }
     }
 
@@ -72,33 +67,33 @@ export function getPeriodRange(period: TimePeriod, customPeriod?: CustomPeriod):
       const duration = 30
       const endDate = toUtcEndOfDay(now)
       const startDate = subUtcDays(toUtcStartOfDay(now), duration - 1)
-      
-      // Période précédente = même durée, juste avant
       const previousEndDate = subUtcDays(startDate, 1)
       const previousStartDate = subUtcDays(previousEndDate, duration - 1)
-      
       return { startDate, endDate, previousStartDate, previousEndDate }
     }
 
     case 'custom': {
-      if (!customPeriod) {
-        throw new Error('Custom period requires startDate and endDate')
+      if (!customPeriod?.startDate || !customPeriod?.endDate) {
+        // Fallback sur 'week' si customPeriod est absent ou mal formé
+        // Cela évite un crash quand period='custom' mais les dates ne sont pas encore saisies
+        const duration = 7
+        const endDate = toUtcEndOfDay(now)
+        const startDate = subUtcDays(toUtcStartOfDay(now), duration - 1)
+        const previousEndDate = subUtcDays(startDate, 1)
+        const previousStartDate = subUtcDays(previousEndDate, duration - 1)
+        return { startDate, endDate, previousStartDate, previousEndDate }
       }
-      
-      // Ici, les dates viennent du date picker et sont en heure locale
-      // On les convertit en UTC tout en gardant les mêmes composants de date
-      // Si l'utilisateur sélectionne "15 jan", on veut vraiment "15 jan 00:00 UTC"
-      const startDate = toUtcStartOfDay(customPeriod.startDate)
-      const endDate = toUtcEndOfDay(customPeriod.endDate)
-      
-      // Calculer la durée en jours (incluant les deux bornes)
+
+      // ⚠️ Les Server Actions sérialisent les Date en string ISO.
+      // On force la conversion en Date ici pour être robuste.
+      const startDate = toUtcStartOfDay(new Date(customPeriod.startDate))
+      const endDate = toUtcEndOfDay(new Date(customPeriod.endDate))
+
       const durationMs = endDate.getTime() - startDate.getTime()
       const durationDays = Math.ceil(durationMs / (1000 * 60 * 60 * 24))
-      
-      // Période précédente = même durée, juste avant la date de début
       const previousEndDate = subUtcDays(startDate, 1)
       const previousStartDate = subUtcDays(previousEndDate, durationDays - 1)
-      
+
       return { startDate, endDate, previousStartDate, previousEndDate }
     }
 
