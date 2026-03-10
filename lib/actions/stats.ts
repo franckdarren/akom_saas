@@ -56,49 +56,64 @@ export async function getRevenueStats(
     period: TimePeriod,
     customPeriod?: CustomPeriod
 ): Promise<RevenueStats> {
-    try {
-        const restaurantId = await getCurrentRestaurantId()
-        const {startDate, endDate, previousStartDate, previousEndDate} =
-            getPeriodRange(period, customPeriod)
+    const restaurantId = await getCurrentRestaurantId()
+    const { startDate, endDate, previousStartDate, previousEndDate } =
+        getPeriodRange(period, customPeriod)
 
-        // ✅ FIX : On compte toutes les commandes confirmées (sauf cancelled)
-        // Cela permet d'avoir des statistiques même avec des commandes en cours
-        const currentRevenue = await prisma.order.aggregate({
-            where: {
-                restaurantId,
-                status: {in: ['delivered']},
-                createdAt: {gte: startDate, lte: endDate},
-            },
-            _sum: {totalAmount: true},
-            _count: true,
-        })
+    // ── POS : commandes livrées ──────────────────────────────────────────
+    const [currentOrders, previousOrders, currentManual, previousManual] =
+        await Promise.all([
+            prisma.order.aggregate({
+                where: {
+                    restaurantId,
+                    status: 'delivered',
+                    createdAt: { gte: startDate, lte: endDate },
+                },
+                _sum: { totalAmount: true },
+                _count: true,
+            }),
+            prisma.order.aggregate({
+                where: {
+                    restaurantId,
+                    status: 'delivered',
+                    createdAt: { gte: previousStartDate, lte: previousEndDate },
+                },
+                _sum: { totalAmount: true },
+            }),
+            // ── CAISSE : recettes manuelles ──────────────────────────────
+            prisma.manualRevenue.aggregate({
+                where: {
+                    restaurantId,
+                    createdAt: { gte: startDate, lte: endDate },
+                },
+                _sum: { totalAmount: true },
+            }),
+            prisma.manualRevenue.aggregate({
+                where: {
+                    restaurantId,
+                    createdAt: { gte: previousStartDate, lte: previousEndDate },
+                },
+                _sum: { totalAmount: true },
+            }),
+        ])
 
-        // Chiffre d'affaires période précédente
-        const previousRevenue = await prisma.order.aggregate({
-            where: {
-                restaurantId,
-                status: {in: ['delivered']},
-                createdAt: {gte: previousStartDate, lte: previousEndDate},
-            },
-            _sum: {totalAmount: true},
-        })
+    const posRevenue = currentOrders._sum.totalAmount ?? 0
+    const manualRevenue = currentManual._sum.totalAmount ?? 0
+    const total = posRevenue + manualRevenue
 
-        const total = currentRevenue._sum.totalAmount || 0
-        const previousPeriod = previousRevenue._sum.totalAmount || 0
-        const percentChange =
-            previousPeriod > 0
-                ? ((total - previousPeriod) / previousPeriod) * 100
-                : 0
+    const posPrev = previousOrders._sum.totalAmount ?? 0
+    const manualPrev = previousManual._sum.totalAmount ?? 0
+    const previousPeriod = posPrev + manualPrev
 
-        return {
-            total,
-            previousPeriod,
-            percentChange: Math.round(percentChange * 10) / 10,
-            ordersCount: currentRevenue._count,
-        }
-    } catch (error) {
-        console.error('Erreur récupération stats CA:', error)
-        throw error
+    const percentChange =
+        previousPeriod > 0 ? ((total - previousPeriod) / previousPeriod) * 100 : 0
+
+    return {
+        total,
+        previousPeriod,
+        percentChange: Math.round(percentChange * 10) / 10,
+        ordersCount: currentOrders._count,
+        // tu peux enrichir le type avec posRevenue + manualRevenue si tu veux les afficher séparément
     }
 }
 
@@ -259,52 +274,48 @@ export async function getDailySales(
     period: TimePeriod,
     customPeriod?: CustomPeriod
 ): Promise<DailySales[]> {
-    try {
-        const restaurantId = await getCurrentRestaurantId()
-        const {startDate, endDate} = getPeriodRange(period, customPeriod)
+    const restaurantId = await getCurrentRestaurantId()
+    const { startDate, endDate } = getPeriodRange(period, customPeriod)
+    const allDays = eachDayOfInterval({ start: startDate, end: endDate })
 
-        // ✅ FIX : On récupère toutes les commandes confirmées (pas uniquement delivered)
-        const orders = await prisma.order.findMany({
+    const [orders, manualRevenues] = await Promise.all([
+        prisma.order.findMany({
             where: {
                 restaurantId,
-                status: {notIn: ['cancelled']},
-                createdAt: {gte: startDate, lte: endDate},
+                status: { notIn: ['cancelled'] },
+                createdAt: { gte: startDate, lte: endDate },
             },
-            select: {
-                createdAt: true,
-                totalAmount: true,
+            select: { createdAt: true, totalAmount: true },
+        }),
+        prisma.manualRevenue.findMany({
+            where: {
+                restaurantId,
+                createdAt: { gte: startDate, lte: endDate },
             },
+            select: { createdAt: true, totalAmount: true },
+        }),
+    ])
+
+    const salesByDate = new Map<string, { revenue: number; orders: number }>()
+
+    // Fusionner les deux flux dans la même map
+    const addToMap = (createdAt: Date, amount: number, countAsOrder: boolean) => {
+        const date = format(createdAt, 'yyyy-MM-dd')
+        const existing = salesByDate.get(date) ?? { revenue: 0, orders: 0 }
+        salesByDate.set(date, {
+            revenue: existing.revenue + amount,
+            orders: existing.orders + (countAsOrder ? 1 : 0),
         })
-
-        // Générer tous les jours de la période
-        const allDays = eachDayOfInterval({start: startDate, end: endDate})
-
-        // Map pour accès rapide
-        const salesByDate = new Map<string, { revenue: number; orders: number }>()
-
-        orders.forEach((order) => {
-            const date = format(order.createdAt, 'yyyy-MM-dd')
-            const existing = salesByDate.get(date) || {revenue: 0, orders: 0}
-            salesByDate.set(date, {
-                revenue: existing.revenue + order.totalAmount,
-                orders: existing.orders + 1,
-            })
-        })
-
-        // Remplir avec zéros pour les jours sans ventes
-        return allDays.map((day) => {
-            const date = format(day, 'yyyy-MM-dd')
-            const sales = salesByDate.get(date) || {revenue: 0, orders: 0}
-            return {
-                date,
-                revenue: sales.revenue,
-                orders: sales.orders,
-            }
-        })
-    } catch (error) {
-        console.error('Erreur récupération ventes quotidiennes:', error)
-        throw error
     }
+
+    orders.forEach((o) => addToMap(o.createdAt, o.totalAmount, true))
+    manualRevenues.forEach((r) => addToMap(r.createdAt, r.totalAmount, false))
+
+    return allDays.map((day) => {
+        const date = format(day, 'yyyy-MM-dd')
+        const sales = salesByDate.get(date) ?? { revenue: 0, orders: 0 }
+        return { date, revenue: sales.revenue, orders: sales.orders }
+    })
 }
 
 // ============================================================
@@ -503,6 +514,7 @@ export async function getDashboardStats(
             topProducts,
             categorySales,
             recentOrders,
+            financial,
         ] = await Promise.all([
             getRevenueStats(period, customPeriod),
             getOrdersStats(period, customPeriod),
@@ -510,7 +522,8 @@ export async function getDashboardStats(
             getDailySales(period, customPeriod),
             getTopProducts(period, customPeriod, 5),
             getSalesByCategory(period, customPeriod),
-            getRecentOrders(10),
+            getRecentOrders(5),
+            getFinancialOverviewStats(period, customPeriod),
         ])
 
         return {
@@ -521,6 +534,7 @@ export async function getDashboardStats(
             topProducts,
             categorySales,
             recentOrders,
+            financial, 
         }
     } catch (error) {
         console.error('Erreur récupération dashboard:', error)
@@ -533,13 +547,14 @@ export async function getDashboardStats(
 // STATS DE LA CAISSE
 // ============================================================
 export async function getFinancialOverviewStats(
-    startDate: Date,
-    endDate: Date,
+    period: TimePeriod,
+    customPeriod?: CustomPeriod,
 ): Promise<FinancialPeriodStats | null> {
     try {
-        const {restaurantId} = await getCurrentUserAndRestaurant()
+        const { restaurantId } = await getCurrentUserAndRestaurant()
         if (!restaurantId) return null
 
+        const { startDate, endDate } = getPeriodRange(period, customPeriod)
         return await getFinancialStats(restaurantId, startDate, endDate)
     } catch (error) {
         console.error('Erreur chargement stats financières:', error)

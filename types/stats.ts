@@ -18,14 +18,14 @@ export type TimePeriod = typeof TIME_PERIODS[keyof typeof TIME_PERIODS]
 // ============================================================
 
 export interface RevenueStats {
-    total: number // Montant total en FCFA
+    total: number          // Montant total en FCFA
     previousPeriod: number // Pour comparaison
-    percentChange: number // Variation en %
-    ordersCount: number // Nombre de commandes
+    percentChange: number  // Variation en %
+    ordersCount: number    // Nombre de commandes POS livrées
 }
 
 export interface OrdersStats {
-    total: number // Nombre total de commandes
+    total: number
     pending: number
     preparing: number
     ready: number
@@ -93,6 +93,12 @@ export interface RecentOrder {
 // DASHBOARD GLOBAL
 // ============================================================
 
+// Import du type depuis son module source — on n'importe que le type,
+// jamais la fonction, pour éviter de faire fuiter du code Prisma côté client.
+import type {FinancialPeriodStats} from '@/lib/stats/financial-aggregates'
+
+export type {FinancialPeriodStats}
+
 export interface DashboardStats {
     revenue: RevenueStats
     orders: OrdersStats
@@ -101,6 +107,7 @@ export interface DashboardStats {
     topProducts: TopProduct[]
     categorySales: CategorySales[]
     recentOrders: RecentOrder[]
+    financial: FinancialPeriodStats | null // Données caisse — suit la période sélectionnée
 }
 
 // ============================================================
@@ -115,6 +122,6 @@ export interface CustomPeriod {
 export interface PeriodRange {
     startDate: Date
     endDate: Date
-    previousStartDate: Date // Pour comparaison
+    previousStartDate: Date
     previousEndDate: Date
 }
