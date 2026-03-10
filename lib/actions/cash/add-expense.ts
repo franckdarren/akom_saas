@@ -21,9 +21,6 @@ export async function addExpense(input: AddExpenseInput) {
     const {userId, restaurantId} = await getCurrentUserAndRestaurant()
     if (!userId || !restaurantId) throw new Error('Non autorisé')
 
-    // Validation des enums avant d'entrer dans la transaction.
-    // Si la valeur reçue n'existe pas dans l'enum, on lève une erreur
-    // claire plutôt qu'une PrismaClientValidationError cryptique.
     const paymentMethod = input.paymentMethod as PaymentMethod
     if (!Object.values(PaymentMethod).includes(paymentMethod)) {
         throw new Error(`Mode de paiement invalide : ${input.paymentMethod}`)
@@ -35,6 +32,14 @@ export async function addExpense(input: AddExpenseInput) {
     }
 
     const expense = await prisma.$transaction(async (tx) => {
+        // ✅ Même logique que add-revenue : la dépense appartient à la date
+        // de la session, pas à aujourd'hui. Critique pour les saisies historiques.
+        const session = await tx.cashSession.findUnique({
+            where: {id: input.sessionId},
+            select: {sessionDate: true},
+        })
+        if (!session) throw new Error('Session introuvable')
+
         let stockMovementId: string | undefined
 
         if (
@@ -80,12 +85,14 @@ export async function addExpense(input: AddExpenseInput) {
                 sessionId: input.sessionId,
                 description: input.description,
                 amount: input.amount,
-                category,        // ← enum typé, plus de cast as any
-                paymentMethod,   // ← enum typé, plus de cast as any
+                category,
+                paymentMethod,
                 productId: input.productId,
                 quantityAdded: input.quantityAdded,
                 notes: input.notes,
                 stockMovementId,
+                // ✅ Date métier = date de la session, jamais now()
+                expenseDate: session.sessionDate,
             },
         })
     })

@@ -34,6 +34,15 @@ export async function addManualRevenue(input: AddRevenueInput) {
     const totalAmount = input.quantity * input.unitAmount
 
     const revenue = await prisma.$transaction(async (tx) => {
+        // ✅ On récupère la session pour obtenir sa sessionDate (date métier).
+        // C'est cette date qui doit dater la recette, pas now().
+        // Pour une saisie historique du 3 janvier, revenueDate sera le 3 janvier.
+        const session = await tx.cashSession.findUnique({
+            where: {id: input.sessionId},
+            select: {sessionDate: true},
+        })
+        if (!session) throw new Error('Session introuvable')
+
         let stockMovementId: string | undefined
 
         if (revenueType === RevenueType.good && input.productId) {
@@ -79,6 +88,8 @@ export async function addManualRevenue(input: AddRevenueInput) {
                 productId: input.productId,
                 notes: input.notes,
                 stockMovementId,
+                // ✅ Date métier = date de la session, jamais now()
+                revenueDate: session.sessionDate,
             },
         })
     })

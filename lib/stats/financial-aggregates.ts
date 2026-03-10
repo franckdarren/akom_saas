@@ -21,6 +21,15 @@ export async function getFinancialStats(
     endDate: Date,
 ): Promise<FinancialPeriodStats> {
 
+    // @db.Date stocke une date pure (ex: "2026-03-02") sans fuseau.
+    // new Date('2026-03-02') est garanti UTC minuit par la spec JS.
+    // new Date(2026, 2, 2) utilise l'heure locale → décalage possible → à éviter.
+    const startISO = startDate.toISOString().slice(0, 10) // "2026-03-02"
+    const endISO = endDate.toISOString().slice(0, 10)     // "2026-03-02"
+
+    const dateStart = new Date(startISO)                        // 2026-03-02T00:00:00.000Z
+    const dateEnd = new Date(endISO + 'T23:59:59.999Z')         // 2026-03-02T23:59:59.999Z
+
     const [
         akomPayments,
         manualRevenues,
@@ -28,8 +37,7 @@ export async function getFinancialStats(
         sessions,
     ] = await Promise.all([
 
-        // Erreur 1 corrigée : on utilise l'enum Prisma PaymentStatus.completed
-        // au lieu de la string littérale 'completed' que TypeScript refuse.
+        // Paiements POS — timestamp, pas de date pure, on garde startDate/endDate
         prisma.payment.groupBy({
             by: ['method'],
             where: {
@@ -40,67 +48,68 @@ export async function getFinancialStats(
             _sum: {amount: true},
         }),
 
+        // Recettes manuelles — revenueDate est @db.Date, on utilise les dates UTC normalisées
         prisma.manualRevenue.aggregate({
             where: {
                 restaurantId,
-                createdAt: {gte: startDate, lte: endDate},
+                revenueDate: {gte: dateStart, lte: dateEnd},
             },
             _sum: {totalAmount: true},
         }),
 
+        // Dépenses — même logique que manualRevenue
         prisma.expense.groupBy({
             by: ['category'],
             where: {
                 restaurantId,
-                createdAt: {gte: startDate, lte: endDate},
+                expenseDate: {gte: dateStart, lte: dateEnd},
             },
             _sum: {amount: true},
         }),
 
+        // Sessions — sessionDate est aussi @db.Date
         prisma.cashSession.findMany({
             where: {
                 restaurantId,
-                sessionDate: {gte: startDate, lte: endDate},
-                // status: 'closed', On ne filtre pas
+                sessionDate: {gte: dateStart, lte: dateEnd},
             },
-            select: {balanceDifference: true},
+            select: {
+                status: true,
+                balanceDifference: true,
+            },
         }),
     ])
 
     const akomRevenue = akomPayments.reduce(
-        // Erreurs 2 et 3 corrigées : _sum peut être undefined selon Prisma,
-        // on ajoute une vérification explicite avant d'accéder à .amount
-        (s, p) => s + (p._sum?.amount ?? 0), 0
+        (s: number, p: typeof akomPayments[number]) => s + (p._sum?.amount ?? 0), 0
     )
-
     const manualRev = manualRevenues._sum.totalAmount ?? 0
     const totalRevenue = akomRevenue + manualRev
-
     const totalExpenses = expenses.reduce(
-        (s, e) => s + (e._sum?.amount ?? 0), 0
+        (s: number, e: typeof expenses[number]) => s + (e._sum?.amount ?? 0), 0
     )
-
-    const revenueByMethod = akomPayments.map(p => ({
-        method: p.method,
-        total: p._sum?.amount ?? 0,
-    }))
-
-    const expensesByCategory = expenses.map(e => ({
-        category: e.category,
-        total: e._sum?.amount ?? 0,
-    }))
 
     return {
         akomRevenue,
         manualRevenue: manualRev,
         totalRevenue,
         totalExpenses,
-        expensesByCategory,
+        expensesByCategory: expenses.map((e: typeof expenses[number]) => ({
+            category: e.category,
+            total: e._sum?.amount ?? 0,
+        })),
         netResult: totalRevenue - totalExpenses,
-        revenueByMethod,
+        revenueByMethod: akomPayments.map((p: typeof akomPayments[number]) => ({
+            method: p.method,
+            total: p._sum?.amount ?? 0,
+        })),
         sessionsCount: sessions.length,
+        // sessionsWithGap : uniquement les sessions clôturées avec écart > 500 FCFA
         sessionsWithGap: sessions.filter(
-            s => Math.abs(s.balanceDifference ?? 0) > 500
+            (s: typeof sessions[number]) =>
+                s.status === 'closed' &&
+                s.balanceDifference !== null &&
+                Math.abs(s.balanceDifference) > 500
         ).length,
     }
 }

@@ -1087,6 +1087,11 @@ model ManualRevenue {
   revenueType   RevenueType   @default(service) @map("revenue_type")
 
   notes     String?
+
+  // ✅ Date métier de la recette — correspond à sessionDate de la session parente.
+  // Distinct de createdAt qui est la date de saisie réelle (toujours now()).
+  // C'est CE champ qu'on utilise pour les filtres stats, jamais createdAt.
+  revenueDate DateTime @map("revenue_date") @db.Date
   createdAt DateTime @default(now()) @map("created_at")
 
   restaurant Restaurant  @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
@@ -1118,6 +1123,8 @@ model Expense {
   quantityAdded Int?    @map("quantity_added")
 
   notes     String?
+
+  expenseDate DateTime @map("expense_date") @db.Date
   createdAt DateTime @default(now()) @map("created_at")
 
   restaurant Restaurant  @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
