@@ -1,4 +1,4 @@
-// app/dashboard/caisse/_components/CaisseShell.tsx
+// app/(dashboard)/caisse/_components/CaisseShell.tsx
 'use client'
 
 import {useState} from 'react'
@@ -28,25 +28,28 @@ export function CaisseShell({
                                 products,
                                 restaurantId,
                             }: CaisseShellProps) {
-    // activeSession peut être la session du jour OU une session historique
-    // sélectionnée depuis le calendrier. Cela permet d'utiliser les mêmes
-    // composants pour les deux cas d'usage.
     const [activeSession, setActiveSession] = useState<SessionWithRelations | null>(todaySession)
     const [showHistory, setShowHistory] = useState(false)
 
-    const handleSelectSession = (session: SessionWithRelations) => {
+    function handleSelectSession(session: SessionWithRelations) {
         setActiveSession(session)
         setShowHistory(false)
     }
 
-    const handleSessionCreated = (session: SessionWithRelations) => {
+    function handleSessionCreated(session: SessionWithRelations) {
         setActiveSession(session)
+        setShowHistory(false)
+    }
+
+    // Après suppression, on remet à zéro — l'utilisateur voit OpenSessionCard
+    function handleSessionDeleted() {
+        setActiveSession(null)
         setShowHistory(false)
     }
 
     return (
         <div className="space-y-6">
-            {/* ── En-tête ── */}
+            {/* En-tête */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                     {showHistory && (
@@ -67,7 +70,7 @@ export function CaisseShell({
                             {showHistory
                                 ? 'Cliquez sur un jour pour voir ou saisir une session'
                                 : new Date().toLocaleDateString('fr-FR', {
-                                    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+                                    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
                                 })
                             }
                         </p>
@@ -82,7 +85,6 @@ export function CaisseShell({
                 >
                     <CalendarDays className="h-4 w-4"/>
                     {showHistory ? 'Retour au jour actuel' : 'Historique'}
-                    {/* Badge qui indique le nombre de sessions historiques non clôturées */}
                     {!showHistory && recentSessions.filter(s => s.status === 'open').length > 0 && (
                         <Badge variant="destructive" className="h-4 px-1 text-xs">
                             {recentSessions.filter(s => s.status === 'open').length}
@@ -91,7 +93,7 @@ export function CaisseShell({
                 </Button>
             </div>
 
-            {/* ── Corps principal ── */}
+            {/* Corps principal */}
             {showHistory ? (
                 <HistoryCalendar
                     sessions={recentSessions}
@@ -101,7 +103,6 @@ export function CaisseShell({
                 />
             ) : (
                 <>
-                    {/* Aucune session ouverte aujourd'hui */}
                     {!activeSession && (
                         <OpenSessionCard
                             restaurantId={restaurantId}
@@ -109,16 +110,15 @@ export function CaisseShell({
                         />
                     )}
 
-                    {/* Session ouverte → interface de saisie active */}
                     {activeSession?.status === 'open' && (
                         <SessionDashboard
                             session={activeSession}
                             products={products}
                             onSessionUpdated={setActiveSession}
+                            onSessionDeleted={handleSessionDeleted}
                         />
                     )}
 
-                    {/* Session clôturée → lecture seule avec résumé */}
                     {activeSession?.status === 'closed' && (
                         <SessionSummary session={activeSession}/>
                     )}
