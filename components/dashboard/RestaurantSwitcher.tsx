@@ -1,7 +1,7 @@
 // components/dashboard/RestaurantSwitcher.tsx
 'use client'
 
-import {useState, useTransition} from 'react'
+import {useState, useTransition, useRef} from 'react'
 import {useRouter} from 'next/navigation'
 import {useRestaurant} from '@/lib/hooks/use-restaurant'
 import {useNavigationLoading} from '@/lib/hooks/use-navigation-loading'
@@ -23,34 +23,26 @@ import type {RestaurantWithRole} from '@/types/auth'
 import type {ActivityType} from '@/lib/config/activity-labels'
 import {AddRestaurantModal} from './AddRestaurantModal'
 
-function ActivityIcon({type, className}: { type?: ActivityType | string | null; className?: string }) {
+function ActivityIcon({type, className}: {type?: ActivityType | string | null; className?: string}) {
     const props = {className: cn('h-3.5 w-3.5', className)}
     switch (type) {
-        case 'restaurant':
-            return <Utensils {...props} />
-        case 'retail':
-            return <Store {...props} />
-        case 'vehicle_rental':
-            return <Car {...props} />
-        case 'transport':
-            return <Bus {...props} />
-        case 'service_rental':
-            return <Wrench {...props} />
-        case 'hotel':
-            return <Hotel {...props} />
-        case 'beauty':
-            return <Scissors {...props} />
-        default:
-            return <Building2 {...props} />
+        case 'restaurant':     return <Utensils {...props} />
+        case 'retail':         return <Store {...props} />
+        case 'vehicle_rental': return <Car {...props} />
+        case 'transport':      return <Bus {...props} />
+        case 'service_rental': return <Wrench {...props} />
+        case 'hotel':          return <Hotel {...props} />
+        case 'beauty':         return <Scissors {...props} />
+        default:               return <Building2 {...props} />
     }
 }
 
-function PlanBadge({plan}: { plan?: string }) {
+function PlanBadge({plan}: {plan?: string}) {
     if (!plan) return null
     const styles: Record<string, string> = {
-        premium: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400',
+        premium:  'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400',
         business: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
-        starter: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400',
+        starter:  'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400',
     }
     return (
         <span className={cn(
@@ -73,15 +65,15 @@ export function RestaurantSwitcher({canAddMore = false, variant = 'sidebar'}: Re
     const {startLoading} = useNavigationLoading()
     const {restaurants, currentRestaurant, setCurrentRestaurant, hasMultipleRestaurants, loading} = useRestaurant()
 
-    const [open, setOpen] = useState(false)
-    const [modalOpen, setModalOpen] = useState(false)
+    const [open, setOpen]             = useState(false)
+    const [modalOpen, setModalOpen]   = useState(false)
     const [switching, startSwitching] = useTransition()
 
+    // ✅ Empêche la double ouverture de la modale après router.refresh()
+    const pendingModalRef = useRef(false)
+
     function handleSwitch(restaurant: RestaurantWithRole) {
-        if (restaurant.id === currentRestaurant?.id) {
-            setOpen(false);
-            return
-        }
+        if (restaurant.id === currentRestaurant?.id) { setOpen(false); return }
         startSwitching(() => {
             setCurrentRestaurant(restaurant)
             document.cookie = `akom_current_restaurant_id=${restaurant.id}; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Lax`
@@ -95,6 +87,17 @@ export function RestaurantSwitcher({canAddMore = false, variant = 'sidebar'}: Re
         setOpen(false)
         startLoading()
         router.push(`/dashboard/restaurants/${restaurantId}/settings`)
+    }
+
+    function handleOpenModal() {
+        // Guard : n'ouvrir qu'une seule fois même si le composant re-render
+        if (pendingModalRef.current || modalOpen) return
+        pendingModalRef.current = true
+        setOpen(false)
+        setTimeout(() => {
+            pendingModalRef.current = false
+            setModalOpen(true)
+        }, 120)
     }
 
     if (loading) {
@@ -124,8 +127,7 @@ export function RestaurantSwitcher({canAddMore = false, variant = 'sidebar'}: Re
                             <Loader2 className="h-4 w-4 animate-spin shrink-0"/>
                         ) : (
                             <>
-                                <div
-                                    className="flex h-7 w-7 items-center justify-center rounded-md bg-primary/10 shrink-0">
+                                <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary/10 shrink-0">
                                     <ActivityIcon
                                         type={(currentRestaurant as any).activityType}
                                         className="h-3.5 w-3.5 text-primary"
@@ -157,8 +159,7 @@ export function RestaurantSwitcher({canAddMore = false, variant = 'sidebar'}: Re
                 </DropdownMenuTrigger>
 
                 <DropdownMenuContent className="w-72 p-1.5" align="start" side="bottom" sideOffset={4}>
-                    <DropdownMenuLabel
-                        className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    <DropdownMenuLabel className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                         Mes structures ({restaurants.length})
                     </DropdownMenuLabel>
 
@@ -169,7 +170,6 @@ export function RestaurantSwitcher({canAddMore = false, variant = 'sidebar'}: Re
 
                             return (
                                 <div key={restaurant.id}>
-                                    {/* Ligne principale : switch */}
                                     <DropdownMenuItem
                                         onSelect={() => handleSwitch(restaurant)}
                                         className={cn(
@@ -206,47 +206,37 @@ export function RestaurantSwitcher({canAddMore = false, variant = 'sidebar'}: Re
                                             </span>
                                         </div>
 
-                                        {isActive
-                                            ? <Check className="ml-auto h-4 w-4 text-primary shrink-0"/>
-                                            : (
-                                                // Bouton "Gérer" visible au hover sur les structures non actives
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation()
-                                                        handleManage(restaurant.id)
-                                                    }}
-                                                    className={cn(
-                                                        'ml-auto shrink-0 rounded p-1',
-                                                        'text-muted-foreground opacity-0 group-hover:opacity-100',
-                                                        'hover:bg-background hover:text-foreground',
-                                                        'transition-opacity duration-150'
-                                                    )}
-                                                    title="Paramètres"
-                                                >
-                                                    <Settings className="h-3.5 w-3.5"/>
-                                                </button>
-                                            )
-                                        }
+                                        {isActive ? (
+                                            <Check className="ml-auto h-4 w-4 text-primary shrink-0"/>
+                                        ) : (
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation()
+                                                    handleManage(restaurant.id)
+                                                }}
+                                                className="ml-auto shrink-0 rounded p-1 text-muted-foreground hover:bg-background hover:text-foreground transition-colors"
+                                                title="Paramètres"
+                                            >
+                                                <Settings className="h-3.5 w-3.5"/>
+                                            </button>
+                                        )}
                                     </DropdownMenuItem>
                                 </div>
                             )
                         })}
                     </div>
 
-                    {/* Bouton ajouter */}
                     {canAddMore && (
                         <>
                             <DropdownMenuSeparator className="my-1.5"/>
                             <DropdownMenuItem
                                 onSelect={(e) => {
                                     e.preventDefault()
-                                    setOpen(false)
-                                    setTimeout(() => setModalOpen(true), 100)
+                                    handleOpenModal()
                                 }}
                                 className="flex items-center gap-3 rounded-md px-2 py-2.5 cursor-pointer text-primary focus:text-primary focus:bg-primary/10"
                             >
-                                <div
-                                    className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10 shrink-0">
+                                <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10 shrink-0">
                                     <Plus className="h-4 w-4 text-primary"/>
                                 </div>
                                 <div className="flex flex-col">
@@ -263,7 +253,11 @@ export function RestaurantSwitcher({canAddMore = false, variant = 'sidebar'}: Re
 
             <AddRestaurantModal
                 open={modalOpen}
-                onOpenChange={setModalOpen}
+                onOpenChange={(next) => {
+                    // ✅ Reset le guard quand la modale se ferme
+                    if (!next) pendingModalRef.current = false
+                    setModalOpen(next)
+                }}
             />
         </>
     )

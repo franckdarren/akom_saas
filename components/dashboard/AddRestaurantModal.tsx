@@ -1,7 +1,7 @@
 // components/dashboard/AddRestaurantModal.tsx
 'use client'
 
-import {useState, useTransition, useEffect} from 'react'
+import {useState, useTransition, useEffect, useRef} from 'react'
 import {useRouter} from 'next/navigation'
 import {createAdditionalRestaurant} from '@/lib/actions/restaurant'
 import {ACTIVITY_TYPE_OPTIONS, type ActivityType} from '@/lib/config/activity-labels'
@@ -10,22 +10,19 @@ import {useRestaurant} from '@/lib/hooks/use-restaurant'
 import {
     Dialog,
     DialogContent,
-    DialogHeader,
     DialogTitle,
     DialogDescription,
 } from '@/components/ui/dialog'
 import {Button} from '@/components/ui/button'
 import {Input} from '@/components/ui/input'
 import {Label} from '@/components/ui/label'
-import {Badge} from '@/components/ui/badge'
 import {toast} from 'sonner'
 import {
     ArrowLeft, ArrowRight, Building2, CheckCircle2,
-    Loader2, MapPin, Phone, Sparkles,
+    Loader2, MapPin, Phone, Sparkles, ChevronRight,
 } from 'lucide-react'
 import {cn} from '@/lib/utils'
 
-// ─── Types ────────────────────────────────────────────────────────────────────
 interface AddRestaurantModalProps {
     open: boolean
     onOpenChange: (open: boolean) => void
@@ -33,11 +30,10 @@ interface AddRestaurantModalProps {
 
 type Step = 'type' | 'info' | 'success'
 
-// ─── Composant ────────────────────────────────────────────────────────────────
 export function AddRestaurantModal({open, onOpenChange}: AddRestaurantModalProps) {
     const router = useRouter()
     const {startLoading} = useNavigationLoading()
-    const {refreshRestaurants, setCurrentRestaurant, restaurants} = useRestaurant()
+    const {refreshRestaurants} = useRestaurant()
 
     const [step, setStep]                 = useState<Step>('type')
     const [activityType, setActivityType] = useState<ActivityType>('restaurant')
@@ -47,216 +43,229 @@ export function AddRestaurantModal({open, onOpenChange}: AddRestaurantModalProps
     const [createdName, setCreatedName]   = useState('')
     const [isPending, startTransition]    = useTransition()
 
-    // Reset quand on ferme
+    const isNavigatingRef = useRef(false)
+
+    function resetForm() {
+        setStep('type')
+        setActivityType('restaurant')
+        setName('')
+        setPhone('')
+        setAddress('')
+        setCreatedName('')
+    }
+
     useEffect(() => {
-        if (!open) {
-            setTimeout(() => {
-                setStep('type')
-                setActivityType('restaurant')
-                setName('')
-                setPhone('')
-                setAddress('')
-                setCreatedName('')
-            }, 300)
+        if (!open && !isNavigatingRef.current) {
+            const t = setTimeout(resetForm, 300)
+            return () => clearTimeout(t)
         }
     }, [open])
 
+    function handleOpenChange(next: boolean) {
+        if (isPending) return
+        if (!next) {
+            isNavigatingRef.current = false
+            onOpenChange(false)
+        } else {
+            onOpenChange(true)
+        }
+    }
+
     const selectedOption = ACTIVITY_TYPE_OPTIONS.find(o => o.value === activityType)
 
-    function handleSelectType(type: ActivityType) {
-        setActivityType(type)
-    }
-
-    function handleNextStep() {
-        if (step === 'type') setStep('info')
-    }
-
-    function handleBack() {
-        if (step === 'info') setStep('type')
-    }
-
     function handleSubmit(e: React.FormEvent) {
-        e.preventDefault()
-        if (!name.trim()) { toast.error('Le nom est requis'); return }
+    e.preventDefault()
+    if (!name.trim()) { toast.error('Le nom est requis'); return }
 
-        startTransition(async () => {
-            try {
-                const result = await createAdditionalRestaurant({
-                    name: name.trim(),
-                    phone: phone.trim() || undefined,
-                    address: address.trim() || undefined,
-                    activityType,
-                })
+    startTransition(async () => {
+        try {
+            const result = await createAdditionalRestaurant({
+                name:         name.trim(),
+                phone:        phone.trim() || undefined,
+                address:      address.trim() || undefined,
+                activityType,
+            })
 
-                if (!result.success) {
-                    toast.error((result as any).error ?? 'Une erreur est survenue')
-                    return
-                }
-
-                setCreatedName(name.trim())
-                setStep('success')
-
-                // Refresh du context pour que le switcher se mette à jour
-                await refreshRestaurants()
-
-            } catch (err: unknown) {
-                const message = err instanceof Error ? err.message : 'Une erreur est survenue'
-                toast.error(message)
+            // ✅ La fonction throw en cas d'erreur métier,
+            // mais on vérifie aussi result.success par sécurité
+            if (result && !result.success) {
+                toast.error((result as any).error ?? 'Une erreur est survenue')
+                return
             }
-        })
-    }
+
+            // ✅ Toast de confirmation AVANT de changer d'étape
+            toast.success(`"${name.trim()}" créée avec succès !`, {
+                description: 'Votre nouvelle structure est prête à être configurée.',
+            })
+
+            setCreatedName(name.trim())
+            setStep('success')
+            await refreshRestaurants()
+
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : 'Une erreur est survenue'
+            toast.error(message)
+        }
+    })
+}
 
     function handleGoToNewRestaurant() {
+        isNavigatingRef.current = true
         onOpenChange(false)
-        startLoading()
-        // Le refresh met à jour le layout avec le nouveau restaurant
-        router.refresh()
+        setTimeout(() => {
+            isNavigatingRef.current = false
+            resetForm()
+            startLoading()
+            router.refresh()
+        }, 350)
     }
 
-    // ── Indicateur d'étapes ────────────────────────────────────────────────
-    const steps = [
-        {key: 'type', label: 'Type'},
-        {key: 'info', label: 'Infos'},
-        {key: 'success', label: 'Créé'},
-    ]
-    const currentStepIndex = steps.findIndex(s => s.key === step)
+    function handleStayHere() {
+        isNavigatingRef.current = false
+        onOpenChange(false)
+    }
+
+    const currentStepIndex = step === 'type' ? 0 : step === 'info' ? 1 : 2
 
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
+        <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogContent className={cn(
-                'gap-0 p-0 overflow-hidden',
-                // Taille adaptée à l'étape
+                'gap-0 p-0 overflow-hidden border-0 shadow-2xl',
                 step === 'type'    && 'max-w-2xl',
-                step === 'info'    && 'max-w-md',
+                step === 'info'    && 'max-w-lg',
                 step === 'success' && 'max-w-sm',
             )}>
 
                 {/* ── Header ── */}
                 {step !== 'success' && (
-                    <div className="px-6 pt-6 pb-4 border-b">
-                        <div className="flex items-start justify-between gap-4">
-                            <div>
-                                <DialogTitle className="text-lg font-semibold">
+                    <div className="px-6 pt-6 pb-5 border-b bg-gradient-to-b from-muted/40 to-transparent">
+
+                        {/* ✅ Titre + indicateur sur la même ligne
+                            La croix shadcn est positionnée absolute à top-4 right-4 (≈ 16px)
+                            On réserve pr-24 pour ne jamais chevaucher ni le bouton croix ni l'indicateur */}
+                        <div className="flex items-start justify-between gap-3 pr-8">
+                            {/* Texte à gauche */}
+                            <div className="min-w-0">
+                                <DialogTitle className="text-base font-semibold leading-snug">
                                     {step === 'type' && 'Quelle est votre activité ?'}
                                     {step === 'info' && (
                                         <span className="flex items-center gap-2">
-                                            <span className="text-xl">{selectedOption?.emoji}</span>
+                                            <span className="text-lg">{selectedOption?.emoji}</span>
                                             {selectedOption?.label}
                                         </span>
                                     )}
                                 </DialogTitle>
-                                <DialogDescription className="mt-1 text-sm text-muted-foreground">
+                                <DialogDescription className="mt-0.5 text-xs text-muted-foreground">
                                     {step === 'type' && 'Sélectionnez le type de structure à créer.'}
                                     {step === 'info' && 'Renseignez les informations de votre nouvelle structure.'}
                                 </DialogDescription>
                             </div>
 
-                            {/* Indicateur étapes */}
-                            <div className="flex items-center gap-1.5 shrink-0 mt-0.5">
-                                {steps.slice(0, 2).map((s, i) => (
-                                    <div key={s.key} className="flex items-center gap-1.5">
-                                        <div className={cn(
-                                            'flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold transition-all duration-300',
-                                            i < currentStepIndex
-                                                ? 'bg-primary text-primary-foreground'
-                                                : i === currentStepIndex
-                                                    ? 'bg-primary text-primary-foreground ring-4 ring-primary/20'
-                                                    : 'bg-muted text-muted-foreground'
-                                        )}>
-                                            {i < currentStepIndex ? <CheckCircle2 className="h-3.5 w-3.5"/> : i + 1}
-                                        </div>
-                                        {i < 1 && (
-                                            <div className={cn(
-                                                'h-px w-6 transition-all duration-500',
-                                                i < currentStepIndex ? 'bg-primary' : 'bg-muted'
-                                            )}/>
+                            {/* ✅ Indicateur de progression — à gauche de la croix
+                                La croix shadcn est à right-4, on lui laisse ~32px.
+                                On positionne l'indicateur juste avant avec mr qui le décale. */}
+                            <div className="flex items-center gap-1.5 shrink-0 mt-0.5 mr-6">
+                                {(['type', 'info'] as Step[]).map((s, i) => (
+                                    <div
+                                        key={s}
+                                        className={cn(
+                                            'h-1.5 rounded-full transition-all duration-500',
+                                            s === step
+                                                ? 'w-6 bg-primary'
+                                                : currentStepIndex > i
+                                                    ? 'w-3 bg-primary/50'
+                                                    : 'w-3 bg-muted-foreground/20'
                                         )}
-                                    </div>
+                                    />
                                 ))}
                             </div>
                         </div>
                     </div>
                 )}
 
-                {/* ════════════════════════════════════════════════
-                    ÉTAPE 1 : Sélection du type d'activité
-                ════════════════════════════════════════════════ */}
+                {/* ══════════════════════════════════════
+                    ÉTAPE 1 : Type d'activité
+                ══════════════════════════════════════ */}
                 {step === 'type' && (
-                    <div className="p-6 space-y-4">
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                            {ACTIVITY_TYPE_OPTIONS.map(({value, label, description, emoji}) => (
-                                <button
-                                    key={value}
-                                    type="button"
-                                    onClick={() => handleSelectType(value)}
-                                    className={cn(
-                                        'group relative flex flex-col items-center gap-2.5 rounded-xl border-2 p-4 text-center',
-                                        'transition-all duration-200 cursor-pointer',
-                                        'hover:border-primary/40 hover:bg-primary/5 hover:shadow-sm',
-                                        activityType === value
-                                            ? 'border-primary bg-primary/5 shadow-sm'
-                                            : 'border-border bg-background'
-                                    )}
-                                >
-                                    {/* Check */}
-                                    {activityType === value && (
-                                        <div className="absolute top-2 right-2">
-                                            <CheckCircle2 className="h-4 w-4 text-primary"/>
-                                        </div>
-                                    )}
-
-                                    {/* Emoji */}
-                                    <span className={cn(
-                                        'text-3xl transition-transform duration-200',
-                                        'group-hover:scale-110',
-                                        activityType === value && 'scale-110'
-                                    )}>
-                                        {emoji}
-                                    </span>
-
-                                    {/* Label */}
-                                    <div>
-                                        <p className={cn(
-                                            'text-xs font-semibold leading-tight',
-                                            activityType === value ? 'text-primary' : 'text-foreground'
+                    <div className="p-5 space-y-4">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                            {ACTIVITY_TYPE_OPTIONS.map(({value, label, description, emoji}) => {
+                                const isSelected = activityType === value
+                                return (
+                                    <button
+                                        key={value}
+                                        type="button"
+                                        onClick={() => setActivityType(value)}
+                                        className={cn(
+                                            'group relative flex flex-col items-center gap-2 rounded-xl p-3.5 text-center',
+                                            'border-2 transition-all duration-200 cursor-pointer',
+                                            'hover:shadow-md',
+                                            isSelected
+                                                ? 'border-primary bg-primary/5 shadow-sm'
+                                                : 'border-border bg-background hover:border-primary/30 hover:bg-muted/30'
+                                        )}
+                                    >
+                                        {/* Radio visuel */}
+                                        <div className={cn(
+                                            'absolute top-2 right-2 h-4 w-4 rounded-full border-2 transition-all duration-200 flex items-center justify-center',
+                                            isSelected
+                                                ? 'border-primary bg-primary'
+                                                : 'border-muted-foreground/30'
                                         )}>
-                                            {label}
-                                        </p>
-                                        <p className="text-[10px] text-muted-foreground mt-0.5 leading-tight">
-                                            {description}
-                                        </p>
-                                    </div>
-                                </button>
-                            ))}
+                                            {isSelected && (
+                                                <div className="h-1.5 w-1.5 rounded-full bg-white"/>
+                                            )}
+                                        </div>
+
+                                        <span className={cn(
+                                            'text-2xl leading-none transition-transform duration-200',
+                                            'group-hover:scale-110',
+                                            isSelected && 'scale-110'
+                                        )}>
+                                            {emoji}
+                                        </span>
+
+                                        <div className="space-y-0.5">
+                                            <p className={cn(
+                                                'text-[11px] font-semibold leading-tight',
+                                                isSelected ? 'text-primary' : 'text-foreground'
+                                            )}>
+                                                {label}
+                                            </p>
+                                            <p className="text-[10px] text-muted-foreground leading-tight">
+                                                {description}
+                                            </p>
+                                        </div>
+                                    </button>
+                                )
+                            })}
                         </div>
 
-                        {/* Footer */}
-                        <div className="flex items-center justify-between pt-2">
-                            <div className="flex items-center gap-2">
-                                <span className="text-xl">{selectedOption?.emoji}</span>
-                                <span className="text-sm text-muted-foreground">
+                        <div className="flex items-center justify-between pt-1 border-t">
+                            <div className="flex items-center gap-2 text-sm">
+                                <span className="text-lg">{selectedOption?.emoji}</span>
+                                <span className="text-muted-foreground">
                                     <span className="font-medium text-foreground">{selectedOption?.label}</span>
                                     {' '}sélectionné
                                 </span>
                             </div>
-                            <Button onClick={handleNextStep} className="gap-1.5">
+                            <Button onClick={() => setStep('info')} size="sm" className="gap-1.5">
                                 Continuer
-                                <ArrowRight className="h-4 w-4"/>
+                                <ArrowRight className="h-3.5 w-3.5"/>
                             </Button>
                         </div>
                     </div>
                 )}
 
-                {/* ════════════════════════════════════════════════
-                    ÉTAPE 2 : Informations de la structure
-                ════════════════════════════════════════════════ */}
+                {/* ══════════════════════════════════════
+                    ÉTAPE 2 : Informations
+                ══════════════════════════════════════ */}
                 {step === 'info' && (
-                    <form onSubmit={handleSubmit} className="p-6 space-y-4">
-
-                        {/* Nom */}
+                    <form onSubmit={handleSubmit} className="p-5 space-y-4">
                         <div className="space-y-1.5">
-                            <Label htmlFor="modal-name" className="text-sm font-medium">
-                                Nom de la structure <span className="text-destructive">*</span>
+                            <Label htmlFor="modal-name" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                                Nom de la structure{' '}
+                                <span className="text-destructive normal-case font-normal tracking-normal">*</span>
                             </Label>
                             <div className="relative">
                                 <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/>
@@ -265,16 +274,16 @@ export function AddRestaurantModal({open, onOpenChange}: AddRestaurantModalProps
                                     value={name}
                                     onChange={e => setName(e.target.value)}
                                     placeholder={
-                                        activityType === 'restaurant'      ? 'ex: Chez Maman Centre-ville' :
-                                        activityType === 'retail'          ? 'ex: Boutique Lumière' :
-                                        activityType === 'vehicle_rental'  ? 'ex: AutoLoc Express' :
-                                        activityType === 'transport'       ? 'ex: Trans Gabon Express' :
-                                        activityType === 'service_rental'  ? 'ex: TechLoc Services' :
-                                        activityType === 'hotel'           ? 'ex: Hôtel du Lac' :
-                                        activityType === 'beauty'          ? 'ex: Salon Élégance' :
+                                        activityType === 'restaurant'     ? 'ex: Chez Maman Centre-ville' :
+                                        activityType === 'retail'         ? 'ex: Boutique Lumière'        :
+                                        activityType === 'vehicle_rental' ? 'ex: AutoLoc Express'         :
+                                        activityType === 'transport'      ? 'ex: Trans Gabon Express'     :
+                                        activityType === 'service_rental' ? 'ex: TechLoc Services'        :
+                                        activityType === 'hotel'          ? 'ex: Hôtel du Lac'            :
+                                        activityType === 'beauty'         ? 'ex: Salon Élégance'          :
                                         'Nom de votre structure'
                                     }
-                                    className="pl-9"
+                                    className="pl-9 h-10"
                                     autoFocus
                                     disabled={isPending}
                                     required
@@ -282,54 +291,54 @@ export function AddRestaurantModal({open, onOpenChange}: AddRestaurantModalProps
                             </div>
                         </div>
 
-                        {/* Téléphone */}
-                        <div className="space-y-1.5">
-                            <Label htmlFor="modal-phone" className="text-sm font-medium">
-                                Téléphone
-                                <span className="ml-1.5 text-xs text-muted-foreground font-normal">(optionnel)</span>
-                            </Label>
-                            <div className="relative">
-                                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/>
-                                <Input
-                                    id="modal-phone"
-                                    value={phone}
-                                    onChange={e => setPhone(e.target.value)}
-                                    placeholder="+241 XX XX XX XX"
-                                    className="pl-9"
-                                    disabled={isPending}
-                                />
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div className="space-y-1.5">
+                                <Label htmlFor="modal-phone" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                                    Téléphone{' '}
+                                    <span className="normal-case font-normal tracking-normal text-muted-foreground/60">(opt.)</span>
+                                </Label>
+                                <div className="relative">
+                                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/>
+                                    <Input
+                                        id="modal-phone"
+                                        value={phone}
+                                        onChange={e => setPhone(e.target.value)}
+                                        placeholder="+241 XX XX XX XX"
+                                        className="pl-9 h-10"
+                                        disabled={isPending}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <Label htmlFor="modal-address" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                                    Adresse{' '}
+                                    <span className="normal-case font-normal tracking-normal text-muted-foreground/60">(opt.)</span>
+                                </Label>
+                                <div className="relative">
+                                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/>
+                                    <Input
+                                        id="modal-address"
+                                        value={address}
+                                        onChange={e => setAddress(e.target.value)}
+                                        placeholder="Quartier, Ville"
+                                        className="pl-9 h-10"
+                                        disabled={isPending}
+                                    />
+                                </div>
                             </div>
                         </div>
 
-                        {/* Adresse */}
-                        <div className="space-y-1.5">
-                            <Label htmlFor="modal-address" className="text-sm font-medium">
-                                Adresse
-                                <span className="ml-1.5 text-xs text-muted-foreground font-normal">(optionnel)</span>
-                            </Label>
-                            <div className="relative">
-                                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/>
-                                <Input
-                                    id="modal-address"
-                                    value={address}
-                                    onChange={e => setAddress(e.target.value)}
-                                    placeholder="ex: Quartier Louis, Libreville"
-                                    className="pl-9"
-                                    disabled={isPending}
-                                />
-                            </div>
-                        </div>
-
-                        {/* Actions */}
-                        <div className="flex items-center gap-2 pt-1">
+                        <div className="flex items-center gap-2 pt-2 border-t">
                             <Button
                                 type="button"
                                 variant="ghost"
-                                onClick={handleBack}
+                                size="sm"
+                                onClick={() => setStep('type')}
                                 disabled={isPending}
-                                className="gap-1.5"
+                                className="gap-1.5 text-muted-foreground"
                             >
-                                <ArrowLeft className="h-4 w-4"/>
+                                <ArrowLeft className="h-3.5 w-3.5"/>
                                 Retour
                             </Button>
                             <Button
@@ -340,7 +349,7 @@ export function AddRestaurantModal({open, onOpenChange}: AddRestaurantModalProps
                                 {isPending ? (
                                     <>
                                         <Loader2 className="h-4 w-4 animate-spin"/>
-                                        Création…
+                                        Création en cours…
                                     </>
                                 ) : (
                                     <>
@@ -353,54 +362,52 @@ export function AddRestaurantModal({open, onOpenChange}: AddRestaurantModalProps
                     </form>
                 )}
 
-                {/* ════════════════════════════════════════════════
+                {/* ══════════════════════════════════════
                     ÉTAPE 3 : Succès
-                ════════════════════════════════════════════════ */}
+                ══════════════════════════════════════ */}
                 {step === 'success' && (
-                    <div className="p-8 flex flex-col items-center text-center gap-4">
-                        {/* Icône succès animée */}
+                    <div className="p-8 flex flex-col items-center text-center gap-5">
                         <div className="relative">
-                            <div className="h-16 w-16 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
-                                <CheckCircle2 className="h-8 w-8 text-emerald-600 dark:text-emerald-400"/>
+                            <div className="h-16 w-16 rounded-2xl bg-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                                <CheckCircle2 className="h-8 w-8 text-white"/>
                             </div>
-                            {/* Halo */}
-                            <div className="absolute inset-0 rounded-full bg-emerald-400/20 animate-ping"/>
+                            <div className="absolute -inset-1 rounded-2xl bg-emerald-400/20 animate-ping"/>
                         </div>
 
-                        <div className="space-y-1.5">
-                            <h2 className="text-lg font-bold">Structure créée !</h2>
-                            <p className="text-sm text-muted-foreground">
+                        <div className="space-y-1">
+                            <DialogTitle className="text-lg font-bold">Structure créée !</DialogTitle>
+                            <DialogDescription className="text-sm text-muted-foreground">
                                 <span className="font-semibold text-foreground">{createdName}</span>
-                                {' '}est prête. Commencez par configurer votre catalogue et vos tables.
-                            </p>
+                                {' '}est prête à être configurée.
+                            </DialogDescription>
                         </div>
 
-                        {/* Infos rapides */}
-                        <div className="w-full rounded-lg border bg-muted/30 p-3 space-y-2 text-left">
-                            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                                Prochaines étapes
-                            </p>
+                        <div className="w-full rounded-xl border bg-muted/30 divide-y">
                             {[
                                 {emoji: '📋', text: 'Créer vos catégories et produits'},
                                 {emoji: '🪑', text: 'Configurer vos tables / espaces'},
                                 {emoji: '⚙️', text: 'Paramétrer votre profil'},
                             ].map(({emoji, text}) => (
-                                <div key={text} className="flex items-center gap-2.5 text-sm text-muted-foreground">
-                                    <span className="text-base">{emoji}</span>
-                                    {text}
+                                <div key={text} className="flex items-center gap-3 px-3 py-2.5 text-sm text-muted-foreground">
+                                    <span className="text-base shrink-0">{emoji}</span>
+                                    <span>{text}</span>
+                                    <ChevronRight className="ml-auto h-3.5 w-3.5 text-muted-foreground/40"/>
                                 </div>
                             ))}
                         </div>
 
                         <div className="flex flex-col w-full gap-2">
-                            <Button onClick={handleGoToNewRestaurant} className="w-full gap-1.5">
+                            <Button
+                                onClick={handleGoToNewRestaurant}
+                                className="w-full gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white"
+                            >
                                 <Sparkles className="h-4 w-4"/>
                                 Accéder à {createdName}
                             </Button>
                             <Button
                                 variant="ghost"
-                                onClick={() => onOpenChange(false)}
-                                className="w-full text-muted-foreground"
+                                onClick={handleStayHere}
+                                className="w-full text-muted-foreground text-sm"
                             >
                                 Rester sur la structure actuelle
                             </Button>
