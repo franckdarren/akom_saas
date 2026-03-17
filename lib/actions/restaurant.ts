@@ -9,59 +9,65 @@ import {generateUniqueSlug} from '@/lib/actions/slug'
 import {restaurantSettingsSchema, type RestaurantSettingsInput} from '@/lib/validations/restaurant'
 import {logRestaurantCreated} from '@/lib/actions/logs'
 import {formatRestaurantName} from '@/lib/utils/format-text'
-import {SUBSCRIPTION_CONFIG, SubscriptionPlan} from '@/lib/config/subscription'
-import type {ActivityType} from '@/lib/config/activity-labels' // ← NOUVEAU
+import {SUBSCRIPTION_CONFIG, type SubscriptionPlan} from '@/lib/config/subscription'
+import type {ActivityType} from '@/lib/config/activity-labels'
 
+// ============================================================
+// TYPES
+// ============================================================
 
 interface CreateRestaurantInput {
     name: string
     phone?: string
     address?: string
     plan?: SubscriptionPlan
-    activityType?: ActivityType  // ← NOUVEAU
+    activityType?: ActivityType
 }
 
 // ============================================================
-// CRÉER UN RESTAURANT
+// HELPER : Mappe config statique → champs Prisma Subscription
+// Ton schéma n'a que : basePlanPrice, billingCycle, activeUsersCount
+// Les features (multi_restaurants, etc.) ne sont PAS en BDD —
+// elles se lisent toujours depuis SUBSCRIPTION_CONFIG[plan]
 // ============================================================
-// Logique :
-//  1. Vérifier l'authentification
-//  2. Vérifier si l'utilisateur a déjà un restaurant (règle SaaS)
-//  3. Générer un slug unique AVANT la transaction (important !)
-//  4. Créer restaurant + lien utilisateur + abonnement en une seule transaction atomique
+
+function buildSubscriptionData(plan: SubscriptionPlan, restaurantId: string) {
+    const config = SUBSCRIPTION_CONFIG[plan]
+    const now = new Date()
+    const trialEnd = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000)
+
+    return {
+        restaurantId,
+        plan,
+        status: 'trial' as const,
+        trialStartsAt: now,
+        trialEndsAt: trialEnd,
+        basePlanPrice: config.baseMonthlyPrice,
+        billingCycle: 1,
+        activeUsersCount: 1,
+    }
+}
+
+// ============================================================
+// CRÉER UN RESTAURANT (onboarding initial)
 // ============================================================
 
 export async function createRestaurant(data: CreateRestaurantInput) {
     const supabase = await createClient()
+    const {data: {user}} = await supabase.auth.getUser()
 
-    const {
-        data: {user},
-    } = await supabase.auth.getUser()
-
-    if (!user) {
-        return {success: false, error: 'Non authentifié'}
-    }
-
-    // Validation minimale du nom avant tout traitement
-    if (!data.name || data.name.trim().length === 0) {
-        return {success: false, error: 'Le nom du restaurant est obligatoire'}
-    }
+    if (!user) return {success: false, error: 'Non authentifié'}
+    if (!data.name?.trim()) return {success: false, error: 'Le nom du restaurant est obligatoire'}
 
     try {
         // -------------------------------------------------------
         // ÉTAPE 1 : Vérifier les droits multi-restaurant
-        // Un utilisateur non-premium ne peut posséder qu'un seul restaurant
         // -------------------------------------------------------
         const existingRestaurantUser = await prisma.restaurantUser.findFirst({
-            where: {
-                userId: user.id,
-                role: 'admin',
-            },
+            where: {userId: user.id, role: 'admin'},
             include: {
                 restaurant: {
-                    include: {
-                        subscription: true,
-                    },
+                    include: {subscription: true},
                 },
             },
         })
@@ -69,64 +75,33 @@ export async function createRestaurant(data: CreateRestaurantInput) {
         if (existingRestaurantUser) {
             const subscription = existingRestaurantUser.restaurant.subscription
 
-            // Pas d'abonnement du tout → situation anormale, on bloque
             if (!subscription) {
-                return {
-                    success: false,
-                    error: "Abonnement invalide.",
-                }
+                return {success: false, error: 'Abonnement invalide.'}
             }
 
-            // Si l'abonnement est actif ou en trial, vérifier le plan
             if (subscription.status === 'trial' || subscription.status === 'active') {
-                if (subscription.plan !== 'premium') {
+                // Lire multi_restaurants depuis la config statique
+                const planConfig = SUBSCRIPTION_CONFIG[subscription.plan as SubscriptionPlan]
+                if (!planConfig?.features?.multi_restaurants) {
                     return {
                         success: false,
-                        error: "Passez en Premium pour gérer plusieurs restaurants.",
+                        error: 'Passez en Premium pour gérer plusieurs restaurants.',
                     }
                 }
             }
         }
 
         // -------------------------------------------------------
-        // ÉTAPE 2 : Préparer les données AVANT la transaction
-        //
-        // ⚠️ POINT CLÉ : generateUniqueSlug() doit être appelée
-        // EN DEHORS de la transaction Prisma. Pourquoi ?
-        //
-        // generateUniqueSlug() exécute des requêtes SELECT en boucle
-        // pour vérifier l'unicité du slug. Si on les met DANS la
-        // transaction interactive ($transaction avec callback async),
-        // Prisma peut créer des conflits de connexion ou des deadlocks
-        // car la transaction occupe une connexion pendant que
-        // generateUniqueSlug essaie d'en ouvrir une autre.
-        //
-        // La bonne pratique : calculer tout ce dont on a besoin AVANT,
-        // puis n'utiliser la transaction que pour les écritures atomiques.
+        // ÉTAPE 2 : Slug hors transaction (évite les deadlocks)
         // -------------------------------------------------------
-
         const formattedName = formatRestaurantName(data.name)
-
-        // Génère un slug URL-friendly et garanti unique en base
-        // Ex: "Chez Maman" → "chez-maman" ou "chez-maman-2" si déjà pris
         const slug = await generateUniqueSlug(formattedName)
-
-        const now = new Date()
-        const trialEnd = new Date()
-        trialEnd.setDate(now.getDate() + 14) // 14 jours d'essai gratuit
-
         const plan: SubscriptionPlan = data.plan ?? 'starter'
-        const config = SUBSCRIPTION_CONFIG[plan]
 
         // -------------------------------------------------------
         // ÉTAPE 3 : Transaction atomique
-        //
-        // Les 3 créations (restaurant, restaurantUser, subscription)
-        // sont liées : si l'une échoue, tout est annulé.
-        // C'est ce qu'on appelle l'atomicité — soit tout passe, soit rien.
         // -------------------------------------------------------
         const result = await prisma.$transaction(async (tx) => {
-            // Créer le restaurant avec le slug pré-calculé
             const restaurant = await tx.restaurant.create({
                 data: {
                     name: formattedName,
@@ -134,11 +109,10 @@ export async function createRestaurant(data: CreateRestaurantInput) {
                     phone: data.phone?.trim() || null,
                     address: data.address?.trim() || null,
                     isActive: true,
-                    activityType: data.activityType ?? 'restaurant', // ← NOUVEAU
+                    activityType: data.activityType ?? 'restaurant',
                 },
             })
 
-            // Associer l'utilisateur au restaurant avec le rôle admin
             await tx.restaurantUser.create({
                 data: {
                     userId: user.id,
@@ -147,24 +121,14 @@ export async function createRestaurant(data: CreateRestaurantInput) {
                 },
             })
 
-            // Créer l'abonnement en période d'essai (trial)
             await tx.subscription.create({
-                data: {
-                    restaurantId: restaurant.id,
-                    plan,
-                    status: 'trial',
-                    trialStartsAt: now,
-                    trialEndsAt: trialEnd,
-                    basePlanPrice: config.baseMonthlyPrice,
-                    billingCycle: 1,
-                    activeUsersCount: 1,
-                },
+                data: buildSubscriptionData(plan, restaurant.id),
             })
 
             return restaurant
         })
 
-        // Invalider le cache Next.js pour que le dashboard se rafraîchisse
+        await logRestaurantCreated(result.id, user.id)
         revalidatePath('/dashboard')
 
         return {success: true, restaurant: result}
@@ -181,38 +145,178 @@ export async function createRestaurant(data: CreateRestaurantInput) {
 
 export async function getUserRestaurants(): Promise<RestaurantWithRole[]> {
     const supabase = await createClient()
+    const {data: {user}} = await supabase.auth.getUser()
 
-    const {
-        data: {user},
-    } = await supabase.auth.getUser()
-
-    if (!user) {
-        return []
-    }
+    if (!user) return []
 
     const restaurantUsers = await prisma.restaurantUser.findMany({
-        where: {
-            userId: user.id,
-        },
+        where: {userId: user.id},
         include: {
             restaurant: {
                 select: {
                     id: true,
                     name: true,
                     slug: true,
+                    activityType: true,
                     isActive: true,
+                    subscription: {
+                        select: {
+                            plan: true,
+                            status: true,
+                        },
+                    },
                 },
             },
         },
+        orderBy: {createdAt: 'asc'},
     })
 
     return restaurantUsers.map((ru) => ({
         id: ru.restaurant.id,
         name: ru.restaurant.name,
         slug: ru.restaurant.slug,
+        activityType: ru.restaurant.activityType,
         role: ru.role as UserRole,
         isActive: ru.restaurant.isActive,
+        subscription: ru.restaurant.subscription ?? undefined,
     }))
+}
+
+// ============================================================
+// QUOTA MULTI-STRUCTURE
+// Source de vérité : SUBSCRIPTION_CONFIG[plan].features.multi_restaurants
+// Le schéma Prisma ne stocke PAS les features — uniquement le plan.
+// ============================================================
+
+export async function getMultiRestaurantQuota(): Promise<{
+    current: number
+    max: number
+    canAdd: boolean
+    planRequired: SubscriptionPlan | null
+}> {
+    const supabase = await createClient()
+    const {data: {user}} = await supabase.auth.getUser()
+    if (!user) throw new Error('Non authentifié')
+
+    const ownedRestaurants = await prisma.restaurantUser.findMany({
+        where: {userId: user.id, role: 'admin'},
+        include: {
+            restaurant: {
+                include: {subscription: true},
+            },
+        },
+    })
+
+    const current = ownedRestaurants.length
+    let maxAllowed = 1
+
+    for (const ru of ownedRestaurants) {
+        const sub = ru.restaurant.subscription
+        if (!sub) continue
+
+        const isActiveOrTrial = sub.status === 'active' || sub.status === 'trial'
+        if (!isActiveOrTrial) continue
+
+        const planConfig = SUBSCRIPTION_CONFIG[sub.plan as SubscriptionPlan]
+        const hasMulti = planConfig?.features?.multi_restaurants ?? false
+
+        if (hasMulti) {
+            if (sub.plan === 'premium') maxAllowed = Math.max(maxAllowed, 10)
+            else if (sub.plan === 'business') maxAllowed = Math.max(maxAllowed, 3)
+        }
+    }
+
+    console.log('🏢 Multi-restaurant quota:', {current, max: maxAllowed, canAdd: current < maxAllowed})
+
+    return {
+        current,
+        max: maxAllowed,
+        canAdd: current < maxAllowed,
+        planRequired: current >= maxAllowed ? 'premium' : null,
+    }
+}
+
+// ============================================================
+// CRÉER UNE STRUCTURE SUPPLÉMENTAIRE (multi-restaurant)
+// ============================================================
+
+export async function createAdditionalRestaurant(data: CreateRestaurantInput) {
+    const supabase = await createClient()
+    const {data: {user}} = await supabase.auth.getUser()
+    if (!user) throw new Error('Non authentifié')
+    if (!data.name?.trim()) throw new Error('Le nom est requis')
+
+    const quota = await getMultiRestaurantQuota()
+    if (!quota.canAdd) {
+        throw new Error(
+            `Vous avez atteint la limite de ${quota.max} structure(s) pour votre plan. ` +
+            `Passez au plan Premium pour en ajouter davantage.`
+        )
+    }
+
+    // ✅ Récupérer le plan actif de l'utilisateur (depuis son restaurant principal)
+    // La nouvelle structure hérite du même plan — c'est ce que "Multi-restaurants Premium" signifie
+    const primaryRestaurantUser = await prisma.restaurantUser.findFirst({
+        where: {userId: user.id, role: 'admin'},
+        orderBy: {createdAt: 'asc'}, // Le plus ancien = restaurant principal
+        include: {
+            restaurant: {
+                include: {subscription: true},
+            },
+        },
+    })
+
+    // Plan par défaut : celui du restaurant principal si actif/trial, sinon starter
+    const primaryPlan = primaryRestaurantUser?.restaurant.subscription
+    const inheritedPlan: SubscriptionPlan =
+        primaryPlan && (primaryPlan.status === 'active' || primaryPlan.status === 'trial')
+            ? primaryPlan.plan
+            : 'starter'
+
+    // data.plan permet de forcer un plan spécifique (ex: depuis le SuperAdmin)
+    // Sinon on hérite du plan principal
+    const plan: SubscriptionPlan = data.plan ?? inheritedPlan
+
+    const formattedName = formatRestaurantName(data.name)
+    const slug = await generateUniqueSlug(formattedName)
+
+    try {
+        const restaurant = await prisma.$transaction(async (tx) => {
+            const created = await tx.restaurant.create({
+                data: {
+                    name: formattedName,
+                    slug,
+                    phone: data.phone?.trim() || null,
+                    address: data.address?.trim() || null,
+                    activityType: data.activityType ?? 'restaurant',
+                    isActive: true,
+                },
+            })
+
+            await tx.restaurantUser.create({
+                data: {
+                    userId: user.id,
+                    restaurantId: created.id,
+                    role: 'admin',
+                },
+            })
+
+            await tx.subscription.create({
+                data: buildSubscriptionData(plan, created.id),
+            })
+
+            return created
+        })
+
+        await logRestaurantCreated(restaurant.id, user.id)
+        revalidatePath('/dashboard')
+
+        return {success: true, restaurant}
+
+    } catch (error) {
+        console.error('Erreur création structure supplémentaire:', error)
+        throw error
+    }
 }
 
 // ============================================================
@@ -223,25 +327,14 @@ export async function getUserRoleInRestaurant(
     restaurantId: string
 ): Promise<UserRole | null> {
     const supabase = await createClient()
-
-    const {
-        data: {user},
-    } = await supabase.auth.getUser()
-
-    if (!user) {
-        return null
-    }
+    const {data: {user}} = await supabase.auth.getUser()
+    if (!user) return null
 
     const restaurantUser = await prisma.restaurantUser.findUnique({
         where: {
-            userId_restaurantId: {
-                userId: user.id,
-                restaurantId: restaurantId,
-            },
+            userId_restaurantId: {userId: user.id, restaurantId},
         },
-        select: {
-            role: true,
-        },
+        select: {role: true},
     })
 
     return restaurantUser ? (restaurantUser.role as UserRole) : null
@@ -259,13 +352,6 @@ export async function hasAccessToRestaurant(
 }
 
 // ============================================================
-// INVITER UN UTILISATEUR DANS UN RESTAURANT
-// NOTE : Cette fonction est dépréciée.
-// Utiliser lib/actions/invitation.ts → inviteUserToRestaurant()
-// qui gère le flow complet avec emails, tokens et la table `invitations`.
-// ============================================================
-
-// ============================================================
 // CHANGER LE RÔLE D'UN UTILISATEUR
 // ============================================================
 
@@ -275,38 +361,19 @@ export async function changeUserRole(
     newRole: UserRole
 ) {
     const supabase = await createClient()
-
-    const {
-        data: {user},
-    } = await supabase.auth.getUser()
-
-    if (!user) {
-        throw new Error('Non authentifié')
-    }
+    const {data: {user}} = await supabase.auth.getUser()
+    if (!user) throw new Error('Non authentifié')
 
     const currentUserRole = await getUserRoleInRestaurant(restaurantId)
+    if (currentUserRole !== 'admin') throw new Error('Seuls les admins peuvent changer les rôles')
+    if (user.id === targetUserId) throw new Error('Vous ne pouvez pas changer votre propre rôle')
 
-    if (currentUserRole !== 'admin') {
-        throw new Error('Seuls les admins peuvent changer les rôles')
-    }
-
-    if (user.id === targetUserId) {
-        throw new Error('Vous ne pouvez pas changer votre propre rôle')
-    }
-
-    const restaurantUser = await prisma.restaurantUser.update({
+    return prisma.restaurantUser.update({
         where: {
-            userId_restaurantId: {
-                userId: targetUserId,
-                restaurantId: restaurantId,
-            },
+            userId_restaurantId: {userId: targetUserId, restaurantId},
         },
-        data: {
-            role: newRole,
-        },
+        data: {role: newRole},
     })
-
-    return restaurantUser
 }
 
 // ============================================================
@@ -318,31 +385,16 @@ export async function removeUserFromRestaurant(
     targetUserId: string
 ) {
     const supabase = await createClient()
-
-    const {
-        data: {user},
-    } = await supabase.auth.getUser()
-
-    if (!user) {
-        throw new Error('Non authentifié')
-    }
+    const {data: {user}} = await supabase.auth.getUser()
+    if (!user) throw new Error('Non authentifié')
 
     const currentUserRole = await getUserRoleInRestaurant(restaurantId)
-
-    if (currentUserRole !== 'admin') {
-        throw new Error('Seuls les admins peuvent retirer des utilisateurs')
-    }
-
-    if (user.id === targetUserId) {
-        throw new Error('Vous ne pouvez pas vous retirer vous-même')
-    }
+    if (currentUserRole !== 'admin') throw new Error('Seuls les admins peuvent retirer des utilisateurs')
+    if (user.id === targetUserId) throw new Error('Vous ne pouvez pas vous retirer vous-même')
 
     await prisma.restaurantUser.delete({
         where: {
-            userId_restaurantId: {
-                userId: targetUserId,
-                restaurantId: restaurantId,
-            },
+            userId_restaurantId: {userId: targetUserId, restaurantId},
         },
     })
 
@@ -358,21 +410,11 @@ export async function updateRestaurantCover(
     coverImageUrl: string | null
 ) {
     const supabase = await createClient()
-    const {
-        data: {user},
-    } = await supabase.auth.getUser()
-
-    if (!user) {
-        return {error: 'Non authentifié'}
-    }
+    const {data: {user}} = await supabase.auth.getUser()
+    if (!user) return {error: 'Non authentifié'}
 
     const userRole = await prisma.restaurantUser.findUnique({
-        where: {
-            userId_restaurantId: {
-                userId: user.id,
-                restaurantId: restaurantId,
-            },
-        },
+        where: {userId_restaurantId: {userId: user.id, restaurantId}},
         select: {role: true},
     })
 
@@ -385,10 +427,8 @@ export async function updateRestaurantCover(
             where: {id: restaurantId},
             data: {coverImageUrl},
         })
-
         revalidatePath('/dashboard/restaurants')
         revalidatePath(`/dashboard/restaurants/${restaurantId}`)
-
         return {success: true}
     } catch (error) {
         console.error('Erreur mise à jour cover:', error)
@@ -405,28 +445,14 @@ export async function updateRestaurantSettings(
     data: RestaurantSettingsInput
 ) {
     const supabase = await createClient()
-    const {
-        data: {user},
-    } = await supabase.auth.getUser()
-
-    if (!user) {
-        return {error: 'Non authentifié'}
-    }
+    const {data: {user}} = await supabase.auth.getUser()
+    if (!user) return {error: 'Non authentifié'}
 
     const parsed = restaurantSettingsSchema.safeParse(data)
-    if (!parsed.success) {
-        return {
-            error: parsed.error.issues[0].message,
-        }
-    }
+    if (!parsed.success) return {error: parsed.error.issues[0].message}
 
     const userRole = await prisma.restaurantUser.findUnique({
-        where: {
-            userId_restaurantId: {
-                userId: user.id,
-                restaurantId: restaurantId,
-            },
-        },
+        where: {userId_restaurantId: {userId: user.id, restaurantId}},
         select: {role: true},
     })
 
@@ -435,12 +461,10 @@ export async function updateRestaurantSettings(
     }
 
     try {
-        const formattedName = formatRestaurantName(parsed.data.name)
-
         const restaurant = await prisma.restaurant.update({
             where: {id: restaurantId},
             data: {
-                name: formattedName,
+                name: formatRestaurantName(parsed.data.name),
                 phone: parsed.data.phone || null,
                 address: parsed.data.address || null,
                 logoUrl: parsed.data.logoUrl || null,
@@ -448,11 +472,9 @@ export async function updateRestaurantSettings(
                 isActive: parsed.data.isActive,
             },
         })
-
         revalidatePath('/dashboard')
         revalidatePath('/dashboard/restaurants')
         revalidatePath(`/dashboard/restaurants/${restaurantId}`)
-
         return {success: true, restaurant}
     } catch (error) {
         console.error('Erreur mise à jour restaurant:', error)
@@ -466,31 +488,16 @@ export async function updateRestaurantSettings(
 
 export async function getRestaurantDetails(restaurantId: string) {
     const supabase = await createClient()
-    const {
-        data: {user},
-    } = await supabase.auth.getUser()
-
-    if (!user) {
-        return {error: 'Non authentifié'}
-    }
-
-    if (!restaurantId) {
-        throw new Error('Restaurant non sélectionné')
-    }
+    const {data: {user}} = await supabase.auth.getUser()
+    if (!user) return {error: 'Non authentifié'}
+    if (!restaurantId) throw new Error('Restaurant non sélectionné')
 
     const userRole = await prisma.restaurantUser.findUnique({
-        where: {
-            userId_restaurantId: {
-                userId: user.id,
-                restaurantId: restaurantId,
-            },
-        },
+        where: {userId_restaurantId: {userId: user.id, restaurantId}},
         select: {role: true},
     })
 
-    if (!userRole) {
-        return {error: 'Accès refusé'}
-    }
+    if (!userRole) return {error: 'Accès refusé'}
 
     try {
         const restaurant = await prisma.restaurant.findUnique({
@@ -504,17 +511,88 @@ export async function getRestaurantDetails(restaurantId: string) {
                 logoUrl: true,
                 coverImageUrl: true,
                 isActive: true,
-                activityType: true, // ← NOUVEAU
+                activityType: true,
             },
         })
 
-        if (!restaurant) {
-            return {error: 'Restaurant introuvable'}
-        }
+        if (!restaurant) return {error: 'Restaurant introuvable'}
 
         return {success: true, restaurant}
     } catch (error) {
         console.error('Erreur récupération restaurant:', error)
         return {error: 'Erreur lors de la récupération'}
+    }
+}
+
+// ============================================================
+// SUPPRIMER UNE STRUCTURE
+// ============================================================
+
+export async function deleteRestaurant(restaurantId: string): Promise<{
+    success: boolean
+    error?: string
+}> {
+    const supabase = await createClient()
+    const {data: {user}} = await supabase.auth.getUser()
+    if (!user) return {success: false, error: 'Non authentifié'}
+
+    // ── 1. Vérifier que l'user est admin de cette structure ───────────
+    const restaurantUser = await prisma.restaurantUser.findUnique({
+        where: {
+            userId_restaurantId: {userId: user.id, restaurantId},
+        },
+        select: {role: true},
+    })
+
+    if (!restaurantUser || restaurantUser.role !== 'admin') {
+        return {success: false, error: 'Accès refusé'}
+    }
+
+    // ── 2. Vérifier que ce n'est PAS le restaurant principal ──────────
+    const firstRestaurantUser = await prisma.restaurantUser.findFirst({
+        where: {userId: user.id, role: 'admin'},
+        orderBy: {createdAt: 'asc'},
+        select: {restaurantId: true},
+    })
+
+    if (firstRestaurantUser?.restaurantId === restaurantId) {
+        return {
+            success: false,
+            error: 'Impossible de supprimer votre structure principale. ' +
+                'Contactez le support si vous souhaitez fermer votre compte.',
+        }
+    }
+
+    // ── 3. Vérifier l'absence de commandes actives ────────────────────
+    const activeOrdersCount = await prisma.order.count({
+        where: {
+            restaurantId,
+            status: {in: ['pending', 'preparing', 'ready']},
+        },
+    })
+
+    if (activeOrdersCount > 0) {
+        return {
+            success: false,
+            error: `Impossible de supprimer cette structure : ${activeOrdersCount} commande(s) en cours. ` +
+                `Terminez ou annulez toutes les commandes avant de supprimer.`,
+        }
+    }
+
+    // ── 4. Supprimer (cascade via Prisma) ─────────────────────────────
+    // Le onDelete: Cascade sur toutes les relations supprime automatiquement :
+    // tables, categories, products, orders, stocks, subscription, etc.
+    try {
+        await prisma.restaurant.delete({
+            where: {id: restaurantId},
+        })
+
+        // Nettoyer le cookie si c'était la structure active
+        revalidatePath('/dashboard')
+
+        return {success: true}
+    } catch (error) {
+        console.error('Erreur suppression restaurant:', error)
+        return {success: false, error: 'Erreur lors de la suppression'}
     }
 }

@@ -1,5 +1,5 @@
-import { createServerClient } from '@supabase/ssr'
-import { NextResponse, type NextRequest } from 'next/server'
+import {createServerClient} from '@supabase/ssr'
+import {NextResponse, type NextRequest} from 'next/server'
 
 export async function middleware(request: NextRequest) {
     let supabaseResponse = NextResponse.next({
@@ -15,13 +15,11 @@ export async function middleware(request: NextRequest) {
                     return request.cookies.getAll()
                 },
                 setAll(cookiesToSet) {
-                    cookiesToSet.forEach(({ name, value }) =>
+                    cookiesToSet.forEach(({name, value}) =>
                         request.cookies.set(name, value)
                     )
-                    supabaseResponse = NextResponse.next({
-                        request,
-                    })
-                    cookiesToSet.forEach(({ name, value, options }) =>
+                    supabaseResponse = NextResponse.next({request})
+                    cookiesToSet.forEach(({name, value, options}) =>
                         supabaseResponse.cookies.set(name, value, options)
                     )
                 },
@@ -29,42 +27,30 @@ export async function middleware(request: NextRequest) {
         }
     )
 
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
+    const {data: {user}} = await supabase.auth.getUser()
 
-    const { pathname } = request.nextUrl
+    const {pathname} = request.nextUrl
 
     // ============================================================
     // PROTECTION DES ROUTES SUPERADMIN
     // ============================================================
-    
+
     if (pathname.startsWith('/superadmin')) {
-        
-        // Vérifier si l'utilisateur est connecté
         if (!user) {
-            console.log('❌ No user logged in, redirecting to login')
             const url = request.nextUrl.clone()
             url.pathname = '/login'
             return NextResponse.redirect(url)
         }
 
-        console.log('👤 User attempting superadmin access:', user.email)
-
-        // Vérifier si l'utilisateur est superadmin
         const superAdminEmails = (process.env.SUPER_ADMIN_EMAILS || '').split(',')
-        
         const isSuperAdmin = superAdmins(user.email, superAdminEmails)
 
         if (!isSuperAdmin) {
-            console.log('❌ User is not superadmin, redirecting to dashboard')
             const url = request.nextUrl.clone()
             url.pathname = '/dashboard'
             return NextResponse.redirect(url)
         }
 
-        console.log('✅ Superadmin access granted, allowing through')
-        // L'utilisateur est superadmin, on le laisse passer
         return supabaseResponse
     }
 
@@ -93,17 +79,9 @@ export async function middleware(request: NextRequest) {
         '/dashboard/subscription/payment',
     ]
 
-    const isPublicRoute = publicRoutes.some((route) =>
-        pathname.startsWith(route)
-    )
-
-    const isProtectedRoute = protectedRoutes.some((route) =>
-        pathname.startsWith(route)
-    )
-
-    const isSubscriptionExempt = subscriptionExemptRoutes.some((route) =>
-        pathname.startsWith(route)
-    )
+    const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route))
+    const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route))
+    const isSubscriptionExempt = subscriptionExemptRoutes.some(route => pathname.startsWith(route))
 
     // ============================================================
     // RÈGLES DE REDIRECTION — AUTH
@@ -131,29 +109,47 @@ export async function middleware(request: NextRequest) {
 
     if (user && pathname.startsWith('/dashboard') && !isSubscriptionExempt) {
 
-        // VÉRIFICATION SUPERADMIN
         const superAdminEmails = (process.env.SUPER_ADMIN_EMAILS || '').split(',')
-        const isSuperAdmin = superAdmins(user.email, superAdminEmails)
-
-        if (isSuperAdmin) {
-            console.log('✅ SuperAdmin detected, bypassing subscription check')
+        if (superAdmins(user.email, superAdminEmails)) {
             return supabaseResponse
         }
 
-        // Récupérer le restaurant
-        const { data: restaurantUser, error: restaurantError } = await supabase
-            .from('restaurant_users')
-            .select('restaurant_id')
-            .eq('user_id', user.id)
-            .single()
+        // ── Résolution du restaurant actif ────────────────────────
+        // On tente d'abord avec le cookie posé par le RestaurantSwitcher.
+        // Si absent ou invalide, on tombe sur le premier restaurant de l'user.
+        const savedRestaurantId = request.cookies.get('akom_current_restaurant_id')?.value
 
-        console.log('🔍 Restaurant user query:', {
-            userId: user.id,
-            found: !!restaurantUser,
-            error: restaurantError?.message
-        })
+        let restaurantId: string | null = null
 
-        if (!restaurantUser) {
+        if (savedRestaurantId) {
+            // Vérifier que ce restaurant appartient bien à l'utilisateur
+            const {data: specificRu} = await supabase
+                .from('restaurant_users')
+                .select('restaurant_id')
+                .eq('user_id', user.id)
+                .eq('restaurant_id', savedRestaurantId)
+                .maybeSingle()
+
+            if (specificRu) {
+                restaurantId = specificRu.restaurant_id
+            }
+        }
+
+        // Fallback : premier restaurant de l'user
+        if (!restaurantId) {
+            const {data: firstRu} = await supabase
+                .from('restaurant_users')
+                .select('restaurant_id')
+                .eq('user_id', user.id)
+                .order('created_at', {ascending: true})
+                .limit(1)
+                .maybeSingle()
+
+            restaurantId = firstRu?.restaurant_id ?? null
+        }
+
+        // Aucun restaurant → onboarding
+        if (!restaurantId) {
             if (!pathname.startsWith('/onboarding')) {
                 const url = request.nextUrl.clone()
                 url.pathname = '/onboarding'
@@ -162,28 +158,20 @@ export async function middleware(request: NextRequest) {
             return supabaseResponse
         }
 
-        const restaurantId = restaurantUser.restaurant_id
-
-        // Récupérer l'abonnement avec des logs détaillés
-        const { data: subscription, error: subscriptionError } = await supabase
+        // ── Vérification de l'abonnement ──────────────────────────
+        const {data: subscription, error: subscriptionError} = await supabase
             .from('subscriptions')
             .select('id, status, trial_ends_at, current_period_end')
             .eq('restaurant_id', restaurantId)
-            .maybeSingle() // ← CHANGEMENT ICI : maybeSingle au lieu de single
+            .maybeSingle()
 
-        console.log('🔍 Subscription query:', {
+        console.log('🔍 Subscription check:', {
             restaurantId,
             found: !!subscription,
             error: subscriptionError?.message,
-            subscription: subscription ? {
-                id: subscription.id,
-                status: subscription.status,
-                trial_ends_at: subscription.trial_ends_at,
-                current_period_end: subscription.current_period_end
-            } : null
+            status: subscription?.status ?? null,
         })
 
-        // Si pas d'abonnement trouvé
         if (!subscription) {
             console.log('⚠️ No subscription found, redirecting to expired')
             const url = request.nextUrl.clone()
@@ -191,42 +179,30 @@ export async function middleware(request: NextRequest) {
             return NextResponse.redirect(url)
         }
 
-        // Vérifier si actif
         const now = new Date()
         let isActive = false
 
         if (subscription.status === 'trial' && subscription.trial_ends_at) {
             const trialEnd = new Date(subscription.trial_ends_at)
             isActive = !isNaN(trialEnd.getTime()) && trialEnd > now
-            
             console.log('🔍 Trial check:', {
-                restaurantId,
-                status: 'trial',
                 trialEnd: trialEnd.toISOString(),
-                now: now.toISOString(),
                 isActive,
-                daysLeft: Math.ceil((trialEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+                daysLeft: Math.ceil((trialEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)),
             })
-        } 
-        else if (subscription.status === 'active' && subscription.current_period_end) {
+        } else if (subscription.status === 'active' && subscription.current_period_end) {
             const periodEnd = new Date(subscription.current_period_end)
             isActive = !isNaN(periodEnd.getTime()) && periodEnd > now
-            
-            console.log('🔍 Active subscription check:', {
-                restaurantId,
-                status: 'active',
+            console.log('🔍 Active check:', {
                 periodEnd: periodEnd.toISOString(),
-                now: now.toISOString(),
                 isActive,
-                daysLeft: Math.ceil((periodEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+                daysLeft: Math.ceil((periodEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)),
             })
-        }
-        else {
+        } else {
             console.log('❌ Subscription inactive:', {
-                restaurantId,
                 status: subscription.status,
                 hasTrialEnd: !!subscription.trial_ends_at,
-                hasPeriodEnd: !!subscription.current_period_end
+                hasPeriodEnd: !!subscription.current_period_end,
             })
         }
 
@@ -236,7 +212,7 @@ export async function middleware(request: NextRequest) {
             url.pathname = '/dashboard/subscription/expired'
             return NextResponse.redirect(url)
         }
-        
+
         console.log('✅ Subscription active, allowing access to:', pathname)
     }
 
@@ -245,7 +221,7 @@ export async function middleware(request: NextRequest) {
 
 function superAdmins(email: string | null | undefined, list: string[]): boolean {
     if (!email) return false
-    return list.some((e) => e.trim().toLowerCase() === email.toLowerCase())
+    return list.some(e => e.trim().toLowerCase() === email.toLowerCase())
 }
 
 export const config = {

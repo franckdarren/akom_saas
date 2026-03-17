@@ -1,8 +1,10 @@
 // app/(dashboard)/dashboard/layout.tsx
 import {redirect} from "next/navigation"
 import {createClient} from "@/lib/supabase/server"
+import {cookies} from "next/headers"
 import {signOut, getUserRole} from "@/lib/actions/auth"
 import {getRestaurantSubscription} from "@/lib/actions/subscription"
+import {getMultiRestaurantQuota} from "@/lib/actions/restaurant"
 import {AppSidebar} from "../components/app-sidebar"
 import {SidebarProvider, SidebarInset} from "@/components/ui/sidebar"
 import {RestaurantProvider} from "@/lib/hooks/use-restaurant"
@@ -10,7 +12,8 @@ import prisma from "@/lib/prisma"
 import {FloatingSupportButton} from "@/components/support/FloatingSupportButton"
 import {IdleTimeoutProvider} from "@/providers/IdleTimeoutProvider"
 import type {SubscriptionPlan} from "@/lib/config/subscription"
-import type {ActivityType} from "@/lib/config/activity-labels" // ← NOUVEAU
+import type {ActivityType} from "@/lib/config/activity-labels"
+import {VerificationBanner} from "@/components/dashboard/VerificationBanner"
 
 const VERIFICATION_EXEMPT_ROUTES = [
     '/dashboard/settings',
@@ -23,48 +26,41 @@ export default async function DashboardLayout({
                                               }: {
     children: React.ReactNode
 }) {
-    // ============================================================
-    // ÉTAPE 1 : Vérification de l'authentification
-    // ============================================================
-
+    // ── Auth ──────────────────────────────────────────────────
     const supabase = await createClient()
     const {data: {user}} = await supabase.auth.getUser()
-
-    if (!user) {
-        redirect("/login")
-    }
-
-    // ============================================================
-    // ÉTAPE 2 : Récupération du rôle utilisateur
-    // ============================================================
+    if (!user) redirect("/login")
 
     const userRole = await getUserRole()
-
-    // ============================================================
-    // ÉTAPE 3 : Gestion spécifique par rôle
-    // ============================================================
 
     let restaurantName: string | undefined
     let restaurantId: string | undefined
     let restaurantLogoUrl: string | undefined
-    let restaurantActivityType: ActivityType | undefined // ← NOUVEAU
+    let restaurantActivityType: ActivityType | undefined
     let currentPlan: SubscriptionPlan = 'starter'
+    let canAddMoreRestaurants = false
+    // Statut de vérification de la structure active
+    let verificationStatus: string | null = null
+    let isFirstRestaurant = false
 
-    if (userRole === "superadmin") {
-        // Superadmins : pas de restaurant associé
-    } else {
-        // ============================================================
-        // CAS UTILISATEURS NORMAUX : Vérifications complètes
-        // ============================================================
+    if (userRole !== "superadmin") {
+
+        const cookieStore = await cookies()
+        const savedRestaurantId = cookieStore.get('akom_current_restaurant_id')?.value
+
+        const whereClause = savedRestaurantId
+            ? {userId: user.id, restaurantId: savedRestaurantId}
+            : {userId: user.id}
 
         const restaurantUser = await prisma.restaurantUser.findFirst({
-            where: {userId: user.id},
+            where: whereClause,
+            orderBy: {createdAt: 'asc'},
             include: {
                 restaurant: {
                     select: {
                         id: true,
                         name: true,
-                        activityType: true, // ← déjà présent dans ton code
+                        activityType: true,
                         logoUrl: true,
                         verificationStatus: true,
                         isVerified: true,
@@ -73,26 +69,28 @@ export default async function DashboardLayout({
             },
         })
 
-        if (!restaurantUser) {
-            redirect("/onboarding")
-        }
+        if (!restaurantUser) redirect("/onboarding")
 
         const restaurant = restaurantUser.restaurant
 
-        // Assigner les valeurs pour la sidebar
         restaurantName = restaurant.name
         restaurantId = restaurant.id
         restaurantLogoUrl = restaurant.logoUrl || undefined
-        restaurantActivityType = restaurant.activityType as ActivityType // ← NOUVEAU
+        restaurantActivityType = restaurant.activityType as ActivityType
+        verificationStatus = restaurant.verificationStatus
 
-        // ============================================================
-        // ÉTAPE 4 : Vérification du statut
-        // ============================================================
+        // Identifier si c'est le restaurant principal (le plus ancien)
+        const firstRestaurantUser = await prisma.restaurantUser.findFirst({
+            where: {userId: user.id, role: 'admin'},
+            orderBy: {createdAt: 'asc'},
+            select: {restaurantId: true},
+        })
+        isFirstRestaurant = firstRestaurantUser?.restaurantId === restaurant.id
 
-        const verificationStatus = restaurant.verificationStatus
-        const isVerified = verificationStatus === 'verified'
+        // ── Vérification bloquante UNIQUEMENT pour le restaurant principal
+        // en cours d'onboarding (pas encore entré dans le dashboard)
+        if (restaurant.verificationStatus !== 'verified') {
 
-        if (!isVerified) {
             const {headers} = await import('next/headers')
             const headersList = await headers()
             const pathname = headersList.get('x-pathname') || ''
@@ -101,60 +99,76 @@ export default async function DashboardLayout({
                 pathname.startsWith(route)
             )
 
-            if (!isExempt) {
-                if (verificationStatus === 'suspended') {
+            // Bloquer seulement le restaurant principal et seulement
+            // s'il est suspendu (cas grave) ou si on n'est pas sur une
+            // route exemptée. Les structures secondaires : jamais de
+            // blocage → bannière dans le layout à la place.
+            if (isFirstRestaurant && !isExempt) {
+                if (restaurant.verificationStatus === 'suspended') {
                     redirect('/onboarding/suspended')
-                } else {
+                } else if (restaurant.verificationStatus === 'pending_documents') {
+                    // Première fois → onboarding bloquant
                     redirect('/onboarding/verification')
                 }
+                // documents_submitted / documents_rejected → bannière,
+                // pas de redirect (l'user a déjà soumis, il attend)
             }
         }
 
-        // ============================================================
-        // ÉTAPE 5 : Récupération du plan d'abonnement
-        // ============================================================
-
+        // ── Plan ──────────────────────────────────────────────
         try {
             const {subscription} = await getRestaurantSubscription(restaurant.id)
-            if (subscription && subscription.plan) {
-                currentPlan = subscription.plan
-            }
+            if (subscription?.plan) currentPlan = subscription.plan
         } catch (error) {
             console.error('Erreur récupération abonnement:', error)
         }
-    }
 
-    // ============================================================
-    // ÉTAPE 6 : Fonction de déconnexion
-    // ============================================================
+        // ── Quota multi-structure ─────────────────────────────
+        if (restaurantUser.role === 'admin') {
+            try {
+                const quota = await getMultiRestaurantQuota()
+                canAddMoreRestaurants = quota.canAdd
+            } catch (err) {
+                console.error('❌ Erreur getMultiRestaurantQuota:', err)
+            }
+        }
+    }
 
     async function handleSignOut() {
         "use server"
         await signOut()
     }
 
-    // ============================================================
-    // ÉTAPE 7 : Rendu
-    // ============================================================
+    // Afficher la bannière de vérification si la structure active
+    // n'est pas encore vérifiée (mais sans bloquer la navigation)
+    const showVerificationBanner = verificationStatus !== null
+        && verificationStatus !== 'verified'
+        && verificationStatus !== 'suspended'
 
     return (
         <IdleTimeoutProvider userRole={userRole ?? undefined}>
             <RestaurantProvider>
                 <SidebarProvider>
                     <AppSidebar
-                        user={{
-                            email: user.email || "",
-                            id: user.id,
-                        }}
+                        user={{email: user.email || "", id: user.id}}
                         role={userRole}
                         restaurantName={restaurantName}
-                        activityType={restaurantActivityType} // ← NOUVEAU : variable dédiée
+                        activityType={restaurantActivityType}
                         restaurantId={restaurantId}
                         restaurantLogoUrl={restaurantLogoUrl || ""}
                         currentPlan={currentPlan}
                         onSignOut={handleSignOut}
+                        canAddMoreRestaurants={canAddMoreRestaurants}
                     />
                     <SidebarInset>
+                        {/* Bannière non bloquante pour les structures en attente */}
+                        {showVerificationBanner && restaurantId && (
+                            <VerificationBanner
+                                restaurantId={restaurantId}
+                                status={verificationStatus!}
+                                isFirstRestaurant={isFirstRestaurant}
+                            />
+                        )}
                         {children}
                     </SidebarInset>
                     <FloatingSupportButton/>

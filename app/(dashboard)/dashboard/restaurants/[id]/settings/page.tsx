@@ -17,7 +17,8 @@ import {SidebarTrigger} from '@/components/ui/sidebar'
 import {CircuitSheetForm} from '@/components/restaurant/circuit-sheet-form'
 import {Alert, AlertDescription} from '@/components/ui/alert'
 import {AlertTriangle} from 'lucide-react'
-import {getLabels} from '@/lib/config/activity-labels' // ← NOUVEAU
+import {getLabels} from '@/lib/config/activity-labels'
+import {DeleteRestaurantDialog} from '@/components/dashboard/DeleteRestaurantDialog'
 
 export default async function RestaurantSettingsPage({
                                                          params,
@@ -54,7 +55,6 @@ export default async function RestaurantSettingsPage({
 
     if (!userRole || userRole.role !== 'admin') redirect('/dashboard')
 
-    // ← Calcul des labels selon le type d'activité
     const labels = getLabels(restaurant.activityType)
 
     const needsVerification = !restaurant.isVerified
@@ -64,6 +64,15 @@ export default async function RestaurantSettingsPage({
         (restaurant.subscription?.plan === 'business' ||
             restaurant.subscription?.plan === 'premium')
 
+    // Déterminer si c'est le restaurant principal (le plus ancien de l'user)
+    // Le restaurant principal ne peut pas être supprimé
+    const firstRestaurantUser = await prisma.restaurantUser.findFirst({
+        where: {userId: user.id, role: 'admin'},
+        orderBy: {createdAt: 'asc'},
+        select: {restaurantId: true},
+    })
+    const isFirstRestaurant = firstRestaurantUser?.restaurantId === id
+
     return (
         <>
             <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
@@ -71,29 +80,30 @@ export default async function RestaurantSettingsPage({
                 <Separator orientation="vertical" className="mr-2 h-4"/>
                 <div className="flex justify-between w-full">
                     <div className="my-auto">
-                        <BreadcrumbList>
-                            <BreadcrumbItem>
-                                <BreadcrumbLink href="/dashboard">Configuration</BreadcrumbLink>
-                            </BreadcrumbItem>
-                            <BreadcrumbSeparator/>
-                            <BreadcrumbItem>
-                                {/* ← Label dynamique dans le breadcrumb */}
-                                <BreadcrumbPage>{labels.settingsTitle}</BreadcrumbPage>
-                            </BreadcrumbItem>
-                        </BreadcrumbList>
+                        <Breadcrumb>
+                            <BreadcrumbList>
+                                <BreadcrumbItem>
+                                    <BreadcrumbLink href="/dashboard">Configuration</BreadcrumbLink>
+                                </BreadcrumbItem>
+                                <BreadcrumbSeparator/>
+                                <BreadcrumbItem>
+                                    <BreadcrumbPage>{labels.settingsTitle}</BreadcrumbPage>
+                                </BreadcrumbItem>
+                            </BreadcrumbList>
+                        </Breadcrumb>
                     </div>
                 </div>
             </header>
 
             <div className="flex flex-1 flex-col gap-4 p-4">
                 <div>
-                    {/* ← Titre dynamique */}
                     <h1 className="text-3xl font-bold">{labels.settingsTitle}</h1>
                     <p className="text-muted-foreground mt-2">
                         Gérez les informations et les documents de votre {labels.structureName}
                     </p>
                 </div>
 
+                {/* Alerte vérification */}
                 {needsVerification && (
                     <Alert variant="destructive">
                         <div className="flex items-center gap-2">
@@ -107,6 +117,7 @@ export default async function RestaurantSettingsPage({
                     </Alert>
                 )}
 
+                {/* Formulaire de vérification */}
                 {needsVerification && (
                     <VerificationDocumentsForm
                         restaurantId={restaurant.id}
@@ -114,6 +125,7 @@ export default async function RestaurantSettingsPage({
                     />
                 )}
 
+                {/* Fiche circuit */}
                 {needsCircuitSheet && (
                     <CircuitSheetForm
                         restaurantId={restaurant.id}
@@ -122,8 +134,28 @@ export default async function RestaurantSettingsPage({
                     />
                 )}
 
-                {/* ← labels passé au formulaire */}
+                {/* Formulaire paramètres */}
                 <RestaurantSettingsForm restaurant={restaurant} labels={labels}/>
+
+                {/* ── Zone de danger (structures secondaires uniquement) ── */}
+                {!isFirstRestaurant && (
+                    <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-5 space-y-3">
+                        <div>
+                            <p className="text-sm font-semibold text-destructive">
+                                Zone de danger
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                                La suppression de cette structure est définitive et irréversible.
+                                Toutes les données associées seront perdues.
+                            </p>
+                        </div>
+                        {/* Client Component pour le dialog */}
+                        <DeleteRestaurantDialog
+                            restaurantId={restaurant.id}
+                            restaurantName={restaurant.name}
+                        />
+                    </div>
+                )}
             </div>
         </>
     )

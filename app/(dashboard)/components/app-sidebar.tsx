@@ -11,8 +11,9 @@ import {useSubscriptionFeatures} from "@/lib/hooks/use-subscription-features"
 import {NavigationLoader} from "@/components/NavigationLoader"
 import {signOut} from "@/lib/actions/auth"
 import type {SubscriptionPlan, FeatureKey} from "@/lib/config/subscription"
-import {getLabels} from "@/lib/config/activity-labels" // ← getLabels, pas le hook
+import {getLabels} from "@/lib/config/activity-labels"
 import type {ActivityType} from "@/lib/config/activity-labels"
+import {RestaurantSwitcher} from "@/components/dashboard/RestaurantSwitcher"
 
 import {
     ChefHat,
@@ -43,7 +44,8 @@ import {
     Loader2,
     Wallet,
     Lock,
-    TrendingUp, ClipboardList,
+    TrendingUp,
+    ClipboardList,
 } from "lucide-react"
 
 import {
@@ -78,17 +80,21 @@ import {
 } from "@/components/ui/dropdown-menu"
 import {useRouter} from "next/navigation"
 
+// ─── Types ────────────────────────────────────────────────────────────────────
+
 type UserRole = "admin" | "kitchen" | "superadmin" | "cashier"
 
 interface AppSidebarProps {
     user: { email: string; id: string }
     role: UserRole
     restaurantName?: string
-    activityType?: ActivityType  // ← reçu en prop depuis le layout
+    activityType?: ActivityType
     restaurantId?: string
     restaurantLogoUrl?: string
     currentPlan?: SubscriptionPlan
     onSignOut: () => void
+    // ← NOUVEAU : quota multi-structure résolu server-side
+    canAddMoreRestaurants?: boolean
 }
 
 interface MenuItem {
@@ -105,13 +111,16 @@ interface MenuGroup {
     items: MenuItem[]
 }
 
+// ─── Composant ────────────────────────────────────────────────────────────────
+
 export function AppSidebar({
                                user,
                                role,
                                restaurantName,
-                               activityType, // ← destructuré depuis les props
+                               activityType,
                                restaurantLogoUrl,
                                currentPlan,
+                               canAddMoreRestaurants = false,
                            }: AppSidebarProps) {
     const pathname = usePathname()
     const {currentRestaurant} = useRestaurant()
@@ -121,10 +130,10 @@ export function AppSidebar({
 
     const {hasFeature, getRequiredPlan, planName} = useSubscriptionFeatures(currentPlan)
 
-    // ← getLabels() appelé directement avec la prop, pas via le contexte
     const labels = getLabels(activityType)
 
-    const isPathActive = (itemHref: string, currentPath: string) => itemHref === currentPath
+    const isPathActive = (itemHref: string, currentPath: string) =>
+        itemHref === currentPath
 
     async function handleSignOut() {
         if (isSigningOut) return
@@ -135,6 +144,8 @@ export function AppSidebar({
             setIsSigningOut(false)
         }
     }
+
+    // ─── Menu config ──────────────────────────────────────────────────────────
 
     const menuConfig: Record<UserRole, MenuGroup[]> = {
 
@@ -281,6 +292,8 @@ export function AppSidebar({
     const menuItems = menuConfig[role]
     const initials = user.email.split("@")[0].substring(0, 2).toUpperCase()
 
+    // ─── Render ───────────────────────────────────────────────────────────────
+
     return (
         <TooltipProvider>
             <NavigationLoader loading={loading}/>
@@ -295,32 +308,55 @@ export function AppSidebar({
             )}
 
             <Sidebar>
-                <SidebarHeader className="px-1 py-4 flex-row justify-between items-center">
-                    <Link
-                        href="/dashboard"
-                        onClick={() => {
-                            if (pathname !== "/dashboard") startLoading()
-                        }}
-                        className="flex items-center gap-1"
-                    >
-                        {restaurantLogoUrl && (
-                            <div className="flex h-10 w-10 items-center justify-center rounded-lg">
-                                <Image src={restaurantLogoUrl} width={100} height={100} alt="logo"/>
+                {/* ── Header : switcher multi-structure ── */}
+                <SidebarHeader className="border-b px-2 py-3">
+                    {role === 'superadmin' ? (
+                        // Superadmin : affichage simple sans switcher
+                        <Link
+                            href="/superadmin"
+                            onClick={() => {
+                                if (pathname !== "/superadmin") startLoading()
+                            }}
+                            className="flex items-center gap-2 px-1"
+                        >
+                            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary/10">
+                                <Crown className="h-3.5 w-3.5 text-primary"/>
                             </div>
-                        )}
-                        <div className="flex flex-col">
-                            <span className="font-semibold text-sm">
-                                {restaurantName ?? `Mon ${labels.structureName}`}
-                            </span>
-                            <span className="text-xs text-muted-foreground capitalize">
-                                Plan {planName}
-                            </span>
-                        </div>
-                    </Link>
+                            <div className="flex flex-col">
+                                <span className="font-semibold text-sm leading-tight">Akôm Admin</span>
+                                <span className="text-[11px] text-muted-foreground">SuperAdmin</span>
+                            </div>
+                        </Link>
+                    ) : (
+                        // Utilisateurs normaux : switcher multi-structure
+                        <RestaurantSwitcher
+                            canAddMore={canAddMoreRestaurants}
+                            variant="sidebar"
+                        />
+                    )}
 
-                    <DashboardHeader/>
+
                 </SidebarHeader>
 
+                {/* ── Plan badge sous le header ── */}
+                {role !== 'superadmin' && (
+                    <div className="px-3 py-1.5 border-b flex justify-between items-center">
+                        <div className="flex items-center">
+                            <span className="text-sm text-muted-foreground">
+                                Plan {'  '}
+                                <span className="text-md font-semibold capitalize text-foreground">
+                                    {planName}
+                                </span>
+                            </span>
+                        </div>
+                        {/* Bouton thème/notifications — conservé à droite */}
+                        <div className="ml-auto">
+                            <DashboardHeader/>
+                        </div>
+                    </div>
+                )}
+
+                {/* ── Menu ── */}
                 <SidebarContent>
                     {menuItems.map((group, i) => (
                         <SidebarGroup key={i}>
@@ -366,8 +402,9 @@ export function AppSidebar({
                                                                 <p className="font-semibold">Feature Premium</p>
                                                                 <p className="text-xs text-muted-foreground">
                                                                     {item.title} est disponible à partir du plan{' '}
-                                                                    <span
-                                                                        className="font-semibold capitalize">{requiredPlan}</span>.
+                                                                    <span className="font-semibold capitalize">
+                                                                        {requiredPlan}
+                                                                    </span>.
                                                                 </p>
                                                                 <Link
                                                                     href="/dashboard/subscription/choose-plan"
@@ -419,6 +456,7 @@ export function AppSidebar({
                     ))}
                 </SidebarContent>
 
+                {/* ── Footer : profil utilisateur ── */}
                 <SidebarFooter>
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
