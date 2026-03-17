@@ -4,18 +4,14 @@ import {createClient} from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
 import {signOut} from '@/lib/actions/auth'
 import {AlertTriangle, FileText, Mail, LogOut, Clock} from 'lucide-react'
+import {getLabels} from '@/lib/config/activity-labels' // ← NOUVEAU
 
 export default async function SuspendedPage() {
     const supabase = await createClient()
-    const {
-        data: {user},
-    } = await supabase.auth.getUser()
+    const {data: {user}} = await supabase.auth.getUser()
 
-    if (!user) {
-        redirect('/login')
-    }
+    if (!user) redirect('/login')
 
-    // Récupérer les infos du restaurant suspendu
     const restaurantUser = await prisma.restaurantUser.findFirst({
         where: {userId: user.id},
         include: {
@@ -23,6 +19,7 @@ export default async function SuspendedPage() {
                 select: {
                     id: true,
                     name: true,
+                    activityType: true, // ← NOUVEAU
                     verificationStatus: true,
                     circuitSheet: {
                         select: {
@@ -36,13 +33,10 @@ export default async function SuspendedPage() {
         },
     })
 
-    if (!restaurantUser) {
-        redirect('/onboarding')
-    }
+    if (!restaurantUser) redirect('/onboarding')
 
     const restaurant = restaurantUser.restaurant
 
-    // Si le restaurant n'est pas suspendu, rediriger correctement
     if (restaurant.verificationStatus !== 'suspended') {
         if (restaurant.verificationStatus === 'verified') {
             redirect('/dashboard')
@@ -50,6 +44,9 @@ export default async function SuspendedPage() {
             redirect('/onboarding/verification')
         }
     }
+
+    // ← Calcul des labels
+    const labels = getLabels(restaurant.activityType)
 
     const circuitSheet = restaurant.circuitSheet
     const suspendedAt = circuitSheet?.autoSuspendedAt
@@ -67,15 +64,12 @@ export default async function SuspendedPage() {
 
     return (
         <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-4">
-            {/* Fond avec texture subtile */}
             <div
                 className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-red-950/20 via-zinc-950 to-zinc-950"/>
 
             <div className="relative w-full max-w-lg">
-                {/* Card principale */}
                 <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-2xl">
 
-                    {/* Bandeau d'alerte en haut */}
                     <div className="bg-red-950/60 border-b border-red-900/50 px-6 py-4 flex items-center gap-3">
                         <div className="p-2 bg-red-900/50 rounded-lg">
                             <AlertTriangle className="w-5 h-5 text-red-400"/>
@@ -92,28 +86,27 @@ export default async function SuspendedPage() {
                         )}
                     </div>
 
-                    {/* Corps */}
                     <div className="px-8 py-8">
-                        {/* Nom du restaurant */}
-                        <p className="text-zinc-500 text-sm font-medium mb-1">Restaurant</p>
+                        {/* ← Label dynamique */}
+                        <p className="text-zinc-500 text-sm font-medium mb-1">{labels.structureNameCapital}</p>
                         <h1 className="text-white text-2xl font-bold mb-6">{restaurant.name}</h1>
 
-                        {/* Explication */}
                         <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-xl p-5 mb-6">
                             <h2 className="text-white font-semibold mb-2 text-sm">
-                                Pourquoi mon compte est-il suspendu ?
+                                {/* ← Label dynamique */}
+                                Pourquoi votre {labels.structureName} est-elle suspendue ?
                             </h2>
                             <p className="text-zinc-400 text-sm leading-relaxed">
-                                Votre restaurant a été suspendu automatiquement car la{' '}
+                                Votre {labels.structureName} a été suspendue automatiquement car la{' '}
                                 <span className="text-zinc-200 font-medium">fiche circuit</span>{' '}
-                                requise pour les offres Business n'a pas été soumise dans le délai imparti
-                                de 3 mois après l'activation de votre abonnement.
+                                requise pour les offres Business n&apos;a pas été soumise dans le délai imparti
+                                de 3 mois après l&apos;activation de votre abonnement.
                             </p>
                         </div>
 
-                        {/* Étapes pour débloquer */}
                         <h2 className="text-white font-semibold text-sm mb-4">
-                            Comment débloquer votre compte ?
+                            {/* ← Label dynamique */}
+                            Comment débloquer votre {labels.structureName} ?
                         </h2>
 
                         <div className="space-y-3 mb-8">
@@ -157,16 +150,14 @@ export default async function SuspendedPage() {
                             </div>
                         </div>
 
-                        {/* Bouton contact support */}
                         <a
-                            href="mailto:support@akom.app?subject=Demande de réactivation - Restaurant suspendu"
+                            href={`mailto:support@akom.app?subject=Demande de réactivation - ${labels.structureNameCapital} suspendue`}
                             className="flex items-center justify-center gap-2 w-full bg-amber-500 hover:bg-amber-400 text-zinc-900 font-semibold py-3 px-4 rounded-xl transition-colors duration-200 text-sm mb-3"
                         >
                             <Mail className="w-4 h-4"/>
                             Contacter le support
                         </a>
 
-                        {/* Bouton déconnexion */}
                         <form action={handleSignOut}>
                             <button
                                 type="submit"
@@ -179,9 +170,8 @@ export default async function SuspendedPage() {
                     </div>
                 </div>
 
-                {/* Mention légale */}
                 <p className="text-center text-zinc-600 text-xs mt-4">
-                    Akôm SaaS · Si vous pensez qu'il s'agit d'une erreur, contactez-nous
+                    Akôm SaaS · Si vous pensez qu&apos;il s&apos;agit d&apos;une erreur, contactez-nous
                 </p>
             </div>
         </div>

@@ -1,6 +1,6 @@
 // app/(dashboard)/dashboard/stocks/page.tsx
-import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import {redirect} from 'next/navigation'
+import {createClient} from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
 import {
     Breadcrumb,
@@ -10,36 +10,36 @@ import {
     BreadcrumbPage,
     BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
-import { Separator } from '@/components/ui/separator'
-import { SidebarTrigger } from '@/components/ui/sidebar'
-import { StocksList } from './stocks-list'
-import { getUserRole } from "@/lib/actions/auth"
+import {Separator} from '@/components/ui/separator'
+import {SidebarTrigger} from '@/components/ui/sidebar'
+import {StocksList} from './stocks-list'
+import {getUserRole} from "@/lib/actions/auth"
+import {getLabels} from "@/lib/config/activity-labels" // ← NOUVEAU
 
 export default async function StocksPage() {
     const supabase = await createClient()
-
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
+    const {data: {user}} = await supabase.auth.getUser()
 
     const userRole = await getUserRole()
 
-
-    if (!user) {
-        redirect('/login')
-    }
+    if (!user) redirect('/login')
 
     const restaurantUser = await prisma.restaurantUser.findFirst({
-        where: { userId: user.id },
+        where: {userId: user.id},
+        include: {
+            restaurant: {
+                select: {activityType: true}, // ← NOUVEAU
+            },
+        },
     })
 
-    if (!restaurantUser) {
-        redirect('/onboarding')
-    }
+    if (!restaurantUser) redirect('/onboarding')
 
-    // Récupérer tous les stocks avec les infos produits
+    // ← Calcul des labels
+    const labels = getLabels(restaurantUser.restaurant.activityType)
+
     const stocks = await prisma.stock.findMany({
-        where: { restaurantId: restaurantUser.restaurantId },
+        where: {restaurantId: restaurantUser.restaurantId},
         include: {
             product: {
                 select: {
@@ -47,31 +47,30 @@ export default async function StocksPage() {
                     name: true,
                     isAvailable: true,
                     category: {
-                        select: { name: true },
+                        select: {name: true},
                     },
                 },
             },
         },
         orderBy: {
-            product: {
-                name: 'asc',
-            },
+            product: {name: 'asc'},
         },
     })
 
     return (
         <>
             <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-                <SidebarTrigger className="-ml-1" />
-                <Separator orientation="vertical" className="mr-2 h-4" />
+                <SidebarTrigger className="-ml-1"/>
+                <Separator orientation="vertical" className="mr-2 h-4"/>
                 <div className="flex justify-between w-full">
                     <Breadcrumb>
                         <BreadcrumbList>
                             <BreadcrumbItem>
                                 <BreadcrumbLink href="/dashboard">Opérations</BreadcrumbLink>
                             </BreadcrumbItem>
-                            <BreadcrumbSeparator />
+                            <BreadcrumbSeparator/>
                             <BreadcrumbItem>
+                                {/* ← Label dynamique */}
                                 <BreadcrumbPage>Stocks</BreadcrumbPage>
                             </BreadcrumbItem>
                         </BreadcrumbList>
@@ -81,13 +80,17 @@ export default async function StocksPage() {
 
             <div className="flex flex-1 flex-col gap-4 p-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Gestion des stocks</h1>
+                    {/* ← Titre dynamique */}
+                    <h1 className="text-3xl font-bold tracking-tight">
+                        Stocks — {labels.productNameCapital}s
+                    </h1>
                     <p className="text-muted-foreground mt-2">
-                        Ajustez les quantités en stock. Les produits avec stock &gt; 0 sont automatiquement disponibles.
+                        Ajustez les quantités en stock. Les {labels.productNamePlural} avec stock &gt; 0 sont
+                        automatiquement disponibles.
                     </p>
                 </div>
 
-                <StocksList stocks={stocks} />
+                <StocksList stocks={stocks}/>
             </div>
         </>
     )

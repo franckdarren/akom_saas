@@ -14,6 +14,7 @@ import {ImageUploader} from '@/components/image-uploader'
 import {CatalogLinkSection} from '@/components/dashboard/catalog-link-section'
 import {updateRestaurantSettings} from '@/lib/actions/restaurant'
 import {toast} from 'sonner'
+import type {ActivityLabels} from '@/lib/config/activity-labels' // ← NOUVEAU
 
 interface Restaurant {
     id: string
@@ -28,13 +29,13 @@ interface Restaurant {
 
 interface RestaurantSettingsFormProps {
     restaurant: Restaurant
+    labels: ActivityLabels // ← NOUVEAU
 }
 
-export function RestaurantSettingsForm({restaurant}: RestaurantSettingsFormProps) {
+export function RestaurantSettingsForm({restaurant, labels}: RestaurantSettingsFormProps) {
     const router = useRouter()
     const [isSubmitting, setIsSubmitting] = useState(false)
 
-    // États du formulaire
     const [name, setName] = useState(restaurant.name)
     const [phone, setPhone] = useState(restaurant.phone || '')
     const [address, setAddress] = useState(restaurant.address || '')
@@ -72,10 +73,12 @@ export function RestaurantSettingsForm({restaurant}: RestaurantSettingsFormProps
 
     return (
         <form onSubmit={handleSubmit} className="space-y-6">
+
             {/* Image de couverture */}
             <Card>
                 <CardHeader>
-                    <CardTitle>📸 Image de couverture</CardTitle>
+                    {/* ← Label dynamique */}
+                    <CardTitle>📸 {labels.coverImageLabel}</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <CoverImageUploader
@@ -94,12 +97,13 @@ export function RestaurantSettingsForm({restaurant}: RestaurantSettingsFormProps
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div>
-                        <Label htmlFor="name" className="mb-2">Nom du restaurant *</Label>
+                        {/* ← Label dynamique */}
+                        <Label htmlFor="name" className="mb-2">{labels.nameFieldLabel} *</Label>
                         <Input
                             id="name"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
-                            placeholder="Ex: Chez Maman"
+                            placeholder={`Ex: ${restaurant.name}`}
                             required
                             disabled={isSubmitting}
                         />
@@ -131,7 +135,7 @@ export function RestaurantSettingsForm({restaurant}: RestaurantSettingsFormProps
                 </CardContent>
             </Card>
 
-            {/* Lien catalogue public - NOUVEAU */}
+            {/* Lien catalogue public */}
             <CatalogLinkSection
                 restaurantSlug={restaurant.slug}
                 restaurantName={restaurant.name}
@@ -140,7 +144,8 @@ export function RestaurantSettingsForm({restaurant}: RestaurantSettingsFormProps
             {/* Logo */}
             <Card>
                 <CardHeader>
-                    <CardTitle>🎨 Logo du restaurant (optionnel)</CardTitle>
+                    {/* ← Label dynamique */}
+                    <CardTitle>🎨 {labels.logoLabel} (optionnel)</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <ImageUploader
@@ -158,7 +163,8 @@ export function RestaurantSettingsForm({restaurant}: RestaurantSettingsFormProps
             {/* Statut */}
             <Card>
                 <CardHeader>
-                    <CardTitle>⚙️ Statut du restaurant</CardTitle>
+                    {/* ← Label dynamique */}
+                    <CardTitle>⚙️ Statut {isActive ? 'actif' : 'inactif'} — {labels.structureNameCapital}</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="flex items-center gap-3">
@@ -171,15 +177,14 @@ export function RestaurantSettingsForm({restaurant}: RestaurantSettingsFormProps
                             className="h-4 w-4"
                         />
                         <Label htmlFor="isActive" className="cursor-pointer">
-                            Restaurant actif
+                            {labels.structureNameCapital} active
                             <span className="text-sm text-muted-foreground ml-1">
                                 {isActive
-                                    ? '(les clients peuvent accéder au menu et passer commande)'
-                                    : '(le menu est désactivé, les clients ne peuvent plus commander)'}
+                                    ? `(les ${labels.customerNameCapital}s peuvent accéder au ${labels.catalogName} et passer ${labels.orderName})`
+                                    : `(le ${labels.catalogName} est désactivé, les ${labels.customerNameCapital}s ne peuvent plus commander)`}
                             </span>
                         </Label>
                     </div>
-
                 </CardContent>
             </Card>
 

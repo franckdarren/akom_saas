@@ -1,7 +1,8 @@
 // components/providers/dashboard-provider.tsx
 'use client'
 
-import { createContext, useContext } from 'react'
+import {createContext, useContext} from 'react'
+import type {ActivityType} from '@/lib/config/activity-labels'
 
 type DashboardContextType = {
     user: {
@@ -10,6 +11,7 @@ type DashboardContextType = {
     }
     role: 'superadmin' | 'admin' | 'kitchen'
     restaurantName?: string
+    activityType?: ActivityType // ← NOUVEAU
 }
 
 const DashboardContext = createContext<DashboardContextType | undefined>(
@@ -17,9 +19,9 @@ const DashboardContext = createContext<DashboardContextType | undefined>(
 )
 
 export function DashboardProvider({
-    value,
-    children,
-}: {
+                                      value,
+                                      children,
+                                  }: {
     value: DashboardContextType
     children: React.ReactNode
 }) {

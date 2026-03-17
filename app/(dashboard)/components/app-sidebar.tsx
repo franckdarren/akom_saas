@@ -11,6 +11,8 @@ import {useSubscriptionFeatures} from "@/lib/hooks/use-subscription-features"
 import {NavigationLoader} from "@/components/NavigationLoader"
 import {signOut} from "@/lib/actions/auth"
 import type {SubscriptionPlan, FeatureKey} from "@/lib/config/subscription"
+import {getLabels} from "@/lib/config/activity-labels" // ← getLabels, pas le hook
+import type {ActivityType} from "@/lib/config/activity-labels"
 
 import {
     ChefHat,
@@ -82,25 +84,20 @@ interface AppSidebarProps {
     user: { email: string; id: string }
     role: UserRole
     restaurantName?: string
+    activityType?: ActivityType  // ← reçu en prop depuis le layout
     restaurantId?: string
     restaurantLogoUrl?: string
-    currentPlan?: SubscriptionPlan  // NOUVEAU : ajouter le plan actuel
+    currentPlan?: SubscriptionPlan
     onSignOut: () => void
 }
 
-/**
- * Configuration des items de menu avec leurs features requises
- *
- * NOUVEAU : Chaque item peut maintenant avoir un `requiredFeature`
- * qui sera vérifié contre le plan actuel de l'utilisateur.
- */
 interface MenuItem {
     title: string
     href: string
     icon: React.ComponentType<{ className?: string }>
     badge?: string
     disabled?: boolean
-    requiredFeature?: FeatureKey  // NOUVEAU : feature requise pour accéder
+    requiredFeature?: FeatureKey
 }
 
 interface MenuGroup {
@@ -112,6 +109,7 @@ export function AppSidebar({
                                user,
                                role,
                                restaurantName,
+                               activityType, // ← destructuré depuis les props
                                restaurantLogoUrl,
                                currentPlan,
                            }: AppSidebarProps) {
@@ -121,17 +119,13 @@ export function AppSidebar({
     const [isSigningOut, setIsSigningOut] = useState(false)
     const router = useRouter()
 
-    // NOUVEAU : Hook de vérification des features
     const {hasFeature, getRequiredPlan, planName} = useSubscriptionFeatures(currentPlan)
 
-    // ============================================================
-    // Helper pour activer uniquement le chemin exact
-    // ============================================================
+    // ← getLabels() appelé directement avec la prop, pas via le contexte
+    const labels = getLabels(activityType)
+
     const isPathActive = (itemHref: string, currentPath: string) => itemHref === currentPath
 
-    // ============================================================
-    // Déconnexion
-    // ============================================================
     async function handleSignOut() {
         if (isSigningOut) return
         setIsSigningOut(true)
@@ -142,36 +136,32 @@ export function AppSidebar({
         }
     }
 
-    // ============================================================
-    // Configuration des menus par rôle avec features requises
-    // ============================================================
     const menuConfig: Record<UserRole, MenuGroup[]> = {
 
-        // ROLE ADMIN
         admin: [
             {
                 title: "Général",
                 items: [
-                    {title: "Tableau de bord", href: "/dashboard", icon: LayoutDashboard}
+                    {title: "Tableau de bord", href: "/dashboard", icon: LayoutDashboard},
                 ],
             },
             {
-                title: "Menu",
+                title: labels.catalogNameCapital,
                 items: [
-                    {title: "Catégories", href: "/dashboard/menu/categories", icon: Menu},
-                    {title: "Produits", href: "/dashboard/menu/products", icon: Utensils},
+                    {title: labels.categoryNameCapital + "s", href: "/dashboard/menu/categories", icon: Menu},
+                    {title: labels.productNameCapital + "s", href: "/dashboard/menu/products", icon: Utensils},
                 ],
             },
             {
                 title: "Opérations",
                 items: [
-                    {title: "Tables", href: "/dashboard/tables", icon: Users},
-                    {title: "Commandes", href: "/dashboard/orders", icon: ShoppingCart},
+                    {title: labels.tableNameCapital + "s", href: "/dashboard/tables", icon: Users},
+                    {title: labels.orderNameCapital + "s", href: "/dashboard/orders", icon: ShoppingCart},
                     {
                         title: "Stocks",
                         href: "/dashboard/stocks",
                         icon: Package,
-                        requiredFeature: 'stock_management'  // NOUVEAU : feature requise
+                        requiredFeature: 'stock_management',
                     },
                     {title: "Paiements", href: "/dashboard/payments", icon: CreditCard},
                     {title: "Abonnements", href: "/dashboard/subscription", icon: CalendarSync},
@@ -179,15 +169,15 @@ export function AppSidebar({
                         title: "Caisse",
                         href: "/dashboard/caisse",
                         icon: Wallet,
-                        requiredFeature: 'caisse_module'  // NOUVEAU
+                        requiredFeature: 'caisse_module',
                     },
                 ],
             },
             {
                 title: "Comptoir",
                 items: [
-                    {title: "Nouvelle commande", href: "/dashboard/pos", icon: ShoppingCart},
-                    {title: "Commandes du jour", href: "/dashboard/pos/orders", icon: ClipboardList},
+                    {title: `Nouvelle ${labels.orderName}`, href: "/dashboard/pos", icon: ShoppingCart},
+                    {title: `${labels.orderNameCapital}s du jour`, href: "/dashboard/pos/orders", icon: ClipboardList},
                 ],
             },
             {
@@ -197,25 +187,25 @@ export function AppSidebar({
                         title: "Accueil",
                         href: "/dashboard/warehouse",
                         icon: Warehouse,
-                        requiredFeature: 'warehouse_module'  // NOUVEAU
+                        requiredFeature: 'warehouse_module',
                     },
                     {
-                        title: "Produits",
+                        title: labels.productNameCapital + "s",
                         href: "/dashboard/warehouse/products/new",
                         icon: Package,
-                        requiredFeature: 'warehouse_module'  // NOUVEAU
+                        requiredFeature: 'warehouse_module',
                     },
                     {
                         title: "Mouvements",
                         href: "/dashboard/warehouse/movements",
                         icon: Activity,
-                        requiredFeature: 'warehouse_module'  // NOUVEAU
+                        requiredFeature: 'warehouse_module',
                     },
                     {
                         title: "Transferts",
                         href: "/dashboard/warehouse/transfers",
                         icon: ArrowRightLeft,
-                        requiredFeature: 'warehouse_module'  // NOUVEAU
+                        requiredFeature: 'warehouse_module',
                     },
                 ],
             },
@@ -226,8 +216,8 @@ export function AppSidebar({
                         title: "Statistiques",
                         href: "/dashboard/stats",
                         icon: BarChart3,
-                        requiredFeature: 'advanced_stats'  // NOUVEAU
-                    }
+                        requiredFeature: 'advanced_stats',
+                    },
                 ],
             },
             {
@@ -250,28 +240,25 @@ export function AppSidebar({
             },
         ],
 
-        // ROLE CUISINE
         kitchen: [
             {
                 title: "Cuisine",
                 items: [
-                    {title: "Commandes", href: "/dashboard/orders", icon: ChefHat, badge: "New"},
+                    {title: labels.orderNameCapital + "s", href: "/dashboard/orders", icon: ChefHat, badge: "New"},
                 ],
             },
         ],
 
-        // ROLE COMPTOIR
         cashier: [
             {
                 title: "Comptoir",
                 items: [
-                    {title: "Nouvelle commande", href: "/dashboard/pos", icon: ShoppingCart},
-                    {title: "Commandes du jour", href: "/dashboard/pos/orders", icon: ClipboardList},
+                    {title: `Nouvelle ${labels.orderName}`, href: "/dashboard/pos", icon: ShoppingCart},
+                    {title: `${labels.orderNameCapital}s du jour`, href: "/dashboard/pos/orders", icon: ClipboardList},
                 ],
             },
         ],
 
-        // ROLE SUPERADMIN
         superadmin: [
             {
                 title: "Administration",
@@ -322,10 +309,12 @@ export function AppSidebar({
                             </div>
                         )}
                         <div className="flex flex-col">
-                            <span className="font-semibold text-sm">{restaurantName}</span>
+                            <span className="font-semibold text-sm">
+                                {restaurantName ?? `Mon ${labels.structureName}`}
+                            </span>
                             <span className="text-xs text-muted-foreground capitalize">
-                Plan {planName}
-              </span>
+                                Plan {planName}
+                            </span>
                         </div>
                     </Link>
 
@@ -340,15 +329,10 @@ export function AppSidebar({
                                 <SidebarMenu>
                                     {group.items.map((item) => {
                                         const isActive = isPathActive(item.href, pathname)
-
-                                        // NOUVEAU : Vérifier si la feature est verrouillée
                                         const isFeatureLocked = item.requiredFeature
                                             ? !hasFeature(item.requiredFeature)
                                             : false
-
                                         const isDisabled = item.disabled || isFeatureLocked
-
-                                        // Obtenir le plan requis pour cette feature
                                         const requiredPlan = item.requiredFeature
                                             ? getRequiredPlan(item.requiredFeature)
                                             : null
@@ -356,9 +340,6 @@ export function AppSidebar({
                                         return (
                                             <SidebarMenuItem key={item.href}>
                                                 {isFeatureLocked ? (
-                                                    // ============================================================
-                                                    // Item verrouillé : afficher avec tooltip et badge
-                                                    // ============================================================
                                                     <Tooltip>
                                                         <TooltipTrigger asChild>
                                                             <div>
@@ -399,9 +380,6 @@ export function AppSidebar({
                                                         </TooltipContent>
                                                     </Tooltip>
                                                 ) : (
-                                                    // ============================================================
-                                                    // Item normal : accessible
-                                                    // ============================================================
                                                     <SidebarMenuButton
                                                         asChild={!isDisabled}
                                                         isActive={isActive}
@@ -460,9 +438,9 @@ export function AppSidebar({
                                 </div>
 
                                 <span className="flex flex-col gap-2 items-center justify-center text-muted-foreground">
-                  <ChevronUp className="h-3 w-3 -mb-1"/>
-                  <ChevronDown className="h-3 w-3 -mt-1"/>
-                </span>
+                                    <ChevronUp className="h-3 w-3 -mb-1"/>
+                                    <ChevronDown className="h-3 w-3 -mt-1"/>
+                                </span>
                             </button>
                         </DropdownMenuTrigger>
 
@@ -476,11 +454,6 @@ export function AppSidebar({
                                 <User className="mr-2 h-4 w-4"/>
                                 Changer mot de passe
                             </DropdownMenuItem>
-
-                            {/*<DropdownMenuItem>*/}
-                            {/*    <Settings className="mr-2 h-4 w-4"/>*/}
-                            {/*    Paramètres*/}
-                            {/*</DropdownMenuItem>*/}
 
                             <DropdownMenuSeparator/>
 

@@ -17,6 +17,7 @@ export interface RestaurantWithRole {
     slug: string
     role: UserRole
     isActive: boolean
+    activityType?: string
 }
 
 // Context du restaurant actuel

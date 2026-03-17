@@ -1,6 +1,6 @@
 // app/(dashboard)/dashboard/menu/products/new/page.tsx
-import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import {redirect} from 'next/navigation'
+import {createClient} from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
 import {
     Breadcrumb,
@@ -10,48 +10,48 @@ import {
     BreadcrumbSeparator,
     BreadcrumbPage,
 } from '@/components/ui/breadcrumb'
-import { Separator } from '@/components/ui/separator'
-import { SidebarTrigger } from '@/components/ui/sidebar'
-import { ProductForm } from '../product-form'
-import { getUserRole } from "@/lib/actions/auth"
+import {Separator} from '@/components/ui/separator'
+import {SidebarTrigger} from '@/components/ui/sidebar'
+import {ProductForm} from '../product-form'
+import {getUserRole} from "@/lib/actions/auth"
+import {getLabels} from "@/lib/config/activity-labels" // ← NOUVEAU
 
 export default async function NewProductPage() {
     const supabase = await createClient()
-
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
+    const {data: {user}} = await supabase.auth.getUser()
 
     const userRole = await getUserRole()
 
-    if (!user) {
-        redirect('/login')
-    }
+    if (!user) redirect('/login')
 
     const restaurantUser = await prisma.restaurantUser.findFirst({
-        where: { userId: user.id },
+        where: {userId: user.id},
+        include: {
+            restaurant: {
+                select: {activityType: true}, // ← NOUVEAU
+            },
+        },
     })
 
-    if (!restaurantUser) {
-        redirect('/onboarding')
-    }
+    if (!restaurantUser) redirect('/onboarding')
 
-    // ✅ Charger catégories et familles en parallèle
+    // ← Calcul des labels
+    const labels = getLabels(restaurantUser.restaurant.activityType)
+
     const [categories, families] = await Promise.all([
         prisma.category.findMany({
             where: {
                 restaurantId: restaurantUser.restaurantId,
                 isActive: true,
             },
-            orderBy: { position: 'asc' },
+            orderBy: {position: 'asc'},
         }),
-
         prisma.family.findMany({
             where: {
                 restaurantId: restaurantUser.restaurantId,
                 isActive: true,
             },
-            orderBy: { position: 'asc' },
+            orderBy: {position: 'asc'},
             select: {
                 id: true,
                 name: true,
@@ -65,19 +65,22 @@ export default async function NewProductPage() {
     return (
         <>
             <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-                <SidebarTrigger className="-ml-1" />
-                <Separator orientation="vertical" className="mr-2 h-4" />
+                <SidebarTrigger className="-ml-1"/>
+                <Separator orientation="vertical" className="mr-2 h-4"/>
                 <div className="flex justify-between w-full">
                     <Breadcrumb>
                         <BreadcrumbList>
                             <BreadcrumbItem>
                                 <BreadcrumbLink href="/dashboard">Tableau de bord</BreadcrumbLink>
                             </BreadcrumbItem>
-                            <BreadcrumbSeparator />
+                            <BreadcrumbSeparator/>
                             <BreadcrumbItem>
-                                <BreadcrumbLink href="/dashboard/menu/products">Produits</BreadcrumbLink>
+                                {/* ← Label dynamique */}
+                                <BreadcrumbLink href="/dashboard/menu/products">
+                                    {labels.productNameCapital}s
+                                </BreadcrumbLink>
                             </BreadcrumbItem>
-                            <BreadcrumbSeparator />
+                            <BreadcrumbSeparator/>
                             <BreadcrumbItem>
                                 <BreadcrumbPage>Nouveau</BreadcrumbPage>
                             </BreadcrumbItem>
@@ -88,14 +91,17 @@ export default async function NewProductPage() {
 
             <div className="flex flex-1 flex-col gap-4 p-4 max-w-2xl">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Nouveau produit</h1>
+                    {/* ← Titre dynamique */}
+                    <h1 className="text-3xl font-bold tracking-tight">
+                        Nouveau {labels.productName}
+                    </h1>
                     <p className="text-muted-foreground mt-2">
-                        Ajoutez un bien ou un service à votre menu
+                        Ajoutez un {labels.productName} à votre {labels.catalogName}
                     </p>
                 </div>
 
-                <ProductForm 
-                    categories={categories} 
+                <ProductForm
+                    categories={categories}
                     families={families}
                 />
             </div>

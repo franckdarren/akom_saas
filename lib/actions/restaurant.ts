@@ -10,6 +10,7 @@ import {restaurantSettingsSchema, type RestaurantSettingsInput} from '@/lib/vali
 import {logRestaurantCreated} from '@/lib/actions/logs'
 import {formatRestaurantName} from '@/lib/utils/format-text'
 import {SUBSCRIPTION_CONFIG, SubscriptionPlan} from '@/lib/config/subscription'
+import type {ActivityType} from '@/lib/config/activity-labels' // ← NOUVEAU
 
 
 interface CreateRestaurantInput {
@@ -17,6 +18,7 @@ interface CreateRestaurantInput {
     phone?: string
     address?: string
     plan?: SubscriptionPlan
+    activityType?: ActivityType  // ← NOUVEAU
 }
 
 // ============================================================
@@ -128,10 +130,11 @@ export async function createRestaurant(data: CreateRestaurantInput) {
             const restaurant = await tx.restaurant.create({
                 data: {
                     name: formattedName,
-                    slug,                       // ✅ Slug unique généré avant la transaction
+                    slug,
                     phone: data.phone?.trim() || null,
                     address: data.address?.trim() || null,
                     isActive: true,
+                    activityType: data.activityType ?? 'restaurant', // ← NOUVEAU
                 },
             })
 
@@ -158,7 +161,6 @@ export async function createRestaurant(data: CreateRestaurantInput) {
                 },
             })
 
-            // On retourne le restaurant pour pouvoir l'utiliser après la transaction
             return restaurant
         })
 
@@ -204,8 +206,6 @@ export async function getUserRestaurants(): Promise<RestaurantWithRole[]> {
         },
     })
 
-    // On transforme le résultat Prisma en type métier RestaurantWithRole
-    // pour ne pas exposer la structure interne de la BDD au reste de l'app
     return restaurantUsers.map((ru) => ({
         id: ru.restaurant.id,
         name: ru.restaurant.name,
@@ -255,7 +255,6 @@ export async function hasAccessToRestaurant(
     restaurantId: string
 ): Promise<boolean> {
     const role = await getUserRoleInRestaurant(restaurantId)
-    // Si le rôle existe (même 'employé'), l'accès est autorisé
     return role !== null
 }
 
@@ -285,15 +284,12 @@ export async function changeUserRole(
         throw new Error('Non authentifié')
     }
 
-    // Seul un admin peut modifier les rôles des autres membres
     const currentUserRole = await getUserRoleInRestaurant(restaurantId)
 
     if (currentUserRole !== 'admin') {
         throw new Error('Seuls les admins peuvent changer les rôles')
     }
 
-    // Sécurité : un admin ne peut pas changer son propre rôle
-    // (évite de se retrouver sans admin dans le restaurant)
     if (user.id === targetUserId) {
         throw new Error('Vous ne pouvez pas changer votre propre rôle')
     }
@@ -337,8 +333,6 @@ export async function removeUserFromRestaurant(
         throw new Error('Seuls les admins peuvent retirer des utilisateurs')
     }
 
-    // Sécurité : impossible de se retirer soi-même
-    // (évite un restaurant sans admin)
     if (user.id === targetUserId) {
         throw new Error('Vous ne pouvez pas vous retirer vous-même')
     }
@@ -372,7 +366,6 @@ export async function updateRestaurantCover(
         return {error: 'Non authentifié'}
     }
 
-    // Vérifier que l'utilisateur est admin de ce restaurant
     const userRole = await prisma.restaurantUser.findUnique({
         where: {
             userId_restaurantId: {
@@ -393,7 +386,6 @@ export async function updateRestaurantCover(
             data: {coverImageUrl},
         })
 
-        // Invalider le cache des pages concernées
         revalidatePath('/dashboard/restaurants')
         revalidatePath(`/dashboard/restaurants/${restaurantId}`)
 
@@ -421,8 +413,6 @@ export async function updateRestaurantSettings(
         return {error: 'Non authentifié'}
     }
 
-    // Valider les données avec le schema Zod avant toute écriture en BDD
-    // safeParse ne lève pas d'exception — il retourne un objet avec success/error
     const parsed = restaurantSettingsSchema.safeParse(data)
     if (!parsed.success) {
         return {
@@ -445,7 +435,6 @@ export async function updateRestaurantSettings(
     }
 
     try {
-        // Formater le nom avant de le sauvegarder (casse, espaces, etc.)
         const formattedName = formatRestaurantName(parsed.data.name)
 
         const restaurant = await prisma.restaurant.update({
@@ -489,8 +478,6 @@ export async function getRestaurantDetails(restaurantId: string) {
         throw new Error('Restaurant non sélectionné')
     }
 
-    // Vérifier l'appartenance avant de retourner les données
-    // (même logique que le RLS, mais côté applicatif pour Prisma)
     const userRole = await prisma.restaurantUser.findUnique({
         where: {
             userId_restaurantId: {
@@ -506,8 +493,6 @@ export async function getRestaurantDetails(restaurantId: string) {
     }
 
     try {
-        // On utilise select pour ne retourner que les champs nécessaires
-        // et ne pas exposer des données internes inutilement
         const restaurant = await prisma.restaurant.findUnique({
             where: {id: restaurantId},
             select: {
@@ -519,6 +504,7 @@ export async function getRestaurantDetails(restaurantId: string) {
                 logoUrl: true,
                 coverImageUrl: true,
                 isActive: true,
+                activityType: true, // ← NOUVEAU
             },
         })
 

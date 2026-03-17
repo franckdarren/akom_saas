@@ -1,10 +1,10 @@
 // app/(dashboard)/dashboard/users/page.tsx
-import { Suspense } from 'react'
-import { Separator } from '@/components/ui/separator'
-import { SidebarTrigger } from '@/components/ui/sidebar'
+import {Suspense} from 'react'
+import {Separator} from '@/components/ui/separator'
+import {SidebarTrigger} from '@/components/ui/sidebar'
 import prisma from '@/lib/prisma'
-import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import {redirect} from 'next/navigation'
+import {createClient} from '@/lib/supabase/server'
 import {
     Breadcrumb,
     BreadcrumbList,
@@ -13,44 +13,47 @@ import {
     BreadcrumbSeparator,
     BreadcrumbPage,
 } from '@/components/ui/breadcrumb'
-import { TeamManagementTabs } from '@/components/users/TeamManagementTabs'
-import { InvitationsSection } from '@/components/users/InvitationsSection'
-import { getUserRole } from '@/lib/actions/auth'
+import {TeamManagementTabs} from '@/components/users/TeamManagementTabs'
+import {InvitationsSection} from '@/components/users/InvitationsSection'
+import {getUserRole} from '@/lib/actions/auth'
+import {getLabels} from "@/lib/config/activity-labels" // ← NOUVEAU
 
 export default async function UsersPage() {
     const supabase = await createClient()
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
+    const {data: {user}} = await supabase.auth.getUser()
 
     const userRole = await getUserRole()
 
-    if (!user) {
-        redirect('/login')
-    }
+    if (!user) redirect('/login')
 
     const restaurantUser = await prisma.restaurantUser.findFirst({
-        where: { userId: user.id },
+        where: {userId: user.id},
+        include: {
+            restaurant: {
+                select: {activityType: true}, // ← NOUVEAU
+            },
+        },
     })
 
-    if (!restaurantUser) {
-        redirect('/onboarding')
-    }
+    if (!restaurantUser) redirect('/onboarding')
+
+    // ← Calcul des labels
+    const labels = getLabels(restaurantUser.restaurant.activityType)
 
     return (
         <>
             <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-                <SidebarTrigger className="-ml-1" />
-                <Separator orientation="vertical" className="mr-2 h-4" />
+                <SidebarTrigger className="-ml-1"/>
+                <Separator orientation="vertical" className="mr-2 h-4"/>
                 <div className="flex justify-between w-full">
                     <Breadcrumb>
                         <BreadcrumbList>
                             <BreadcrumbItem>
                                 <BreadcrumbLink href="/dashboard">Configuration</BreadcrumbLink>
                             </BreadcrumbItem>
-                            <BreadcrumbSeparator />
+                            <BreadcrumbSeparator/>
                             <BreadcrumbItem>
-                                <BreadcrumbPage>Gestion de l'équipe</BreadcrumbPage>
+                                <BreadcrumbPage>Gestion de l&apos;équipe</BreadcrumbPage>
                             </BreadcrumbItem>
                         </BreadcrumbList>
                     </Breadcrumb>
@@ -60,14 +63,14 @@ export default async function UsersPage() {
             <div className="flex flex-col gap-6 p-6">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">
-                        Gestion de l'équipe
+                        Gestion de l&apos;équipe
                     </h1>
+                    {/* ← Description dynamique */}
                     <p className="text-muted-foreground mt-2">
-                        Gérez les membres de votre équipe, leurs rôles et permissions
+                        Gérez les membres de votre {labels.structureName}, leurs rôles et permissions
                     </p>
                 </div>
 
-                {/* Tabs avec contenu */}
                 <Suspense
                     fallback={
                         <div className="flex items-center justify-center p-12">
@@ -76,13 +79,7 @@ export default async function UsersPage() {
                     }
                 >
                     <TeamManagementTabs>
-                        {/* 
-                            InvitationsSection est un Server Component.
-                            En le passant comme children ici, il sera re-rendu 
-                            par Next.js à chaque router.refresh() — données fraîches 
-                            sans useEffect ni fetch client-side.
-                        */}
-                        <InvitationsSection />
+                        <InvitationsSection/>
                     </TeamManagementTabs>
                 </Suspense>
             </div>

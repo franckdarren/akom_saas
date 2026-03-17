@@ -1,7 +1,7 @@
 // app/(dashboard)/dashboard/menu/products/[id]/edit/page.tsx
-import { redirect, notFound } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
-import { getUserRole } from "@/lib/actions/auth"
+import {redirect, notFound} from 'next/navigation'
+import {createClient} from '@/lib/supabase/server'
+import {getUserRole} from "@/lib/actions/auth"
 import prisma from '@/lib/prisma'
 import {
     Breadcrumb,
@@ -11,39 +11,39 @@ import {
     BreadcrumbSeparator,
     BreadcrumbPage,
 } from '@/components/ui/breadcrumb'
-import { Separator } from '@/components/ui/separator'
-import { SidebarTrigger } from '@/components/ui/sidebar'
-import { ProductForm } from '../../product-form'
+import {Separator} from '@/components/ui/separator'
+import {SidebarTrigger} from '@/components/ui/sidebar'
+import {ProductForm} from '../../product-form'
+import {getLabels} from "@/lib/config/activity-labels" // ← NOUVEAU
 
 export default async function EditProductPage({
-    params,
-}: {
+                                                  params,
+                                              }: {
     params: Promise<{ id: string }>
 }) {
-    const { id } = await params
+    const {id} = await params
     const supabase = await createClient()
+    const {data: {user}} = await supabase.auth.getUser()
 
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) {
-        redirect('/login')
-    }
+    if (!user) redirect('/login')
 
     const userRole = await getUserRole()
 
     const restaurantUser = await prisma.restaurantUser.findFirst({
-        where: { userId: user.id },
+        where: {userId: user.id},
+        include: {
+            restaurant: {
+                select: {activityType: true}, // ← NOUVEAU
+            },
+        },
     })
 
-    if (!restaurantUser) {
-        redirect('/onboarding')
-    }
+    if (!restaurantUser) redirect('/onboarding')
 
-    // ✅ Charger produit, catégories et familles en parallèle
+    // ← Calcul des labels
+    const labels = getLabels(restaurantUser.restaurant.activityType)
+
     const [product, categories, families] = await Promise.all([
-        // ✅ Récupérer le produit avec ses nouvelles propriétés
         prisma.product.findUnique({
             where: {
                 id,
@@ -53,30 +53,28 @@ export default async function EditProductPage({
                 id: true,
                 name: true,
                 description: true,
-                price: true, // Maintenant nullable
+                price: true,
                 categoryId: true,
                 familyId: true,
                 imageUrl: true,
-                productType: true, // ← NOUVEAU
-                includePrice: true, // ← NOUVEAU
-                hasStock: true, // ← NOUVEAU
+                productType: true,
+                includePrice: true,
+                hasStock: true,
             },
         }),
-
         prisma.category.findMany({
             where: {
                 restaurantId: restaurantUser.restaurantId,
                 isActive: true,
             },
-            orderBy: { position: 'asc' },
+            orderBy: {position: 'asc'},
         }),
-
         prisma.family.findMany({
             where: {
                 restaurantId: restaurantUser.restaurantId,
                 isActive: true,
             },
-            orderBy: { position: 'asc' },
+            orderBy: {position: 'asc'},
             select: {
                 id: true,
                 name: true,
@@ -87,26 +85,27 @@ export default async function EditProductPage({
         }),
     ])
 
-    if (!product) {
-        notFound()
-    }
+    if (!product) notFound()
 
     return (
         <>
             <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-                <SidebarTrigger className="-ml-1" />
-                <Separator orientation="vertical" className="mr-2 h-4" />
+                <SidebarTrigger className="-ml-1"/>
+                <Separator orientation="vertical" className="mr-2 h-4"/>
                 <div className="flex justify-between w-full">
                     <Breadcrumb>
                         <BreadcrumbList>
                             <BreadcrumbItem>
                                 <BreadcrumbLink href="/dashboard">Tableau de bord</BreadcrumbLink>
                             </BreadcrumbItem>
-                            <BreadcrumbSeparator />
+                            <BreadcrumbSeparator/>
                             <BreadcrumbItem>
-                                <BreadcrumbLink href="/dashboard/menu/products">Produits</BreadcrumbLink>
+                                {/* ← Label dynamique */}
+                                <BreadcrumbLink href="/dashboard/menu/products">
+                                    {labels.productNameCapital}s
+                                </BreadcrumbLink>
                             </BreadcrumbItem>
-                            <BreadcrumbSeparator />
+                            <BreadcrumbSeparator/>
                             <BreadcrumbItem>
                                 <BreadcrumbPage>Modifier</BreadcrumbPage>
                             </BreadcrumbItem>
@@ -117,14 +116,18 @@ export default async function EditProductPage({
 
             <div className="flex flex-1 flex-col gap-4 p-4 max-w-2xl">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Modifier le produit</h1>
+                    {/* ← Titre dynamique */}
+                    <h1 className="text-3xl font-bold tracking-tight">
+                        Modifier le {labels.productName}
+                    </h1>
                     <p className="text-muted-foreground mt-2">{product.name}</p>
                 </div>
 
-                <ProductForm 
-                    categories={categories} 
+                <ProductForm
+                    categories={categories}
                     families={families}
-                    product={product} 
+                    product={product}
+                    labels={labels} // ← NOUVEAU
                 />
             </div>
         </>
