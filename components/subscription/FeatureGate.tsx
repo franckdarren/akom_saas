@@ -3,7 +3,7 @@
 
 import {ReactNode} from 'react'
 import {useRestaurant} from '@/lib/hooks/use-restaurant'
-import {PLAN_FEATURES, FEATURE_LABELS, type FeatureKey} from '@/lib/config/subscription'
+import {PLAN_FEATURES, FEATURE_LABELS, type FeatureKey, type SubscriptionPlan} from '@/lib/config/subscription'
 import {Button} from '@/components/ui/button'
 import {Lock} from 'lucide-react'
 import Link from 'next/link'
@@ -25,24 +25,29 @@ interface FeatureGateProps {
  * </FeatureGate>
  */
 export function FeatureGate({
-                                feature,
-                                children,
-                                fallback,
-                                showUpgradePrompt = true,
-                            }: FeatureGateProps) {
-    const {currentPlan} = useRestaurant()
+    feature,
+    children,
+    fallback,
+    showUpgradePrompt = true,
+}: FeatureGateProps) {
+    const {currentRestaurant} = useRestaurant()
+
+    // Le plan est exposé via currentRestaurant.subscription
+    // (getUserRestaurants inclut subscription: { plan, status })
+    const currentPlan = (currentRestaurant as any)?.subscription?.plan as SubscriptionPlan | undefined
 
     if (!currentPlan) {
         return null
     }
 
     const planFeatures = PLAN_FEATURES[currentPlan]
-    const featureValue = planFeatures[feature]
+    const featureValue = planFeatures?.[feature]
 
     // Si c'est un booléen, vérifier directement
+    // Si c'est un nombre ou 'unlimited', considérer comme accessible
     const hasAccess = typeof featureValue === 'boolean'
         ? featureValue
-        : true // Si c'est un nombre/unlimited, considérer comme accessible
+        : featureValue !== undefined
 
     if (hasAccess) {
         return <>{children}</>
@@ -56,8 +61,7 @@ export function FeatureGate({
     // Afficher le prompt de mise à niveau par défaut
     if (showUpgradePrompt) {
         return (
-            <div
-                className="bg-zinc-50 dark:bg-zinc-900 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-lg p-8 text-center">
+            <div className="bg-zinc-50 dark:bg-zinc-900 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-lg p-8 text-center">
                 <div className="flex justify-center mb-4">
                     <div className="bg-zinc-100 dark:bg-zinc-800 p-3 rounded-full">
                         <Lock className="h-6 w-6 text-zinc-600 dark:text-zinc-400"/>

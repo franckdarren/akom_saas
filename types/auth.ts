@@ -1,3 +1,4 @@
+// types/auth.ts
 import type {User} from '@supabase/supabase-js'
 
 // Rôles utilisateur
@@ -17,7 +18,12 @@ export interface RestaurantWithRole {
     slug: string
     role: UserRole
     isActive: boolean
-    activityType?: string
+    activityType?: string | null
+    // ✅ Ajout : exposé par getUserRestaurants pour FeatureGate et RestaurantSwitcher
+    subscription?: {
+        plan: string
+        status: string
+    } | null
 }
 
 // Context du restaurant actuel
@@ -51,10 +57,10 @@ export const PERMISSIONS = {
         'view_menu',
     ] as const,
     cashier: [
-        'manage_orders',     // Créer et mettre à jour les commandes
-        'manage_payments',   // Encaisser les paiements
-        'view_menu',         // Lire les produits/catégories pour la saisie
-        'view_tables',       // Voir les tables disponibles
+        'manage_orders',
+        'manage_payments',
+        'view_menu',
+        'view_tables',
     ] as const,
 }
 
