@@ -192,7 +192,7 @@ export function AppSidebar({
                 ],
             },
             {
-                title: "Magasin",
+                title: "Entrepôt",
                 items: [
                     {
                         title: "Accueil",
@@ -201,7 +201,7 @@ export function AppSidebar({
                         requiredFeature: 'warehouse_module',
                     },
                     {
-                        title: labels.productNameCapital + "s",
+                        title: "Produits",
                         href: "/dashboard/warehouse/products/new",
                         icon: Package,
                         requiredFeature: 'warehouse_module',

@@ -153,6 +153,19 @@ export async function middleware(request: NextRequest) {
             return supabaseResponse
         }
 
+        // Synchroniser le cookie si absent ou différent.
+        // On l'écrit sur le request ET sur la response : le request est nécessaire
+        // pour que les Server Components le voient dans ce même cycle de requête.
+        if (savedRestaurantId !== restaurantId) {
+            request.cookies.set('akom_current_restaurant_id', restaurantId)
+            supabaseResponse = NextResponse.next({ request })
+            supabaseResponse.cookies.set('akom_current_restaurant_id', restaurantId, {
+                path: '/',
+                sameSite: 'lax',
+                httpOnly: false,
+            })
+        }
+
         // Vérification abonnement
         try {
             const {data: subscription} = await supabase

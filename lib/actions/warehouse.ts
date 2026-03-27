@@ -403,7 +403,7 @@ export async function getWarehouseStats() {
                 SELECT
                     COALESCE(SUM(ws.quantity * ws.unit_cost), 0)                                   AS "totalValue",
                     COUNT(CASE WHEN ws.quantity < ws.alert_threshold THEN 1 END)::bigint           AS "lowStockCount"
-                FROM warehouse_stocks ws
+                FROM warehouse_stock ws
                 JOIN warehouse_products wp ON wp.id = ws.warehouse_product_id
                 WHERE ws.restaurant_id = ${restaurantId}::uuid
                   AND wp.is_active = true
