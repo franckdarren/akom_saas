@@ -4,7 +4,7 @@
 import { useState } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { UsersList } from './UsersList'
-import { RolesList } from '@/components/roles/RolesList'
+import { RolesList, type RoleItem } from '@/components/roles/RolesList'
 import { InviteUserButton } from './InviteUserButton'
 import { CreateRoleButton } from '@/components/roles/CreateRoleButton'
 import { PermissionGuard } from '@/components/permissions/PermissionGuard'
@@ -17,9 +17,10 @@ interface TeamManagementTabsProps {
      * Il est affiché sous UsersList dans le tab "Membres".
      */
     children?: ReactNode
+    roles: RoleItem[]
 }
 
-export function TeamManagementTabs({ children }: TeamManagementTabsProps) {
+export function TeamManagementTabs({ children, roles }: TeamManagementTabsProps) {
     const [activeTab, setActiveTab] = useState('members')
 
     return (
@@ -74,7 +75,7 @@ export function TeamManagementTabs({ children }: TeamManagementTabsProps) {
                         </div>
                     }
                 >
-                    <RolesList />
+                    <RolesList roles={roles} />
                 </PermissionGuard>
             </TabsContent>
         </Tabs>

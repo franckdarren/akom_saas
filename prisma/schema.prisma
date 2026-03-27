@@ -305,6 +305,7 @@ model RestaurantUser {
   restaurantId String    @map("restaurant_id") @db.Uuid
   role         UserRole?
   createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
   roleId       String?   @map("role_id") @db.Uuid
 
   // Relations
@@ -313,6 +314,7 @@ model RestaurantUser {
 
   @@unique([userId, restaurantId])
   @@index([userId])
+  @@index([restaurantId])
   @@map("restaurant_users")
 }
 
@@ -348,6 +350,10 @@ model Category {
   products   Product[]
   families   Family[]
 
+  @@unique([restaurantId, name])
+  @@index([restaurantId])
+  @@index([restaurantId, isActive])
+  @@index([restaurantId, position])
   @@map("categories")
 }
 
@@ -427,6 +433,7 @@ model Stock {
   productId      String   @unique @map("product_id") @db.Uuid
   quantity       Int      @default(0)
   alertThreshold Int      @default(5) @map("alert_threshold")
+  createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @updatedAt @map("updated_at")
 
   // Relations
@@ -481,18 +488,22 @@ model Order {
 }
 
 model OrderItem {
-  id          String @id @default(uuid()) @db.Uuid
-  orderId     String @map("order_id") @db.Uuid
-  productId   String @map("product_id") @db.Uuid
-  productName String @map("product_name")
+  id          String  @id @default(uuid()) @db.Uuid
+  orderId     String  @map("order_id") @db.Uuid
+  productId   String? @map("product_id") @db.Uuid // nullable : SetNull si le produit est supprimé
+  productName String  @map("product_name")        // dénormalisé pour conserver l'historique
   quantity    Int
-  unitPrice   Int    @map("unit_price") // Prix unitaire en FCFA au moment de la commande
+  unitPrice   Int     @map("unit_price") // Prix unitaire en FCFA au moment de la commande
 
   // Relations
-  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product Product @relation(fields: [productId], references: [id])
+  order   Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@index([orderId])
+  @@index([productId])
   @@map("order_items")
 }
 
@@ -515,6 +526,8 @@ model Payment {
   order      Order      @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   @@index([orderId])
+  @@index([restaurantId, status])
+  @@index([restaurantId, createdAt(sort: Desc)])
   @@map("payments")
 }
 
@@ -1002,7 +1015,7 @@ model WarehouseMovement {
   @@index([restaurantId])
   @@index([warehouseProductId])
   @@index([movementType])
-  @@index([createdAt])
+  @@index([restaurantId, createdAt(sort: Desc)])
   @@map("warehouse_movements")
 }
 
@@ -1076,6 +1089,7 @@ model CashSession {
   // pour le même restaurant. Prisma lèvera une erreur explicite si on essaie.
   @@unique([restaurantId, sessionDate])
   @@index([restaurantId, sessionDate(sort: Desc)])
+  @@index([restaurantId, status])
   @@map("cash_sessions")
 }
 
@@ -1107,6 +1121,7 @@ model ManualRevenue {
   // C'est CE champ qu'on utilise pour les filtres stats, jamais createdAt.
   revenueDate DateTime @map("revenue_date") @db.Date
   createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
   restaurant Restaurant  @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
   session    CashSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
@@ -1118,6 +1133,7 @@ model ManualRevenue {
   stockMovement   StockMovement? @relation("ManualRevenueStockMovement", fields: [stockMovementId], references: [id], onDelete: SetNull)
 
   @@index([restaurantId, sessionId])
+  @@index([restaurantId, revenueDate])
   @@map("manual_revenues")
 }
 
@@ -1140,6 +1156,7 @@ model Expense {
 
   expenseDate DateTime @map("expense_date") @db.Date
   createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
   restaurant Restaurant  @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
   session    CashSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
@@ -1150,5 +1167,6 @@ model Expense {
 
   @@index([restaurantId, sessionId])
   @@index([restaurantId, category])
+  @@index([restaurantId, expenseDate])
   @@map("expenses")
 }

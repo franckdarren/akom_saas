@@ -1,5 +1,12 @@
 'use client'
 
+declare global {
+    interface Window {
+        gtag?: (command: string, ...args: unknown[]) => void
+        fbq?: (command: string, ...args: unknown[]) => void
+    }
+}
+
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import {
@@ -317,8 +324,8 @@ export function CookieConsent() {
 
 function enableAnalytics() {
     // Exemple : Google Analytics
-    if (typeof window !== 'undefined' && (window as any).gtag) {
-        (window as any).gtag('consent', 'update', {
+    if (typeof window !== 'undefined' && window.gtag) {
+        window.gtag('consent', 'update', {
             analytics_storage: 'granted',
         })
     }
@@ -328,8 +335,8 @@ function enableAnalytics() {
 }
 
 function disableAnalytics() {
-    if (typeof window !== 'undefined' && (window as any).gtag) {
-        (window as any).gtag('consent', 'update', {
+    if (typeof window !== 'undefined' && window.gtag) {
+        window.gtag('consent', 'update', {
             analytics_storage: 'denied',
         })
     }
@@ -337,13 +344,13 @@ function disableAnalytics() {
 
 function enableMarketing() {
     // Exemple : Facebook Pixel
-    if (typeof window !== 'undefined' && (window as any).fbq) {
-        (window as any).fbq('consent', 'grant')
+    if (typeof window !== 'undefined' && window.fbq) {
+        window.fbq('consent', 'grant')
     }
     
     // Exemple : Google Ads
-    if (typeof window !== 'undefined' && (window as any).gtag) {
-        (window as any).gtag('consent', 'update', {
+    if (typeof window !== 'undefined' && window.gtag) {
+        window.gtag('consent', 'update', {
             ad_storage: 'granted',
             ad_user_data: 'granted',
             ad_personalization: 'granted',
@@ -352,12 +359,12 @@ function enableMarketing() {
 }
 
 function disableMarketing() {
-    if (typeof window !== 'undefined' && (window as any).fbq) {
-        (window as any).fbq('consent', 'revoke')
+    if (typeof window !== 'undefined' && window.fbq) {
+        window.fbq('consent', 'revoke')
     }
     
-    if (typeof window !== 'undefined' && (window as any).gtag) {
-        (window as any).gtag('consent', 'update', {
+    if (typeof window !== 'undefined' && window.gtag) {
+        window.gtag('consent', 'update', {
             ad_storage: 'denied',
             ad_user_data: 'denied',
             ad_personalization: 'denied',

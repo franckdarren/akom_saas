@@ -87,7 +87,14 @@ export async function getSupportStats() {
     await verifySuperAdmin()
 
     try {
-        const stats = await prisma.$queryRaw<any[]>`
+        interface SupportStatsRow {
+            total: number
+            open: number
+            in_progress: number
+            resolved: number
+            avg_hours: number
+        }
+        const stats = await prisma.$queryRaw<SupportStatsRow[]>`
             SELECT COUNT(*)::int as total, COUNT(*) FILTER (WHERE status = 'open')::int as open,
                 COUNT(*) FILTER (WHERE status = 'in_progress')::int as in_progress,
                 COUNT(*) FILTER (WHERE status = 'resolved')::int as resolved,

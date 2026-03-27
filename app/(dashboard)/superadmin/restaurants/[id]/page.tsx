@@ -1,4 +1,5 @@
 import { getRestaurantDetails } from '@/lib/actions/superadmin'
+import type { RestaurantUser } from '@/types/restaurant'
 import RestaurantDetailsClient from './RestaurantDetailsClient'
 import {
     Breadcrumb,
@@ -20,12 +21,7 @@ import Link from 'next/link'
 // Types
 // ----------------------------
 
-export type RestaurantUserType = {
-    id: string
-    userId: string
-    role: string
-    createdAt: Date
-}
+export type RestaurantUserType = RestaurantUser
 
 export type RestaurantDetailsType = {
     id: string
@@ -53,7 +49,7 @@ export type RestaurantDetailsType = {
 // ----------------------------
 
 interface PageProps {
-    params: { id?: string }
+    params: Promise<{ id?: string }>
 }
 
 export default async function RestaurantDetailsPage({ params }: PageProps) {
@@ -68,9 +64,9 @@ export default async function RestaurantDetailsPage({ params }: PageProps) {
             restaurantRaw.createdAt instanceof Date
                 ? restaurantRaw.createdAt.toISOString()
                 : restaurantRaw.createdAt,
-        users: restaurantRaw.users.map((user: any) => ({
+        users: restaurantRaw.users.map((user: RestaurantUser) => ({
             ...user,
-            role: user.role ?? '',
+            role: user.role ?? null,
         })),
     }
 

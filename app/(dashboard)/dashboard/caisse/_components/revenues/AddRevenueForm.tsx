@@ -96,8 +96,8 @@ export function AddRevenueForm({sessionId, products, onAdded, onCancel}: AddReve
                 toast.success('Recette enregistrée')
                 reset()
                 onAdded()
-            } catch (e: any) {
-                toast.error(e.message ?? 'Erreur lors de l\'enregistrement')
+            } catch (e) {
+                toast.error(e instanceof Error ? e.message : 'Erreur lors de l\'enregistrement')
             }
         })
     }

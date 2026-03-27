@@ -88,9 +88,9 @@ export function CartDialog({
             // Cela permet au client de revenir facilement au menu
             router.push(trackingUrl)
             
-        } catch (err: any) {
+        } catch (err) {
             console.error('❌ [CART] Erreur lors de la commande:', err)
-            setError(err.message || 'Une erreur est survenue')
+            setError(err instanceof Error ? err.message : 'Une erreur est survenue')
         } finally {
             setIsSubmitting(false)
         }

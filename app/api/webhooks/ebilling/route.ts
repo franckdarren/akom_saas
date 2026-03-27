@@ -3,6 +3,21 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
+import type { Prisma } from '@prisma/client'
+
+type SubscriptionPaymentWithSub = Prisma.SubscriptionPaymentGetPayload<{
+    include: { subscription: { include: { restaurant: true } } }
+}>
+type OrderPaymentWithOrder = Prisma.PaymentGetPayload<{
+    include: { order: true }
+}>
+interface EBillingPayload {
+    reference?: string
+    status?: string
+    payment_status?: string
+    error_message?: string
+    [key: string]: unknown
+}
 
 /**
  * Webhook eBilling - Point d'entrée des notifications de paiement
@@ -16,7 +31,7 @@ import { revalidatePath } from 'next/cache'
 
 export async function POST(request: NextRequest) {
     try {
-        const payload = await request.json()
+        const payload = await request.json() as EBillingPayload
 
         // Log pour debugging (à retirer en production)
         console.log('📥 Webhook eBilling reçu:', payload)
@@ -80,8 +95,8 @@ export async function POST(request: NextRequest) {
  * Gère la notification pour un paiement d'abonnement
  */
 async function handleSubscriptionPaymentWebhook(
-    payment: any,
-    payload: any
+    payment: SubscriptionPaymentWithSub,
+    payload: EBillingPayload
 ) {
     try {
         // eBilling envoie le statut du paiement dans le payload
@@ -144,7 +159,7 @@ async function handleSubscriptionPaymentWebhook(
 /**
  * Gère la notification pour un paiement de commande
  */
-async function handleOrderPaymentWebhook(payment: any, payload: any) {
+async function handleOrderPaymentWebhook(payment: OrderPaymentWithOrder, payload: EBillingPayload) {
     try {
         const paymentStatus = payload.status || payload.payment_status
 

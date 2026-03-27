@@ -39,7 +39,7 @@ export function PublicCatalogMenu(props: PublicCatalogMenuProps) {
             <MenuLayout
                 restaurantId={props.restaurantId}
                 restaurantSlug={props.restaurantSlug}
-                tableId={null as any} // Pas de table dans le contexte catalogue
+                tableId="" // Pas de table dans le contexte catalogue
                 tableNumber={0} // Pas de numéro de table
             />
 

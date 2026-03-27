@@ -244,16 +244,7 @@ export function TicketChatView({
 
             {/* Sidebar */}
             <div className="lg:col-span-1">
-                <TicketInfoSidebar
-                    ticket={{
-                        ...currentTicket,
-                        restaurant: {
-                            ...currentTicket.restaurant,
-                            email: currentTicket.restaurant.email || '',
-                            phone: currentTicket.restaurant.phone || '',
-                        },
-                    } as any}
-                />
+                <TicketInfoSidebar ticket={currentTicket} />
             </div>
         </div>
     )

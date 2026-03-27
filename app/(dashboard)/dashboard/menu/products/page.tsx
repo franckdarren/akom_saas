@@ -23,7 +23,11 @@ import {QuotaGuard} from "@/components/subscription/QuotaGuard"
 import {getQuotaStatus} from "@/lib/services/subscription-checker"
 import {getLabels} from "@/lib/config/activity-labels" // ← NOUVEAU
 
-export default async function ProductsPage() {
+export default async function ProductsPage({
+    searchParams,
+}: {
+    searchParams: Promise<{q?: string}>
+}) {
     const supabase = await createClient()
     const {data: {user}} = await supabase.auth.getUser()
 
@@ -47,16 +51,21 @@ export default async function ProductsPage() {
     // ← Calcul des labels
     const labels = getLabels(restaurantUser.restaurant.activityType)
 
+    const {q} = await searchParams
     const productsQuota = await getQuotaStatus(restaurantId, "max_products")
 
     const products = await prisma.product.findMany({
-        where: {restaurantId},
+        where: {
+            restaurantId,
+            ...(q ? {name: {contains: q, mode: 'insensitive'}} : {}),
+        },
         include: {
             category: {select: {name: true}},
             family: {select: {name: true}},
             stock: {select: {quantity: true}},
         },
         orderBy: {createdAt: "desc"},
+        take: 100,
     })
 
     const categories = await prisma.category.findMany({

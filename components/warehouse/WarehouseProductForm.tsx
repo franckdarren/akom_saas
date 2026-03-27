@@ -94,7 +94,7 @@ export function WarehouseProductForm({
      * crée une copie de l'état actuel et remplace uniquement le champ modifié,
      * ce qui est la méthode recommandée pour mettre à jour l'état en React.
      */
-    function handleChange(field: string, value: any) {
+    function handleChange(field: string, value: unknown) {
         setFormData(prev => ({...prev, [field]: value}))
     }
 

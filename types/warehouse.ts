@@ -148,9 +148,9 @@ export interface WarehouseMovement {
     performedBy: string | null
     notes: string | null
 
-    createdAt: Date
+    createdAt: Date | string
 
-    warehouseProduct?: WarehouseProduct
+    warehouseProduct?: Pick<WarehouseProduct, 'id' | 'name' | 'storageUnit'>
     user?: {
         id: string
         email: string

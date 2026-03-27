@@ -1,8 +1,6 @@
-// import prisma from '@/lib/prisma'
 "use client"
 
 import { useEffect, useState } from "react"
-import prisma from '../../lib/prisma'
 import { Card } from "@/components/ui/card"
 import { Star, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"

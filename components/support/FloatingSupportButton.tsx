@@ -116,7 +116,7 @@ export function FloatingSupportButton() {
         setView('list')
     }
 
-    const handleSendMessage = async (e: React.FormEvent) => {
+    const handleSendMessage = async (e: React.FormEvent | React.KeyboardEvent) => {
         e.preventDefault()
         if (!newMessage.trim() || !selectedTicket) return
 
@@ -442,7 +442,7 @@ export function FloatingSupportButton() {
                                         onKeyDown={(e) => {
                                             if (e.key === 'Enter' && !e.shiftKey) {
                                                 e.preventDefault()
-                                                handleSendMessage(e as any)
+                                                handleSendMessage(e)
                                             }
                                         }}
                                         placeholder="Votre message... (Entrée pour envoyer)"

@@ -89,7 +89,7 @@ export default async function PaymentPage({
     if (!restaurantUser) redirect('/dashboard')
 
     const restaurantId = restaurantUser.restaurant_id
-    const restaurantName = (restaurantUser.restaurants as any)?.name
+    const restaurantName = ((restaurantUser.restaurants as unknown) as { name: string } | null)?.name
 
     const plan = (params.plan as SubscriptionPlan) || 'starter'
     const billingCycle = parseBillingCycle(params.cycle)

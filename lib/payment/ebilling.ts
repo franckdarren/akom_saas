@@ -20,7 +20,7 @@ interface EBillingResponse {
     success: boolean
     billId?: string
     error?: string
-    data?: any
+    data?: Record<string, unknown>
 }
 
 /**

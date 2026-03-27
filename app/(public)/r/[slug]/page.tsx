@@ -1,25 +1,13 @@
 // app/(public)/r/[slug]/page.tsx
+import {cache} from 'react'
 import {notFound} from 'next/navigation'
 import prisma from '@/lib/prisma'
 import {PublicCatalogMenu} from './public-catalog-menu'
 
-/**
- * Page catalogue public du restaurant
- * Route: /r/[slug]
- *
- * Cette page affiche le même menu que celui accessible via QR table,
- * mais sans association à une table physique. Le client doit choisir
- * son mode de fulfillment au checkout (emporter ou réservation).
- */
-export default async function PublicCatalogPage({
-                                                    params,
-                                                }: {
-    params: Promise<{ slug: string }>
-}) {
-    const {slug} = await params
-
-    // Récupérer le restaurant
-    const restaurant = await prisma.restaurant.findUnique({
+// cache() déduplique la requête : generateMetadata et le composant page
+// partagent le même appel dans le même cycle de rendu Next.js
+const getRestaurantBySlug = cache(async (slug: string) =>
+    prisma.restaurant.findUnique({
         where: {slug, isActive: true},
         select: {
             id: true,
@@ -31,6 +19,19 @@ export default async function PublicCatalogPage({
             logoUrl: true,
         },
     })
+)
+
+/**
+ * Page catalogue public du restaurant
+ * Route: /r/[slug]
+ */
+export default async function PublicCatalogPage({
+                                                    params,
+                                                }: {
+    params: Promise<{ slug: string }>
+}) {
+    const {slug} = await params
+    const restaurant = await getRestaurantBySlug(slug)
 
     if (!restaurant) {
         notFound()
@@ -55,11 +56,7 @@ export async function generateMetadata({
     params: Promise<{ slug: string }>
 }) {
     const {slug} = await params
-
-    const restaurant = await prisma.restaurant.findUnique({
-        where: {slug},
-        select: {name: true},
-    })
+    const restaurant = await getRestaurantBySlug(slug)
 
     return {
         title: restaurant ? `${restaurant.name} - Menu en ligne` : 'Menu',

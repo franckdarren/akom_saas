@@ -185,29 +185,37 @@ async function getOrdersStats(
 // ============================================================
 
 async function getStockAlerts(restaurantId: string): Promise<StockAlert[]> {
-    const allStocks = await prisma.stock.findMany({
-        where: {restaurantId},
-        include: {
-            product: {
-                select: {
-                    name: true,
-                    category: {select: {name: true}},
-                },
-            },
-        },
-        orderBy: {quantity: 'asc'},
-    })
+    // Filtre quantity <= alert_threshold directement en SQL (Prisma ne supporte pas
+    // les comparaisons colonne-à-colonne dans where)
+    const alerts = await prisma.$queryRaw<{
+        productId: string
+        productName: string
+        currentQuantity: number
+        alertThreshold: number
+        categoryName: string | null
+    }[]>`
+        SELECT
+            s.product_id      AS "productId",
+            p.name            AS "productName",
+            s.quantity        AS "currentQuantity",
+            s.alert_threshold AS "alertThreshold",
+            c.name            AS "categoryName"
+        FROM stocks s
+        JOIN products p ON p.id = s.product_id
+        LEFT JOIN categories c ON c.id = p.category_id
+        WHERE s.restaurant_id = ${restaurantId}::uuid
+          AND s.quantity <= s.alert_threshold
+        ORDER BY s.quantity ASC
+        LIMIT 10
+    `
 
-    return allStocks
-        .filter(stock => stock.quantity <= stock.alertThreshold)
-        .slice(0, 10)
-        .map((alert) => ({
-            productId: alert.productId,
-            productName: alert.product.name,
-            currentQuantity: alert.quantity,
-            alertThreshold: alert.alertThreshold,
-            categoryName: alert.product.category?.name || null,
-        }))
+    return alerts.map((a) => ({
+        productId: a.productId,
+        productName: a.productName,
+        currentQuantity: Number(a.currentQuantity),
+        alertThreshold: Number(a.alertThreshold),
+        categoryName: a.categoryName,
+    }))
 }
 
 // ============================================================
@@ -276,20 +284,25 @@ async function getTopProducts(
 ): Promise<TopProduct[]> {
     const {startDate, endDate} = getPeriodRange(period, customPeriod)
 
-    const topProducts = await prisma.orderItem.groupBy({
-        by: ['productId', 'productName'],
-        where: {
-            order: {
-                restaurantId,
-                status: {notIn: ['cancelled']},
-                createdAt: {gte: startDate, lte: endDate},
-            },
-        },
-        _sum: {quantity: true, unitPrice: true},
-        _count: true,
-        orderBy: {_sum: {quantity: 'desc'}},
-        take: limit,
-    })
+    // groupBy ne permet pas SUM(quantity * unit_price) — on utilise $queryRaw
+    const topProducts = await prisma.$queryRaw<
+        {productId: string; productName: string; quantitySold: bigint; revenue: bigint}[]
+    >`
+        SELECT
+            oi.product_id                            AS "productId",
+            oi.product_name                          AS "productName",
+            SUM(oi.quantity)::bigint                 AS "quantitySold",
+            SUM(oi.quantity * oi.unit_price)::bigint AS "revenue"
+        FROM order_items oi
+        JOIN orders o ON o.id = oi.order_id
+        WHERE o.restaurant_id = ${restaurantId}::uuid
+          AND o.status NOT IN ('cancelled')
+          AND o.created_at >= ${startDate}
+          AND o.created_at <= ${endDate}
+        GROUP BY oi.product_id, oi.product_name
+        ORDER BY SUM(oi.quantity) DESC
+        LIMIT ${limit}
+    `
 
     const productIds = topProducts.map((p) => p.productId)
     const products = await prisma.product.findMany({
@@ -304,8 +317,8 @@ async function getTopProducts(
     return topProducts.map((item) => ({
         productId: item.productId,
         productName: item.productName,
-        quantitySold: item._sum.quantity || 0,
-        revenue: (item._sum.quantity || 0) * (item._sum.unitPrice || 0),
+        quantitySold: Number(item.quantitySold),
+        revenue: Number(item.revenue),
         categoryName: categoryMap.get(item.productId) || null,
     }))
 }
@@ -321,53 +334,40 @@ async function getSalesByCategory(
 ): Promise<CategorySales[]> {
     const {startDate, endDate} = getPeriodRange(period, customPeriod)
 
-    const orderItems = await prisma.orderItem.findMany({
-        where: {
-            order: {
-                restaurantId,
-                status: {notIn: ['cancelled']},
-                createdAt: {gte: startDate, lte: endDate},
-            },
-        },
-        include: {
-            product: {
-                select: {
-                    categoryId: true,
-                    category: {select: {name: true}},
-                },
-            },
-        },
-    })
+    const rows = await prisma.$queryRaw<{
+        categoryId: string | null
+        categoryName: string | null
+        revenue: bigint
+        ordersCount: bigint
+    }[]>`
+        SELECT
+            p.category_id                            AS "categoryId",
+            c.name                                   AS "categoryName",
+            SUM(oi.quantity * oi.unit_price)::bigint AS "revenue",
+            COUNT(oi.id)::bigint                     AS "ordersCount"
+        FROM order_items oi
+        JOIN orders o ON o.id = oi.order_id
+        JOIN products p ON p.id = oi.product_id
+        LEFT JOIN categories c ON c.id = p.category_id
+        WHERE o.restaurant_id = ${restaurantId}::uuid
+          AND o.status NOT IN ('cancelled')
+          AND o.created_at >= ${startDate}
+          AND o.created_at <= ${endDate}
+        GROUP BY p.category_id, c.name
+        ORDER BY SUM(oi.quantity * oi.unit_price) DESC
+    `
 
-    const categoryMap = new Map<string, { name: string; revenue: number; count: number }>()
+    const totalRevenue = rows.reduce((sum, r) => sum + Number(r.revenue), 0)
 
-    orderItems.forEach((item) => {
-        const categoryId = item.product.categoryId || 'uncategorized'
-        const categoryName = item.product.category?.name || 'Sans catégorie'
-        const revenue = item.quantity * item.unitPrice
-        const existing = categoryMap.get(categoryId) || {name: categoryName, revenue: 0, count: 0}
-        categoryMap.set(categoryId, {
-            name: categoryName,
-            revenue: existing.revenue + revenue,
-            count: existing.count + 1,
-        })
-    })
-
-    const totalRevenue = Array.from(categoryMap.values()).reduce(
-        (sum, cat) => sum + cat.revenue, 0
-    )
-
-    return Array.from(categoryMap.entries())
-        .map(([categoryId, data]) => ({
-            categoryId: categoryId === 'uncategorized' ? null : categoryId,
-            categoryName: data.name,
-            revenue: data.revenue,
-            ordersCount: data.count,
-            percentage: totalRevenue > 0
-                ? Math.round((data.revenue / totalRevenue) * 100)
-                : 0,
-        }))
-        .sort((a, b) => b.revenue - a.revenue)
+    return rows.map((r) => ({
+        categoryId: r.categoryId ?? null,
+        categoryName: r.categoryName ?? 'Sans catégorie',
+        revenue: Number(r.revenue),
+        ordersCount: Number(r.ordersCount),
+        percentage: totalRevenue > 0
+            ? Math.round((Number(r.revenue) / totalRevenue) * 100)
+            : 0,
+    }))
 }
 
 // ============================================================

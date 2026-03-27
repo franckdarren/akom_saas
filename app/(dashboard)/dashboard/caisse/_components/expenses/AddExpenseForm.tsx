@@ -101,8 +101,8 @@ export function AddExpenseForm({
                 toast.success('Dépense enregistrée')
                 reset()
                 onAdded()
-            } catch (e: any) {
-                toast.error(e.message ?? "Erreur lors de l'enregistrement")
+            } catch (e) {
+                toast.error(e instanceof Error ? e.message : "Erreur lors de l'enregistrement")
             }
         })
     }

@@ -201,7 +201,7 @@ export function ProductsList({products}: { products: Product[] }) {
                                     {product.hasStock && product.stock && (
                                         <div className="flex items-center justify-between">
                                             <span className="text-muted-foreground">Stock</span>
-                                            <Badge variant={availability.variant as any} className="text-xs">
+                                            <Badge variant={availability.variant} className="text-xs">
                                                 {availability.status}
                                             </Badge>
                                         </div>

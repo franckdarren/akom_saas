@@ -15,7 +15,8 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table'
-import { Badge } from '@/components/ui/badge'
+import { Badge, badgeVariants } from '@/components/ui/badge'
+import type { VariantProps } from 'class-variance-authority'
 import {
     Breadcrumb,
     BreadcrumbList,
@@ -27,7 +28,7 @@ import {
 import { Suspense } from 'react'
 import { Separator } from '@/components/ui/separator'
 import { SidebarTrigger } from '@/components/ui/sidebar'
-import { Info, AlertTriangle, XCircle, AlertOctagon } from 'lucide-react'
+import { Info, AlertTriangle, XCircle, AlertOctagon, type LucideIcon } from 'lucide-react'
 
 export default async function LogsPage() {
     const [logs, stats] = await Promise.all([getLogs(), getLogsStats()])
@@ -35,7 +36,7 @@ export default async function LogsPage() {
     function getLevelBadge(level: string) {
         const variants: Record<
             string,
-            { label: string; variant: any; icon: any }
+            { label: string; variant: VariantProps<typeof badgeVariants>['variant']; icon: LucideIcon }
         > = {
             info: {
                 label: 'Info',

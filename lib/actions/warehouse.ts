@@ -3,6 +3,7 @@
 import {getCurrentUserAndRestaurant} from '@/lib/auth/session'
 import prisma from '@/lib/prisma'
 import {revalidatePath} from 'next/cache'
+import type {Prisma} from '@prisma/client'
 
 // ============================================================
 // Action 1 : Créer un produit d'entrepôt
@@ -47,7 +48,7 @@ export async function createWarehouseProduct(data: {
                     description: data.description,
                     storageUnit: data.storageUnit,
                     unitsPerStorage: data.unitsPerStorage,
-                    category: data.category,
+                    category: data.category?.trim().toLowerCase() ?? null,
                     imageUrl: data.imageUrl,
                     linkedProductId: data.linkedProductId,
                     conversionRatio: data.conversionRatio || 1,
@@ -391,38 +392,36 @@ export async function getWarehouseStats() {
     try {
         const {restaurantId} = await getCurrentUserAndRestaurant()
 
-        const products = await prisma.warehouseProduct.findMany({
-            where: {restaurantId, isActive: true},
-            include: {stock: true},
-        })
+        const [totalProducts, lastInventory, aggregates] = await Promise.all([
+            prisma.warehouseProduct.count({where: {restaurantId, isActive: true}}),
+            prisma.warehouseStock.findFirst({
+                where: {restaurantId},
+                orderBy: {lastInventoryDate: 'desc'},
+                select: {lastInventoryDate: true},
+            }),
+            prisma.$queryRaw<{totalValue: number; lowStockCount: bigint}[]>`
+                SELECT
+                    COALESCE(SUM(ws.quantity * ws.unit_cost), 0)                                   AS "totalValue",
+                    COUNT(CASE WHEN ws.quantity < ws.alert_threshold THEN 1 END)::bigint           AS "lowStockCount"
+                FROM warehouse_stocks ws
+                JOIN warehouse_products wp ON wp.id = ws.warehouse_product_id
+                WHERE ws.restaurant_id = ${restaurantId}::uuid
+                  AND wp.is_active = true
+            `,
+        ])
 
-        const stats = {
-            totalProducts: products.length,
-            totalValue: products.reduce((sum, product) => {
-                const stock = product.stock[0]
-                if (!stock || !stock.unitCost) return sum
-                return sum + Number(stock.quantity) * Number(stock.unitCost)
-            }, 0),
-            lowStockCount: products.filter((product) => {
-                const stock = product.stock[0]
-                if (!stock) return false
-                return Number(stock.quantity) < Number(stock.alertThreshold)
-            }).length,
-            averageStockValue: 0,
-            lastInventoryDate: products.reduce((latest, product) => {
-                const stock = product.stock[0]
-                if (!stock?.lastInventoryDate) return latest
-                if (!latest || stock.lastInventoryDate > latest) {
-                    return stock.lastInventoryDate
-                }
-                return latest
-            }, null as Date | null),
+        const {totalValue, lowStockCount} = aggregates[0] ?? {totalValue: 0, lowStockCount: BigInt(0)}
+
+        return {
+            success: true,
+            data: {
+                totalProducts,
+                totalValue: Number(totalValue),
+                lowStockCount: Number(lowStockCount),
+                averageStockValue: totalProducts > 0 ? Number(totalValue) / totalProducts : 0,
+                lastInventoryDate: lastInventory?.lastInventoryDate ?? null,
+            },
         }
-
-        stats.averageStockValue =
-            stats.totalProducts > 0 ? stats.totalValue / stats.totalProducts : 0
-
-        return {success: true, data: stats}
     } catch (error) {
         console.error('Erreur récupération stats:', error)
         return {error: 'Erreur lors de la récupération des statistiques'}
@@ -443,7 +442,7 @@ export async function getWarehouseProducts(filters?: {
     try {
         const {restaurantId} = await getCurrentUserAndRestaurant()
 
-        const whereConditions: any = {
+        const whereConditions: Prisma.WarehouseProductWhereInput = {
             restaurantId,
             isActive: true,
         }
@@ -791,7 +790,7 @@ export async function updateWarehouseProduct(data: {
                     description: data.description,
                     storageUnit: data.storageUnit,
                     unitsPerStorage: data.unitsPerStorage,
-                    category: data.category,
+                    category: data.category?.trim().toLowerCase() ?? null,
                     imageUrl: data.imageUrl,
                     linkedProductId: data.linkedProductId,
                     conversionRatio: data.conversionRatio,

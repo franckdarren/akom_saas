@@ -146,13 +146,11 @@ export default async function OrderTrackingPage({ params }: PageProps) {
                 table={tableData}
             />
         )
-    } catch (error: any) {
+    } catch (error) {
         console.error('💥 Erreur inattendue:', error)
 
-        if (
-            error?.digest?.includes('NEXT_NOT_FOUND') ||
-            error?.digest?.includes('NEXT_REDIRECT')
-        ) throw error
+        const digest = (error as {digest?: string})?.digest
+        if (digest?.includes('NEXT_NOT_FOUND') || digest?.includes('NEXT_REDIRECT')) throw error
 
         notFound()
     }

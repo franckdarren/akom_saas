@@ -11,11 +11,11 @@ export function formatPrice(price: number) {
 // Formatage de la date
 // ============================================================
 
-export function formatDate(date: Date): string {
+export function formatDate(date: Date | string): string {
     return new Intl.DateTimeFormat('fr-FR', {
         dateStyle: 'medium',
         timeStyle: 'short',
-    }).format(date)
+    }).format(typeof date === 'string' ? new Date(date) : date)
 }
 
 

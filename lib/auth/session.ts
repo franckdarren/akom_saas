@@ -3,8 +3,8 @@ import { cookies } from 'next/headers'
 
 /**
  * Récupère l'utilisateur connecté et son restaurant actif.
- * Cette fonction est utilisée dans toutes les Server Actions pour vérifier
- * les permissions et récupérer le contexte restaurant.
+ * Utilise le cookie akom_current_restaurant_id pour identifier le restaurant
+ * sélectionné, ce qui est nécessaire pour les utilisateurs multi-restaurants.
  */
 export async function getCurrentUserAndRestaurant() {
     const cookieStore = await cookies()
@@ -28,16 +28,23 @@ export async function getCurrentUserAndRestaurant() {
         throw new Error('Non authentifié')
     }
 
-    // Récupérer le restaurant associé à cet utilisateur
-    // Note : Vous devrez adapter cette requête selon votre schéma exact
+    // Lire le restaurant actif depuis le cookie (requis pour les utilisateurs multi-restaurants)
+    const currentRestaurantId = cookieStore.get('akom_current_restaurant_id')?.value
+
+    if (!currentRestaurantId) {
+        throw new Error('Aucun restaurant sélectionné')
+    }
+
+    // Vérifier que l'utilisateur appartient bien à ce restaurant
     const { data: restaurantUser } = await supabase
         .from('restaurant_users')
         .select('restaurant_id')
         .eq('user_id', user.id)
+        .eq('restaurant_id', currentRestaurantId)
         .single()
 
     if (!restaurantUser) {
-        throw new Error('Aucun restaurant associé')
+        throw new Error('Accès refusé à ce restaurant')
     }
 
     return {

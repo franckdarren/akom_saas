@@ -35,12 +35,12 @@ export async function middleware(request: NextRequest) {
                 setTimeout(() => reject(new Error('Supabase timeout')), 5000)
             ),
         ])
-        user = (result as any)?.data?.user ?? null
+        user = result.data.user ?? null
     } catch (err) {
         console.error('❌ Middleware auth error:', err)
-        // En cas d'erreur réseau → laisser passer sans bloquer
-        // (la page elle-même vérifiera l'auth)
-        return supabaseResponse
+        const url = request.nextUrl.clone()
+        url.pathname = '/login'
+        return NextResponse.redirect(url)
     }
 
     const {pathname} = request.nextUrl
@@ -139,8 +139,9 @@ export async function middleware(request: NextRequest) {
             }
         } catch (err) {
             console.error('❌ Middleware restaurant query error:', err)
-            // En cas d'erreur → laisser passer
-            return supabaseResponse
+            const url = request.nextUrl.clone()
+            url.pathname = '/login'
+            return NextResponse.redirect(url)
         }
 
         if (!restaurantId) {
@@ -182,8 +183,9 @@ export async function middleware(request: NextRequest) {
             }
         } catch (err) {
             console.error('❌ Middleware subscription query error:', err)
-            // En cas d'erreur → laisser passer plutôt que de bloquer
-            return supabaseResponse
+            const url = request.nextUrl.clone()
+            url.pathname = '/dashboard/subscription/expired'
+            return NextResponse.redirect(url)
         }
     }
 

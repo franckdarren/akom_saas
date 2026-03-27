@@ -30,17 +30,19 @@ export const metadata: Metadata = {
 }
 
 export default async function WarehousePage({
-                                                searchParams,
-                                            }: {
-    searchParams: {
+    searchParams: searchParamsPromise,
+}: {
+    searchParams: Promise<{
         category?: string
         storageUnit?: string
         lowStock?: string
         search?: string
-    }
+    }>
 }) {
-    // Récupérer le restaurantId pour la protection
-    const {restaurantId} = await getCurrentUserAndRestaurant()
+    const [{ restaurantId }, searchParams] = await Promise.all([
+        getCurrentUserAndRestaurant(),
+        searchParamsPromise,
+    ])
 
     // Récupérer les statistiques du magasin
     const statsResult = await getWarehouseStats()

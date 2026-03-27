@@ -174,7 +174,7 @@ function getMovementConfig(type: string) {
 /**
  * Formate une date de manière lisible.
  */
-function formatDate(date: Date): string {
+function formatDate(date: Date | string): string {
     const d = new Date(date)
     const now = new Date()
     const diffInHours = (now.getTime() - d.getTime()) / (1000 * 60 * 60)

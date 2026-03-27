@@ -46,8 +46,8 @@ export async function addManualRevenue(input: AddRevenueInput) {
         let stockMovementId: string | undefined
 
         if (revenueType === RevenueType.good && input.productId) {
-            const currentStock = await tx.stock.findFirst({
-                where: {productId: input.productId, restaurantId},
+            const currentStock = await tx.stock.findUnique({
+                where: {restaurantId_productId: {restaurantId, productId: input.productId}},
             })
 
             if (!currentStock) throw new Error('Produit introuvable dans le stock')

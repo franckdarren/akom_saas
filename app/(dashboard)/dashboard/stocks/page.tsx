@@ -16,7 +16,11 @@ import {StocksList} from './stocks-list'
 import {getUserRole} from "@/lib/actions/auth"
 import {getLabels} from "@/lib/config/activity-labels" // ← NOUVEAU
 
-export default async function StocksPage() {
+export default async function StocksPage({
+    searchParams,
+}: {
+    searchParams: Promise<{q?: string}>
+}) {
     const supabase = await createClient()
     const {data: {user}} = await supabase.auth.getUser()
 
@@ -35,11 +39,14 @@ export default async function StocksPage() {
 
     if (!restaurantUser) redirect('/onboarding')
 
-    // ← Calcul des labels
+    const {q} = await searchParams
     const labels = getLabels(restaurantUser.restaurant.activityType)
 
     const stocks = await prisma.stock.findMany({
-        where: {restaurantId: restaurantUser.restaurantId},
+        where: {
+            restaurantId: restaurantUser.restaurantId,
+            ...(q ? {product: {name: {contains: q, mode: 'insensitive'}}} : {}),
+        },
         include: {
             product: {
                 select: {
@@ -55,6 +62,7 @@ export default async function StocksPage() {
         orderBy: {
             product: {name: 'asc'},
         },
+        take: 100,
     })
 
     return (

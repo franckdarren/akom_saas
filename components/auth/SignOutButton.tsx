@@ -44,10 +44,10 @@ export function SignOutButton({
             await signOut()
 
             // NE PAS AJOUTER router.push() ICI
-        } catch (error: any) {
+        } catch (error) {
             // Important : redirect() lève une erreur spéciale que Next.js utilise.
             // On vérifie si c'est une vraie erreur ou juste la redirection.
-            if (error.message !== 'NEXT_REDIRECT') {
+            if (!(error instanceof Error) || error.message !== 'NEXT_REDIRECT') {
                 console.error('Erreur déconnexion:', error)
                 toast.error('Erreur lors de la déconnexion')
                 setLoading(false)

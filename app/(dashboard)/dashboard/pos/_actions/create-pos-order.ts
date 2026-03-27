@@ -5,7 +5,13 @@ import prisma from '@/lib/prisma'
 import {getCurrentUserAndRestaurant} from '@/lib/auth/session'
 import {revalidatePath} from 'next/cache'
 import {OrderSource, OrderStatus, PaymentStatus, PaymentTiming, PaymentMethod} from '@prisma/client'
-import type {POSOrderPayload} from '../_types'
+import type {POSOrderPayload, POSPaymentMethod} from '../_types'
+
+const PAYMENT_METHOD_MAP: Record<POSPaymentMethod, PaymentMethod> = {
+    cash: PaymentMethod.cash,
+    airtel_money: PaymentMethod.airtel_money,
+    moov_money: PaymentMethod.moov_money,
+}
 
 export async function createPOSOrder(payload: POSOrderPayload) {
     const {userId, restaurantId} = await getCurrentUserAndRestaurant()
@@ -70,21 +76,20 @@ export async function createPOSOrder(payload: POSOrderPayload) {
             },
         })
 
-        // 2. Items + total
+        // 2. Items + total — createMany évite N requêtes individuelles
         let totalAmount = 0
-        for (const item of payload.items) {
+        const itemsData = payload.items.map((item) => {
             const p = productMap.get(item.productId)!
-            await tx.orderItem.create({
-                data: {
-                    orderId: newOrder.id,
-                    productId: item.productId,
-                    productName: p.name,
-                    quantity: item.quantity,
-                    unitPrice: p.price as number,
-                },
-            })
             totalAmount += (p.price as number) * item.quantity
-        }
+            return {
+                orderId: newOrder.id,
+                productId: item.productId,
+                productName: p.name,
+                quantity: item.quantity,
+                unitPrice: p.price as number,
+            }
+        })
+        await tx.orderItem.createMany({data: itemsData})
         await tx.order.update({where: {id: newOrder.id}, data: {totalAmount}})
 
         // 3. Paiement
@@ -95,7 +100,7 @@ export async function createPOSOrder(payload: POSOrderPayload) {
                 amount: totalAmount,
                 // pay_now  → méthode choisie, statut paid
                 // pay_later → cash placeholder, statut pending (mis à jour via "Encaisser")
-                method: isPayNow ? payload.paymentMethod! as unknown as PaymentMethod : PaymentMethod.cash,
+                method: isPayNow ? PAYMENT_METHOD_MAP[payload.paymentMethod!] : PaymentMethod.cash,
                 status: isPayNow ? PaymentStatus.paid : PaymentStatus.pending,
                 timing: PaymentTiming.after_meal,
             },
@@ -113,8 +118,8 @@ export async function createPOSOrder(payload: POSOrderPayload) {
                     data: {quantity: {decrement: item.quantity}},
                 })
 
-                const updated = await tx.stock.findFirst({
-                    where: {productId: item.productId, restaurantId},
+                const updated = await tx.stock.findUnique({
+                    where: {restaurantId_productId: {restaurantId, productId: item.productId}},
                     select: {quantity: true},
                 })
                 if ((updated?.quantity ?? 0) <= 0) {

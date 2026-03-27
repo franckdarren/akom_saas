@@ -1,8 +1,9 @@
 // types/auth.ts
 import type {User} from '@supabase/supabase-js'
+import type {UserRole, SubscriptionPlan, SubscriptionStatus} from '@prisma/client'
 
-// Rôles utilisateur
-export type UserRole = 'admin' | 'cashier' | 'kitchen'
+// UserRole ré-exporté depuis Prisma — se met à jour automatiquement avec le schéma
+export type {UserRole}
 export type SystemRole = 'superadmin' | UserRole
 
 // Utilisateur avec ses restaurants
@@ -19,10 +20,10 @@ export interface RestaurantWithRole {
     role: UserRole
     isActive: boolean
     activityType?: string | null
-    // ✅ Ajout : exposé par getUserRestaurants pour FeatureGate et RestaurantSwitcher
+    // Exposé par getUserRestaurants pour FeatureGate et RestaurantSwitcher
     subscription?: {
-        plan: string
-        status: string
+        plan: SubscriptionPlan
+        status: SubscriptionStatus
     } | null
 }
 

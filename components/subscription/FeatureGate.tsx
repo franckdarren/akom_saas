@@ -34,7 +34,7 @@ export function FeatureGate({
 
     // Le plan est exposé via currentRestaurant.subscription
     // (getUserRestaurants inclut subscription: { plan, status })
-    const currentPlan = (currentRestaurant as any)?.subscription?.plan as SubscriptionPlan | undefined
+    const currentPlan = currentRestaurant?.subscription?.plan
 
     if (!currentPlan) {
         return null

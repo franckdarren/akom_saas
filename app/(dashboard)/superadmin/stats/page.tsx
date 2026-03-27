@@ -7,8 +7,10 @@ import {
 import { formatPrice, formatNumber } from '@/lib/utils/format'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { StatsChart } from '@/components/superadmin/StatsChart' // client component
-import { ExportStatsButton } from '@/components/superadmin/ExportStatsButton' // client component
+import dynamic from 'next/dynamic'
+import { Skeleton } from '@/components/ui/skeleton'
+const StatsChart = dynamic(() => import('@/components/superadmin/StatsChart').then(m => ({default: m.StatsChart})), {ssr: false, loading: () => <Skeleton className="h-64 w-full rounded-xl" />})
+const ExportStatsButton = dynamic(() => import('@/components/superadmin/ExportStatsButton').then(m => ({default: m.ExportStatsButton})), {ssr: false})
 import { TrendingUp, Package, Activity } from 'lucide-react'
 import {
     Breadcrumb,
@@ -27,7 +29,7 @@ import { SidebarTrigger } from '@/components/ui/sidebar'
 export type TopRestaurant = { id: string; name: string; ordersCount: number; revenue: number }
 export type TopProduct = { productName: string; totalQuantity: number; totalRevenue: number }
 export type RealTimeStats = { ordersLast24h: number; revenueLast24h: number; activeRestaurants: number }
-export type MonthlyStats = any[]
+export type MonthlyStats = Awaited<ReturnType<typeof getStatsByPeriod>>
 
 export default async function StatsPage() {
     const [monthlyStats, topRestaurants, topProducts, realTimeStats] = await Promise.all([

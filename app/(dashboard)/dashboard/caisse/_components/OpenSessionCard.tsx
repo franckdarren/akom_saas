@@ -53,11 +53,12 @@ export function OpenSessionCard({
                         : 'Caisse ouverte avec succès'
                 )
                 onSessionCreated(result.session as SessionWithRelations)
-            } catch (e: any) {
-                if (e.message?.includes('P2002') || e.message?.includes('Unique')) {
+            } catch (e) {
+                const msg = e instanceof Error ? e.message : ''
+                if (msg.includes('P2002') || msg.includes('Unique')) {
                     toast.error('Une session existe déjà pour cette date')
                 } else {
-                    toast.error(e.message ?? 'Une erreur est survenue')
+                    toast.error(msg || 'Une erreur est survenue')
                 }
             }
         })

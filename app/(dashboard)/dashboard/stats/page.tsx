@@ -1,15 +1,11 @@
 // app/(dashboard)/dashboard/stats/page.tsx
-'use client'
-
-import { useState, useEffect } from 'react'
+import { Suspense } from 'react'
 import { StatsCard } from '@/components/dashboard/stats/StatsCard'
-import { RevenueChart } from '@/components/dashboard/stats/RevenueChart'
-import { TopProductsChart } from '@/components/dashboard/stats/TopProductsChart'
-import { CategoryPieChart } from '@/components/dashboard/stats/CategoryPieChart'
+import dynamic from 'next/dynamic'
 import { RecentOrdersTable } from '@/components/dashboard/stats/RecentOrdersTable'
-import { PeriodFilter } from '@/components/dashboard/stats/PeriodFilter'
+import { PeriodFilterNav } from '@/components/dashboard/stats/PeriodFilterNav'
 import { getDashboardStats } from '@/lib/actions/stats'
-import { TIME_PERIODS, type TimePeriod, type DashboardStats } from '@/types/stats'
+import { TIME_PERIODS, type TimePeriod } from '@/types/stats'
 import { DollarSign, ShoppingCart, TrendingUp, Package } from 'lucide-react'
 import { formatPrice } from '@/lib/utils/format'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -24,52 +20,21 @@ import {
     BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
 
-export default function StatsPage() {
-    const [period, setPeriod] = useState<TimePeriod>(TIME_PERIODS.TODAY)
-    const [stats, setStats] = useState<DashboardStats | null>(null)
-    const [loading, setLoading] = useState(true)
+const RevenueChart = dynamic(() => import('@/components/dashboard/stats/RevenueChart').then(m => ({default: m.RevenueChart})), {ssr: false, loading: () => <Skeleton className="h-64 w-full rounded-xl" />})
+const TopProductsChart = dynamic(() => import('@/components/dashboard/stats/TopProductsChart').then(m => ({default: m.TopProductsChart})), {ssr: false, loading: () => <Skeleton className="h-64 w-full rounded-xl" />})
+const CategoryPieChart = dynamic(() => import('@/components/dashboard/stats/CategoryPieChart').then(m => ({default: m.CategoryPieChart})), {ssr: false, loading: () => <Skeleton className="h-64 w-full rounded-xl" />})
 
-    // Charger les stats
-    useEffect(() => {
-        async function loadStats() {
-            setLoading(true)
-            try {
-                const data = await getDashboardStats(period)
-                setStats(data)
-            } catch (error) {
-                console.error('Erreur chargement stats:', error)
-            } finally {
-                setLoading(false)
-            }
-        }
+const VALID_PERIODS = new Set<string>([TIME_PERIODS.TODAY, TIME_PERIODS.WEEK, TIME_PERIODS.MONTH])
 
-        loadStats()
-    }, [period])
+interface PageProps {
+    searchParams: Promise<{period?: string}>
+}
 
-    if (loading) {
-        return (
-            <div className="space-y-6 p-6">
-                {/* Header Skeleton */}
-                <div className="flex items-center justify-between">
-                    <Skeleton className="h-8 w-48" />
-                    <Skeleton className="h-10 w-40" />
-                </div>
+export default async function StatsPage({ searchParams }: PageProps) {
+    const { period: rawPeriod } = await searchParams
+    const period: TimePeriod = VALID_PERIODS.has(rawPeriod ?? '') ? (rawPeriod as TimePeriod) : TIME_PERIODS.TODAY
 
-                {/* KPI Cards Skeleton */}
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                    {[1, 2, 3, 4].map((i) => (
-                        <Skeleton key={i} className="h-32" />
-                    ))}
-                </div>
-
-                {/* Charts Skeleton */}
-                <div className="grid gap-6 md:grid-cols-2">
-                    <Skeleton className="h-80" />
-                    <Skeleton className="h-80" />
-                </div>
-            </div>
-        )
-    }
+    const stats = await getDashboardStats(period)
 
     if (!stats) {
         return (
@@ -81,7 +46,6 @@ export default function StatsPage() {
 
     return (
         <>
-            {/* Header avec breadcrumb */}
             <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
                 <SidebarTrigger className="-ml-1" />
                 <Separator orientation="vertical" className="mr-2 h-4" />
@@ -98,11 +62,9 @@ export default function StatsPage() {
                         </BreadcrumbList>
                     </div>
                 </div>
-
-            </header >
+            </header>
 
             <div className="space-y-6 p-6">
-                {/* Header */}
                 <div className="flex items-center justify-between">
                     <div>
                         <h1 className="text-2xl font-bold">Statistiques</h1>
@@ -110,7 +72,9 @@ export default function StatsPage() {
                             Analysez les performances de votre structure
                         </p>
                     </div>
-                    <PeriodFilter value={period} onChange={setPeriod} />
+                    <Suspense>
+                        <PeriodFilterNav value={period} />
+                    </Suspense>
                 </div>
 
                 {/* KPI Cards */}
@@ -161,7 +125,6 @@ export default function StatsPage() {
                 <div className="grid gap-6 md:grid-cols-2">
                     <CategoryPieChart data={stats.categorySales} />
 
-                    {/* Stock Alerts */}
                     {stats.stockAlerts.length > 0 && (
                         <div className="rounded-xl border bg-white p-6 shadow-sm dark:bg-zinc-900">
                             <h3 className="mb-4 text-base font-semibold">
@@ -174,22 +137,16 @@ export default function StatsPage() {
                                         className="flex items-center justify-between rounded-lg border border-amber-200 bg-amber-50 p-3 dark:border-amber-900 dark:bg-amber-950/30"
                                     >
                                         <div>
-                                            <p className="text-sm font-medium">
-                                                {alert.productName}
-                                            </p>
+                                            <p className="text-sm font-medium">{alert.productName}</p>
                                             {alert.categoryName && (
-                                                <p className="text-xs text-zinc-500">
-                                                    {alert.categoryName}
-                                                </p>
+                                                <p className="text-xs text-zinc-500">{alert.categoryName}</p>
                                             )}
                                         </div>
                                         <div className="text-right">
                                             <p className="text-sm font-semibold text-amber-700 dark:text-amber-500">
                                                 {alert.currentQuantity} restant(s)
                                             </p>
-                                            <p className="text-xs text-zinc-500">
-                                                Seuil: {alert.alertThreshold}
-                                            </p>
+                                            <p className="text-xs text-zinc-500">Seuil: {alert.alertThreshold}</p>
                                         </div>
                                     </div>
                                 ))}
@@ -198,7 +155,6 @@ export default function StatsPage() {
                     )}
                 </div>
 
-                {/* Recent Orders Table */}
                 <RecentOrdersTable data={stats.recentOrders} />
             </div>
         </>

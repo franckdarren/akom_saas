@@ -52,22 +52,30 @@ export default async function DashboardLayout({
             ? {userId: user.id, restaurantId: savedRestaurantId}
             : {userId: user.id}
 
-        const restaurantUser = await prisma.restaurantUser.findFirst({
-            where: whereClause,
-            orderBy: {createdAt: 'asc'},
-            include: {
-                restaurant: {
-                    select: {
-                        id: true,
-                        name: true,
-                        activityType: true,
-                        logoUrl: true,
-                        verificationStatus: true,
-                        isVerified: true,
+        // Les deux requêtes sont indépendantes → parallèle
+        const [restaurantUser, firstRestaurantUser] = await Promise.all([
+            prisma.restaurantUser.findFirst({
+                where: whereClause,
+                orderBy: {createdAt: 'asc'},
+                include: {
+                    restaurant: {
+                        select: {
+                            id: true,
+                            name: true,
+                            activityType: true,
+                            logoUrl: true,
+                            verificationStatus: true,
+                            isVerified: true,
+                        },
                     },
                 },
-            },
-        })
+            }),
+            prisma.restaurantUser.findFirst({
+                where: {userId: user.id, role: 'admin'},
+                orderBy: {createdAt: 'asc'},
+                select: {restaurantId: true},
+            }),
+        ])
 
         if (!restaurantUser) redirect("/onboarding")
 
@@ -79,12 +87,6 @@ export default async function DashboardLayout({
         restaurantActivityType = restaurant.activityType as ActivityType
         verificationStatus = restaurant.verificationStatus
 
-        // Identifier si c'est le restaurant principal (le plus ancien)
-        const firstRestaurantUser = await prisma.restaurantUser.findFirst({
-            where: {userId: user.id, role: 'admin'},
-            orderBy: {createdAt: 'asc'},
-            select: {restaurantId: true},
-        })
         isFirstRestaurant = firstRestaurantUser?.restaurantId === restaurant.id
 
         // ── Vérification bloquante UNIQUEMENT pour le restaurant principal

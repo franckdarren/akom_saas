@@ -23,6 +23,11 @@ import {
 } from '@/components/ui/breadcrumb'
 
 import {WarehouseMovement, WarehouseMovementType} from '@/types/warehouse'
+import type {Prisma} from '@prisma/client'
+
+type MovementWithProduct = Prisma.WarehouseMovementGetPayload<{
+    include: { warehouseProduct: { select: { id: true; name: true; storageUnit: true } } }
+}>
 
 export const metadata: Metadata = {
     title: 'Mouvements de stock | Akôm',
@@ -30,16 +35,16 @@ export const metadata: Metadata = {
 }
 
 interface PageProps {
-    searchParams: {
+    searchParams: Promise<{
         productId?: string
         type?: string
         startDate?: string
         endDate?: string
-    }
+    }>
 }
 
 /** Sérialise les mouvements pour le client : Decimal -> number, Date -> string, string -> union */
-function serializeMovements(movements: any[]): WarehouseMovement[] {
+function serializeMovements(movements: MovementWithProduct[]): WarehouseMovement[] {
     return movements.map((m) => ({
         ...m,
         quantity: Number(m.quantity),
@@ -53,8 +58,8 @@ function serializeMovements(movements: any[]): WarehouseMovement[] {
     }))
 }
 
-/** Sérialise-les stats côté client */
-function calculateMovementsStatsRaw(movements: any[]) {
+/** Calcule les stats sur les mouvements déjà sérialisés */
+function calculateMovementsStatsRaw(movements: WarehouseMovement[]) {
     return {
         totalMovements: movements.length,
         entries: movements.filter((m) => m.movementType === 'entry').length,
@@ -71,16 +76,19 @@ function calculateMovementsStatsRaw(movements: any[]) {
 }
 
 export default async function WarehouseMovementsPage({searchParams}: PageProps) {
-    const {restaurantId} = await getCurrentUserAndRestaurant()
+    const [{restaurantId}, {productId, type, startDate, endDate}] = await Promise.all([
+        getCurrentUserAndRestaurant(),
+        searchParams,
+    ])
 
     // Construire les filtres
-    const where: any = {restaurantId}
-    if (searchParams.productId) where.warehouseProductId = searchParams.productId
-    if (searchParams.type) where.movementType = searchParams.type
-    if (searchParams.startDate || searchParams.endDate) {
+    const where: Prisma.WarehouseMovementWhereInput = {restaurantId}
+    if (productId) where.warehouseProductId = productId
+    if (type) where.movementType = type
+    if (startDate || endDate) {
         where.createdAt = {}
-        if (searchParams.startDate) where.createdAt.gte = new Date(searchParams.startDate)
-        if (searchParams.endDate) where.createdAt.lte = new Date(searchParams.endDate)
+        if (startDate) (where.createdAt as Prisma.DateTimeFilter).gte = new Date(startDate)
+        if (endDate) (where.createdAt as Prisma.DateTimeFilter).lte = new Date(endDate)
     }
 
     // Récupérer les mouvements

@@ -417,38 +417,41 @@ export async function searchUser(
 export async function getActivityStats(): Promise<ActivityDay[]> {
     await verifySuperAdmin()
 
-    const days = 7
+    const startOfPeriod = new Date()
+    startOfPeriod.setDate(startOfPeriod.getDate() - 6)
+    startOfPeriod.setHours(0, 0, 0, 0)
 
-    const results = await Promise.all(
-        Array.from({length: days}, (_, i) => {
-            const date = new Date()
-            date.setDate(date.getDate() - (days - 1 - i))
-            date.setHours(0, 0, 0, 0)
+    const rows = await prisma.$queryRaw<{
+        date: Date
+        ordersCount: bigint
+        revenue: bigint
+    }[]>`
+        SELECT
+            DATE_TRUNC('day', created_at) AS "date",
+            COUNT(*)::bigint AS "ordersCount",
+            COALESCE(SUM(CASE WHEN status IN ('delivered', 'ready') THEN total_amount ELSE 0 END), 0)::bigint AS "revenue"
+        FROM orders
+        WHERE created_at >= ${startOfPeriod}
+        GROUP BY DATE_TRUNC('day', created_at)
+        ORDER BY DATE_TRUNC('day', created_at) ASC
+    `
 
-            const nextDate = new Date(date)
-            nextDate.setDate(nextDate.getDate() + 1)
-
-            return Promise.all([
-                prisma.order.count({
-                    where: {createdAt: {gte: date, lt: nextDate}},
-                }),
-                prisma.order.aggregate({
-                    where: {
-                        createdAt: {gte: date, lt: nextDate},
-                        status: {in: ['delivered', 'ready']},
-                    },
-                    _sum: {totalAmount: true},
-                }),
-                Promise.resolve(date),
-            ] as const)
-        })
+    const dataByDate = new Map(
+        rows.map((r) => [r.date.toISOString().split('T')[0], r])
     )
 
-    return results.map(([ordersCount, revenue, date]) => ({
-        date: date.toISOString().split('T')[0],
-        orders: ordersCount,
-        revenue: revenue._sum.totalAmount ?? 0,
-    }))
+    // Garantir 7 entrées même si certains jours n'ont aucune commande
+    return Array.from({length: 7}, (_, i) => {
+        const date = new Date()
+        date.setDate(date.getDate() - (6 - i))
+        const key = date.toISOString().split('T')[0]
+        const row = dataByDate.get(key)
+        return {
+            date: key,
+            orders: Number(row?.ordersCount ?? 0),
+            revenue: Number(row?.revenue ?? 0),
+        }
+    })
 }
 
 // ============================================================

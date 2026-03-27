@@ -117,7 +117,7 @@ export function AdjustStockDialog({
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="space-y-2">
                         <Label>Type de mouvement</Label>
-                        <Select value={type} onValueChange={(v: any) => setType(v)} disabled={isLoading}>
+                        <Select value={type} onValueChange={(v) => setType(v as typeof type)} disabled={isLoading}>
                             <SelectTrigger>
                                 <SelectValue/>
                             </SelectTrigger>

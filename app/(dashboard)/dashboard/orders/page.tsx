@@ -25,9 +25,7 @@ export default function OrdersPage() {
     const {currentRole, currentRestaurant} = useRestaurant()
 
     // ← Labels depuis le restaurant courant (client-side)
-    const labels = getLabels(
-        (currentRestaurant as any)?.activityType
-    )
+    const labels = getLabels(currentRestaurant?.activityType)
 
     const {
         orders,

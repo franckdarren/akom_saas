@@ -36,9 +36,17 @@ import {
 import Image from 'next/image'
 import {toast} from 'sonner'
 import {useRouter} from 'next/navigation'
+import type {Prisma} from '@prisma/client'
+
+type SubscriptionPaymentWithRelations = Prisma.SubscriptionPaymentGetPayload<{
+    include: {
+        restaurant: {select: {name: true; slug: true}}
+        subscription: {select: {plan: true}}
+    }
+}>
 
 interface PaymentCardProps {
-    payment: any
+    payment: SubscriptionPaymentWithRelations
 }
 
 export function PaymentCard({payment}: PaymentCardProps) {

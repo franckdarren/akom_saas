@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, Clock, CheckCircle, Package, UtensilsCrossed, XCircle } from 'lucide-react'
+import { ArrowLeft, Clock, CheckCircle, Package, UtensilsCrossed, XCircle, type LucideIcon } from 'lucide-react'
 import { formatPrice } from '@/lib/utils/format'
 import { formatDistanceToNow } from 'date-fns'
 import { fr } from 'date-fns/locale'
@@ -394,7 +394,7 @@ function StatusStep({
     active
 }: {
     label: string
-    icon: any
+    icon: LucideIcon
     completed: boolean
     active: boolean
 }) {

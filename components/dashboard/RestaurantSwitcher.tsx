@@ -129,7 +129,7 @@ export function RestaurantSwitcher({canAddMore = false, variant = 'sidebar'}: Re
                             <>
                                 <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary/10 shrink-0">
                                     <ActivityIcon
-                                        type={(currentRestaurant as any).activityType}
+                                        type={currentRestaurant.activityType}
                                         className="h-3.5 w-3.5 text-primary"
                                     />
                                 </div>
@@ -166,7 +166,7 @@ export function RestaurantSwitcher({canAddMore = false, variant = 'sidebar'}: Re
                     <div className="mt-1 space-y-0.5">
                         {restaurants.map((restaurant) => {
                             const isActive = restaurant.id === currentRestaurant.id
-                            const sub = (restaurant as any).subscription
+                            const sub = restaurant.subscription
 
                             return (
                                 <div key={restaurant.id}>
@@ -184,7 +184,7 @@ export function RestaurantSwitcher({canAddMore = false, variant = 'sidebar'}: Re
                                                 : 'bg-muted text-muted-foreground'
                                         )}>
                                             <ActivityIcon
-                                                type={(restaurant as any).activityType}
+                                                type={restaurant.activityType}
                                                 className="h-4 w-4"
                                             />
                                         </div>
@@ -200,7 +200,7 @@ export function RestaurantSwitcher({canAddMore = false, variant = 'sidebar'}: Re
                                                 {sub && <PlanBadge plan={sub.plan}/>}
                                             </div>
                                             <span className="text-[11px] text-muted-foreground capitalize">
-                                                {(restaurant as any).activityType?.replace('_', ' ') ?? 'restaurant'}
+                                                {restaurant.activityType?.replace('_', ' ') ?? 'restaurant'}
                                                 {' · '}
                                                 {restaurant.role === 'admin' ? 'Admin' : restaurant.role}
                                             </span>

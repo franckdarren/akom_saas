@@ -29,7 +29,7 @@ export default async function CaissePage() {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
-    // Recherche de la session du jour pour ce restaurant
+    // Recherche de la session du jour (doit précéder recentSessions qui l'exclut)
     const todaySession = await prisma.cashSession.findFirst({
         where: {
             restaurantId,
@@ -47,32 +47,32 @@ export default async function CaissePage() {
         },
     })
 
-    // Les 90 dernières sessions pour le calendrier historique
-    const recentSessions = await prisma.cashSession.findMany({
-        where: {
-            restaurantId,
-            ...(todaySession ? {NOT: {id: todaySession.id}} : {}),
-        },
-        orderBy: {sessionDate: 'desc'},
-        take: 90,
-        select: {
-            id: true,
-            sessionDate: true,
-            status: true,
-            isHistorical: true,
-            openingBalance: true,
-            closingBalance: true,
-            theoreticalBalance: true,
-            balanceDifference: true,
-        },
-    })
-
-    // Les produits actifs avec leur stock
-    const products = await prisma.product.findMany({
-        where: {restaurantId, isAvailable: true},
-        include: {stock: true},
-        orderBy: {name: 'asc'},
-    })
+    // Les 90 dernières sessions et les produits sont indépendants → parallèle
+    const [recentSessions, products] = await Promise.all([
+        prisma.cashSession.findMany({
+            where: {
+                restaurantId,
+                ...(todaySession ? {NOT: {id: todaySession.id}} : {}),
+            },
+            orderBy: {sessionDate: 'desc'},
+            take: 90,
+            select: {
+                id: true,
+                sessionDate: true,
+                status: true,
+                isHistorical: true,
+                openingBalance: true,
+                closingBalance: true,
+                theoreticalBalance: true,
+                balanceDifference: true,
+            },
+        }),
+        prisma.product.findMany({
+            where: {restaurantId, isAvailable: true},
+            include: {stock: true},
+            orderBy: {name: 'asc'},
+        }),
+    ])
 
     // ============================================================
     // PROTECTION : Vérifier que l'utilisateur a accès au module caisse

@@ -16,7 +16,8 @@ import {
 import {TeamManagementTabs} from '@/components/users/TeamManagementTabs'
 import {InvitationsSection} from '@/components/users/InvitationsSection'
 import {getUserRole} from '@/lib/actions/auth'
-import {getLabels} from "@/lib/config/activity-labels" // ← NOUVEAU
+import {getRestaurantRoles} from '@/lib/actions/roles'
+import {getLabels} from "@/lib/config/activity-labels"
 
 export default async function UsersPage() {
     const supabase = await createClient()
@@ -30,12 +31,15 @@ export default async function UsersPage() {
         where: {userId: user.id},
         include: {
             restaurant: {
-                select: {activityType: true}, // ← NOUVEAU
+                select: {activityType: true},
             },
         },
     })
 
     if (!restaurantUser) redirect('/onboarding')
+
+    const rolesResult = await getRestaurantRoles(restaurantUser.restaurantId)
+    const roles = rolesResult.success ? rolesResult.roles : []
 
     // ← Calcul des labels
     const labels = getLabels(restaurantUser.restaurant.activityType)
@@ -78,7 +82,7 @@ export default async function UsersPage() {
                         </div>
                     }
                 >
-                    <TeamManagementTabs>
+                    <TeamManagementTabs roles={roles}>
                         <InvitationsSection/>
                     </TeamManagementTabs>
                 </Suspense>

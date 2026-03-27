@@ -79,19 +79,12 @@ export function AddRestaurantModal({open, onOpenChange}: AddRestaurantModalProps
 
     startTransition(async () => {
         try {
-            const result = await createAdditionalRestaurant({
+            await createAdditionalRestaurant({
                 name:         name.trim(),
                 phone:        phone.trim() || undefined,
                 address:      address.trim() || undefined,
                 activityType,
             })
-
-            // ✅ La fonction throw en cas d'erreur métier,
-            // mais on vérifie aussi result.success par sécurité
-            if (result && !result.success) {
-                toast.error((result as any).error ?? 'Une erreur est survenue')
-                return
-            }
 
             // ✅ Toast de confirmation AVANT de changer d'étape
             toast.success(`"${name.trim()}" créée avec succès !`, {

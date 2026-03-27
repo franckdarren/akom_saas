@@ -35,7 +35,7 @@ export default async function SubscriptionExpiredPage() {
     if (!restaurantUser) redirect('/dashboard')
 
     const restaurantId = restaurantUser.restaurant_id
-    const restaurantName = (restaurantUser.restaurants as any)?.name || 'votre restaurant'
+    const restaurantName = ((restaurantUser.restaurants as unknown) as { name: string } | null)?.name || 'votre restaurant'
 
     // Récupérer l'abonnement et ses paiements
     const {subscription} = await getRestaurantSubscription(restaurantId)
