@@ -33,11 +33,13 @@ export default function LoginPage() {
             toast.success('Connexion réussie')
             router.push('/dashboard')
             router.refresh()
-        } else {
-            toast.error(result.message)
-            setError(translateAuthError(result.error || result.message))
+            // Ne pas setLoading(false) : le bouton reste en état chargement
+            // jusqu'à ce que le composant se démonte lors du chargement du dashboard
+            return
         }
 
+        toast.error(result.message)
+        setError(translateAuthError(result.error || result.message))
         setLoading(false)
     }
 

@@ -2,18 +2,62 @@ import { Skeleton } from '@/components/ui/skeleton'
 
 export default function StatsLoading() {
     return (
-        <div className="flex flex-col gap-6 p-6">
-            <div className="space-y-2">
-                <Skeleton className="h-8 w-48" />
-                <Skeleton className="h-4 w-64" />
+        <>
+            {/* Header avec breadcrumb */}
+            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+                <Skeleton className="h-7 w-7 rounded-sm" />
+                <div className="h-4 w-px bg-border mx-1" />
+                <div className="flex items-center gap-2">
+                    <Skeleton className="h-4 w-16" />
+                    <Skeleton className="h-3 w-3 rounded-sm" />
+                    <Skeleton className="h-4 w-24" />
+                </div>
+            </header>
+
+            <div className="space-y-6 p-6">
+                {/* Titre + filtre période */}
+                <div className="flex items-center justify-between">
+                    <div className="space-y-1.5">
+                        <Skeleton className="h-8 w-40" />
+                        <Skeleton className="h-4 w-64" />
+                    </div>
+                    <Skeleton className="h-9 w-52 rounded-lg" />
+                </div>
+
+                {/* 4 KPI cards */}
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                    {Array.from({ length: 4 }).map((_, i) => (
+                        <div key={i} className="rounded-xl border bg-card p-6 space-y-3">
+                            <div className="flex items-center justify-between">
+                                <Skeleton className="h-4 w-28" />
+                                <Skeleton className="h-4 w-4 rounded" />
+                            </div>
+                            <Skeleton className="h-8 w-24" />
+                            <Skeleton className="h-3 w-20" />
+                        </div>
+                    ))}
+                </div>
+
+                {/* Chart principal */}
+                <Skeleton className="h-80 rounded-xl" />
+
+                {/* Table commandes récentes */}
+                <div className="rounded-xl border bg-card overflow-hidden">
+                    <div className="px-6 py-4 border-b">
+                        <Skeleton className="h-5 w-44" />
+                    </div>
+                    <div className="divide-y">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                            <div key={i} className="flex items-center gap-4 px-6 py-4">
+                                <Skeleton className="h-8 w-8 rounded-full flex-shrink-0" />
+                                <Skeleton className="h-4 flex-1" />
+                                <Skeleton className="h-4 w-20" />
+                                <Skeleton className="h-5 w-16 rounded-full" />
+                            </div>
+                        ))}
+                    </div>
+                </div>
             </div>
-            <div className="grid gap-4 md:grid-cols-3">
-                {Array.from({length: 3}).map((_, i) => (
-                    <Skeleton key={i} className="h-28 rounded-xl" />
-                ))}
-            </div>
-            <Skeleton className="h-80 rounded-xl" />
-            <Skeleton className="h-64 rounded-xl" />
-        </div>
+        </>
     )
 }

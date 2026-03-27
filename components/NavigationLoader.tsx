@@ -5,8 +5,8 @@ export function NavigationLoader({loading}: { loading: boolean }) {
     if (!loading) return null
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm">
-            <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent"/>
+        <div className="fixed top-0 left-0 right-0 z-50 h-0.5 overflow-hidden bg-primary/20">
+            <div className="h-full w-1/2 bg-primary rounded-full animate-nav-progress"/>
         </div>
     )
 }
