@@ -20,8 +20,8 @@ export async function closeCashSession(input: CloseSessionInput) {
 
     // On sépare update et findFirst car prisma.update ne supporte pas include
     // sur les relations qui ne sont pas des clés étrangères directes.
-    await prisma.cashSession.update({
-        where: {id: input.sessionId},
+    await prisma.cashSession.updateMany({
+        where: {id: input.sessionId, restaurantId},
         data: {
             status: 'closed',
             closingBalance: input.closingBalance,
@@ -36,7 +36,7 @@ export async function closeCashSession(input: CloseSessionInput) {
     // Recharge avec les relations complètes pour que SessionSummary
     // ait accès à manualRevenues et expenses sans crash.
     const session = await prisma.cashSession.findFirst({
-        where: {id: input.sessionId},
+        where: {id: input.sessionId, restaurantId},
         include: {
             manualRevenues: {
                 orderBy: {createdAt: 'desc'},

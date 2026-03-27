@@ -176,8 +176,8 @@ export async function toggleCategoryStatus(id: string) {
             }
         }
 
-        await prisma.category.update({
-            where: {id},
+        await prisma.category.updateMany({
+            where: {id, restaurantId},
             data: {isActive: !category.isActive},
         })
 

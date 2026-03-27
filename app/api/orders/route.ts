@@ -180,24 +180,40 @@ export async function POST(request: NextRequest) {
 
 
 // ============================================================
-// GET - Récupérer les commandes d'un restaurant
+// GET - Récupérer les commandes d'un restaurant (dashboard authentifié)
 // ============================================================
 
 export async function GET(req: NextRequest) {
     try {
+        const { createClient } = await import('@/lib/supabase/server')
+        const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+
+        if (!user) {
+            return NextResponse.json({error: 'Non autorisé'}, {status: 401})
+        }
+
         const restaurantId = req.nextUrl.searchParams.get('restaurantId')
         if (!restaurantId) {
             return NextResponse.json({error: 'restaurantId manquant'}, {status: 400})
         }
 
-        // Récupérer toutes les commandes du restaurant avec les items
+        // Vérifier que l'utilisateur appartient à cette structure
+        const member = await prisma.restaurantUser.findFirst({
+            where: {userId: user.id, restaurantId},
+        })
+
+        if (!member) {
+            return NextResponse.json({error: 'Accès refusé'}, {status: 403})
+        }
+
+        // Récupérer les commandes du jour (non archivées) avec les items
         const orders = await prisma.order.findMany({
-            where: {restaurantId},
+            where: {restaurantId, isArchived: false},
             include: {orderItems: true, table: true},
             orderBy: {createdAt: 'desc'},
         })
 
-        // Transformer pour ton hook
         const formattedOrders = orders.map(o => ({
             id: o.id,
             orderNumber: o.orderNumber,
@@ -217,7 +233,7 @@ export async function GET(req: NextRequest) {
 
         return NextResponse.json({orders: formattedOrders})
     } catch (error) {
-        console.error('💥 Erreur GET /api/orders:', error)
+        console.error('Erreur GET /api/orders:', error)
         return NextResponse.json(
             {error: 'Erreur lors de la récupération des commandes'},
             {status: 500}

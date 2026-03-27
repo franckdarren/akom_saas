@@ -3,6 +3,7 @@
 
 import prisma from '@/lib/prisma'
 import {revalidatePath} from 'next/cache'
+import {createClient} from '@/lib/supabase/server'
 import type {SubscriptionPlan, BillingCycle} from '@/lib/config/subscription'
 import {
     SUBSCRIPTION_CONFIG,
@@ -44,6 +45,19 @@ export async function createManualPayment(input: CreateManualPaymentInput) {
             proofUrl,
             notes,
         } = input
+
+        // ============================================================
+        // ÉTAPE 0 : Vérifier l'authentification et l'appartenance
+        // ============================================================
+
+        const supabase = await createClient()
+        const {data: {user}} = await supabase.auth.getUser()
+        if (!user) return {success: false, error: 'Non authentifié'}
+
+        const member = await prisma.restaurantUser.findFirst({
+            where: {userId: user.id, restaurantId},
+        })
+        if (!member) return {success: false, error: 'Accès refusé'}
 
         // ============================================================
         // ÉTAPE 1 : Valider les données d'entrée
@@ -181,6 +195,15 @@ export async function createManualPayment(input: CreateManualPaymentInput) {
  */
 export async function getRestaurantSubscription(restaurantId: string) {
     try {
+        const supabase = await createClient()
+        const {data: {user}} = await supabase.auth.getUser()
+        if (!user) return {subscription: null}
+
+        const member = await prisma.restaurantUser.findFirst({
+            where: {userId: user.id, restaurantId},
+        })
+        if (!member) return {subscription: null}
+
         const subscription = await prisma.subscription.findUnique({
             where: {restaurantId},
             include: {
@@ -207,6 +230,15 @@ export async function getRestaurantSubscription(restaurantId: string) {
  */
 export async function getDaysRemaining(restaurantId: string) {
     try {
+        const supabase = await createClient()
+        const {data: {user}} = await supabase.auth.getUser()
+        if (!user) return null
+
+        const member = await prisma.restaurantUser.findFirst({
+            where: {userId: user.id, restaurantId},
+        })
+        if (!member) return null
+
         const subscription = await prisma.subscription.findUnique({
             where: {restaurantId},
             select: {
@@ -253,6 +285,15 @@ export async function canAddUser(restaurantId: string): Promise<{
     reason?: string
 }> {
     try {
+        const supabase = await createClient()
+        const {data: {user}} = await supabase.auth.getUser()
+        if (!user) return {allowed: false, currentCount: 0, maxUsers: 0, reason: 'Non authentifié'}
+
+        const member = await prisma.restaurantUser.findFirst({
+            where: {userId: user.id, restaurantId},
+        })
+        if (!member) return {allowed: false, currentCount: 0, maxUsers: 0, reason: 'Accès refusé'}
+
         // Récupérer l'abonnement
         const subscription = await prisma.subscription.findUnique({
             where: {restaurantId},
@@ -319,6 +360,15 @@ export async function canAddUser(restaurantId: string): Promise<{
  */
 export async function ensureSubscription(restaurantId: string) {
     try {
+        const supabase = await createClient()
+        const {data: {user}} = await supabase.auth.getUser()
+        if (!user) throw new Error('Non authentifié')
+
+        const member = await prisma.restaurantUser.findFirst({
+            where: {userId: user.id, restaurantId},
+        })
+        if (!member) throw new Error('Accès refusé')
+
         // Vérifier si un abonnement existe déjà
         let subscription = await prisma.subscription.findUnique({
             where: {restaurantId},
@@ -433,7 +483,7 @@ export async function validateManualPayment(paymentId: string) {
 
 
 export async function getSubscriptionWithPayments(
-    restaurantId: string
+    restaurantId: string,
 ): Promise<{
     id: string
     restaurantId: string
@@ -449,6 +499,15 @@ export async function getSubscriptionWithPayments(
         createdAt: Date
     }[]
 }> {
+    const supabase = await createClient()
+    const {data: {user}} = await supabase.auth.getUser()
+    if (!user) throw new Error('Non authentifié')
+
+    const member = await prisma.restaurantUser.findFirst({
+        where: {userId: user.id, restaurantId},
+    })
+    if (!member) throw new Error('Accès refusé')
+
     const subscription = await prisma.subscription.findUnique({
         where: {restaurantId},
         include: {

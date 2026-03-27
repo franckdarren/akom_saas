@@ -7,6 +7,13 @@ export const runtime = 'nodejs'
 const resend = new Resend(process.env.RESEND_API_KEY!)
 
 export async function POST(req: Request) {
+  // Vérification du secret interne — cet endpoint n'est appelé que
+  // depuis les Server Actions d'invitation (serveur → serveur)
+  const authHeader = req.headers.get('Authorization')
+  if (!authHeader || authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    return NextResponse.json({ success: false, error: 'Non autorisé' }, { status: 401 })
+  }
+
   try {
     const {
       to,

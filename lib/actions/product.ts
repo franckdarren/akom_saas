@@ -398,8 +398,8 @@ export async function toggleProductAvailability(id: string) {
         // Basculer la disponibilité
         // ============================================================
 
-        await prisma.product.update({
-            where: {id},
+        await prisma.product.updateMany({
+            where: {id, restaurantId},
             data: {isAvailable: !product.isAvailable},
         })
 

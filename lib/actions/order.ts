@@ -64,6 +64,15 @@ export async function updateOrderStatus(orderId: string, newStatus: OrderStatus)
 }
 
 export async function getRestaurantOrders(restaurantId: string) {
+    const supabase = await createClient()
+    const {data: {user}} = await supabase.auth.getUser()
+    if (!user) return {error: 'Non authentifié'}
+
+    const member = await prisma.restaurantUser.findFirst({
+        where: {userId: user.id, restaurantId},
+    })
+    if (!member) return {error: 'Accès refusé'}
+
     return prisma.order.findMany({
         where: {restaurantId},
         include: {
@@ -83,10 +92,10 @@ interface ActiveOrder {
     createdAt: Date
 }
 
-export async function getActiveOrdersForTable(tableId: string): Promise<ActiveOrder[]> {
+export async function getActiveOrdersForTable(tableId: string, restaurantId: string): Promise<ActiveOrder[]> {
     try {
         return await prisma.order.findMany({
-            where: {tableId, status: {notIn: ['delivered', 'cancelled']}},
+            where: {tableId, restaurantId, status: {notIn: ['delivered', 'cancelled']}},
             select: {id: true, orderNumber: true, status: true, totalAmount: true, createdAt: true},
             orderBy: {createdAt: 'desc'},
         })
@@ -96,15 +105,25 @@ export async function getActiveOrdersForTable(tableId: string): Promise<ActiveOr
 }
 
 export async function getOrderDetails(orderId: string) {
-    try {
-        return await prisma.order.findUnique({
-            where: {id: orderId},
-            include: {
-                table: {select: {number: true}},
-                orderItems: {select: {productName: true, quantity: true, unitPrice: true}},
-            },
-        })
-    } catch {
-        return null
-    }
+    const supabase = await createClient()
+    const {data: {user}} = await supabase.auth.getUser()
+    if (!user) return null
+
+    const order = await prisma.order.findUnique({
+        where: {id: orderId},
+        select: {
+            id: true,
+            restaurantId: true,
+            table: {select: {number: true}},
+            orderItems: {select: {productName: true, quantity: true, unitPrice: true}},
+        },
+    })
+    if (!order) return null
+
+    const member = await prisma.restaurantUser.findFirst({
+        where: {userId: user.id, restaurantId: order.restaurantId},
+    })
+    if (!member) return null
+
+    return order
 }

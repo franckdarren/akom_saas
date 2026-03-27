@@ -20,13 +20,14 @@ interface ActiveOrdersBannerProps {
     tableId: string
     tableNumber: number
     restaurantSlug: string
+    restaurantId: string
 }
 
 /**
  * Bandeau informatif affichant les commandes actives d'une table
  * Permet au client de voir rapidement s'il a déjà commandé et d'accéder au tracking
  */
-export function ActiveOrdersBanner({ tableId, tableNumber, restaurantSlug }: ActiveOrdersBannerProps) {
+export function ActiveOrdersBanner({ tableId, tableNumber, restaurantSlug, restaurantId }: ActiveOrdersBannerProps) {
     const router = useRouter()
     const [orders, setOrders] = useState<ActiveOrder[]>([])
     const [isInitialLoading, setIsInitialLoading] = useState(true)
@@ -40,7 +41,7 @@ export function ActiveOrdersBanner({ tableId, tableNumber, restaurantSlug }: Act
 
     async function loadActiveOrders(isInitial = false) {
         if (isInitial) setIsInitialLoading(true)
-        const activeOrders = await getActiveOrdersForTable(tableId)
+        const activeOrders = await getActiveOrdersForTable(tableId, restaurantId)
         setOrders(activeOrders)
         if (isInitial) setIsInitialLoading(false)
     }

@@ -145,8 +145,8 @@ export async function toggleFamilyStatus(id: string) {
 
     if (!family) return { error: 'Famille introuvable' }
 
-    await prisma.family.update({
-      where: { id },
+    await prisma.family.updateMany({
+      where: { id, restaurantId },
       data: { isActive: !family.isActive },
     })
 

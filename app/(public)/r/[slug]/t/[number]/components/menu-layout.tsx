@@ -179,6 +179,7 @@ export function MenuLayout({
                     tableId={tableId}
                     tableNumber={tableNumber}
                     restaurantSlug={restaurantSlug}
+                    restaurantId={restaurantId}
                 />
             </div>
 

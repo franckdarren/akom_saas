@@ -217,6 +217,7 @@ export async function inviteUserToRestaurant(
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${process.env.CRON_SECRET}`,
             },
             body: JSON.stringify({
                 to: normalizedEmail,
@@ -571,14 +572,15 @@ export async function resendInvitation(invitationId: string): Promise<ActionResu
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${process.env.CRON_SECRET}`,
             },
             body: JSON.stringify({
                 to: invitation.email,
-            restaurantName: invitation.restaurant.name,
-            roleName: invitation.role.name,
-            inviterName: user.email || 'Un administrateur',
-            invitationLink,
-            expiresAt,
+                restaurantName: invitation.restaurant.name,
+                roleName: invitation.role.name,
+                inviterName: user.email || 'Un administrateur',
+                invitationLink,
+                expiresAt,
             }),
         })
 
