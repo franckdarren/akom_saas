@@ -4,7 +4,9 @@ Ce fichier fournit des instructions a Claude Code (claude.ai/code) pour travaill
 
 ## Presentation du projet
 
-**Akom** est une plateforme SaaS multi-tenant de gestion de restaurants ciblant les marches africains (principalement le Gabon). L'interface est entierement en francais. Elle prend en charge les methodes de paiement locales (Airtel Money, Moov Money) ainsi que les paiements en especes et par carte.
+**Akom** est une plateforme SaaS multi-tenant de commerce et de gestion pour tout type de structure commerciale ciblant les marches africains (principalement le Gabon) : restaurants, boutiques, commerces de detail, hotels, prestataires de services, salons de beaute, transport, etc. L'interface est entierement en francais. Elle prend en charge les methodes de paiement locales via l'agregateur **SINGPAY** (Airtel Money, Moov Money) ainsi que les paiements en especes et par carte.
+
+Le coeur du produit est un **catalogue en ligne** (produits et services) avec **prise de commandes multi-canal** (QR code, lien public, comptoir, dashboard) et **encaissement integre**. Le mot "restaurant" dans le code (`Restaurant`, `restaurantId`) est un heritage de la v1 — le modele represente en realite toute structure commerciale. Le champ `activityType` sur `Restaurant` (`restaurant`, `retail`, `hotel`, `beauty`, `transport`, `service_rental`, `vehicle_rental`, `other`) pilote les labels dynamiques dans l'UI et adapte le vocabulaire metier a chaque type d'activite.
 
 ## Commandes
 
@@ -37,7 +39,7 @@ app/
 ├── (dashboard)/    # Routes protegees (auth + abonnement actif requis)
 ├── (public)/       # Pages publiques (mentions legales, landing)
 ├── api/            # Endpoints REST (CRON, webhooks, API menu publique)
-└── onboarding/     # Flux de creation de restaurant
+└── onboarding/     # Flux de creation de structure commerciale (restaurant, boutique, etc.)
 ```
 
 ### Couche de donnees
@@ -52,11 +54,11 @@ Clients Supabase :
 
 ### Multi-tenant
 
-Les utilisateurs peuvent appartenir a plusieurs restaurants. Le restaurant actif est stocke dans le cookie `akom_current_restaurant_id`. Le middleware verifie dans l'ordre :
+Les utilisateurs peuvent appartenir a plusieurs structures commerciales (appelees "restaurants" dans le code par heritage). La structure active est stockee dans le cookie `akom_current_restaurant_id`. Le middleware verifie dans l'ordre :
 
 1. L'authentification
 2. L'abonnement actif (les abonnements expires sont rediriges vers une page de facturation)
-3. Les droits d'acces au restaurant selectionne
+3. Les droits d'acces a la structure selectionnee
 
 ### RBAC
 
@@ -81,7 +83,7 @@ GitHub Actions cron (`.github/workflows/cron-tasks.yml`) appelle des routes API 
 - Alerte sur les commandes lentes (en attente depuis plus de 15min)
 - Archivage des anciennes commandes (plus de 90 jours)
 - Envoi de rappels d'abonnement (J-7, J-3, J-1)
-- Envoi des rapports quotidiens aux admins de restaurant
+- Envoi des rapports quotidiens aux admins de structure
 - Verification de la coherence des stocks
 
 ### Patterns importants
@@ -109,3 +111,5 @@ GitHub Actions cron (`.github/workflows/cron-tasks.yml`) appelle des routes API 
 - Proposer des alternatives a la stack (pas de tRPC, pas de Drizzle, etc.)
 - Sur-ingenierie — priorite au MVP simple et fonctionnel
 - Creer des API routes la ou des Server Actions suffisent
+- Parler d'"application restaurant" — Akom est une plateforme de commerce generaliste ; utiliser "structure commerciale" ou "etablissement" selon le contexte
+- Renommer le modele `Restaurant` ou le champ `restaurantId` — c'est un heritage assume, ne pas refactoriser sans demande explicite
