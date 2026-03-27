@@ -7,10 +7,7 @@ import {
 import { formatPrice, formatNumber } from '@/lib/utils/format'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import dynamic from 'next/dynamic'
-import { Skeleton } from '@/components/ui/skeleton'
-const StatsChart = dynamic(() => import('@/components/superadmin/StatsChart').then(m => ({default: m.StatsChart})), {ssr: false, loading: () => <Skeleton className="h-64 w-full rounded-xl" />})
-const ExportStatsButton = dynamic(() => import('@/components/superadmin/ExportStatsButton').then(m => ({default: m.ExportStatsButton})), {ssr: false})
+import { SuperadminStatsCharts } from '@/components/superadmin/SuperadminStatsCharts'
 import { TrendingUp, Package, Activity } from 'lucide-react'
 import {
     Breadcrumb,
@@ -112,7 +109,7 @@ export default async function StatsPage() {
                         <CardDescription>Commandes et revenus des 12 derniers mois</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <StatsChart data={monthlyStats} />
+                        <SuperadminStatsCharts data={monthlyStats} />
                     </CardContent>
                 </Card>
 
