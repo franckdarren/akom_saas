@@ -113,3 +113,8 @@ GitHub Actions cron (`.github/workflows/cron-tasks.yml`) appelle des routes API 
 - Creer des API routes la ou des Server Actions suffisent
 - Parler d'"application restaurant" — Akom est une plateforme de commerce generaliste ; utiliser "structure commerciale" ou "etablissement" selon le contexte
 - Renommer le modele `Restaurant` ou le champ `restaurantId` — c'est un heritage assume, ne pas refactoriser sans demande explicite
+
+## Fin de session
+Quand le contexte approche de la limite ou sur demande,
+toujours créer/mettre à jour docs/session-handoff.md
+avant de s'arrêter.
