@@ -1,14 +1,13 @@
 // app/(dashboard)/dashboard/stats/page.tsx
 import { Suspense } from 'react'
 import { StatsCard } from '@/components/dashboard/stats/StatsCard'
-import dynamic from 'next/dynamic'
 import { RecentOrdersTable } from '@/components/dashboard/stats/RecentOrdersTable'
 import { PeriodFilterNav } from '@/components/dashboard/stats/PeriodFilterNav'
+import { StatsCharts } from '@/components/dashboard/stats/StatsCharts'
 import { getDashboardStats } from '@/lib/actions/stats'
 import { TIME_PERIODS, type TimePeriod } from '@/types/stats'
 import { DollarSign, ShoppingCart, TrendingUp, Package } from 'lucide-react'
 import { formatPrice } from '@/lib/utils/format'
-import { Skeleton } from '@/components/ui/skeleton'
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import {
@@ -19,10 +18,6 @@ import {
     BreadcrumbPage,
     BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
-
-const RevenueChart = dynamic(() => import('@/components/dashboard/stats/RevenueChart').then(m => ({default: m.RevenueChart})), {ssr: false, loading: () => <Skeleton className="h-64 w-full rounded-xl" />})
-const TopProductsChart = dynamic(() => import('@/components/dashboard/stats/TopProductsChart').then(m => ({default: m.TopProductsChart})), {ssr: false, loading: () => <Skeleton className="h-64 w-full rounded-xl" />})
-const CategoryPieChart = dynamic(() => import('@/components/dashboard/stats/CategoryPieChart').then(m => ({default: m.CategoryPieChart})), {ssr: false, loading: () => <Skeleton className="h-64 w-full rounded-xl" />})
 
 const VALID_PERIODS = new Set<string>([TIME_PERIODS.TODAY, TIME_PERIODS.WEEK, TIME_PERIODS.MONTH])
 
@@ -115,45 +110,12 @@ export default async function StatsPage({ searchParams }: PageProps) {
                     />
                 </div>
 
-                {/* Charts Row 1 */}
-                <div className="grid gap-6 md:grid-cols-2">
-                    <RevenueChart data={stats.dailySales} />
-                    <TopProductsChart data={stats.topProducts} />
-                </div>
-
-                {/* Charts Row 2 */}
-                <div className="grid gap-6 md:grid-cols-2">
-                    <CategoryPieChart data={stats.categorySales} />
-
-                    {stats.stockAlerts.length > 0 && (
-                        <div className="rounded-xl border bg-white p-6 shadow-sm dark:bg-zinc-900">
-                            <h3 className="mb-4 text-base font-semibold">
-                                Produits en rupture de stock
-                            </h3>
-                            <div className="space-y-3">
-                                {stats.stockAlerts.map((alert) => (
-                                    <div
-                                        key={alert.productId}
-                                        className="flex items-center justify-between rounded-lg border border-amber-200 bg-amber-50 p-3 dark:border-amber-900 dark:bg-amber-950/30"
-                                    >
-                                        <div>
-                                            <p className="text-sm font-medium">{alert.productName}</p>
-                                            {alert.categoryName && (
-                                                <p className="text-xs text-zinc-500">{alert.categoryName}</p>
-                                            )}
-                                        </div>
-                                        <div className="text-right">
-                                            <p className="text-sm font-semibold text-amber-700 dark:text-amber-500">
-                                                {alert.currentQuantity} restant(s)
-                                            </p>
-                                            <p className="text-xs text-zinc-500">Seuil: {alert.alertThreshold}</p>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-                </div>
+                <StatsCharts
+                    dailySales={stats.dailySales}
+                    topProducts={stats.topProducts}
+                    categorySales={stats.categorySales}
+                    stockAlerts={stats.stockAlerts}
+                />
 
                 <RecentOrdersTable data={stats.recentOrders} />
             </div>
