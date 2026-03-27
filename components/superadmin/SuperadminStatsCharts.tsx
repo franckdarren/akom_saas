@@ -28,6 +28,6 @@ export function SuperadminStatsCharts({ data }: SuperadminStatsChartsProps) {
     return <StatsChart data={data} />
 }
 
-export function SuperadminExportButton({ period }: { period: string }) {
+export function SuperadminExportButton({ period }: { period?: 'day' | 'week' | 'month' }) {
     return <ExportStatsButton period={period} />
 }
