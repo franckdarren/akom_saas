@@ -209,7 +209,7 @@ export default async function WarehouseTransfersPage() {
                                             </TableCell>
                                             <TableCell className="text-right">
                                                 <Badge variant="secondary">
-                                                    {transfer.quantityTransferred} {transfer.warehouseProduct.storageUnit}
+                                                    {transfer.warehouseQuantity.toString()} {transfer.warehouseProduct.storageUnit} → {transfer.opsQuantity.toString()}
                                                 </Badge>
                                             </TableCell>
                                             <TableCell className="text-right text-muted-foreground text-sm">
