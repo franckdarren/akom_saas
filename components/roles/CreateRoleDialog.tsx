@@ -13,6 +13,7 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
+import { LoadingButton } from '@/components/ui/loading-button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -339,16 +340,9 @@ export function CreateRoleDialog({
                         >
                             Annuler
                         </Button>
-                        <Button type="submit" disabled={loading}>
-                            {loading ? (
-                                <>
-                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                    Création...
-                                </>
-                            ) : (
-                                'Créer le rôle'
-                            )}
-                        </Button>
+                        <LoadingButton type="submit" isLoading={loading} loadingText="Création...">
+                            Créer le rôle
+                        </LoadingButton>
                     </DialogFooter>
                 </form>
             </DialogContent>

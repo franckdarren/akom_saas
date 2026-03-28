@@ -4,6 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import {Card, CardContent} from '@/components/ui/card'
 import {Button} from '@/components/ui/button'
+import {LoadingButton} from '@/components/ui/loading-button'
 import {Badge} from '@/components/ui/badge'
 import {
     AlertDialog, AlertDialogAction, AlertDialogCancel,
@@ -221,15 +222,14 @@ export function ProductsList({products}: { products: Product[] }) {
                                         </Button>
                                     </Link>
 
-                                    <Button
+                                    <LoadingButton
                                         size="sm"
                                         variant={product.isAvailable ? 'default' : 'secondary'}
                                         onClick={() => handleToggleAvailability(product.id)}
-                                        disabled={isLoading_item}
+                                        isLoading={isLoading_item}
+                                        icon={<Power className="h-3.5 w-3.5" />}
                                         title={product.isAvailable ? 'Désactiver' : 'Activer'}
-                                    >
-                                        <Power className="h-3.5 w-3.5"/>
-                                    </Button>
+                                    />
 
                                     <Button
                                         variant="destructive" size="sm"
@@ -261,7 +261,7 @@ export function ProductsList({products}: { products: Product[] }) {
                         <AlertDialogCancel>Annuler</AlertDialogCancel>
                         <AlertDialogAction
                             onClick={confirmDelete}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            className="bg-destructive text-white hover:bg-destructive/90"
                             disabled={isLoading}
                         >
                             Supprimer

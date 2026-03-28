@@ -5,10 +5,10 @@ import {useState, useTransition} from 'react'
 import {useRouter} from 'next/navigation'
 import {createAdditionalRestaurant} from '@/lib/actions/restaurant'
 import {Button} from '@/components/ui/button'
+import {LoadingButton} from '@/components/ui/loading-button'
 import {Input} from '@/components/ui/input'
 import {Label} from '@/components/ui/label'
 import {toast} from 'sonner'
-import {Loader2} from 'lucide-react'
 import {useNavigationLoading} from '@/lib/hooks/use-navigation-loading'
 import {cn} from '@/lib/utils'
 import {ACTIVITY_TYPE_OPTIONS, type ActivityType} from '@/lib/config/activity-labels'
@@ -142,20 +142,15 @@ export function AddRestaurantForm() {
             </div>
 
             {/* ── Submit ── */}
-            <Button
+            <LoadingButton
                 type="submit"
                 className="w-full"
-                disabled={isPending || !name.trim()}
+                isLoading={isPending}
+                loadingText="Création en cours…"
+                disabled={!name.trim()}
             >
-                {isPending ? (
-                    <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
-                        Création en cours…
-                    </>
-                ) : (
-                    'Créer la structure'
-                )}
-            </Button>
+                Créer la structure
+            </LoadingButton>
         </form>
     )
 }

@@ -11,6 +11,7 @@ import {
     DialogTrigger,
 } from '@/components/ui/dialog'
 import {Button} from '@/components/ui/button'
+import {LoadingButton} from '@/components/ui/loading-button'
 import {Input} from '@/components/ui/input'
 import {Label} from '@/components/ui/label'
 import {
@@ -20,7 +21,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select'
-import {Loader2} from 'lucide-react'
+
 import {createProduct} from '@/lib/actions/product'
 import {toast} from 'sonner'
 
@@ -193,16 +194,9 @@ export function QuickCreateProductDialog({
                         <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={isLoading}>
                             Annuler
                         </Button>
-                        <Button type="submit" disabled={isLoading}>
-                            {isLoading ? (
-                                <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
-                                    Création...
-                                </>
-                            ) : (
-                                'Créer'
-                            )}
-                        </Button>
+                        <LoadingButton type="submit" isLoading={isLoading} loadingText="Création...">
+                            Créer
+                        </LoadingButton>
                     </div>
                 </form>
             </DialogContent>

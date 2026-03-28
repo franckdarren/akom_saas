@@ -4,12 +4,12 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { acceptInvitationWithAuth } from '@/lib/actions/invitation'
-import { Button } from '@/components/ui/button'
+import { LoadingButton } from '@/components/ui/loading-button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { toast } from 'sonner'
-import { Loader2, UserPlus, Info, Lock } from 'lucide-react'
+import { UserPlus, Info, Lock } from 'lucide-react'
 
 interface InvitationAcceptFormProps {
     token: string
@@ -146,19 +146,15 @@ export function InvitationAcceptForm({
                     />
                 </div>
 
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? (
-                        <>
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                            Création du compte...
-                        </>
-                    ) : (
-                        <>
-                            <UserPlus className="h-4 w-4" />
-                            Créer mon compte et rejoindre {restaurantName}
-                        </>
-                    )}
-                </Button>
+                <LoadingButton
+                    type="submit"
+                    className="w-full"
+                    isLoading={isLoading}
+                    loadingText="Création du compte..."
+                    icon={<UserPlus />}
+                >
+                    Créer mon compte et rejoindre {restaurantName}
+                </LoadingButton>
             </form>
 
             {/* Explication du processus */}

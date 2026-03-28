@@ -6,6 +6,7 @@ import {toast} from "sonner"
 import {useRouter} from 'next/navigation'
 import {Card, CardContent, CardFooter, CardHeader, CardTitle} from '@/components/ui/card'
 import {Button} from '@/components/ui/button'
+import {LoadingButton} from '@/components/ui/loading-button'
 import {Badge} from '@/components/ui/badge'
 import {Power, Trash2, QrCode} from 'lucide-react'
 import {toggleTableStatus, deleteTable} from '@/lib/actions/table'
@@ -125,14 +126,13 @@ export function TablesList({tables}: { tables: Table[] }) {
                                     QR Code
                                 </Button>
 
-                                <Button
+                                <LoadingButton
                                     variant="outline"
                                     size="sm"
                                     onClick={() => handleToggleStatus(table.id)}
-                                    disabled={loading === table.id}
-                                >
-                                    <Power className="h-4 w-4"/>
-                                </Button>
+                                    isLoading={loading === table.id}
+                                    icon={<Power className="h-4 w-4" />}
+                                />
 
                                 <Button
                                     variant="outline"

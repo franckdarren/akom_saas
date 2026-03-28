@@ -3,10 +3,11 @@
 import {useState} from 'react'
 import {useRouter} from 'next/navigation'
 import {toast} from 'sonner'
-import {Loader2, Upload, X} from 'lucide-react'
+import {Upload, X} from 'lucide-react'
 import Image from 'next/image'
 
 import {Button} from '@/components/ui/button'
+import {LoadingButton} from '@/components/ui/loading-button'
 import {Input} from '@/components/ui/input'
 import {Label} from '@/components/ui/label'
 import {Textarea} from '@/components/ui/textarea'
@@ -667,14 +668,9 @@ export function WarehouseProductForm({
                 >
                     Annuler
                 </Button>
-                <Button type="submit" disabled={isLoading} className="gap-2 min-w-[200px]">
-                    {isLoading && <Loader2 className="h-4 w-4 animate-spin"/>}
-                    {isLoading
-                        ? 'Enregistrement en cours...'
-                        : isEditing
-                            ? 'Enregistrer les modifications'
-                            : 'Créer le produit'}
-                </Button>
+                <LoadingButton type="submit" isLoading={isLoading} loadingText="Enregistrement en cours..." className="min-w-[200px]">
+                    {isEditing ? 'Enregistrer les modifications' : 'Créer le produit'}
+                </LoadingButton>
             </div>
         </form>
     )

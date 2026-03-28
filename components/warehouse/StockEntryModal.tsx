@@ -2,7 +2,7 @@
 
 import {useState} from 'react'
 import {useRouter} from 'next/navigation'
-import {TrendingUp, Loader2} from 'lucide-react'
+import {TrendingUp} from 'lucide-react'
 import {toast} from 'sonner'
 
 import {
@@ -13,6 +13,7 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog'
 import {Button} from '@/components/ui/button'
+import {LoadingButton} from '@/components/ui/loading-button'
 import {Input} from '@/components/ui/input'
 import {Label} from '@/components/ui/label'
 import {Textarea} from '@/components/ui/textarea'
@@ -216,10 +217,9 @@ export function StockEntryModal({
                     {/* Actions */}
                     <div className="flex gap-3 justify-end pt-4 border-t">
                         <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>Annuler</Button>
-                        <Button type="submit" disabled={isLoading} className="gap-2">
-                            {isLoading && <Loader2 className="h-4 w-4 animate-spin"/>}
+                        <LoadingButton type="submit" isLoading={isLoading}>
                             Enregistrer
-                        </Button>
+                        </LoadingButton>
                     </div>
                 </form>
             </DialogContent>

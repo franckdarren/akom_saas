@@ -4,9 +4,10 @@ import {useState} from 'react'
 import {useRouter} from 'next/navigation'
 import {updatePassword} from '@/lib/actions/auth'
 import {Button} from '@/components/ui/button'
+import {LoadingButton} from '@/components/ui/loading-button'
 import {Input} from '@/components/ui/input'
 import {Label} from '@/components/ui/label'
-import {Loader2, Eye, EyeOff} from 'lucide-react'
+import {Eye, EyeOff} from 'lucide-react'
 
 function PageSpinner() {
     return (
@@ -173,10 +174,9 @@ export default function UpdatePasswordPage() {
                 )}
 
                 {/* Submit */}
-                <Button type="submit" className="w-full" disabled={loading}>
-                    {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
-                    {loading ? 'Mise à jour...' : 'Modifier le mot de passe'}
-                </Button>
+                <LoadingButton type="submit" className="w-full" isLoading={loading} loadingText="Mise à jour...">
+                    Modifier le mot de passe
+                </LoadingButton>
             </form>
 
             <div className="mt-6 text-center">

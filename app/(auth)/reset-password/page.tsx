@@ -5,6 +5,7 @@ import {useRouter} from 'next/navigation'
 import {resetPassword, getUser} from '@/lib/actions/auth'
 import {createClient} from '@/lib/supabase/client' // ← client-side, pas server
 import {Button} from '@/components/ui/button'
+import {LoadingButton} from '@/components/ui/loading-button'
 import {Input} from '@/components/ui/input'
 import {Label} from '@/components/ui/label'
 import {Loader2, Eye, EyeOff} from 'lucide-react'
@@ -155,10 +156,9 @@ export default function ResetPasswordPage() {
                     </div>
                 )}
 
-                <Button type="submit" className="w-full" disabled={loading}>
-                    {loading && <Loader2 className="h-4 w-4 animate-spin"/>}
-                    {loading ? 'Mise à jour…' : 'Réinitialiser le mot de passe'}
-                </Button>
+                <LoadingButton type="submit" className="w-full" isLoading={loading} loadingText="Mise à jour…">
+                    Réinitialiser le mot de passe
+                </LoadingButton>
             </form>
         </div>
     )

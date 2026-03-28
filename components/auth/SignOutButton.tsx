@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { signOut } from '@/lib/actions/auth'
-import { Button } from '@/components/ui/button'
+import { LoadingButton } from '@/components/ui/loading-button'
 import {
     AlertDialog,
     AlertDialogAction,
@@ -15,7 +15,7 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
-import { LogOut, Loader2 } from 'lucide-react'
+import { LogOut } from 'lucide-react'
 import { toast } from 'sonner'
 
 interface SignOutButtonProps {
@@ -60,14 +60,14 @@ export function SignOutButton({
         return (
             <AlertDialog>
                 <AlertDialogTrigger asChild>
-                    <Button variant={variant} size={size} disabled={loading}>
-                        {loading ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                            <LogOut className="h-4 w-4" />
-                        )}
+                    <LoadingButton
+                        variant={variant}
+                        size={size}
+                        isLoading={loading}
+                        icon={<LogOut className="h-4 w-4" />}
+                    >
                         Déconnexion
-                    </Button>
+                    </LoadingButton>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                     <AlertDialogHeader>
@@ -80,7 +80,6 @@ export function SignOutButton({
                     <AlertDialogFooter>
                         <AlertDialogCancel>Annuler</AlertDialogCancel>
                         <AlertDialogAction onClick={handleSignOut}>
-                            {loading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
                             Déconnexion
                         </AlertDialogAction>
                     </AlertDialogFooter>
@@ -91,18 +90,14 @@ export function SignOutButton({
 
     // Sans confirmation
     return (
-        <Button
+        <LoadingButton
             variant={variant}
             size={size}
             onClick={handleSignOut}
-            disabled={loading}
+            isLoading={loading}
+            icon={<LogOut className="h-4 w-4" />}
         >
-            {loading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-                <LogOut className="h-4 w-4" />
-            )}
             Déconnexion
-        </Button>
+        </LoadingButton>
     )
 }

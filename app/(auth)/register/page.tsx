@@ -5,9 +5,10 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { signUp } from '@/lib/actions/auth'
 import { Button } from '@/components/ui/button'
+import { LoadingButton } from '@/components/ui/loading-button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { CheckCircle2, Loader2, Store, Users } from "lucide-react"
+import { CheckCircle2, Store, Users } from "lucide-react"
 import { Checkbox } from '@/components/ui/checkbox'
 import { Eye, EyeOff } from 'lucide-react'
 import { toast } from 'sonner'
@@ -181,15 +182,14 @@ export default function RegisterPage() {
                 </div>
 
                 {/* Submit Button */}
-                <Button
+                <LoadingButton
                     type="submit"
                     className="w-full"
-                    disabled={loading}
-                > {loading && (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                )}
-                    {loading ? 'Création...' : 'Créer mon compte'}
-                </Button>
+                    isLoading={loading}
+                    loadingText="Création..."
+                >
+                    Créer mon compte
+                </LoadingButton>
             </form>
 
             {/* Section explicative - NOUVEAU */}

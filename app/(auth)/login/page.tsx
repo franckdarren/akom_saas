@@ -5,9 +5,10 @@ import {useRouter} from 'next/navigation'
 import Link from 'next/link'
 import {signIn} from '@/lib/actions/auth'
 import {Button} from '@/components/ui/button'
+import {LoadingButton} from '@/components/ui/loading-button'
 import {Input} from '@/components/ui/input'
 import {Label} from '@/components/ui/label'
-import {Loader2, Eye, EyeOff} from 'lucide-react'
+import {Eye, EyeOff} from 'lucide-react'
 import {toast} from 'sonner'
 import {translateAuthError} from '@/lib/translate/auth-error-messages'
 import {Card, CardContent, CardHeader, CardTitle, CardDescription} from '@/components/ui/card'
@@ -105,10 +106,9 @@ export default function LoginPage() {
                     )}
 
                     {/* Submit Button */}
-                    <Button type="submit" className="w-full" disabled={loading}>
-                        {loading && <Loader2 className="h-4 w-4 animate-spin mr-2 inline-block"/>}
-                        {loading ? 'Connexion...' : 'Se connecter'}
-                    </Button>
+                    <LoadingButton type="submit" className="w-full" isLoading={loading} loadingText="Connexion...">
+                        Se connecter
+                    </LoadingButton>
                 </form>
 
                 {/* Register Link */}

@@ -4,11 +4,11 @@
 import {useState} from 'react'
 import {useRouter} from 'next/navigation'
 import {Button} from '@/components/ui/button'
+import {LoadingButton} from '@/components/ui/loading-button'
 import {Input} from '@/components/ui/input'
 import {Label} from '@/components/ui/label'
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card'
 import {createRestaurant} from '@/lib/actions/restaurant'
-import {Loader2} from 'lucide-react'
 import {
     ACTIVITY_TYPE_OPTIONS,
     type ActivityType,
@@ -160,16 +160,9 @@ export function CreateRestaurantForm() {
                     )}
 
                     {/* ── Bouton ── */}
-                    <Button type="submit" className="w-full" disabled={isLoading}>
-                        {isLoading ? (
-                            <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
-                                Création en cours...
-                            </>
-                        ) : (
-                            'Créer mon espace'
-                        )}
-                    </Button>
+                    <LoadingButton type="submit" className="w-full" isLoading={isLoading} loadingText="Création en cours...">
+                        Créer mon espace
+                    </LoadingButton>
                 </form>
             </CardContent>
         </Card>

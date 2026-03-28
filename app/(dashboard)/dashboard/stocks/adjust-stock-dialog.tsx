@@ -12,6 +12,7 @@ import {
     DialogTrigger,
 } from '@/components/ui/dialog'
 import {Button} from '@/components/ui/button'
+import {LoadingButton} from '@/components/ui/loading-button'
 import {Input} from '@/components/ui/input'
 import {Label} from '@/components/ui/label'
 import {Textarea} from '@/components/ui/textarea'
@@ -22,7 +23,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select'
-import {Loader2, Plus, Minus, RefreshCw} from 'lucide-react'
+import {Plus, Minus, RefreshCw} from 'lucide-react'
 import {adjustStock} from '@/lib/actions/stock'
 import {formatNumber} from '@/lib/utils/format'
 
@@ -196,16 +197,9 @@ export function AdjustStockDialog({
                         >
                             Annuler
                         </Button>
-                        <Button type="submit" disabled={isLoading}>
-                            {isLoading ? (
-                                <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
-                                    Enregistrement...
-                                </>
-                            ) : (
-                                'Enregistrer'
-                            )}
-                        </Button>
+                        <LoadingButton type="submit" isLoading={isLoading} loadingText="Enregistrement...">
+                            Enregistrer
+                        </LoadingButton>
                     </div>
                 </form>
             </DialogContent>

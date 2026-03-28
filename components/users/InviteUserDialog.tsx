@@ -13,6 +13,7 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
+import { LoadingButton } from '@/components/ui/loading-button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
@@ -24,7 +25,7 @@ import {
 } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
-import { Loader2, Mail, Shield, Info } from 'lucide-react'
+import { Mail, Shield, Info } from 'lucide-react'
 
 interface InviteUserDialogProps {
     open: boolean
@@ -231,19 +232,15 @@ export function InviteUserDialog({
                         >
                             Annuler
                         </Button>
-                        <Button type="submit" disabled={loading || loadingRoles}>
-                            {loading ? (
-                                <>
-                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                    Invitation...
-                                </>
-                            ) : (
-                                <>
-                                    <Mail className="h-4 w-4" />
-                                    Envoyer l'invitation
-                                </>
-                            )}
-                        </Button>
+                        <LoadingButton
+                            type="submit"
+                            disabled={loadingRoles}
+                            isLoading={loading}
+                            loadingText="Invitation..."
+                            icon={<Mail />}
+                        >
+                            Envoyer l'invitation
+                        </LoadingButton>
                     </DialogFooter>
                 </form>
             </DialogContent>

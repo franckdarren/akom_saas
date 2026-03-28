@@ -13,6 +13,7 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
+import { LoadingButton } from '@/components/ui/loading-button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -324,16 +325,9 @@ export function EditRoleDialog({
                         >
                             Annuler
                         </Button>
-                        <Button type="submit" disabled={loading}>
-                            {loading ? (
-                                <>
-                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                    Modification...
-                                </>
-                            ) : (
-                                'Enregistrer'
-                            )}
-                        </Button>
+                        <LoadingButton type="submit" isLoading={loading} loadingText="Modification...">
+                            Enregistrer
+                        </LoadingButton>
                     </DialogFooter>
                 </form>
             </DialogContent>

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { toggleRestaurantStatus } from '@/lib/actions/superadmin'
-import { Button } from '@/components/ui/button'
+import { LoadingButton } from '@/components/ui/loading-button'
 import {
     AlertDialog,
     AlertDialogAction,
@@ -15,7 +15,7 @@ import {
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { toast } from 'sonner'
-import { Power, Loader2 } from 'lucide-react'
+import { Power } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
 interface ToggleRestaurantStatusProps {
@@ -59,17 +59,13 @@ export function ToggleRestaurantStatus({
     return (
         <AlertDialog>
             <AlertDialogTrigger asChild>
-                <Button
+                <LoadingButton
                     variant={isActive ? 'destructive' : 'default'}
-                    disabled={loading}
+                    isLoading={loading}
+                    icon={<Power />}
                 >
-                    {loading ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                        <Power className="h-4 w-4" />
-                    )}
                     {isActive ? 'Désactiver' : 'Activer'}
-                </Button>
+                </LoadingButton>
             </AlertDialogTrigger>
             <AlertDialogContent>
                 <AlertDialogHeader>

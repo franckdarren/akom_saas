@@ -4,6 +4,7 @@ import {useState} from 'react'
 import {useRouter} from 'next/navigation'
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
 import {Button} from '@/components/ui/button'
+import {LoadingButton} from '@/components/ui/loading-button'
 import {Badge} from '@/components/ui/badge'
 import {Progress} from '@/components/ui/progress'
 import {
@@ -230,18 +231,14 @@ export function CircuitSheetCard({circuitSheet}: CircuitSheetCardProps) {
                         open={showValidateDialog}
                         onOpenChange={setShowValidateDialog}
                     >
-                        <Button
+                        <LoadingButton
                             onClick={() => setShowValidateDialog(true)}
-                            disabled={isLoading}
+                            isLoading={isLoading}
+                            icon={<CheckCircle />}
                             className="w-full"
                         >
-                            {isLoading ? (
-                                <Loader2 className="h-4 w-4 mr-2 animate-spin"/>
-                            ) : (
-                                <CheckCircle className="h-4 w-4 mr-2"/>
-                            )}
                             Valider la fiche circuit
-                        </Button>
+                        </LoadingButton>
 
                         <AlertDialogContent>
                             <AlertDialogHeader>

@@ -15,6 +15,7 @@ import {
     DialogTrigger,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
+import { LoadingButton } from '@/components/ui/loading-button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
@@ -24,7 +25,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select'
-import { UserPlus, Loader2, Eye, EyeOff, CheckCircle2, XCircle } from 'lucide-react'
+import { UserPlus, Eye, EyeOff, CheckCircle2, XCircle } from 'lucide-react'
 import type { UserRole } from '@/types/auth'
 
 interface PasswordStrength {
@@ -403,13 +404,13 @@ export function CreateUserDialog() {
                         >
                             Annuler
                         </Button>
-                        <Button
+                        <LoadingButton
                             type="submit"
-                            disabled={loading || !passwordsMatch || passwordStrength.score < 3}
+                            isLoading={loading}
+                            disabled={!passwordsMatch || passwordStrength.score < 3}
                         >
-                            {loading && <Loader2 className="animate-spin" />}
                             Créer
-                        </Button>
+                        </LoadingButton>
                     </DialogFooter>
                 </form>
             </DialogContent>

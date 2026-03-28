@@ -5,6 +5,7 @@ import {useState} from 'react'
 import {useRouter} from 'next/navigation'
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card'
 import {Button} from '@/components/ui/button'
+import {LoadingButton} from '@/components/ui/loading-button'
 import {Label} from '@/components/ui/label'
 import {
     Select,
@@ -24,7 +25,6 @@ import {
     FileText,
     User,
     AlertTriangle,
-    Loader2
 } from 'lucide-react'
 import {toast} from 'sonner'
 import {submitVerificationDocuments, resubmitVerificationDocuments} from '@/lib/actions/restaurant-verification'
@@ -379,23 +379,16 @@ export function VerificationDocumentsForm({
 
                         {/* Bouton de soumission */}
                         <div className="flex justify-end">
-                            <Button
+                            <LoadingButton
                                 onClick={handleSubmit}
-                                disabled={isLoading || !profilePhotoUrl || !identityDocumentUrl || !identityDocumentType}
+                                disabled={!profilePhotoUrl || !identityDocumentUrl || !identityDocumentType}
+                                isLoading={isLoading}
+                                loadingText="Envoi en cours..."
+                                icon={<CheckCircle2 />}
                                 size="lg"
                             >
-                                {isLoading ? (
-                                    <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
-                                        Envoi en cours...
-                                    </>
-                                ) : (
-                                    <>
-                                        <CheckCircle2 className="mr-2 h-4 w-4"/>
-                                        {isRejected ? 'Re-soumettre les documents' : 'Soumettre les documents'}
-                                    </>
-                                )}
-                            </Button>
+                                {isRejected ? 'Re-soumettre les documents' : 'Soumettre les documents'}
+                            </LoadingButton>
                         </div>
                     </>
                 )}

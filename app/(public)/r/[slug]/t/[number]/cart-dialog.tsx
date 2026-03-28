@@ -3,7 +3,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Minus, Plus, Trash2, Loader2 } from 'lucide-react'
+import { Minus, Plus, Trash2 } from 'lucide-react'
 import {
     Dialog,
     DialogContent,
@@ -12,6 +12,7 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
+import { LoadingButton } from '@/components/ui/loading-button'
 import { useCart } from './cart-context'
 import { formatPrice } from '@/lib/utils/format'
 import { toast } from 'sonner'
@@ -201,20 +202,14 @@ export function CartDialog({
                             >
                                 Continuer
                             </Button>
-                            <Button
+                            <LoadingButton
                                 className="flex-1"
                                 onClick={handleCheckout}
-                                disabled={isSubmitting}
+                                isLoading={isSubmitting}
+                                loadingText="Envoi..."
                             >
-                                {isSubmitting ? (
-                                    <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        Envoi...
-                                    </>
-                                ) : (
-                                    'Commander'
-                                )}
-                            </Button>
+                                Commander
+                            </LoadingButton>
                         </div>
                     </div>
                 )}

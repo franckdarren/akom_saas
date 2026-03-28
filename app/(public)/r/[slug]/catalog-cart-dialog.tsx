@@ -3,8 +3,9 @@
 
 import {useState} from 'react'
 import {useRouter} from 'next/navigation'
-import {Loader2, Plus, Minus, Trash2, ShoppingBag, Calendar, AlertCircle} from 'lucide-react'
+import {Plus, Minus, Trash2, ShoppingBag, Calendar, AlertCircle} from 'lucide-react'
 import {Button} from '@/components/ui/button'
+import {LoadingButton} from '@/components/ui/loading-button'
 import {Input} from '@/components/ui/input'
 import {Label} from '@/components/ui/label'
 import {Textarea} from '@/components/ui/textarea'
@@ -377,23 +378,17 @@ export function CatalogCartDialog({
                                 >
                                     Annuler
                                 </Button>
-                                <Button
+                                <LoadingButton
                                     onClick={handleCheckout}
-                                    disabled={!isFormValid || isSubmitting}
+                                    disabled={!isFormValid}
+                                    isLoading={isSubmitting}
+                                    loadingText="Confirmation..."
                                     className="flex-1"
                                 >
-                                    {isSubmitting ? (
-                                        <>
-                                            <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
-                                            Confirmation...
-                                        </>
-                                    ) : fulfillmentType === 'takeway' ? (
-                                        // ✅ CORRECTION : totalAmount au lieu de totalPrice + takeway en majuscules
-                                        `Confirmer · ${formatPrice(totalAmount)}`
-                                    ) : (
-                                        'Confirmer la réservation'
-                                    )}
-                                </Button>
+                                    {fulfillmentType === 'takeway'
+                                        ? `Confirmer · ${formatPrice(totalAmount)}`
+                                        : 'Confirmer la réservation'}
+                                </LoadingButton>
                             </div>
 
                             {!isFormValid && (

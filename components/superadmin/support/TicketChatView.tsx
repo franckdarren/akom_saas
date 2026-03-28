@@ -1,8 +1,9 @@
 'use client'
 
 import {useState, useEffect, useRef} from 'react'
-import {Send, Loader2, AlertCircle} from 'lucide-react'
+import {Send, AlertCircle} from 'lucide-react'
 import {Button} from '@/components/ui/button'
+import {LoadingButton} from '@/components/ui/loading-button'
 import {Textarea} from '@/components/ui/textarea'
 import {Card} from '@/components/ui/card'
 import {Alert, AlertDescription} from '@/components/ui/alert'
@@ -221,17 +222,13 @@ export function TicketChatView({
                                 disabled={isLoading}
                             />
 
-                            <Button
+                            <LoadingButton
                                 type="submit"
                                 size="icon"
-                                disabled={isLoading || !newMessage.trim()}
-                            >
-                                {isLoading ? (
-                                    <Loader2 className="h-5 w-5 animate-spin"/>
-                                ) : (
-                                    <Send className="h-5 w-5"/>
-                                )}
-                            </Button>
+                                isLoading={isLoading}
+                                disabled={!newMessage.trim()}
+                                icon={<Send className="h-5 w-5" />}
+                            />
                         </div>
 
                         <p className="text-xs text-muted-foreground mt-2">

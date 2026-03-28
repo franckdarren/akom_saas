@@ -1,8 +1,8 @@
 'use client'
 
 import {useRouter} from 'next/navigation'
-import {Package, Loader2} from 'lucide-react'
-import {Button} from '@/components/ui/button'
+import {Package} from 'lucide-react'
+import {LoadingButton} from '@/components/ui/loading-button'
 import {useNavigationLoading} from '@/lib/hooks/use-navigation-loading'
 
 export function BackToWarehouseButton() {
@@ -15,13 +15,8 @@ export function BackToWarehouseButton() {
     }
 
     return (
-        <Button onClick={handleClick} disabled={loading} variant="outline">
-            {loading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
-            ) : (
-                <Package className="mr-2 h-4 w-4"/>
-            )}
+        <LoadingButton onClick={handleClick} isLoading={loading} variant="outline" icon={<Package />}>
             Aller au magasin
-        </Button>
+        </LoadingButton>
     )
 }

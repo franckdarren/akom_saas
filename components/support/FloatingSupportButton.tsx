@@ -3,6 +3,7 @@
 import {useState, useEffect, useRef} from 'react'
 import {MessageSquare, X, Send, ArrowLeft, Loader2, Plus} from 'lucide-react'
 import {Button} from '@/components/ui/button'
+import {LoadingButton} from '@/components/ui/loading-button'
 import {Badge} from '@/components/ui/badge'
 import {Textarea} from '@/components/ui/textarea'
 import {Input} from '@/components/ui/input'
@@ -338,24 +339,15 @@ export function FloatingSupportButton() {
                                 </ScrollArea>
 
                                 <div className="p-4 border-t border-border shrink-0">
-                                    <Button
+                                    <LoadingButton
                                         type="submit"
                                         className="w-full"
-                                        disabled={
-                                            isLoading ||
-                                            !newTicket.subject.trim() ||
-                                            !newTicket.description.trim()
-                                        }
+                                        isLoading={isLoading}
+                                        loadingText="Envoi en cours..."
+                                        disabled={!newTicket.subject.trim() || !newTicket.description.trim()}
                                     >
-                                        {isLoading ? (
-                                            <>
-                                                <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
-                                                Envoi en cours...
-                                            </>
-                                        ) : (
-                                            'Envoyer le ticket'
-                                        )}
-                                    </Button>
+                                        Envoyer le ticket
+                                    </LoadingButton>
                                 </div>
                             </form>
                         )}
@@ -450,17 +442,13 @@ export function FloatingSupportButton() {
                                         rows={2}
                                         disabled={isLoading}
                                     />
-                                    <Button
+                                    <LoadingButton
                                         type="submit"
                                         size="icon"
-                                        disabled={!newMessage.trim() || isLoading}
-                                    >
-                                        {isLoading ? (
-                                            <Loader2 className="h-4 w-4 animate-spin"/>
-                                        ) : (
-                                            <Send className="h-4 w-4"/>
-                                        )}
-                                    </Button>
+                                        isLoading={isLoading}
+                                        disabled={!newMessage.trim()}
+                                        icon={<Send className="h-4 w-4" />}
+                                    />
                                 </form>
                             </>
                         )}

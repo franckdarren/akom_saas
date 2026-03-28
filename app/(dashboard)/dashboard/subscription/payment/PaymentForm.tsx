@@ -5,6 +5,7 @@ import {useRouter} from 'next/navigation'
 import {createManualPayment} from '@/lib/actions/subscription'
 import {uploadPaymentProof} from '@/lib/utils/upload'
 import {Button} from '@/components/ui/button'
+import {LoadingButton} from '@/components/ui/loading-button'
 import {Label} from '@/components/ui/label'
 import {Textarea} from '@/components/ui/textarea'
 import {Input} from '@/components/ui/input'
@@ -15,7 +16,7 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card'
-import {Upload, CheckCircle2, Loader2, AlertCircle, Users} from 'lucide-react'
+import {Upload, CheckCircle2, AlertCircle, Users} from 'lucide-react'
 import {Alert, AlertDescription} from '@/components/ui/alert'
 import Image from 'next/image'
 import {toast} from 'sonner'
@@ -219,24 +220,17 @@ export function PaymentForm({
                     )}
 
                     {/* Submit */}
-                    <Button
+                    <LoadingButton
                         type="submit"
-                        disabled={!file || submitting || uploading}
+                        disabled={!file}
+                        isLoading={submitting || uploading}
+                        loadingText="Traitement..."
+                        icon={<CheckCircle2 />}
                         className="w-full"
                         size="lg"
                     >
-                        {uploading || submitting ? (
-                            <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
-                                Traitement...
-                            </>
-                        ) : (
-                            <>
-                                <CheckCircle2 className="mr-2 h-4 w-4"/>
-                                Soumettre {formatPrice(amount)}
-                            </>
-                        )}
-                    </Button>
+                        Soumettre {formatPrice(amount)}
+                    </LoadingButton>
 
                     <p className="text-xs text-muted-foreground text-center">
                         Validation sous 24h ouvrées. Notification envoyée par email.

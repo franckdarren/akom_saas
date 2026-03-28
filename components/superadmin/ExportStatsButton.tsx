@@ -2,14 +2,14 @@
 
 import { useState } from 'react'
 import { exportStatsToCSV } from '@/lib/actions/superadmin-stats'
-import { Button } from '@/components/ui/button'
+import { LoadingButton } from '@/components/ui/loading-button'
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Download, Loader2 } from 'lucide-react'
+import { Download } from 'lucide-react'
 import { toast } from 'sonner'
 
 interface ExportStatsButtonProps {
@@ -47,10 +47,9 @@ export function ExportStatsButton({ period }: ExportStatsButtonProps) {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button disabled={loading} onClick={onClickHandler}>
-                    {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                <LoadingButton isLoading={loading} onClick={onClickHandler} icon={<Download />}>
                     Export CSV
-                </Button>
+                </LoadingButton>
             </DropdownMenuTrigger>
             {!period && (
                 <DropdownMenuContent align="end">

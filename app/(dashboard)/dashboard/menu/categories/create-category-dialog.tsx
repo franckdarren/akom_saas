@@ -12,10 +12,11 @@ import {
     DialogTrigger,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
+import { LoadingButton } from '@/components/ui/loading-button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Loader2 } from 'lucide-react'
+
 import { createCategory } from '@/lib/actions/category'
 import { toast } from "sonner"
 
@@ -115,16 +116,9 @@ export function CreateCategoryDialog({ children }: { children: React.ReactNode }
                         >
                             Annuler
                         </Button>
-                        <Button type="submit" disabled={isLoading}>
-                            {isLoading ? (
-                                <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Création...
-                                </>
-                            ) : (
-                                'Créer'
-                            )}
-                        </Button>
+                        <LoadingButton type="submit" isLoading={isLoading} loadingText="Création...">
+                            Créer
+                        </LoadingButton>
                     </div>
                 </form>
             </DialogContent>

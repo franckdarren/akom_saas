@@ -16,11 +16,12 @@ import {
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import {Button} from '@/components/ui/button'
+import {LoadingButton} from '@/components/ui/loading-button'
 import {Input} from '@/components/ui/input'
 import {Label} from '@/components/ui/label'
 import {Alert, AlertDescription} from '@/components/ui/alert'
 import {toast} from 'sonner'
-import {Loader2, AlertTriangle, Trash2} from 'lucide-react'
+import {AlertTriangle, Trash2} from 'lucide-react'
 
 interface DeleteRestaurantDialogProps {
     restaurantId: string
@@ -159,24 +160,17 @@ export function DeleteRestaurantDialog({
                         <AlertDialogCancel disabled={isPending}>
                             Annuler
                         </AlertDialogCancel>
-                        <Button
+                        <LoadingButton
                             variant="destructive"
                             onClick={handleDelete}
-                            disabled={!isConfirmed || isPending}
+                            disabled={!isConfirmed}
+                            isLoading={isPending}
+                            loadingText="Suppression…"
+                            icon={<Trash2 className="h-4 w-4" />}
                             className="gap-1.5"
                         >
-                            {isPending ? (
-                                <>
-                                    <Loader2 className="h-4 w-4 animate-spin"/>
-                                    Suppression…
-                                </>
-                            ) : (
-                                <>
-                                    <Trash2 className="h-4 w-4"/>
-                                    Supprimer définitivement
-                                </>
-                            )}
-                        </Button>
+                            Supprimer définitivement
+                        </LoadingButton>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>

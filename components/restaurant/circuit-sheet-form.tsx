@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { LoadingButton } from '@/components/ui/loading-button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
@@ -15,7 +16,6 @@ import {
     FileText,
     AlertTriangle,
     AlertCircle,
-    Loader2
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { submitCircuitSheet } from '@/lib/actions/restaurant-verification'
@@ -305,23 +305,16 @@ export function CircuitSheetForm({
 
                                 {/* Bouton de soumission */}
                                 <div className="flex justify-end">
-                                    <Button
+                                    <LoadingButton
                                         onClick={handleSubmit}
-                                        disabled={isLoading || !circuitSheetUrl}
+                                        disabled={!circuitSheetUrl}
+                                        isLoading={isLoading}
+                                        loadingText="Envoi en cours..."
+                                        icon={<CheckCircle2 />}
                                         size="lg"
                                     >
-                                        {isLoading ? (
-                                            <>
-                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                Envoi en cours...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <CheckCircle2 className="mr-2 h-4 w-4" />
-                                                Soumettre la fiche circuit
-                                            </>
-                                        )}
-                                    </Button>
+                                        Soumettre la fiche circuit
+                                    </LoadingButton>
                                 </div>
                             </div>
                         )}

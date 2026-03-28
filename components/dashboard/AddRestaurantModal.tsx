@@ -14,12 +14,13 @@ import {
     DialogDescription,
 } from '@/components/ui/dialog'
 import {Button} from '@/components/ui/button'
+import {LoadingButton} from '@/components/ui/loading-button'
 import {Input} from '@/components/ui/input'
 import {Label} from '@/components/ui/label'
 import {toast} from 'sonner'
 import {
     ArrowLeft, ArrowRight, Building2, CheckCircle2,
-    Loader2, MapPin, Phone, Sparkles, ChevronRight,
+    MapPin, Phone, Sparkles, ChevronRight,
 } from 'lucide-react'
 import {cn} from '@/lib/utils'
 
@@ -334,23 +335,16 @@ export function AddRestaurantModal({open, onOpenChange}: AddRestaurantModalProps
                                 <ArrowLeft className="h-3.5 w-3.5"/>
                                 Retour
                             </Button>
-                            <Button
+                            <LoadingButton
                                 type="submit"
                                 className="flex-1 gap-1.5"
-                                disabled={isPending || !name.trim()}
+                                isLoading={isPending}
+                                loadingText="Création en cours…"
+                                disabled={!name.trim()}
+                                icon={<Sparkles />}
                             >
-                                {isPending ? (
-                                    <>
-                                        <Loader2 className="h-4 w-4 animate-spin"/>
-                                        Création en cours…
-                                    </>
-                                ) : (
-                                    <>
-                                        <Sparkles className="h-4 w-4"/>
-                                        Créer la structure
-                                    </>
-                                )}
-                            </Button>
+                                Créer la structure
+                            </LoadingButton>
                         </div>
                     </form>
                 )}

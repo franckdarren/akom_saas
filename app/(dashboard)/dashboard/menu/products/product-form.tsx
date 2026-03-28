@@ -5,6 +5,7 @@ import {useState, useEffect, useMemo} from 'react'
 import {useRouter} from 'next/navigation'
 import {Card, CardContent} from '@/components/ui/card'
 import {Button} from '@/components/ui/button'
+import {LoadingButton} from '@/components/ui/loading-button'
 import {Input} from '@/components/ui/input'
 import {Label} from '@/components/ui/label'
 import {Textarea} from '@/components/ui/textarea'
@@ -16,7 +17,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select'
-import {Loader2, Info, Package, Wrench} from 'lucide-react'
+import {Info, Package, Wrench} from 'lucide-react'
 import {createProduct, updateProduct} from '@/lib/actions/product'
 import {ImageUploader} from '@/components/image-uploader'
 import {toast} from "sonner"
@@ -401,18 +402,13 @@ export function ProductForm({categories, families, product, labels}: ProductForm
                         >
                             Annuler
                         </Button>
-                        <Button type="submit" disabled={isLoading}>
-                            {isLoading ? (
-                                <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
-                                    {product ? 'Enregistrement...' : 'Création...'}
-                                </>
-                            ) : product ? (
-                                'Enregistrer'
-                            ) : (
-                                `Créer le ${productLabel}`
-                            )}
-                        </Button>
+                        <LoadingButton
+                            type="submit"
+                            isLoading={isLoading}
+                            loadingText={product ? 'Enregistrement...' : 'Création...'}
+                        >
+                            {product ? 'Enregistrer' : `Créer le ${productLabel}`}
+                        </LoadingButton>
                     </div>
                 </form>
             </CardContent>

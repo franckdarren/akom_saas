@@ -2,7 +2,7 @@
 
 import {useState} from 'react'
 import {useRouter} from 'next/navigation'
-import {Edit, Loader2, AlertTriangle} from 'lucide-react'
+import {Edit, AlertTriangle} from 'lucide-react'
 import {toast} from 'sonner'
 
 import {
@@ -13,6 +13,7 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog'
 import {Button} from '@/components/ui/button'
+import {LoadingButton} from '@/components/ui/loading-button'
 import {Input} from '@/components/ui/input'
 import {Label} from '@/components/ui/label'
 import {Textarea} from '@/components/ui/textarea'
@@ -189,17 +190,14 @@ export function StockAdjustmentModal({
                             Annuler
                         </Button>
 
-                        <Button
+                        <LoadingButton
                             type="submit"
-                            disabled={isLoading || !isDifferent}
-                            className="gap-2"
+                            isLoading={isLoading}
+                            disabled={!isDifferent}
                             variant={difference < 0 ? "destructive" : "default"}
                         >
-                            {isLoading && (
-                                <Loader2 className="h-4 w-4 animate-spin"/>
-                            )}
                             Confirmer
-                        </Button>
+                        </LoadingButton>
                     </div>
                 </form>
             </DialogContent>

@@ -4,6 +4,7 @@ import {useState} from 'react'
 import {useRouter} from 'next/navigation'
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
 import {Button} from '@/components/ui/button'
+import {LoadingButton} from '@/components/ui/loading-button'
 import {Badge} from '@/components/ui/badge'
 import {Label} from '@/components/ui/label'
 import {Textarea} from '@/components/ui/textarea'
@@ -32,7 +33,6 @@ import {
     FileText,
     Calendar,
     ExternalLink,
-    Loader2,
     Eye,
 } from 'lucide-react'
 import {toast} from 'sonner'
@@ -295,18 +295,14 @@ export function RestaurantVerificationCard({
                             open={showApproveDialog}
                             onOpenChange={setShowApproveDialog}
                         >
-                            <Button
+                            <LoadingButton
                                 onClick={() => setShowApproveDialog(true)}
-                                disabled={isLoading}
+                                isLoading={isLoading}
+                                icon={<CheckCircle />}
                                 className="flex-1"
                             >
-                                {isLoading ? (
-                                    <Loader2 className="h-4 w-4 mr-2 animate-spin"/>
-                                ) : (
-                                    <CheckCircle className="h-4 w-4 mr-2"/>
-                                )}
                                 Approuver
-                            </Button>
+                            </LoadingButton>
 
                             <AlertDialogContent>
                                 <AlertDialogHeader>

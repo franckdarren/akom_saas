@@ -13,9 +13,10 @@ import {
     DialogTrigger,
 } from '@/components/ui/dialog'
 import {Button} from '@/components/ui/button'
+import {LoadingButton} from '@/components/ui/loading-button'
 import {Input} from '@/components/ui/input'
 import {Label} from '@/components/ui/label'
-import {Settings, Loader2} from 'lucide-react'
+import {Settings} from 'lucide-react'
 import {updateAlertThreshold} from '@/lib/actions/stock'
 
 type AlertThresholdEditorProps = {
@@ -150,16 +151,9 @@ export function AlertThresholdEditor({
                         >
                             Annuler
                         </Button>
-                        <Button type="submit" disabled={isLoading || !thresholdChanged}>
-                            {isLoading ? (
-                                <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
-                                    Enregistrement...
-                                </>
-                            ) : (
-                                'Enregistrer'
-                            )}
-                        </Button>
+                        <LoadingButton type="submit" isLoading={isLoading} loadingText="Enregistrement..." disabled={!thresholdChanged}>
+                            Enregistrer
+                        </LoadingButton>
                     </DialogFooter>
                 </form>
             </DialogContent>

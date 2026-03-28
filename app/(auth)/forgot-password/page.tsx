@@ -3,10 +3,9 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { forgotPassword } from '@/lib/actions/auth'
-import { Button } from '@/components/ui/button'
+import { LoadingButton } from '@/components/ui/loading-button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Loader2 } from "lucide-react"
 
 
 export default function ForgotPasswordPage() {
@@ -92,15 +91,14 @@ export default function ForgotPasswordPage() {
                 )}
 
                 {/* Submit Button */}
-                <Button
+                <LoadingButton
                     type="submit"
                     className="w-full"
-                    disabled={loading}
-                > {loading && (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                )}
-                    {loading ? 'Envoi...' : 'Envoyer le lien'}
-                </Button>
+                    isLoading={loading}
+                    loadingText="Envoi..."
+                >
+                    Envoyer le lien
+                </LoadingButton>
             </form>
 
             {/* Back to Login */}
