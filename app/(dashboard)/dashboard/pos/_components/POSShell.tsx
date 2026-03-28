@@ -118,7 +118,7 @@ export function POSShell({categories, restaurantId}: POSShellProps) {
             {/* ══════════════════════════════════════════
                 CORPS — catalogue + panier côte à côte
             ══════════════════════════════════════════ */}
-            <div className="flex flex-1 overflow-hidden">
+            <div className="flex flex-col lg:flex-row flex-1 overflow-hidden">
 
                 {/* ── Colonne gauche : catalogue ── */}
                 <div className="flex flex-1 flex-col min-w-0 overflow-hidden">

@@ -113,7 +113,7 @@ export default async function EditWarehouseProductPage({
 
             {/* Title */}
             <div>
-                <h1 className="text-3xl font-bold tracking-tight">
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">
                     Modifier le produit d&#39;entrepôt
                 </h1>
                 <p className="text-muted-foreground mt-1">

@@ -147,7 +147,7 @@ export default async function WarehousePage({
             <div className="flex flex-1 flex-col gap-4 p-4">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight">Magasin de stockage</h1>
+                        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">Magasin de stockage</h1>
                         <p className="text-muted-foreground mt-1">
                             Gérez votre stock d&apos;entrepôt et réapprovisionnez votre restaurant
                         </p>

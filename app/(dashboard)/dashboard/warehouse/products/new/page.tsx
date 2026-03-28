@@ -68,7 +68,7 @@ export default async function NewWarehouseProductPage() {
 
             <div className="flex flex-1 flex-col gap-4 p-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">
+                    <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">
                         Nouveau produit d&#39;entrepôt
                     </h1>
 

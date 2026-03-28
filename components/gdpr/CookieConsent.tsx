@@ -182,7 +182,7 @@ export function CookieConsent() {
     return (
         <>
             {/* Bannière principale */}
-            <div className="fixed inset-x-0 bottom-0 z-50 bg-background border-t shadow-lg animate-in slide-in-from-bottom-5">
+            <div className="fixed inset-x-0 bottom-0 z-50 bg-background border-t shadow-lg animate-in slide-in-from-bottom-5 max-h-[70vh] sm:max-h-[90vh] overflow-y-auto">
                 <div className="container max-w-6xl mx-auto p-6">
                     <div className="flex items-start gap-4">
                         <Cookie className="h-6 w-6 text-primary shrink-0 mt-1" />

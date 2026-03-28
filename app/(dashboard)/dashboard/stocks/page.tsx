@@ -89,7 +89,7 @@ export default async function StocksPage({
             <div className="flex flex-1 flex-col gap-4 p-4">
                 <div>
                     {/* ← Titre dynamique */}
-                    <h1 className="text-3xl font-bold tracking-tight">
+                    <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">
                         Stocks — {labels.productNameCapital}s
                     </h1>
                     <p className="text-muted-foreground mt-2">

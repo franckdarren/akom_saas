@@ -312,7 +312,7 @@ export function WarehouseProductForm({
                     </div>
 
                     {/* SKU et catégorie sur la même ligne pour optimiser l'espace */}
-                    <div className="grid gap-4 md:grid-cols-2">
+                    <div className="grid gap-2 sm:gap-4 md:grid-cols-2">
                         <div className="space-y-2">
                             <Label htmlFor="sku">Code SKU (optionnel)</Label>
                             <Input
@@ -421,7 +421,7 @@ export function WarehouseProductForm({
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    <div className="grid gap-4 md:grid-cols-2">
+                    <div className="grid gap-2 sm:gap-4 md:grid-cols-2">
                         {/* Type d'emballage avec dropdown pour garantir la cohérence */}
                         <div className="space-y-2">
                             <Label htmlFor="storageUnit">
@@ -581,7 +581,7 @@ export function WarehouseProductForm({
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        <div className="grid gap-4 md:grid-cols-3">
+                        <div className="grid gap-2 sm:gap-4 md:grid-cols-3">
                             <div className="space-y-2">
                                 <Label htmlFor="initialQuantity">Quantité initiale</Label>
                                 <Input

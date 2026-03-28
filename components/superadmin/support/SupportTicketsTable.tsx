@@ -55,11 +55,11 @@ export default function SupportTicketsTable({
             <TableHeader>
                 <TableRow>
                     <TableHead>Sujet</TableHead>
-                    <TableHead>Restaurant</TableHead>
-                    <TableHead>Priorité</TableHead>
+                    <TableHead className="hidden sm:table-cell">Restaurant</TableHead>
+                    <TableHead className="hidden sm:table-cell">Priorité</TableHead>
                     <TableHead>Statut</TableHead>
-                    <TableHead>Messages</TableHead>
-                    <TableHead>Créé le</TableHead>
+                    <TableHead className="hidden lg:table-cell">Messages</TableHead>
+                    <TableHead className="hidden lg:table-cell">Créé le</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
             </TableHeader>
@@ -85,7 +85,7 @@ export default function SupportTicketsTable({
                                     {ticket.subject}
                                 </TableCell>
 
-                                <TableCell>
+                                <TableCell className="hidden sm:table-cell">
                                     <Link
                                         href={`/superadmin/restaurants/${ticket.restaurantId}`}
                                         className="text-primary hover:underline"
@@ -94,7 +94,7 @@ export default function SupportTicketsTable({
                                     </Link>
                                 </TableCell>
 
-                                <TableCell>
+                                <TableCell className="hidden sm:table-cell">
                                     <Badge variant={priorityBadge.variant}>
                                         {priorityBadge.label}
                                     </Badge>
@@ -106,14 +106,14 @@ export default function SupportTicketsTable({
                                     </Badge>
                                 </TableCell>
 
-                                <TableCell>
+                                <TableCell className="hidden lg:table-cell">
                                     <div className="flex items-center gap-2 text-muted-foreground">
                                         <MessageSquare className="h-4 w-4"/>
                                         {ticket._count.messages}
                                     </div>
                                 </TableCell>
 
-                                <TableCell className="text-muted-foreground">
+                                <TableCell className="hidden lg:table-cell text-muted-foreground">
                                     {formatDate(
                                         typeof ticket.createdAt === 'string'
                                             ? new Date(ticket.createdAt)

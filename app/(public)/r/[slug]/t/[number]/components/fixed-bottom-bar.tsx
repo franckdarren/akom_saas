@@ -22,7 +22,7 @@ export function FixedBottomBar({ itemCount, totalAmount, onViewCart }: FixedBott
                     animate={{ y: 0, opacity: 1 }}
                     exit={{ y: 100, opacity: 0 }}
                     transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                    className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-zinc-900 border-t shadow-lg"
+                    className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-zinc-900 border-t shadow-lg pb-[env(safe-area-inset-bottom)]"
                 >
                     <div className="max-w-3xl mx-auto px-4 py-3">
                         <div className="flex items-center justify-between gap-4">

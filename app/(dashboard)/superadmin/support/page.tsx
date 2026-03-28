@@ -45,7 +45,7 @@ export default async function SupportPage() {
 
             <div className='flex flex-col gap-6 p-6'>
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Support Client</h1>
+                    <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">Support Client</h1>
                     <p className="text-muted-foreground mt-2">
                         Gérez les tickets de support client
                     </p>

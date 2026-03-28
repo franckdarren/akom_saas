@@ -86,7 +86,7 @@ export default async function SuspendedPage() {
                         )}
                     </div>
 
-                    <div className="px-8 py-8">
+                    <div className="px-4 sm:px-8 py-6 sm:py-8">
                         {/* ← Label dynamique */}
                         <p className="text-zinc-500 text-sm font-medium mb-1">{labels.structureNameCapital}</p>
                         <h1 className="text-white text-2xl font-bold mb-6">{restaurant.name}</h1>

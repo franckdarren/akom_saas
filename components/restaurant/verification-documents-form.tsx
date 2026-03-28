@@ -262,9 +262,9 @@ export function VerificationDocumentsForm({
                                 Une photo récente de vous ou du gérant principal du restaurant
                             </p>
 
-                            <div className="flex items-center gap-4">
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                                 {profilePhotoUrl && (
-                                    <div className="relative h-24 w-24 rounded-lg overflow-hidden border">
+                                    <div className="relative h-20 w-20 sm:h-24 sm:w-24 rounded-lg overflow-hidden border shrink-0">
                                         <img
                                             src={profilePhotoUrl}
                                             alt="Aperçu"
@@ -333,7 +333,7 @@ export function VerificationDocumentsForm({
                             </div>
 
                             {/* Upload */}
-                            <div className="flex items-center gap-4">
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                                 {identityDocumentUrl && (
                                     <div className="flex items-center gap-2 px-3 py-2 bg-muted rounded-lg">
                                         <FileText className="h-4 w-4 text-green-600"/>

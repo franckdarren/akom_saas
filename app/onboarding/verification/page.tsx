@@ -49,8 +49,8 @@ export default async function VerificationPage() {
     const labels = getLabels(restaurant.activityType)
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-background py-12">
-            <div className="container max-w-3xl">
+        <div className="min-h-screen flex items-center justify-center bg-background py-6 sm:py-12 px-4">
+            <div className="w-full max-w-3xl">
 
                 <div className="mb-10">
                     <div className="flex justify-between text-sm text-muted-foreground mb-2">

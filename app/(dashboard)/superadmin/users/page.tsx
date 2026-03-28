@@ -57,7 +57,7 @@ export default async function UsersManagementPage() {
             <div className="flex flex-col gap-6 p-6">
                 <div className="flex justify-between items-center">
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight">Utilisateurs</h1>
+                        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">Utilisateurs</h1>
                         <p className="text-muted-foreground mt-2">
                             Tous les utilisateurs de la plateforme
                         </p>

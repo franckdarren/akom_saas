@@ -28,7 +28,7 @@ export default async function AddRestaurantPage() {
         <div className="min-h-screen bg-background">
             {/* Header */}
             <div className="border-b bg-card">
-                <div className="mx-auto max-w-2xl px-4 py-4 flex items-center gap-4">
+                <div className="mx-auto max-w-2xl px-4 py-4 flex flex-wrap items-center gap-2 sm:gap-4">
                     <Button variant="ghost" size="sm" asChild>
                         <Link href="/dashboard">
                             <ArrowLeft className="h-4 w-4 mr-1.5"/>

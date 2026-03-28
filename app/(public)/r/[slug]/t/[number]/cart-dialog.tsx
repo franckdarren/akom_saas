@@ -99,7 +99,7 @@ export function CartDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-md max-h-[80vh]">
+            <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-md max-h-[85vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>Mon panier</DialogTitle>
                     <DialogDescription>

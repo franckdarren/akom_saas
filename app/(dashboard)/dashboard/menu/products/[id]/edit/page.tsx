@@ -117,7 +117,7 @@ export default async function EditProductPage({
             <div className="flex flex-1 flex-col gap-4 p-4 max-w-2xl">
                 <div>
                     {/* ← Titre dynamique */}
-                    <h1 className="text-3xl font-bold tracking-tight">
+                    <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">
                         Modifier le {labels.productName}
                     </h1>
                     <p className="text-muted-foreground mt-2">{product.name}</p>

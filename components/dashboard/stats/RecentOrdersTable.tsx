@@ -44,12 +44,12 @@ export function RecentOrdersTable({ data }: RecentOrdersTableProps) {
                         <TableHeader>
                             <TableRow>
                                 <TableHead>N°</TableHead>
-                                <TableHead>Table</TableHead>
-                                <TableHead>Client</TableHead>
-                                <TableHead>Articles</TableHead>
+                                <TableHead className="hidden sm:table-cell">Table</TableHead>
+                                <TableHead className="hidden sm:table-cell">Client</TableHead>
+                                <TableHead className="hidden lg:table-cell">Articles</TableHead>
                                 <TableHead>Montant</TableHead>
                                 <TableHead>Statut</TableHead>
-                                <TableHead className="text-right">Date</TableHead>
+                                <TableHead className="hidden lg:table-cell text-right">Date</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -58,13 +58,13 @@ export function RecentOrdersTable({ data }: RecentOrdersTableProps) {
                                     <TableCell className="font-medium">
                                         {order.orderNumber || '-'}
                                     </TableCell>
-                                    <TableCell>
+                                    <TableCell className="hidden sm:table-cell">
                                         {order.tableNumber ? `Table ${order.tableNumber}` : '-'}
                                     </TableCell>
-                                    <TableCell className="max-w-[150px] truncate">
+                                    <TableCell className="hidden sm:table-cell max-w-[150px] truncate">
                                         {order.customerName || '-'}
                                     </TableCell>
-                                    <TableCell>{order.itemsCount}</TableCell>
+                                    <TableCell className="hidden lg:table-cell">{order.itemsCount}</TableCell>
                                     <TableCell className="font-medium">
                                         {formatPrice(order.totalAmount)}
                                     </TableCell>
@@ -73,7 +73,7 @@ export function RecentOrdersTable({ data }: RecentOrdersTableProps) {
                                             {statusVariants[order.status].label}
                                         </Badge>
                                     </TableCell>
-                                    <TableCell className="text-right text-xs text-zinc-500">
+                                    <TableCell className="hidden lg:table-cell text-right text-xs text-zinc-500">
                                         {formatDate(order.createdAt)}
                                     </TableCell>
                                 </TableRow>

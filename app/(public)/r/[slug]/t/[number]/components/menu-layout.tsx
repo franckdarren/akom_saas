@@ -257,16 +257,16 @@ export function MenuLayout({
                             {menuData.restaurant.name}
                         </span>
                     </div>
-                    <div className="flex gap-3 justify-center">
+                    <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center items-center">
                         {menuData.restaurant.phone && (
-                            <div className="flex gap-2 items-center text-xs">
-                                <Phone className="h-4 w-4"/>
+                            <div className="flex gap-2 items-center text-xs sm:text-sm">
+                                <Phone className="h-4 w-4 shrink-0"/>
                                 <span>{menuData.restaurant.phone}</span>
                             </div>
                         )}
                         {menuData.restaurant.address && (
-                            <div className="flex gap-2 items-center text-xs">
-                                <MapPin className="h-4 w-4"/>
+                            <div className="flex gap-2 items-center text-xs sm:text-sm">
+                                <MapPin className="h-4 w-4 shrink-0"/>
                                 <span>{menuData.restaurant.address}</span>
                             </div>
                         )}

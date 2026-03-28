@@ -187,7 +187,7 @@ export default async function WarehouseProductDetailPage({params}: PageProps) {
                         <div className="space-y-6">
                             <div className="flex items-start justify-between">
                                 <div>
-                                    <h1 className="text-3xl font-bold tracking-tight">{product.name}</h1>
+                                    <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">{product.name}</h1>
                                     {product.sku && (
                                         <p className="text-sm text-muted-foreground font-mono mt-1">
                                             SKU: {product.sku}

@@ -191,7 +191,7 @@ export function CircuitSheetCard({circuitSheet}: CircuitSheetCardProps) {
                                     {circuitSheet.circuitSheetUrl.endsWith('.pdf') ? (
                                         <iframe
                                             src={circuitSheet.circuitSheetUrl}
-                                            className="w-full h-[600px] rounded-lg border"
+                                            className="w-full h-[300px] sm:h-[450px] md:h-[600px] rounded-lg border"
                                             title="Fiche circuit PDF"
                                         />
                                     ) : (

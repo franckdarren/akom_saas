@@ -96,7 +96,7 @@ export default async function DashboardPage({ searchParams }: PageProps) {
                 </div>
             </header>
 
-            <div className="flex flex-1 flex-col gap-6 p-6 overflow-auto">
+            <div className="flex flex-1 flex-col gap-4 sm:gap-6 p-3 sm:p-4 md:p-6 overflow-auto">
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                     <KpiCard
                         title="Chiffre d'affaires"

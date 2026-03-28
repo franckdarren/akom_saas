@@ -76,7 +76,7 @@ export function CreateRestaurantForm() {
                     {/* ── Sélection du type d'activité ── */}
                     <div className="space-y-2">
                         <Label>Type d&apos;activité</Label>
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             {ACTIVITY_TYPE_OPTIONS.map((option) => (
                                 <button
                                     key={option.value}

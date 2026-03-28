@@ -52,7 +52,7 @@ export default function LoginPage() {
                     Accédez à votre tableau de bord
                 </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4 px-1">
+            <CardContent className="space-y-4 px-4 sm:px-6">
                 <form onSubmit={handleSubmit} className="space-y-4">
                     {/* Email */}
                     <div>
@@ -90,9 +90,10 @@ export default function LoginPage() {
                             <button
                                 type="button"
                                 onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
+                                className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-md text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-accent transition-colors"
+                                aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
                             >
-                                {showPassword ? <EyeOff className="h-5 w-5"/> : <Eye className="h-5 w-5"/>}
+                                {showPassword ? <EyeOff className="h-4 w-4"/> : <Eye className="h-4 w-4"/>}
                             </button>
                         </div>
                     </div>

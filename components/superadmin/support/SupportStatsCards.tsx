@@ -21,7 +21,7 @@ export default function SupportStatsCards({
     stats: SupportStats
 }) {
     return (
-        <div className="grid gap-4 md:grid-cols-4">
+        <div className="grid gap-2 sm:gap-4 grid-cols-2 lg:grid-cols-4">
 
             {/* Total */}
             <Card>

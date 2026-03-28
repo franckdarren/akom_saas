@@ -91,7 +91,7 @@ export default async function RestaurantsPage() {
 
                 {/* En-tête de la page */}
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">
+                    <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">
                         Tous les Restaurants
                     </h1>
                     <p className="text-muted-foreground mt-2">

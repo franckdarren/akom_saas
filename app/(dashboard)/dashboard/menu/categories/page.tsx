@@ -88,7 +88,7 @@ export default async function CategoriesPage() {
                     <div>
                         <div className="flex items-center gap-3">
                             {/* ← Titre dynamique */}
-                            <h1 className="text-3xl font-bold tracking-tight">
+                            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">
                                 {labels.categoryNameCapital}s
                             </h1>
                             <Badge

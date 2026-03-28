@@ -130,7 +130,7 @@ export default async function CategoryFamiliesPage({
                 {/* En-tête de la page avec titre et bouton de création */}
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight">
+                        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">
                             Familles de {category.name}
                         </h1>
                         <p className="text-muted-foreground mt-2">

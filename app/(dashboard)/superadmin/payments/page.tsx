@@ -50,7 +50,7 @@ export default async function PaymentsPage() {
 
             <div className='flex flex-col gap-6 p-6'>
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Gestion des Paiements</h1>
+                    <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">Gestion des Paiements</h1>
                     <p className="text-muted-foreground mt-2">
                         Validez ou refusez les paiements manuels
                     </p>

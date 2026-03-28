@@ -193,7 +193,7 @@ export function FloatingSupportButton() {
             {/* ====== Panel ====== */}
             {isOpen && (
                 <div
-                    className="fixed bottom-24 right-6 w-[400px] max-w-[95vw] h-[80vh] bg-card border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden z-50">
+                    className="fixed bottom-24 right-6 w-full sm:w-[400px] max-w-[calc(100vw-1.5rem)] h-[80vh] bg-card border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden z-50">
 
                     {/* HEADER */}
                     <div

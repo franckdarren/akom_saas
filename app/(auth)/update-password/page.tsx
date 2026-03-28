@@ -61,7 +61,7 @@ export default function UpdatePasswordPage() {
         return (
             <div>
                 <div className="mb-6">
-                    <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">
+                    <h2 className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-zinc-50">
                         Mot de passe modifié
                     </h2>
                 </div>
@@ -82,7 +82,7 @@ export default function UpdatePasswordPage() {
     return (
         <div>
             <div className="mb-6">
-                <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">
+                <h2 className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-zinc-50">
                     Modifier le mot de passe
                 </h2>
                 <p className="text-zinc-600 dark:text-zinc-400 mt-1">
@@ -107,7 +107,8 @@ export default function UpdatePasswordPage() {
                         <button
                             type="button"
                             onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                            aria-label={showCurrentPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
                         >
                             {showCurrentPassword ? <EyeOff className="h-4 w-4"/> : <Eye className="h-4 w-4"/>}
                         </button>
@@ -130,7 +131,8 @@ export default function UpdatePasswordPage() {
                         <button
                             type="button"
                             onClick={() => setShowNewPassword(!showNewPassword)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                            aria-label={showNewPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
                         >
                             {showNewPassword ? <EyeOff className="h-4 w-4"/> : <Eye className="h-4 w-4"/>}
                         </button>
@@ -158,7 +160,8 @@ export default function UpdatePasswordPage() {
                         <button
                             type="button"
                             onClick={() => setShowNewPassword(!showNewPassword)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                            aria-label={showNewPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
                         >
                             {showNewPassword ? <EyeOff className="h-4 w-4"/> : <Eye className="h-4 w-4"/>}
                         </button>

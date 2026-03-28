@@ -43,12 +43,12 @@ export function WarehouseProductsTable({ products }: WarehouseProductsTableProps
             <Table>
                 <TableHeader>
                     <TableRow>
-                        <TableHead>Image</TableHead>
+                        <TableHead className="hidden sm:table-cell">Image</TableHead>
                         <TableHead>Produit</TableHead>
-                        <TableHead>Unité</TableHead>
+                        <TableHead className="hidden sm:table-cell">Unité</TableHead>
                         <TableHead className="text-right">Stock</TableHead>
-                        <TableHead className="text-right">Valeur</TableHead>
-                        <TableHead>Lien menu</TableHead>
+                        <TableHead className="hidden lg:table-cell text-right">Valeur</TableHead>
+                        <TableHead className="hidden lg:table-cell">Lien menu</TableHead>
                         <TableHead></TableHead>
                     </TableRow>
                 </TableHeader>
@@ -56,7 +56,7 @@ export function WarehouseProductsTable({ products }: WarehouseProductsTableProps
                     {products.map(product => (
                         <TableRow key={product.id}>
                             {/* Image */}
-                            <TableCell>
+                            <TableCell className="hidden sm:table-cell">
                                 <div className="relative h-12 w-12 rounded-md overflow-hidden bg-muted">
                                     {product.imageUrl ? (
                                         <Image src={product.imageUrl} alt={product.name} fill className="object-contain" />
@@ -80,7 +80,7 @@ export function WarehouseProductsTable({ products }: WarehouseProductsTableProps
                             </TableCell>
 
                             {/* Unité */}
-                            <TableCell>
+                            <TableCell className="hidden sm:table-cell">
                                 <div className="flex flex-col gap-1">
                                     {/* ✅ CORRECTION : Accéder à storageUnit depuis le produit, pas depuis le stock */}
                                     <span className="font-medium capitalize">{product.storageUnit}</span>
@@ -103,7 +103,7 @@ export function WarehouseProductsTable({ products }: WarehouseProductsTableProps
                             </TableCell>
 
                             {/* Valeur */}
-                            <TableCell className="text-right">
+                            <TableCell className="hidden lg:table-cell text-right">
                                 {product.stock.unitCost && product.stock.totalValue ? (
                                     <div className="flex flex-col items-end gap-1">
                                         <span className="font-semibold">{formatPrice(product.stock.totalValue)}</span>
@@ -115,7 +115,7 @@ export function WarehouseProductsTable({ products }: WarehouseProductsTableProps
                             </TableCell>
 
                             {/* Produit lié */}
-                            <TableCell>
+                            <TableCell className="hidden lg:table-cell">
                                 {product.linkedProduct ? (
                                     <Link href={`/dashboard/menu/products/${product.linkedProduct.id}`} className="hover:underline text-green-600 dark:text-green-400">
                                         {product.linkedProduct.name} ×{product.conversionRatio}
@@ -129,7 +129,7 @@ export function WarehouseProductsTable({ products }: WarehouseProductsTableProps
                             <TableCell>
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">⋮</Button>
+                                        <Button variant="ghost" size="sm" className="h-9 w-9 p-0">⋮</Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
                                         <DropdownMenuItem asChild>

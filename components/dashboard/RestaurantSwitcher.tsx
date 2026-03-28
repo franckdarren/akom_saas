@@ -158,7 +158,7 @@ export function RestaurantSwitcher({canAddMore = false, variant = 'sidebar'}: Re
                     </button>
                 </DropdownMenuTrigger>
 
-                <DropdownMenuContent className="w-72 p-1.5" align="start" side="bottom" sideOffset={4}>
+                <DropdownMenuContent className="w-72 max-w-[calc(100vw-2rem)] p-1.5" align="start" side="bottom" sideOffset={4}>
                     <DropdownMenuLabel className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                         Mes structures ({restaurants.length})
                     </DropdownMenuLabel>

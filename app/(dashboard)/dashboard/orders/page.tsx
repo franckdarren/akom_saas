@@ -72,7 +72,7 @@ export default function OrdersPage() {
                 <div className="flex items-center justify-between">
                     <div>
                         {/* ← Titre dynamique */}
-                        <h1 className="text-3xl font-bold tracking-tight">
+                        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">
                             {labels.orderNameCapital}s
                         </h1>
                         <p className="text-muted-foreground mt-2">
