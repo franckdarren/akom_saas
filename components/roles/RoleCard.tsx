@@ -40,8 +40,11 @@ interface RoleCardProps {
     role: {
         id: string
         name: string
+        slug: string | null
         description: string | null
+        color: string | null
         isSystem: boolean
+        isProtected: boolean
         isActive: boolean
         permissions: {
             permission: {
@@ -98,10 +101,13 @@ export function RoleCard({ role }: RoleCardProps) {
                 <CardHeader>
                     <div className="flex items-start justify-between">
                         <div className="flex items-center gap-2">
-                            <Shield className="h-5 w-5 text-primary" />
+                            <Shield
+                                className="h-5 w-5"
+                                style={role.color ? {color: role.color} : undefined}
+                            />
                             <CardTitle className="text-lg">{role.name}</CardTitle>
                         </div>
-                        {!role.isSystem && (
+                        {!role.isSystem && !role.isProtected && (
                             <PermissionGuard resource="roles" action="update">
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
@@ -141,10 +147,15 @@ export function RoleCard({ role }: RoleCardProps) {
 
                 <CardContent className="flex-1">
                     <div className="space-y-4">
-                        {/* Badge système */}
-                        {role.isSystem && (
-                            <Badge variant="secondary">Rôle par défaut</Badge>
-                        )}
+                        {/* Badges système / protégé */}
+                        <div className="flex gap-2">
+                            {role.isSystem && (
+                                <Badge variant="secondary">Rôle par défaut</Badge>
+                            )}
+                            {role.isProtected && (
+                                <Badge variant="outline">Protégé</Badge>
+                            )}
+                        </div>
 
                         {/* Statistiques */}
                         <div className="flex items-center gap-4 text-sm text-muted-foreground">

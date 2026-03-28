@@ -95,23 +95,11 @@ export async function GET(req: Request) {
 
             // ── 2. Trouver les admins du restaurant ──────────────────
             //
-            // AVANT (cassé) : where: { role: 'admin' }
-            //   → ne trouve pas les admins qui ont un rôle custom (roleId != null)
-            //     car leur champ `role` (UserRole enum) est NULL dans ce cas.
-            //
-            // APRÈS (correct) : OR entre les deux cas :
-            //   a) role = 'admin' (enum, utilisateurs sans rôle custom)
-            //   b) customRole.name = 'admin' (rôle custom nommé "admin")
-            //      → isSystem = true garantit que c'est bien le rôle système admin
+            // Trouver les admins du restaurant via le slug du rôle système
             const admins = await prisma.restaurantUser.findMany({
                 where: {
                     restaurantId: order.restaurant.id,
-                    OR: [
-                        // Cas a : rôle enum natif
-                        {role: 'admin'},
-                        // Cas b : rôle personnalisé système nommé "admin"
-                        {customRole: {name: 'admin', isSystem: true}},
-                    ],
+                    customRole: {slug: 'admin'},
                 },
                 select: {userId: true},
             })

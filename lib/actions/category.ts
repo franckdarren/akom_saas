@@ -2,10 +2,10 @@
 'use server'
 
 import {revalidatePath} from 'next/cache'
-import {createClient} from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
 import {capitalizeFirst, formatDescription} from '@/lib/utils/format-text'
 import {checkQuota} from '@/lib/services/subscription-checker'
+import {requirePermission} from '@/lib/permissions/check'
 
 interface CategoryData {
     name: string
@@ -16,27 +16,6 @@ interface CategoryData {
 // Typage correct du callback tx
 // -----------------------------
 type PrismaTx = Parameters<Parameters<typeof prisma.$transaction>[0]>[0]
-
-// ============================================================
-// Récupérer le restaurant de l'utilisateur connecté
-// ============================================================
-async function getCurrentRestaurantId() {
-    const supabase = await createClient()
-    const {
-        data: {user},
-    } = await supabase.auth.getUser()
-
-    if (!user) throw new Error('Non authentifié')
-
-    const restaurantUser = await prisma.restaurantUser.findFirst({
-        where: {userId: user.id},
-        select: {restaurantId: true},
-    })
-
-    if (!restaurantUser) throw new Error('Aucun restaurant trouvé')
-
-    return restaurantUser.restaurantId
-}
 
 // ============================================================
 // Créer une catégorie
@@ -57,10 +36,10 @@ async function getCurrentRestaurantId() {
  */
 export async function createCategory(data: CategoryData) {
     try {
-        const restaurantId = await getCurrentRestaurantId()
+        const {restaurantId} = await requirePermission('categories', 'create')
 
         // ============================================================
-        // NOUVEAU : Vérifier le quota de catégories
+        // Vérifier le quota de catégories
         // ============================================================
 
         const quotaCheck = await checkQuota(restaurantId, 'max_categories')
@@ -125,7 +104,7 @@ export async function createCategory(data: CategoryData) {
  */
 export async function updateCategory(id: string, data: CategoryData) {
     try {
-        const restaurantId = await getCurrentRestaurantId()
+        const {restaurantId} = await requirePermission('categories', 'update')
 
         const category = await prisma.category.update({
             where: {id, restaurantId},
@@ -162,7 +141,7 @@ export async function updateCategory(id: string, data: CategoryData) {
  */
 export async function toggleCategoryStatus(id: string) {
     try {
-        const restaurantId = await getCurrentRestaurantId()
+        const {restaurantId} = await requirePermission('categories', 'update')
 
         const category = await prisma.category.findUnique({
             where: {id, restaurantId},
@@ -211,7 +190,7 @@ export async function toggleCategoryStatus(id: string) {
  */
 export async function deleteCategory(id: string) {
     try {
-        const restaurantId = await getCurrentRestaurantId()
+        const {restaurantId} = await requirePermission('categories', 'delete')
 
         // ============================================================
         // Vérifier qu'aucun produit n'est lié à cette catégorie
@@ -292,7 +271,7 @@ export async function deleteCategory(id: string) {
  */
 export async function reorderCategories(categoryIds: string[]) {
     try {
-        const restaurantId = await getCurrentRestaurantId()
+        const {restaurantId} = await requirePermission('categories', 'update')
 
         // ============================================================
         // Vérifier que toutes les catégories appartiennent au restaurant
@@ -348,7 +327,7 @@ export async function reorderCategories(categoryIds: string[]) {
  */
 export async function moveCategoryUp(categoryId: string) {
     try {
-        const restaurantId = await getCurrentRestaurantId()
+        const {restaurantId} = await requirePermission('categories', 'update')
 
         const category = await prisma.category.findUnique({
             where: {id: categoryId, restaurantId},
@@ -420,7 +399,7 @@ export async function moveCategoryUp(categoryId: string) {
  */
 export async function moveCategoryDown(categoryId: string) {
     try {
-        const restaurantId = await getCurrentRestaurantId()
+        const {restaurantId} = await requirePermission('categories', 'update')
 
         const category = await prisma.category.findUnique({
             where: {id: categoryId, restaurantId},

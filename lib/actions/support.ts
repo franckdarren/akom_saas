@@ -388,10 +388,7 @@ export async function getTicketById(ticketId: string) {
         const restaurantUser = await prisma.restaurantUser.findFirst({
             where: {
                 restaurantId: ticket.restaurantId,
-                OR: [
-                    {role: 'admin'},
-                    {customRole: {name: 'Admin'}},
-                ],
+                customRole: {slug: 'admin'},
             },
         })
 

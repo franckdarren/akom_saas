@@ -4,20 +4,22 @@
 import { useRestaurant } from '@/lib/hooks/use-restaurant'
 import { useState, useEffect, useCallback } from 'react'
 import { getUserPermissions } from '@/lib/actions/roles'
+import type { PermissionResource, PermissionAction } from '@prisma/client'
 
 interface PermissionsCache {
     [key: string]: boolean
 }
 
 interface UsePermissionsReturn {
-    canCreate: (resource: string) => boolean
-    canRead: (resource: string) => boolean
-    canUpdate: (resource: string) => boolean
-    canDelete: (resource: string) => boolean
-    canManage: (resource: string) => boolean
+    hasPermission: (resource: PermissionResource, action: PermissionAction) => boolean
+    canCreate: (resource: PermissionResource) => boolean
+    canRead: (resource: PermissionResource) => boolean
+    canUpdate: (resource: PermissionResource) => boolean
+    canDelete: (resource: PermissionResource) => boolean
+    canManage: (resource: PermissionResource) => boolean
     loading: boolean
     isAdmin: boolean
-    permissions: string[] // Liste de toutes les permissions
+    permissions: string[]
 }
 
 export function usePermissions(): UsePermissionsReturn {
@@ -90,13 +92,14 @@ export function usePermissions(): UsePermissionsReturn {
     }, [isSuperAdmin, permissionsCache])
 
     return {
-        canCreate: (resource: string) => checkPermission(resource, 'create'),
-        canRead: (resource: string) => checkPermission(resource, 'read'),
-        canUpdate: (resource: string) => checkPermission(resource, 'update'),
-        canDelete: (resource: string) => checkPermission(resource, 'delete'),
-        canManage: (resource: string) => checkPermission(resource, 'manage'),
+        hasPermission: (resource: PermissionResource, action: PermissionAction) => checkPermission(resource, action),
+        canCreate: (resource: PermissionResource) => checkPermission(resource, 'create'),
+        canRead: (resource: PermissionResource) => checkPermission(resource, 'read'),
+        canUpdate: (resource: PermissionResource) => checkPermission(resource, 'update'),
+        canDelete: (resource: PermissionResource) => checkPermission(resource, 'delete'),
+        canManage: (resource: PermissionResource) => checkPermission(resource, 'manage'),
         loading,
-        isAdmin: isSuperAdmin || permissionsCache['users:manage'] || false,
+        isAdmin: isSuperAdmin || permissionsCache['restaurants:manage'] || false,
         permissions,
     }
 }

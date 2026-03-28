@@ -40,7 +40,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { UserRoleSelector } from './UserRoleSelector'
 import { PermissionGuard } from '@/components/permissions/PermissionGuard'
-import { removeUserFromRestaurant } from '@/lib/actions/restaurant'
+import { removeTeamMember } from '@/lib/actions/user'
 import { MoreVertical, Trash2, Mail, Shield } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -84,17 +84,17 @@ export function UsersList() {
 
         setIsDeleting(true)
 
-        const result = await removeUserFromRestaurant(
+        const result = await removeTeamMember(
             currentRestaurant.id,
             userToDelete.userId
         )
 
-        if (result.success) {
+        if ('success' in result) {
             toast.success('Utilisateur retiré avec succès')
             setUsers(users.filter((u) => u.id !== userToDelete.id))
             setUserToDelete(null)
         } else {
-            toast.error('Erreur lors du retrait de l\'utilisateur')
+            toast.error(result.error || 'Erreur lors du retrait de l\'utilisateur')
         }
 
         setIsDeleting(false)
@@ -110,7 +110,7 @@ export function UsersList() {
 
     if (loading) {
         return (
-            <Table>
+            <Card>
                 <CardHeader>
                     <div className="h-6 w-48 bg-muted animate-pulse rounded" />
                 </CardHeader>
@@ -127,13 +127,13 @@ export function UsersList() {
                         ))}
                     </div>
                 </CardContent>
-            </Table>
+            </Card>
         )
     }
 
     if (users.length === 0) {
         return (
-            <Table>
+            <Card>
                 <CardContent className="flex flex-col items-center justify-center p-12">
                     <Shield className="h-12 w-12 text-muted-foreground mb-4" />
                     <h3 className="font-semibold text-lg mb-2">Aucun membre</h3>
@@ -141,7 +141,7 @@ export function UsersList() {
                         Commencez par inviter des membres à rejoindre votre équipe
                     </p>
                 </CardContent>
-            </Table>
+            </Card>
         )
     }
 

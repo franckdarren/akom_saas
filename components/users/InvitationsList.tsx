@@ -302,19 +302,35 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 function RoleBadge({ role }: { role: string }) {
-    if (role === 'admin') {
-        return (
-            <Badge variant="outline">
-                <Shield className="h-3 w-3 mr-1" />
-                Admin
-            </Badge>
-        )
+    switch (role) {
+        case 'admin':
+            return (
+                <Badge variant="outline">
+                    <Shield className="h-3 w-3 mr-1" />
+                    Administrateur
+                </Badge>
+            )
+        case 'kitchen':
+            return (
+                <Badge variant="outline">
+                    <UtensilsCrossed className="h-3 w-3 mr-1" />
+                    Cuisine
+                </Badge>
+            )
+        case 'cashier':
+            return (
+                <Badge variant="outline">
+                    <Shield className="h-3 w-3 mr-1" />
+                    Caissier
+                </Badge>
+            )
+        default:
+            // Rôle custom : afficher le nom tel quel
+            return (
+                <Badge variant="outline">
+                    <Shield className="h-3 w-3 mr-1" />
+                    {role}
+                </Badge>
+            )
     }
-
-    return (
-        <Badge variant="outline">
-            <UtensilsCrossed className="h-3 w-3 mr-1" />
-            Cuisine
-        </Badge>
-    )
 }

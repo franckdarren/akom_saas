@@ -182,7 +182,7 @@ export function CreateUserDialog() {
             const result = await createUser({
                 email: email.trim(),
                 password,
-                role,
+                roleId: role, // TODO: Ce composant est legacy — à remplacer par un sélecteur de rôle basé sur roleId
                 restaurantId: currentRestaurant.id,
             })
 

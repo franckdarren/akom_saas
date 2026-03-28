@@ -4,13 +4,14 @@
 import {revalidatePath} from 'next/cache'
 import {createClient} from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
-import type {UserRole, RestaurantWithRole} from '@/types/auth'
+import type {RestaurantWithRole} from '@/types/auth'
 import {generateUniqueSlug} from '@/lib/actions/slug'
 import {restaurantSettingsSchema, type RestaurantSettingsInput} from '@/lib/validations/restaurant'
 import {logRestaurantCreated} from '@/lib/actions/logs'
 import {formatRestaurantName} from '@/lib/utils/format-text'
 import {SUBSCRIPTION_CONFIG, type SubscriptionPlan} from '@/lib/config/subscription'
 import type {ActivityType} from '@/lib/config/activity-labels'
+import {initSystemRolesForRestaurant} from '@/lib/permissions/init-system-roles'
 
 // ============================================================
 // TYPES
@@ -64,7 +65,7 @@ export async function createRestaurant(data: CreateRestaurantInput) {
         // ÉTAPE 1 : Vérifier les droits multi-restaurant
         // -------------------------------------------------------
         const existingRestaurantUser = await prisma.restaurantUser.findFirst({
-            where: {userId: user.id, role: 'admin'},
+            where: {userId: user.id, customRole: {slug: 'admin'}},
             include: {
                 restaurant: {
                     include: {subscription: true},
@@ -113,19 +114,24 @@ export async function createRestaurant(data: CreateRestaurantInput) {
                 },
             })
 
-            await tx.restaurantUser.create({
-                data: {
-                    userId: user.id,
-                    restaurantId: restaurant.id,
-                    role: 'admin',
-                },
-            })
-
             await tx.subscription.create({
                 data: buildSubscriptionData(plan, restaurant.id),
             })
 
             return restaurant
+        })
+
+        // Initialiser les rôles système (hors transaction pour éviter les deadlocks sur upsert)
+        const {adminRoleId} = await initSystemRolesForRestaurant(prisma, result.id)
+
+        // Assigner le rôle Admin au créateur
+        await prisma.restaurantUser.create({
+            data: {
+                userId: user.id,
+                restaurantId: result.id,
+                role: 'admin',
+                roleId: adminRoleId,
+            },
         })
 
         await logRestaurantCreated(result.id, user.id)
@@ -152,6 +158,9 @@ export async function getUserRestaurants(): Promise<RestaurantWithRole[]> {
     const restaurantUsers = await prisma.restaurantUser.findMany({
         where: {userId: user.id},
         include: {
+            customRole: {
+                select: {slug: true, name: true},
+            },
             restaurant: {
                 select: {
                     id: true,
@@ -176,7 +185,7 @@ export async function getUserRestaurants(): Promise<RestaurantWithRole[]> {
         name: ru.restaurant.name,
         slug: ru.restaurant.slug,
         activityType: ru.restaurant.activityType,
-        role: ru.role as UserRole,
+        role: (ru.customRole?.slug ?? ru.role ?? 'kitchen') as RestaurantWithRole['role'],
         isActive: ru.restaurant.isActive,
         subscription: ru.restaurant.subscription ?? undefined,
     }))
@@ -199,7 +208,7 @@ export async function getMultiRestaurantQuota(): Promise<{
     if (!user) throw new Error('Non authentifié')
 
     const ownedRestaurants = await prisma.restaurantUser.findMany({
-        where: {userId: user.id, role: 'admin'},
+        where: {userId: user.id, customRole: {slug: 'admin'}},
         include: {
             restaurant: {
                 include: {subscription: true},
@@ -257,7 +266,7 @@ export async function createAdditionalRestaurant(data: CreateRestaurantInput) {
     // ✅ Récupérer le plan actif de l'utilisateur (depuis son restaurant principal)
     // La nouvelle structure hérite du même plan — c'est ce que "Multi-restaurants Premium" signifie
     const primaryRestaurantUser = await prisma.restaurantUser.findFirst({
-        where: {userId: user.id, role: 'admin'},
+        where: {userId: user.id, customRole: {slug: 'admin'}},
         orderBy: {createdAt: 'asc'}, // Le plus ancien = restaurant principal
         include: {
             restaurant: {
@@ -293,19 +302,24 @@ export async function createAdditionalRestaurant(data: CreateRestaurantInput) {
                 },
             })
 
-            await tx.restaurantUser.create({
-                data: {
-                    userId: user.id,
-                    restaurantId: created.id,
-                    role: 'admin',
-                },
-            })
-
             await tx.subscription.create({
                 data: buildSubscriptionData(plan, created.id),
             })
 
             return created
+        })
+
+        // Initialiser les rôles système (hors transaction)
+        const {adminRoleId} = await initSystemRolesForRestaurant(prisma, restaurant.id)
+
+        // Assigner le rôle Admin au créateur
+        await prisma.restaurantUser.create({
+            data: {
+                userId: user.id,
+                restaurantId: restaurant.id,
+                role: 'admin',
+                roleId: adminRoleId,
+            },
         })
 
         await logRestaurantCreated(restaurant.id, user.id)
@@ -325,7 +339,7 @@ export async function createAdditionalRestaurant(data: CreateRestaurantInput) {
 
 export async function getUserRoleInRestaurant(
     restaurantId: string
-): Promise<UserRole | null> {
+): Promise<string | null> {
     const supabase = await createClient()
     const {data: {user}} = await supabase.auth.getUser()
     if (!user) return null
@@ -334,10 +348,11 @@ export async function getUserRoleInRestaurant(
         where: {
             userId_restaurantId: {userId: user.id, restaurantId},
         },
-        select: {role: true},
+        select: {role: true, customRole: {select: {slug: true}}},
     })
 
-    return restaurantUser ? (restaurantUser.role as UserRole) : null
+    if (!restaurantUser) return null
+    return restaurantUser.customRole?.slug ?? restaurantUser.role ?? null
 }
 
 // ============================================================
@@ -358,7 +373,7 @@ export async function hasAccessToRestaurant(
 export async function changeUserRole(
     restaurantId: string,
     targetUserId: string,
-    newRole: UserRole
+    newRoleId: string
 ) {
     const supabase = await createClient()
     const {data: {user}} = await supabase.auth.getUser()
@@ -368,11 +383,21 @@ export async function changeUserRole(
     if (currentUserRole !== 'admin') throw new Error('Seuls les admins peuvent changer les rôles')
     if (user.id === targetUserId) throw new Error('Vous ne pouvez pas changer votre propre rôle')
 
+    // Vérifier que le rôle cible existe et appartient au restaurant
+    const targetRole = await prisma.role.findFirst({
+        where: {id: newRoleId, restaurantId, isActive: true},
+        select: {slug: true},
+    })
+    if (!targetRole) throw new Error('Rôle introuvable')
+
+    // Synchroniser le champ legacy `role` pour les rôles système
+    const legacyRole = (['admin', 'kitchen', 'cashier'] as const).find(r => r === targetRole.slug) ?? null
+
     return prisma.restaurantUser.update({
         where: {
             userId_restaurantId: {userId: targetUserId, restaurantId},
         },
-        data: {role: newRole},
+        data: {roleId: newRoleId, role: legacyRole},
     })
 }
 
@@ -391,6 +416,18 @@ export async function removeUserFromRestaurant(
     const currentUserRole = await getUserRoleInRestaurant(restaurantId)
     if (currentUserRole !== 'admin') throw new Error('Seuls les admins peuvent retirer des utilisateurs')
     if (user.id === targetUserId) throw new Error('Vous ne pouvez pas vous retirer vous-même')
+
+    // Vérifier qu'on ne retire pas le dernier admin
+    const targetMember = await prisma.restaurantUser.findUnique({
+        where: {userId_restaurantId: {userId: targetUserId, restaurantId}},
+        select: {customRole: {select: {slug: true}}},
+    })
+    if (targetMember?.customRole?.slug === 'admin') {
+        const adminCount = await prisma.restaurantUser.count({
+            where: {restaurantId, customRole: {slug: 'admin'}},
+        })
+        if (adminCount <= 1) throw new Error('Impossible de retirer le dernier administrateur')
+    }
 
     await prisma.restaurantUser.delete({
         where: {
@@ -415,10 +452,10 @@ export async function updateRestaurantCover(
 
     const userRole = await prisma.restaurantUser.findUnique({
         where: {userId_restaurantId: {userId: user.id, restaurantId}},
-        select: {role: true},
+        select: {customRole: {select: {slug: true}}},
     })
 
-    if (!userRole || userRole.role !== 'admin') {
+    if (!userRole || userRole.customRole?.slug !== 'admin') {
         return {error: "Seuls les admins peuvent modifier l'image de couverture"}
     }
 
@@ -453,10 +490,10 @@ export async function updateRestaurantSettings(
 
     const userRole = await prisma.restaurantUser.findUnique({
         where: {userId_restaurantId: {userId: user.id, restaurantId}},
-        select: {role: true},
+        select: {customRole: {select: {slug: true}}},
     })
 
-    if (!userRole || userRole.role !== 'admin') {
+    if (!userRole || userRole.customRole?.slug !== 'admin') {
         return {error: 'Seuls les admins peuvent modifier les paramètres'}
     }
 
@@ -492,12 +529,12 @@ export async function getRestaurantDetails(restaurantId: string) {
     if (!user) return {error: 'Non authentifié'}
     if (!restaurantId) throw new Error('Restaurant non sélectionné')
 
-    const userRole = await prisma.restaurantUser.findUnique({
+    const userAccess = await prisma.restaurantUser.findUnique({
         where: {userId_restaurantId: {userId: user.id, restaurantId}},
-        select: {role: true},
+        select: {id: true},
     })
 
-    if (!userRole) return {error: 'Accès refusé'}
+    if (!userAccess) return {error: 'Accès refusé'}
 
     try {
         const restaurant = await prisma.restaurant.findUnique({
@@ -541,16 +578,16 @@ export async function deleteRestaurant(restaurantId: string): Promise<{
         where: {
             userId_restaurantId: {userId: user.id, restaurantId},
         },
-        select: {role: true},
+        select: {customRole: {select: {slug: true}}},
     })
 
-    if (!restaurantUser || restaurantUser.role !== 'admin') {
+    if (!restaurantUser || restaurantUser.customRole?.slug !== 'admin') {
         return {success: false, error: 'Accès refusé'}
     }
 
     // ── 2. Vérifier que ce n'est PAS le restaurant principal ──────────
     const firstRestaurantUser = await prisma.restaurantUser.findFirst({
-        where: {userId: user.id, role: 'admin'},
+        where: {userId: user.id, customRole: {slug: 'admin'}},
         orderBy: {createdAt: 'asc'},
         select: {restaurantId: true},
     })

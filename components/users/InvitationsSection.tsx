@@ -1,8 +1,8 @@
 // components/users/InvitationsSection.tsx
 // Server Component — pas de 'use client'
 
-import prisma from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
+import prisma from '@/lib/prisma'
 import { InvitationsList } from './InvitationsList'
 import { Separator } from '@/components/ui/separator'
 
@@ -27,7 +27,12 @@ export async function InvitationsSection() {
             restaurantId: restaurantUser.restaurantId,
         },
         include: {
-            role: true,
+            role: {
+                select: {
+                    name: true,
+                    slug: true,
+                },
+            },
         },
         orderBy: [
             { status: 'asc' },    // pendantes d'abord
@@ -40,7 +45,7 @@ export async function InvitationsSection() {
     const invitations = rawInvitations.map((inv) => ({
         id:         inv.id,
         email:      inv.email,
-        role:       inv.role.name,   // "admin" | "kitchen" — vient du modèle Role
+        role:       inv.role.slug ?? inv.role.name,
         token:      inv.token,
         status:     inv.status,
         expiresAt:  inv.expiresAt,

@@ -27,6 +27,7 @@ export default async function RestaurantVerifyPage({params}: PageProps) {
             userId_restaurantId: {userId: user.id, restaurantId},
         },
         include: {
+            customRole: {select: {slug: true}},
             restaurant: {
                 select: {
                     id: true,
@@ -39,7 +40,7 @@ export default async function RestaurantVerifyPage({params}: PageProps) {
         },
     })
 
-    if (!restaurantUser || restaurantUser.role !== 'admin') notFound()
+    if (!restaurantUser || restaurantUser.customRole?.slug !== 'admin') notFound()
 
     const restaurant = restaurantUser.restaurant
 

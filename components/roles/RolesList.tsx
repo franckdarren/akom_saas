@@ -8,8 +8,11 @@ import { ShieldAlert } from 'lucide-react'
 export interface RoleItem {
     id: string
     name: string
+    slug: string | null
     description: string | null
+    color: string | null
     isSystem: boolean
+    isProtected: boolean
     isActive: boolean
     permissions: {
         permission: {

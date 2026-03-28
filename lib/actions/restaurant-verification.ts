@@ -44,9 +44,10 @@ export async function submitVerificationDocuments(
                 restaurantId,
             },
         },
+        select: {customRole: {select: {slug: true}}},
     })
 
-    if (!userRole || userRole.role !== 'admin') {
+    if (!userRole || userRole.customRole?.slug !== 'admin') {
         return { success: false, error: 'Seuls les admins peuvent soumettre les documents' }
     }
 
@@ -136,9 +137,10 @@ export async function resubmitVerificationDocuments(
                 restaurantId,
             },
         },
+        select: {customRole: {select: {slug: true}}},
     })
 
-    if (!userRole || userRole.role !== 'admin') {
+    if (!userRole || userRole.customRole?.slug !== 'admin') {
         return { success: false, error: 'Accès refusé' }
     }
 
@@ -265,9 +267,10 @@ export async function submitCircuitSheet(
                 restaurantId,
             },
         },
+        select: {customRole: {select: {slug: true}}},
     })
 
-    if (!userRole || userRole.role !== 'admin') {
+    if (!userRole || userRole.customRole?.slug !== 'admin') {
         return { success: false, error: 'Accès refusé' }
     }
 

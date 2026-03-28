@@ -4,6 +4,7 @@
 import {revalidatePath} from 'next/cache'
 import {createClient} from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
+import {requirePermissionForRestaurant} from '@/lib/permissions/check'
 
 export type OrderStatus = 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled'
 
@@ -27,20 +28,20 @@ const FREE: Record<OrderStatus, OrderStatus[]> = {
 }
 
 export async function updateOrderStatus(orderId: string, newStatus: OrderStatus) {
-    const supabase = await createClient()
-    const {data: {user}} = await supabase.auth.getUser()
-    if (!user) return {error: 'Non authentifié'}
-
     const order = await prisma.order.findUnique({
         where: {id: orderId},
         select: {status: true, restaurantId: true, source: true},
     })
     if (!order) return {error: 'Commande introuvable'}
 
-    const hasAccess = await prisma.restaurantUser.findUnique({
-        where: {userId_restaurantId: {userId: user.id, restaurantId: order.restaurantId}},
-    })
-    if (!hasAccess) return {error: 'Accès refusé'}
+    try {
+        await requirePermissionForRestaurant(order.restaurantId, 'orders', 'update')
+    } catch {
+        return {error: 'Accès refusé'}
+    }
+
+    // Client Supabase nécessaire pour déclencher le Realtime
+    const supabase = await createClient()
 
     const isCounter = order.source === 'counter'
     const allowed = isCounter ? FREE[order.status] : SEQUENTIAL[order.status]
@@ -64,14 +65,11 @@ export async function updateOrderStatus(orderId: string, newStatus: OrderStatus)
 }
 
 export async function getRestaurantOrders(restaurantId: string) {
-    const supabase = await createClient()
-    const {data: {user}} = await supabase.auth.getUser()
-    if (!user) return {error: 'Non authentifié'}
-
-    const member = await prisma.restaurantUser.findFirst({
-        where: {userId: user.id, restaurantId},
-    })
-    if (!member) return {error: 'Accès refusé'}
+    try {
+        await requirePermissionForRestaurant(restaurantId, 'orders', 'read')
+    } catch {
+        return {error: 'Accès refusé'}
+    }
 
     return prisma.order.findMany({
         where: {restaurantId},
@@ -105,10 +103,6 @@ export async function getActiveOrdersForTable(tableId: string, restaurantId: str
 }
 
 export async function getOrderDetails(orderId: string) {
-    const supabase = await createClient()
-    const {data: {user}} = await supabase.auth.getUser()
-    if (!user) return null
-
     const order = await prisma.order.findUnique({
         where: {id: orderId},
         select: {
@@ -120,10 +114,11 @@ export async function getOrderDetails(orderId: string) {
     })
     if (!order) return null
 
-    const member = await prisma.restaurantUser.findFirst({
-        where: {userId: user.id, restaurantId: order.restaurantId},
-    })
-    if (!member) return null
+    try {
+        await requirePermissionForRestaurant(order.restaurantId, 'orders', 'read')
+    } catch {
+        return null
+    }
 
     return order
 }

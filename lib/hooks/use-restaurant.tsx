@@ -80,7 +80,7 @@ export function RestaurantProvider({children}: { children: ReactNode }) {
 
     const effectiveRole: SystemRole | null = superAdmin
         ? 'superadmin'
-        : (currentRestaurant?.role as SystemRole ?? null)
+        : ((['admin', 'kitchen', 'cashier'] as const).find(r => r === currentRestaurant?.role) ?? null)
 
     return (
         <RestaurantContext.Provider value={{

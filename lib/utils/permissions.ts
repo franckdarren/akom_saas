@@ -1,4 +1,4 @@
-import {PERMISSIONS, type SystemRole, type Permission} from '@/types/auth'
+import type {SystemRole} from '@/types/auth'
 
 
 /*************************************************************
@@ -16,18 +16,9 @@ export function isSuperAdminEmail(email: string): boolean {
 }
 
 /*************************************************************
- * Vérifie si un rôle a une permission spécifique
- ************************************************************/
-export function hasPermission(role: SystemRole, permission: Permission): boolean {
-    const permissions = PERMISSIONS[role]
-    if (!permissions) return false
-    return (permissions as readonly string[]).includes(permission)
-}
-
-/*************************************************************
  * Vérifie si un utilisateur est admin (ou superadmin)
  ************************************************************/
-export function isAdmin(role: SystemRole | null): boolean {
+export function isAdmin(role: string | null): boolean {
     if (!role) return false
     return role === 'admin' || role === 'superadmin'
 }
@@ -35,7 +26,7 @@ export function isAdmin(role: SystemRole | null): boolean {
 /*************************************************************
  * Vérifie si un utilisateur est kitchen
  ************************************************************/
-export function isKitchen(role: SystemRole | null): boolean {
+export function isKitchen(role: string | null): boolean {
     if (!role) return false
     return role === 'kitchen'
 }
@@ -43,22 +34,16 @@ export function isKitchen(role: SystemRole | null): boolean {
 /*************************************************************
  * Vérifie si un utilisateur est superadmin
  ************************************************************/
-export function isSuperAdmin(role: SystemRole | null): boolean {
+export function isSuperAdmin(role: string | null): boolean {
     if (!role) return false
     return role === 'superadmin'
 }
 
 /*************************************************************
- * Retourne toutes les permissions d'un rôle
- ************************************************************/
-export function getRolePermissions(role: SystemRole): readonly Permission[] {
-    return (PERMISSIONS[role] || []) as readonly Permission[]
-}
-
-/*************************************************************
  * Vérifie si un rôle peut accéder à une route
+ * Utilise les slugs système (admin, kitchen, cashier, superadmin)
  ************************************************************/
-export function canAccessRoute(role: SystemRole | null, path: string): boolean {
+export function canAccessRoute(role: string | null, path: string): boolean {
     if (!role) return false
 
     // Routes accessibles à tous les rôles authentifiés
@@ -101,7 +86,7 @@ export function canAccessRoute(role: SystemRole | null, path: string): boolean {
         return role === 'kitchen' || role === 'admin'
     }
 
-    // ← NOUVEAU : Routes caissière + admin
+    // Routes caissière + admin
     const cashierRoutes = ['/dashboard/pos']
     if (cashierRoutes.some((route) => path.startsWith(route))) {
         return role === 'cashier' || role === 'admin'
@@ -112,8 +97,9 @@ export function canAccessRoute(role: SystemRole | null, path: string): boolean {
 
 /*************************************************************
  * Badge de rôle (pour affichage UI)
+ * Accepte un slug de rôle (string) — compatible ancien et nouveau système
  ************************************************************/
-export function getRoleBadge(role: SystemRole): {
+export function getRoleBadge(role: string | SystemRole): {
     label: string
     color: string
 } {
@@ -137,6 +123,12 @@ export function getRoleBadge(role: SystemRole): {
             return {
                 label: 'Caissière',
                 color: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
+            }
+        default:
+            // Rôle personnalisé
+            return {
+                label: role,
+                color: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200',
             }
     }
 }

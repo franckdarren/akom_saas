@@ -1,9 +1,9 @@
-import type { Restaurant, UserRole } from '@prisma/client'
+import type { Restaurant } from '@prisma/client'
 
 export type RestaurantUser = {
     id: string
     userId: string
-    role: UserRole | null
+    role: string | null // slug du rôle (ex: 'admin', 'kitchen', 'cashier')
     createdAt: Date
 }
 

@@ -3,8 +3,10 @@ import type {User} from '@supabase/supabase-js'
 import type {UserRole, SubscriptionPlan, SubscriptionStatus} from '@prisma/client'
 
 // UserRole ré-exporté depuis Prisma — se met à jour automatiquement avec le schéma
+// Note : UserRole est l'enum legacy (admin, kitchen, cashier).
+// Le nouveau système utilise Role.slug mais UserRole reste exporté pour compatibilité.
 export type {UserRole}
-export type SystemRole = 'superadmin' | UserRole
+export type SystemRole = 'superadmin' | 'admin' | 'kitchen' | 'cashier'
 
 // Utilisateur avec ses restaurants
 export interface UserWithRestaurants extends User {
@@ -17,7 +19,7 @@ export interface RestaurantWithRole {
     id: string
     name: string
     slug: string
-    role: UserRole
+    role: string // slug du rôle : 'admin', 'kitchen', 'cashier' ou slug custom
     isActive: boolean
     activityType?: string | null
     // Exposé par getUserRestaurants pour FeatureGate et RestaurantSwitcher
@@ -30,7 +32,7 @@ export interface RestaurantWithRole {
 // Context du restaurant actuel
 export interface RestaurantContext {
     restaurantId: string
-    role: UserRole
+    role: string
     userId: string
 }
 

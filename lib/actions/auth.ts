@@ -41,6 +41,7 @@ async function getRedirectUrl(user: { id: string; email: string }): Promise<stri
     // 2. Vérifier si l'utilisateur a un restaurant
     const restaurantUser = await prisma.restaurantUser.findFirst({
         where: {userId: user.id},
+        select: {customRole: {select: {slug: true}}, role: true},
     })
 
     // Pas de restaurant → Onboarding
@@ -48,14 +49,14 @@ async function getRedirectUrl(user: { id: string; email: string }): Promise<stri
         return '/onboarding'
     }
 
-    // 3. Rediriger selon le rôle
-    switch (restaurantUser.role) {
+    // 3. Rediriger selon le rôle (customRole prioritaire, fallback sur legacy)
+    const roleSlug = restaurantUser.customRole?.slug ?? restaurantUser.role
+    switch (roleSlug) {
         case 'kitchen':
             return '/dashboard/orders'
         case 'cashier':
             return '/dashboard/pos'
         default:
-            // admin → dashboard principal
             return '/dashboard'
     }
 }
@@ -343,14 +344,17 @@ export async function getUserRole(): Promise<'admin' | 'kitchen' | 'cashier' | '
         return 'superadmin'
     }
 
-    // Récupérer le rôle dans restaurant_users
+    // Récupérer le rôle via customRole (nouveau système), fallback sur legacy
     const restaurantUser = await prisma.restaurantUser.findFirst({
         where: {userId: user.id},
-        select: {role: true},
+        select: {customRole: {select: {slug: true}}, role: true},
     })
 
-    // cashier est reconnu nativement par l'enum Prisma après migration
-    return (restaurantUser?.role as 'admin' | 'kitchen' | 'cashier') || 'kitchen'
+    const roleSlug = restaurantUser?.customRole?.slug ?? restaurantUser?.role
+    if (roleSlug === 'admin' || roleSlug === 'kitchen' || roleSlug === 'cashier') {
+        return roleSlug
+    }
+    return 'kitchen' // fallback pour les rôles personnalisés sans slug système
 }
 
 // ============================================================

@@ -2,10 +2,9 @@
 'use server'
 
 import {revalidatePath} from 'next/cache'
-import {createClient} from '@/lib/supabase/server'
 import {supabaseAdmin} from '@/lib/supabase/admin'
 import prisma from '@/lib/prisma'
-import type {UserRole} from '@/types/auth'
+import {requirePermissionForRestaurant, requireMembershipForRestaurant} from '@/lib/permissions/check'
 
 // ============================================================
 // TYPES
@@ -14,7 +13,7 @@ import type {UserRole} from '@/types/auth'
 interface CreateUserData {
     email: string
     password: string
-    role: UserRole
+    roleId: string // ID du rôle à attribuer
     restaurantId: string
 }
 
@@ -22,39 +21,10 @@ interface TeamMember {
     id: string
     userId: string
     email: string
-    role: UserRole
+    roleId: string | null
+    roleName: string
+    roleSlug: string | null
     createdAt: Date
-}
-
-// ============================================================
-// UTILITAIRE : Vérifier que l'utilisateur est admin
-// ============================================================
-
-async function requireAdmin(restaurantId: string) {
-    const supabase = await createClient()
-    const {
-        data: {user},
-    } = await supabase.auth.getUser()
-
-    if (!user) {
-        throw new Error('Non authentifié')
-    }
-
-    const restaurantUser = await prisma.restaurantUser.findUnique({
-        where: {
-            userId_restaurantId: {
-                userId: user.id,
-                restaurantId: restaurantId,
-            },
-        },
-        select: {role: true},
-    })
-
-    if (!restaurantUser || restaurantUser.role !== 'admin') {
-        throw new Error("Seuls les admins peuvent gérer l'équipe")
-    }
-
-    return user
 }
 
 // ============================================================
@@ -65,15 +35,18 @@ export async function getTeamMembers(
     restaurantId: string
 ): Promise<TeamMember[]> {
     try {
-        await requireAdmin(restaurantId)
+        await requirePermissionForRestaurant(restaurantId, 'users', 'read')
 
         const restaurantUsers = await prisma.restaurantUser.findMany({
             where: {restaurantId},
             select: {
                 id: true,
                 userId: true,
-                role: true,
+                roleId: true,
                 createdAt: true,
+                customRole: {
+                    select: {name: true, slug: true},
+                },
             },
             orderBy: {createdAt: 'asc'},
         })
@@ -90,7 +63,9 @@ export async function getTeamMembers(
                 id: ru.id,
                 userId: ru.userId,
                 email: emailMap.get(ru.userId) || 'Email inconnu',
-                role: ru.role as UserRole,
+                roleId: ru.roleId,
+                roleName: ru.customRole?.name || 'Aucun rôle',
+                roleSlug: ru.customRole?.slug ?? null,
                 createdAt: ru.createdAt,
             }))
 
@@ -107,7 +82,7 @@ export async function getTeamMembers(
 
 export async function createUser(data: CreateUserData) {
     try {
-        await requireAdmin(data.restaurantId)
+        await requirePermissionForRestaurant(data.restaurantId, 'users', 'create')
 
         // Validation email
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -119,6 +94,18 @@ export async function createUser(data: CreateUserData) {
         if (data.password.length < 6) {
             return {error: 'Le mot de passe doit contenir au moins 6 caractères'}
         }
+
+        // Vérifier que le rôle existe et appartient au restaurant
+        const role = await prisma.role.findFirst({
+            where: {id: data.roleId, restaurantId: data.restaurantId, isActive: true},
+            select: {slug: true},
+        })
+        if (!role) {
+            return {error: 'Rôle introuvable'}
+        }
+
+        // Synchronisation legacy : mapper le slug vers l'enum si c'est un rôle système
+        const legacyRole = (['admin', 'kitchen', 'cashier'] as const).find(r => r === role.slug) ?? null
 
         // Vérifier si l'utilisateur existe déjà dans Supabase
         const {data: existingUsers} = await supabaseAdmin.auth.admin.listUsers()
@@ -146,7 +133,8 @@ export async function createUser(data: CreateUserData) {
                 data: {
                     userId: existingUser.id,
                     restaurantId: data.restaurantId,
-                    role: data.role,
+                    roleId: data.roleId,
+                    role: legacyRole,
                 },
             })
 
@@ -175,7 +163,8 @@ export async function createUser(data: CreateUserData) {
             data: {
                 userId: newUser.user.id,
                 restaurantId: data.restaurantId,
-                role: data.role,
+                roleId: data.roleId,
+                role: legacyRole,
             },
         })
 
@@ -185,6 +174,10 @@ export async function createUser(data: CreateUserData) {
             message: 'Utilisateur créé avec succès',
         }
     } catch (error) {
+        const message = error instanceof Error ? error.message : ''
+        if (message === 'Permission refusée') {
+            return {error: "Vous n'avez pas la permission de créer des utilisateurs"}
+        }
         console.error('Erreur création utilisateur:', error)
         return {error: "Erreur lors de la création de l'utilisateur"}
     }
@@ -197,23 +190,34 @@ export async function createUser(data: CreateUserData) {
 export async function changeUserRole(
     restaurantId: string,
     userId: string,
-    newRole: UserRole
+    newRoleId: string
 ) {
     try {
-        const currentUser = await requireAdmin(restaurantId)
+        const {userId: currentUserId} = await requirePermissionForRestaurant(restaurantId, 'users', 'update')
 
         // Impossible de modifier son propre rôle
-        if (currentUser.id === userId) {
+        if (currentUserId === userId) {
             return {error: 'Vous ne pouvez pas modifier votre propre rôle'}
         }
 
-        // Vérifier qu'il reste au moins 1 admin
-        if (newRole === 'kitchen') {
+        // Vérifier que le nouveau rôle existe
+        const newRole = await prisma.role.findFirst({
+            where: {id: newRoleId, restaurantId, isActive: true},
+            select: {slug: true},
+        })
+        if (!newRole) {
+            return {error: 'Rôle introuvable'}
+        }
+
+        // Vérifier qu'il reste au moins 1 admin si on dégrade un admin
+        const currentMember = await prisma.restaurantUser.findUnique({
+            where: {userId_restaurantId: {userId, restaurantId}},
+            select: {customRole: {select: {slug: true}}},
+        })
+
+        if (currentMember?.customRole?.slug === 'admin' && newRole.slug !== 'admin') {
             const adminCount = await prisma.restaurantUser.count({
-                where: {
-                    restaurantId,
-                    role: 'admin',
-                },
+                where: {restaurantId, customRole: {slug: 'admin'}},
             })
 
             if (adminCount <= 1) {
@@ -221,19 +225,22 @@ export async function changeUserRole(
             }
         }
 
+        const legacyRole = (['admin', 'kitchen', 'cashier'] as const).find(r => r === newRole.slug) ?? null
+
         await prisma.restaurantUser.update({
             where: {
-                userId_restaurantId: {
-                    userId,
-                    restaurantId,
-                },
+                userId_restaurantId: {userId, restaurantId},
             },
-            data: {role: newRole},
+            data: {roleId: newRoleId, role: legacyRole},
         })
 
         revalidatePath(`/dashboard/users`)
         return {success: true}
     } catch (error) {
+        const message = error instanceof Error ? error.message : ''
+        if (message === 'Permission refusée') {
+            return {error: "Vous n'avez pas la permission de modifier les rôles"}
+        }
         console.error('Erreur changement rôle:', error)
         return {error: 'Erreur lors du changement de rôle'}
     }
@@ -245,22 +252,19 @@ export async function changeUserRole(
 
 export async function removeTeamMember(restaurantId: string, userId: string) {
     try {
-        const currentUser = await requireAdmin(restaurantId)
+        const {userId: currentUserId} = await requirePermissionForRestaurant(restaurantId, 'users', 'delete')
 
         // Impossible de se retirer soi-même
-        if (currentUser.id === userId) {
+        if (currentUserId === userId) {
             return {error: 'Vous ne pouvez pas vous retirer vous-même'}
         }
 
         // Récupérer le rôle du membre à retirer
         const member = await prisma.restaurantUser.findUnique({
             where: {
-                userId_restaurantId: {
-                    userId,
-                    restaurantId,
-                },
+                userId_restaurantId: {userId, restaurantId},
             },
-            select: {role: true},
+            select: {customRole: {select: {slug: true}}},
         })
 
         if (!member) {
@@ -268,12 +272,9 @@ export async function removeTeamMember(restaurantId: string, userId: string) {
         }
 
         // Si c'est un admin, vérifier qu'il en reste au moins 1
-        if (member.role === 'admin') {
+        if (member.customRole?.slug === 'admin') {
             const adminCount = await prisma.restaurantUser.count({
-                where: {
-                    restaurantId,
-                    role: 'admin',
-                },
+                where: {restaurantId, customRole: {slug: 'admin'}},
             })
 
             if (adminCount <= 1) {
@@ -285,16 +286,17 @@ export async function removeTeamMember(restaurantId: string, userId: string) {
 
         await prisma.restaurantUser.delete({
             where: {
-                userId_restaurantId: {
-                    userId,
-                    restaurantId,
-                },
+                userId_restaurantId: {userId, restaurantId},
             },
         })
 
         revalidatePath(`/dashboard/users`)
         return {success: true}
     } catch (error) {
+        const message = error instanceof Error ? error.message : ''
+        if (message === 'Permission refusée') {
+            return {error: "Vous n'avez pas la permission de retirer des membres"}
+        }
         console.error('Erreur retrait membre:', error)
         return {error: 'Erreur lors du retrait du membre'}
     }
@@ -306,29 +308,7 @@ export async function removeTeamMember(restaurantId: string, userId: string) {
 
 export async function getRestaurantUsers(restaurantId: string) {
     try {
-        const supabase = await createClient()
-        const {
-            data: {user},
-        } = await supabase.auth.getUser()
-
-        if (!user) {
-            return {error: 'Non authentifié'}
-        }
-
-        // Vérification d'accès
-        const hasAccess = await prisma.restaurantUser.findUnique({
-            where: {
-                userId_restaurantId: {
-                    userId: user.id,
-                    restaurantId: restaurantId,
-                },
-            },
-            select: {id: true},
-        })
-
-        if (!hasAccess) {
-            return {error: 'Accès refusé'}
-        }
+        await requireMembershipForRestaurant(restaurantId)
 
         // Récupération des membres
         const restaurantUsers = await prisma.restaurantUser.findMany({
@@ -344,6 +324,7 @@ export async function getRestaurantUsers(restaurantId: string) {
                     select: {
                         id: true,
                         name: true,
+                        slug: true,
                     },
                 },
             },
@@ -364,6 +345,7 @@ export async function getRestaurantUsers(restaurantId: string) {
             email: emailMap.get(ru.userId) || 'Email inconnu',
             roleId: ru.roleId,
             roleName: ru.customRole?.name || 'Aucun rôle',
+            roleSlug: ru.customRole?.slug ?? null,
             createdAt: ru.createdAt.toISOString(),
         }))
 

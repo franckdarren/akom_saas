@@ -639,8 +639,11 @@ model Role {
   id           String   @id @default(uuid()) @db.Uuid
   restaurantId String   @map("restaurant_id") @db.Uuid
   name         String
+  slug         String?  // Identifiant programmatique : 'admin', 'kitchen', 'cashier' pour les rôles système
   description  String?
-  isSystem     Boolean  @default(false) @map("is_system") // true pour admin et kitchen
+  color        String?  // Couleur hex pour badge UI (#3B82F6)
+  isSystem     Boolean  @default(false) @map("is_system") // true pour admin, kitchen, cashier
+  isProtected  Boolean  @default(false) @map("is_protected") // true = non supprimable (ex: Admin)
   isActive     Boolean  @default(true) @map("is_active")
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
@@ -652,6 +655,7 @@ model Role {
   invitations     Invitation[]
 
   @@unique([restaurantId, name])
+  @@unique([restaurantId, slug])
   @@index([restaurantId, isActive])
   @@map("roles")
 }

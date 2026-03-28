@@ -2,10 +2,10 @@
 'use server'
 
 import {revalidatePath} from 'next/cache'
-import {createClient} from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
 import {capitalizeFirst, formatDescription} from '@/lib/utils/format-text'
 import {checkQuota} from '@/lib/services/subscription-checker'
+import {requirePermission} from '@/lib/permissions/check'
 import type {ProductType} from '@/types/product'
 
 interface ProductData {
@@ -21,32 +21,6 @@ interface ProductData {
 
     // Image
     imageUrl?: string
-}
-
-// ============================================================
-// Récupérer le restaurant de l'utilisateur connecté
-// ============================================================
-
-async function getCurrentRestaurantId() {
-    const supabase = await createClient()
-    const {
-        data: {user},
-    } = await supabase.auth.getUser()
-
-    if (!user) {
-        throw new Error('Non authentifié')
-    }
-
-    const restaurantUser = await prisma.restaurantUser.findFirst({
-        where: {userId: user.id},
-        select: {restaurantId: true},
-    })
-
-    if (!restaurantUser) {
-        throw new Error('Aucun restaurant trouvé')
-    }
-
-    return restaurantUser.restaurantId
 }
 
 // ============================================================
@@ -77,10 +51,10 @@ async function getCurrentRestaurantId() {
  */
 export async function createProduct(data: ProductData) {
     try {
-        const restaurantId = await getCurrentRestaurantId()
+        const {restaurantId} = await requirePermission('products', 'create')
 
         // ============================================================
-        // NOUVEAU : Vérifier le quota de produits
+        // Vérifier le quota de produits
         // ============================================================
 
         const quotaCheck = await checkQuota(restaurantId, 'max_products')
@@ -205,7 +179,7 @@ export async function createProduct(data: ProductData) {
  */
 export async function updateProduct(id: string, data: ProductData) {
     try {
-        const restaurantId = await getCurrentRestaurantId()
+        const {restaurantId} = await requirePermission('products', 'update')
 
         // ============================================================
         // Récupérer le produit existant pour comparer le type
@@ -351,7 +325,7 @@ export async function updateProduct(id: string, data: ProductData) {
  */
 export async function toggleProductAvailability(id: string) {
     try {
-        const restaurantId = await getCurrentRestaurantId()
+        const {restaurantId} = await requirePermission('products', 'update')
 
         const product = await prisma.product.findUnique({
             where: {id, restaurantId},
@@ -429,7 +403,7 @@ export async function toggleProductAvailability(id: string) {
  */
 export async function deleteProduct(id: string) {
     try {
-        const restaurantId = await getCurrentRestaurantId()
+        const {restaurantId} = await requirePermission('products', 'delete')
 
         // Le stock sera automatiquement supprimé grâce au onDelete: Cascade
         await prisma.product.delete({
@@ -462,7 +436,7 @@ export async function deleteProduct(id: string) {
  */
 export async function getProductWithDetails(id: string) {
     try {
-        const restaurantId = await getCurrentRestaurantId()
+        const {restaurantId} = await requirePermission('products', 'read')
 
         const product = await prisma.product.findUnique({
             where: {id, restaurantId},

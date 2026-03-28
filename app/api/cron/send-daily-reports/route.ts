@@ -64,7 +64,7 @@ export async function GET(request: Request) {
                 id: true,
                 name: true,
                 users: {
-                    where: {role: 'admin'},
+                    where: {customRole: {slug: 'admin'}},
                     take: 1,                    // On prend 1 seul admin par restaurant
                     select: {userId: true},
                 },

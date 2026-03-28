@@ -9,7 +9,7 @@ type DashboardContextType = {
         id: string
         email: string
     }
-    role: 'superadmin' | 'admin' | 'kitchen'
+    role: string // slug du rôle : 'admin', 'kitchen', 'cashier', 'superadmin' ou slug custom
     restaurantName?: string
     activityType?: ActivityType // ← NOUVEAU
 }

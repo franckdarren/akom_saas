@@ -19,6 +19,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import {cn} from '@/lib/utils'
+import {getRoleBadge} from '@/lib/utils/permissions'
 import type {RestaurantWithRole} from '@/types/auth'
 import type {ActivityType} from '@/lib/config/activity-labels'
 import {AddRestaurantModal} from './AddRestaurantModal'
@@ -202,7 +203,7 @@ export function RestaurantSwitcher({canAddMore = false, variant = 'sidebar'}: Re
                                             <span className="text-[11px] text-muted-foreground capitalize">
                                                 {restaurant.activityType?.replace('_', ' ') ?? 'restaurant'}
                                                 {' · '}
-                                                {restaurant.role === 'admin' ? 'Admin' : restaurant.role}
+                                                {getRoleBadge(restaurant.role).label}
                                             </span>
                                         </div>
 

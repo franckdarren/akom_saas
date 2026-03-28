@@ -30,13 +30,15 @@ export async function GET(request: NextRequest) {
                 redirectUrl = `${origin}/superadmin`
             } else {
                 const restaurantUser = await prisma.restaurantUser.findFirst({
-                    where: {userId: data.user.id}
+                    where: {userId: data.user.id},
+                    select: {customRole: {select: {slug: true}}, role: true},
                 })
 
                 if (!restaurantUser) {
                     redirectUrl = `${origin}/onboarding`
                 } else {
-                    switch (restaurantUser.role) {
+                    const roleSlug = restaurantUser.customRole?.slug ?? restaurantUser.role
+                    switch (roleSlug) {
                         case 'kitchen':
                             redirectUrl = `${origin}/dashboard/orders`
                             break

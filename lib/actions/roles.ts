@@ -2,74 +2,26 @@
 'use server'
 
 import {revalidatePath} from 'next/cache'
-import {createClient} from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
+import {requirePermissionForRestaurant, requireMembershipForRestaurant} from '@/lib/permissions/check'
 
 interface CreateRoleData {
     name: string
     description?: string
+    color?: string
     permissionIds: string[]
 }
 
 interface UpdateRoleData {
     name?: string
     description?: string
+    color?: string
     permissionIds?: string[]
     isActive?: boolean
 }
 
 // ============================================================
-// Vérifier si l'utilisateur a une permission spécifique
-// ============================================================
-
-export async function hasPermission(
-    restaurantId: string,
-    resource: string,
-    action: string
-): Promise<boolean> {
-    const supabase = await createClient()
-    const {
-        data: {user},
-    } = await supabase.auth.getUser()
-
-    if (!user) return false
-
-    const restaurantUser = await prisma.restaurantUser.findUnique({
-        where: {
-            userId_restaurantId: {
-                userId: user.id,
-                restaurantId: restaurantId,
-            },
-        },
-        include: {
-            customRole: {
-                include: {
-                    permissions: {
-                        include: {
-                            permission: true,
-                        },
-                    },
-                },
-            },
-        },
-    })
-
-    if (!restaurantUser?.customRole) return false
-
-    const hasDirectPermission = restaurantUser.customRole.permissions.some(
-        (rp) =>
-            rp.permission.resource === resource &&
-            (rp.permission.action === action || rp.permission.action === 'manage')
-    )
-
-    return hasDirectPermission
-}
-
-// ============================================================
 // Récupérer toutes les permissions disponibles
-// ✅ Cache mémoire module supprimé — incompatible avec Next.js
-//    multi-worker. La table permissions est petite et rarement
-//    mise à jour : la requête directe est suffisante.
 // ============================================================
 
 export async function getAllPermissions() {
@@ -107,28 +59,7 @@ export async function getAllPermissions() {
 
 export async function getRestaurantRoles(restaurantId: string) {
     try {
-        const supabase = await createClient()
-        const {
-            data: {user},
-        } = await supabase.auth.getUser()
-
-        if (!user) {
-            return {error: 'Non authentifié'}
-        }
-
-        const hasAccess = await prisma.restaurantUser.findUnique({
-            where: {
-                userId_restaurantId: {
-                    userId: user.id,
-                    restaurantId: restaurantId,
-                },
-            },
-            select: {id: true},
-        })
-
-        if (!hasAccess) {
-            return {error: 'Accès refusé'}
-        }
+        await requirePermissionForRestaurant(restaurantId, 'roles', 'read')
 
         const roles = await prisma.role.findMany({
             where: {
@@ -138,8 +69,11 @@ export async function getRestaurantRoles(restaurantId: string) {
             select: {
                 id: true,
                 name: true,
+                slug: true,
                 description: true,
+                color: true,
                 isSystem: true,
+                isProtected: true,
                 isActive: true,
                 permissions: {
                     select: {
@@ -165,6 +99,10 @@ export async function getRestaurantRoles(restaurantId: string) {
 
         return {success: true, roles}
     } catch (error) {
+        const message = error instanceof Error ? error.message : ''
+        if (message === 'Non authentifié' || message === 'Accès refusé' || message === 'Permission refusée') {
+            return {error: message}
+        }
         console.error('Erreur récupération rôles:', error)
         return {error: 'Erreur lors de la récupération des rôles'}
     }
@@ -179,10 +117,7 @@ export async function createCustomRole(
     data: CreateRoleData
 ) {
     try {
-        const canCreate = await hasPermission(restaurantId, 'roles', 'create')
-        if (!canCreate) {
-            return {error: "Vous n'avez pas la permission de créer des rôles"}
-        }
+        await requirePermissionForRestaurant(restaurantId, 'roles', 'create')
 
         if (!data.name || data.name.trim().length === 0) {
             return {error: 'Le nom du rôle est obligatoire'}
@@ -211,6 +146,7 @@ export async function createCustomRole(
                     restaurantId,
                     name: data.name.trim(),
                     description: data.description?.trim() || null,
+                    color: data.color?.trim() || null,
                     isSystem: false,
                     isActive: true,
                 },
@@ -229,6 +165,10 @@ export async function createCustomRole(
         revalidatePath('/dashboard/users')
         return {success: true, role}
     } catch (error) {
+        const message = error instanceof Error ? error.message : ''
+        if (message === 'Permission refusée') {
+            return {error: "Vous n'avez pas la permission de créer des rôles"}
+        }
         console.error('Erreur création rôle:', error)
         return {error: 'Erreur lors de la création du rôle'}
     }
@@ -244,10 +184,7 @@ export async function updateCustomRole(
     data: UpdateRoleData
 ) {
     try {
-        const canUpdate = await hasPermission(restaurantId, 'roles', 'update')
-        if (!canUpdate) {
-            return {error: "Vous n'avez pas la permission de modifier des rôles"}
-        }
+        await requirePermissionForRestaurant(restaurantId, 'roles', 'update')
 
         const existingRole = await prisma.role.findUnique({
             where: {id: roleId, restaurantId},
@@ -257,8 +194,23 @@ export async function updateCustomRole(
             return {error: 'Rôle introuvable'}
         }
 
+        if (existingRole.isProtected) {
+            return {error: 'Ce rôle protégé ne peut pas être modifié'}
+        }
+
         if (existingRole.isSystem) {
-            return {error: 'Les rôles système ne peuvent pas être modifiés'}
+            // Les rôles système non-protégés : on peut modifier couleur et description
+            // mais pas le nom ni les permissions
+            const role = await prisma.role.update({
+                where: {id: roleId},
+                data: {
+                    description: data.description?.trim(),
+                    color: data.color?.trim(),
+                },
+            })
+
+            revalidatePath('/dashboard/users')
+            return {success: true, role}
         }
 
         const role = await prisma.$transaction(async (tx) => {
@@ -267,6 +219,7 @@ export async function updateCustomRole(
                 data: {
                     name: data.name?.trim(),
                     description: data.description?.trim(),
+                    color: data.color?.trim(),
                     isActive: data.isActive,
                 },
             })
@@ -290,6 +243,10 @@ export async function updateCustomRole(
         revalidatePath('/dashboard/users')
         return {success: true, role}
     } catch (error) {
+        const message = error instanceof Error ? error.message : ''
+        if (message === 'Permission refusée') {
+            return {error: "Vous n'avez pas la permission de modifier des rôles"}
+        }
         console.error('Erreur modification rôle:', error)
         return {error: 'Erreur lors de la modification du rôle'}
     }
@@ -301,10 +258,7 @@ export async function updateCustomRole(
 
 export async function deleteCustomRole(roleId: string, restaurantId: string) {
     try {
-        const canDelete = await hasPermission(restaurantId, 'roles', 'delete')
-        if (!canDelete) {
-            return {error: "Vous n'avez pas la permission de supprimer des rôles"}
-        }
+        await requirePermissionForRestaurant(restaurantId, 'roles', 'delete')
 
         const existingRole = await prisma.role.findUnique({
             where: {id: roleId, restaurantId},
@@ -336,6 +290,10 @@ export async function deleteCustomRole(roleId: string, restaurantId: string) {
         revalidatePath('/dashboard/users')
         return {success: true}
     } catch (error) {
+        const message = error instanceof Error ? error.message : ''
+        if (message === 'Permission refusée') {
+            return {error: "Vous n'avez pas la permission de supprimer des rôles"}
+        }
         console.error('Erreur suppression rôle:', error)
         return {error: 'Erreur lors de la suppression du rôle'}
     }
@@ -351,13 +309,11 @@ export async function assignRoleToUser(
     roleId: string
 ) {
     try {
-        const canUpdate = await hasPermission(restaurantId, 'users', 'update')
-        if (!canUpdate) {
-            return {error: "Vous n'avez pas la permission de modifier les utilisateurs"}
-        }
+        await requirePermissionForRestaurant(restaurantId, 'users', 'update')
 
         const role = await prisma.role.findUnique({
             where: {id: roleId, restaurantId},
+            select: {id: true, slug: true},
         })
 
         if (!role) {
@@ -377,14 +333,24 @@ export async function assignRoleToUser(
             return {error: 'Utilisateur introuvable dans ce restaurant'}
         }
 
+        // Sync legacy role field
+        const legacyRole = (['admin', 'kitchen', 'cashier'] as const).find(r => r === role.slug)
+
         await prisma.restaurantUser.update({
             where: {id: restaurantUser.id},
-            data: {roleId},
+            data: {
+                roleId,
+                ...(legacyRole ? {role: legacyRole} : {}),
+            },
         })
 
         revalidatePath('/dashboard/users')
         return {success: true}
     } catch (error) {
+        const message = error instanceof Error ? error.message : ''
+        if (message === 'Permission refusée') {
+            return {error: "Vous n'avez pas la permission de modifier les utilisateurs"}
+        }
         console.error('Erreur assignation rôle:', error)
         return {error: "Erreur lors de l'assignation du rôle"}
     }
@@ -396,20 +362,15 @@ export async function assignRoleToUser(
 
 export async function getUserPermissions(restaurantId: string) {
     try {
-        const supabase = await createClient()
-        const {
-            data: {user},
-        } = await supabase.auth.getUser()
-
-        if (!user) {
-            return {permissions: []}
-        }
+        // Cette fonction est appelée par le hook use-permissions côté client.
+        // Tout membre du restaurant peut lire ses propres permissions.
+        const {userId} = await requireMembershipForRestaurant(restaurantId)
 
         const restaurantUser = await prisma.restaurantUser.findUnique({
             where: {
                 userId_restaurantId: {
-                    userId: user.id,
-                    restaurantId: restaurantId,
+                    userId,
+                    restaurantId,
                 },
             },
             include: {
@@ -442,8 +403,7 @@ export async function getUserPermissions(restaurantId: string) {
         }))
 
         return {success: true, permissions}
-    } catch (error) {
-        console.error('Erreur getUserPermissions:', error)
+    } catch {
         return {permissions: []}
     }
 }

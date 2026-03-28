@@ -51,9 +51,10 @@ export default async function RestaurantSettingsPage({
                 restaurantId: id,
             },
         },
+        select: {customRole: {select: {slug: true}}},
     })
 
-    if (!userRole || userRole.role !== 'admin') redirect('/dashboard')
+    if (!userRole || userRole.customRole?.slug !== 'admin') redirect('/dashboard')
 
     const labels = getLabels(restaurant.activityType)
 
@@ -67,7 +68,7 @@ export default async function RestaurantSettingsPage({
     // Déterminer si c'est le restaurant principal (le plus ancien de l'user)
     // Le restaurant principal ne peut pas être supprimé
     const firstRestaurantUser = await prisma.restaurantUser.findFirst({
-        where: {userId: user.id, role: 'admin'},
+        where: {userId: user.id, customRole: {slug: 'admin'}},
         orderBy: {createdAt: 'asc'},
         select: {restaurantId: true},
     })

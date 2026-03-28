@@ -15,10 +15,10 @@ export default async function POSPage() {
         where: {
             userId_restaurantId: {userId, restaurantId},
         },
-        select: {role: true},
+        select: {customRole: {select: {slug: true}}},
     })
 
-    if (!restaurantUser || !['admin', 'cashier'].includes(restaurantUser.role ?? '')) {
+    if (!restaurantUser || !['admin', 'cashier'].includes(restaurantUser.customRole?.slug ?? '')) {
         redirect('/dashboard')
     }
 

@@ -112,13 +112,13 @@ export default async function UsersManagementPage() {
                                                 <Badge
                                                     className={
                                                         getRoleBadge(
-                                                            user.role as 'admin' | 'kitchen'
+                                                            user.role ?? 'kitchen'
                                                         ).color
                                                     }
                                                 >
                                                     {
                                                         getRoleBadge(
-                                                            user.role as 'admin' | 'kitchen'
+                                                            user.role ?? 'kitchen'
                                                         ).label
                                                     }
                                                 </Badge>

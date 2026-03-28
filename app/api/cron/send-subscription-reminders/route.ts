@@ -90,7 +90,7 @@ export async function GET(request: Request) {
         const adminUsers = await prisma.restaurantUser.findMany({
             where: {
                 restaurantId: {in: allRestaurantIds},
-                role: 'admin',
+                customRole: {slug: 'admin'},
             },
             select: {restaurantId: true, userId: true},
             distinct: ['restaurantId'],

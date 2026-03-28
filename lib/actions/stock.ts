@@ -2,35 +2,8 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { createClient } from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
-
-
-// ============================================================
-// Récupérer le restaurant et l'utilisateur connecté
-// ============================================================
-
-async function getCurrentUserAndRestaurant() {
-    const supabase = await createClient()
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) {
-        throw new Error('Non authentifié')
-    }
-
-    const restaurantUser = await prisma.restaurantUser.findFirst({
-        where: { userId: user.id },
-        select: { restaurantId: true },
-    })
-
-    if (!restaurantUser) {
-        throw new Error('Aucun restaurant trouvé')
-    }
-
-    return { userId: user.id, restaurantId: restaurantUser.restaurantId }
-}
+import { requirePermission } from '@/lib/permissions/check'
 
 
 // ============================================================
@@ -44,7 +17,7 @@ export async function adjustStock(
     reason?: string
 ) {
     try {
-        const { userId, restaurantId } = await getCurrentUserAndRestaurant()
+        const { userId, restaurantId } = await requirePermission('stocks', 'update')
 
         // Récupérer le stock actuel
         const currentStock = await prisma.stock.findUnique({
@@ -132,7 +105,7 @@ export async function adjustStock(
 
 export async function getProductStockHistory(productId: string) {
     try {
-        const { restaurantId } = await getCurrentUserAndRestaurant()
+        const { restaurantId } = await requirePermission('stocks', 'read')
 
         const movements = await prisma.stockMovement.findMany({
             where: {
@@ -160,7 +133,7 @@ export async function updateAlertThreshold(
     threshold: number
 ) {
     try {
-        const { restaurantId } = await getCurrentUserAndRestaurant()
+        const { restaurantId } = await requirePermission('stocks', 'update')
 
         // Validation
         if (threshold < 0) {

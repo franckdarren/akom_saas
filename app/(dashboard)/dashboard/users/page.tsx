@@ -15,16 +15,12 @@ import {
 } from '@/components/ui/breadcrumb'
 import {TeamManagementTabs} from '@/components/users/TeamManagementTabs'
 import {InvitationsSection} from '@/components/users/InvitationsSection'
-import {getUserRole} from '@/lib/actions/auth'
 import {getRestaurantRoles} from '@/lib/actions/roles'
 import {getLabels} from "@/lib/config/activity-labels"
 
 export default async function UsersPage() {
     const supabase = await createClient()
     const {data: {user}} = await supabase.auth.getUser()
-
-    const userRole = await getUserRole()
-
     if (!user) redirect('/login')
 
     const restaurantUser = await prisma.restaurantUser.findFirst({

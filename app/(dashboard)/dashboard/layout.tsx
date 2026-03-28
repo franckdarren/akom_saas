@@ -71,7 +71,7 @@ export default async function DashboardLayout({
                 },
             }),
             prisma.restaurantUser.findFirst({
-                where: {userId: user.id, role: 'admin'},
+                where: {userId: user.id, customRole: {slug: 'admin'}},
                 orderBy: {createdAt: 'asc'},
                 select: {restaurantId: true},
             }),
@@ -126,7 +126,7 @@ export default async function DashboardLayout({
         }
 
         // ── Quota multi-structure ─────────────────────────────
-        if (restaurantUser.role === 'admin') {
+        if (userRole === 'admin') {
             try {
                 const quota = await getMultiRestaurantQuota()
                 canAddMoreRestaurants = quota.canAdd

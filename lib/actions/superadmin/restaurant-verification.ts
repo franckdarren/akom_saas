@@ -57,8 +57,9 @@ export async function getRestaurantsPendingVerification() {
             include: {
                 verificationDocuments: true,
                 users: {
-                    where: { role: 'admin' },
+                    where: {customRole: {slug: 'admin'}},
                     take: 1,
+                    select: {userId: true, customRole: {select: {slug: true}}},
                 },
             },
             orderBy: {
@@ -91,8 +92,7 @@ export async function getRestaurantsPendingVerification() {
 
             users: restaurant.users.map((user) => ({
                 userId: user.userId,
-                // ✅ garanti toujours un string
-                role: user.role ?? 'admin',
+                role: user.customRole?.slug ?? 'admin',
             })),
         }))
 

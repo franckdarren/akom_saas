@@ -141,7 +141,7 @@ export default function RestaurantDetailsClient({ restaurant }: Props) {
                             ) : (
                                 restaurant.users.map((user) => {
                                     const roleBadge = getRoleBadge(
-                                        user.role as SystemRole
+                                        user.role ?? 'kitchen'
                                     )
 
                                     return (

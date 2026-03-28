@@ -2,37 +2,8 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { createClient } from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
-
-// ============================================================
-// Récupérer le restaurant et l'utilisateur connecté
-// ============================================================
-
-async function getCurrentRestaurantId() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    throw new Error('Non authentifié')
-  }
-
-  const restaurantUser = await prisma.restaurantUser.findFirst({
-    where: { userId: user.id },
-    select: { restaurantId: true, restaurant: { select: { slug: true } } },
-  })
-
-  if (!restaurantUser) {
-    throw new Error('Aucun restaurant trouvé')
-  }
-
-  return {
-    restaurantId: restaurantUser.restaurantId,
-    slug: restaurantUser.restaurant.slug,
-  }
-}
+import { requirePermission } from '@/lib/permissions/check'
 
 
 // ============================================================
@@ -41,7 +12,7 @@ async function getCurrentRestaurantId() {
 
 export async function createTable(number: number) {
   try {
-    const { restaurantId } = await getCurrentRestaurantId()
+    const { restaurantId } = await requirePermission('tables', 'create')
 
     // Vérifier si le numéro existe déjà
     const existing = await prisma.table.findUnique({
@@ -80,7 +51,7 @@ export async function createTable(number: number) {
 
 export async function toggleTableStatus(id: string) {
   try {
-    const { restaurantId } = await getCurrentRestaurantId()
+    const { restaurantId } = await requirePermission('tables', 'update')
 
     const table = await prisma.table.findUnique({
       where: { id, restaurantId },
@@ -106,7 +77,7 @@ export async function toggleTableStatus(id: string) {
 
 export async function deleteTable(id: string) {
   try {
-    const { restaurantId } = await getCurrentRestaurantId()
+    const { restaurantId } = await requirePermission('tables', 'delete')
 
     // Vérifier qu'il n'y a pas de commandes en cours
     const ordersCount = await prisma.order.count({
@@ -141,11 +112,14 @@ export async function deleteTable(id: string) {
 
 export async function getTableQRCodeUrl(tableId: string) {
   try {
-    const { restaurantId, slug } = await getCurrentRestaurantId()
+    const { restaurantId } = await requirePermission('tables', 'read')
 
     const table = await prisma.table.findUnique({
       where: { id: tableId, restaurantId },
-      select: { number: true },
+      select: {
+        number: true,
+        restaurant: { select: { slug: true } },
+      },
     })
 
     if (!table) {
@@ -154,7 +128,7 @@ export async function getTableQRCodeUrl(tableId: string) {
 
     // URL du menu pour cette table
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-    const menuUrl = `${baseUrl}/r/${slug}/t/${table.number}`
+    const menuUrl = `${baseUrl}/r/${table.restaurant.slug}/t/${table.number}`
 
     return { success: true, url: menuUrl }
   } catch (error) {

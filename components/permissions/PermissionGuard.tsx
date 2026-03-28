@@ -3,11 +3,12 @@
 
 import { ReactNode } from 'react'
 import { usePermissions } from '@/lib/hooks/use-permissions'
+import type { PermissionResource, PermissionAction } from '@prisma/client'
 
 interface PermissionGuardProps {
     children: ReactNode
-    resource: string
-    action: 'create' | 'read' | 'update' | 'delete' | 'manage'
+    resource: PermissionResource
+    action: PermissionAction
     fallback?: ReactNode
     showLoading?: boolean
 }
@@ -19,10 +20,9 @@ export function PermissionGuard({
     fallback = null,
     showLoading = false,
 }: PermissionGuardProps) {
-    const permissions = usePermissions()
+    const { hasPermission, loading } = usePermissions()
 
-    // Pendant le chargement
-    if (permissions.loading) {
+    if (loading) {
         if (showLoading) {
             return (
                 <div className="flex items-center justify-center p-4">
@@ -33,27 +33,7 @@ export function PermissionGuard({
         return null
     }
 
-    // Vérification de permission (maintenant instantanée)
-    let hasAccess = false
-    switch (action) {
-        case 'create':
-            hasAccess = permissions.canCreate(resource)
-            break
-        case 'read':
-            hasAccess = permissions.canRead(resource)
-            break
-        case 'update':
-            hasAccess = permissions.canUpdate(resource)
-            break
-        case 'delete':
-            hasAccess = permissions.canDelete(resource)
-            break
-        case 'manage':
-            hasAccess = permissions.canManage(resource)
-            break
-    }
-
-    if (!hasAccess) {
+    if (!hasPermission(resource, action)) {
         return <>{fallback}</>
     }
 
