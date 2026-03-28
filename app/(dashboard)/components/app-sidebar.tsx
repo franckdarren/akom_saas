@@ -247,6 +247,7 @@ export function AppSidebar({
                         icon: Users,
                         disabled: !currentRestaurant,
                     },
+                    {title: "Support", href: "/dashboard/support", icon: MessageSquare},
                 ],
             },
         ],
@@ -256,6 +257,7 @@ export function AppSidebar({
                 title: "Cuisine",
                 items: [
                     {title: labels.orderNameCapital + "s", href: "/dashboard/orders", icon: ChefHat, badge: "New"},
+                    {title: "Support", href: "/dashboard/support", icon: MessageSquare},
                 ],
             },
         ],
@@ -266,6 +268,7 @@ export function AppSidebar({
                 items: [
                     {title: `Nouvelle ${labels.orderName}`, href: "/dashboard/pos", icon: ShoppingCart},
                     {title: `${labels.orderNameCapital}s du jour`, href: "/dashboard/pos/orders", icon: ClipboardList},
+                    {title: "Support", href: "/dashboard/support", icon: MessageSquare},
                 ],
             },
         ],

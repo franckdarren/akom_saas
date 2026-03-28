@@ -26,24 +26,31 @@ export async function middleware(request: NextRequest) {
         }
     )
 
-    // ✅ Wrapper avec timeout pour éviter les blocages en Edge Runtime
-    let user = null
-    try {
-        const result = await Promise.race([
-            supabase.auth.getUser(),
-            new Promise<never>((_, reject) =>
-                setTimeout(() => reject(new Error('Supabase timeout')), 5000)
-            ),
-        ])
-        user = result.data.user ?? null
-    } catch (err) {
-        console.error('❌ Middleware auth error:', err)
-        const url = request.nextUrl.clone()
-        url.pathname = '/login'
-        return NextResponse.redirect(url)
-    }
-
     const {pathname} = request.nextUrl
+
+    const publicRoutes = ['/login', '/register', '/forgot-password', '/reset-password']
+    const isPublicRoute = publicRoutes.some(r => pathname.startsWith(r))
+
+    // Ne pas appeler getUser() sur les routes publiques — inutile et source de timeout
+    let user = null
+    if (!isPublicRoute) {
+        try {
+            const result = await Promise.race([
+                supabase.auth.getUser(),
+                new Promise<never>((_, reject) =>
+                    setTimeout(() => reject(new Error('Supabase timeout')), 5000)
+                ),
+            ])
+            user = result.data.user ?? null
+        } catch (err) {
+            console.error('❌ Middleware auth error:', err)
+            if (!pathname.startsWith('/reset-password')) {
+                const url = request.nextUrl.clone()
+                url.pathname = '/login'
+                return NextResponse.redirect(url)
+            }
+        }
+    }
 
     // ============================================================
     // PROTECTION DES ROUTES SUPERADMIN
@@ -70,7 +77,6 @@ export async function middleware(request: NextRequest) {
     // ROUTES
     // ============================================================
 
-    const publicRoutes = ['/login', '/register', '/forgot-password', '/reset-password']
     const protectedRoutes = ['/dashboard', '/superadmin', '/update-password', '/onboarding']
     const subscriptionExemptRoutes = [
         '/dashboard/subscription',
@@ -79,7 +85,6 @@ export async function middleware(request: NextRequest) {
         '/dashboard/subscription/payment',
     ]
 
-    const isPublicRoute       = publicRoutes.some(r => pathname.startsWith(r))
     const isProtectedRoute    = protectedRoutes.some(r => pathname.startsWith(r))
     const isSubscriptionExempt = subscriptionExemptRoutes.some(r => pathname.startsWith(r))
 
