@@ -97,6 +97,19 @@ GitHub Actions cron (`.github/workflows/cron-tasks.yml`) appelle des routes API 
 - RLS active sur toutes les tables liees a `restaurant_id`
 - Labels d'activite dynamiques : voir `lib/config/activity-labels.ts`
 
+## Design system — couleurs
+
+Les variables de couleur sont definies dans `app/globals.css` (tokens Tailwind v4 via `@theme inline`). Toujours utiliser les classes semantiques Tailwind plutot que des valeurs hex ou des couleurs arbitraires :
+
+- **UI** : `primary`, `secondary`, `muted`, `accent`, `destructive`, `border`, `background`, `foreground`, `card`, `popover`
+- **Semantique** : `success`, `success-foreground`, `success-subtle`, `warning`, `warning-foreground`, `warning-subtle`, `info`, `info-foreground`, `info-subtle`
+- **Statuts commandes** : `status-pending`, `status-preparing`, `status-ready`, `status-delivered`, `status-cancelled` (avec variante `-fg`)
+
+Exemples corrects : `bg-primary`, `text-destructive`, `border-warning`, `bg-success-subtle`
+Interdit : `bg-blue-500`, `text-red-600`, couleurs hex inline, etc.
+
+**Exception emails** : les templates HTML email ne supportent pas les variables CSS. Utiliser les constantes de `lib/email/colors.ts` (`emailColors.primary`, `emailColors.destructive`, etc.).
+
 ## Regles absolues
 
 - Toujours filtrer les requetes Prisma par `restaurantId`
