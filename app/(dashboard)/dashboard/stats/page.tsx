@@ -77,7 +77,7 @@ export default async function StatsPage({ searchParams }: PageProps) {
                     <StatsCard
                         title="Chiffre d'affaires"
                         value={formatPrice(stats.revenue.total)}
-                        icon={DollarSign}
+                        icon={<DollarSign className="h-4 w-4" />}
                         variant="success"
                         trend={{
                             value: stats.revenue.percentChange,
@@ -87,20 +87,20 @@ export default async function StatsPage({ searchParams }: PageProps) {
                     <StatsCard
                         title="Commandes"
                         value={stats.orders.total}
-                        icon={ShoppingCart}
+                        icon={<ShoppingCart className="h-4 w-4" />}
                         variant="default"
                         description={`${stats.orders.delivered} livrées`}
                     />
                     <StatsCard
                         title="Panier moyen"
                         value={formatPrice(stats.orders.averageOrderValue)}
-                        icon={TrendingUp}
+                        icon={<TrendingUp className="h-4 w-4" />}
                         variant="default"
                     />
                     <StatsCard
                         title="Alertes stock"
                         value={stats.stockAlerts.length}
-                        icon={Package}
+                        icon={<Package className="h-4 w-4" />}
                         variant={stats.stockAlerts.length > 0 ? 'warning' : 'success'}
                         description={
                             stats.stockAlerts.length > 0

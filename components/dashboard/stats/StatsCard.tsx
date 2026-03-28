@@ -2,13 +2,14 @@
 'use client'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { ArrowDown, ArrowUp, LucideIcon, Minus } from 'lucide-react'
+import { ArrowDown, ArrowUp, Minus } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { type ReactNode } from 'react'
 
 interface StatsCardProps {
     title: string
     value: string | number
-    icon: LucideIcon
+    icon: ReactNode
     description?: string
     trend?: {
         value: number // Variation en %
@@ -20,7 +21,7 @@ interface StatsCardProps {
 export function StatsCard({
     title,
     value,
-    icon: Icon,
+    icon,
     description,
     trend,
     variant = 'default',
@@ -44,7 +45,7 @@ export function StatsCard({
                         variantStyles[variant]
                     )}
                 >
-                    <Icon className="h-4 w-4" />
+                    {icon}
                 </div>
             </CardHeader>
             <CardContent>
