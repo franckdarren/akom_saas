@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { forgotPassword } from '@/lib/actions/auth'
+import { Button } from '@/components/ui/button'
 import { LoadingButton } from '@/components/ui/loading-button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
