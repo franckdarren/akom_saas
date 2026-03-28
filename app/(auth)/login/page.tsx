@@ -52,7 +52,7 @@ export default function LoginPage() {
                     Accédez à votre tableau de bord
                 </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 px-1">
                 <form onSubmit={handleSubmit} className="space-y-4">
                     {/* Email */}
                     <div>

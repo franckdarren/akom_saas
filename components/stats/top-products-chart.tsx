@@ -31,7 +31,7 @@ export function TopProductsChart({ data }: TopProductsChartProps) {
                             type="category"
                             className="text-xs"
                             width={150}
-                            tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                            tick={{ fill: 'var(--color-muted-foreground)' }}
                         />
                         <Tooltip
                             content={({ active, payload }) => {
@@ -61,7 +61,7 @@ export function TopProductsChart({ data }: TopProductsChartProps) {
                                 )
                             }}
                         />
-                        <Bar dataKey="quantitySold" fill="#10b981" radius={[0, 4, 4, 0]} />
+                        <Bar dataKey="quantitySold" fill="var(--chart-2)" radius={[0, 4, 4, 0]} />
                     </BarChart>
                 </ResponsiveContainer>
             </CardContent>

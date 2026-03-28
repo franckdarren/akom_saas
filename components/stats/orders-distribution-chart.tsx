@@ -8,12 +8,13 @@ interface OrdersDistributionChartProps {
     data: OrdersStats
 }
 
+// Utilise les variables CSS de statuts définies dans globals.css
 const STATUS_CONFIG = {
-    pending: { color: '#f59e0b', label: 'En attente' },
-    preparing: { color: '#3b82f6', label: 'En préparation' },
-    ready: { color: '#10b981', label: 'Prêtes' },
-    delivered: { color: '#6366f1', label: 'Livrées' },
-    cancelled: { color: '#ef4444', label: 'Annulées' },
+    pending: { color: 'var(--status-pending)', label: 'En attente' },
+    preparing: { color: 'var(--status-preparing)', label: 'En préparation' },
+    ready: { color: 'var(--status-ready)', label: 'Prêtes' },
+    delivered: { color: 'var(--status-delivered)', label: 'Livrées' },
+    cancelled: { color: 'var(--status-cancelled)', label: 'Annulées' },
 }
 
 export function OrdersDistributionChart({ data }: OrdersDistributionChartProps) {
@@ -47,7 +48,7 @@ export function OrdersDistributionChart({ data }: OrdersDistributionChartProps) 
                                 cy="50%"
                                 innerRadius={50}
                                 outerRadius={80}
-                                fill="#8884d8"
+                                fill="var(--chart-1)"
                                 paddingAngle={2}
                                 dataKey="value"
                             >

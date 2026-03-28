@@ -25,6 +25,8 @@
   --color-input: var(--input);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-destructive-subtle: var(--destructive-subtle);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
@@ -33,15 +35,33 @@
   --color-secondary: var(--secondary);
   --color-primary-foreground: var(--primary-foreground);
   --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-subtle: var(--primary-subtle);
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-
-  /* Personnalisation des couleurs */
+  /* Sémantique */
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
-  /* Personnalisation des couleurs */
+  --color-success-subtle: var(--success-subtle);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-warning-subtle: var(--warning-subtle);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-info-subtle: var(--info-subtle);
+  /* Statuts commandes */
+  --color-status-pending: var(--status-pending);
+  --color-status-pending-fg: var(--status-pending-fg);
+  --color-status-preparing: var(--status-preparing);
+  --color-status-preparing-fg: var(--status-preparing-fg);
+  --color-status-ready: var(--status-ready);
+  --color-status-ready-fg: var(--status-ready-fg);
+  --color-status-delivered: var(--status-delivered);
+  --color-status-delivered-fg: var(--status-delivered-fg);
+  --color-status-cancelled: var(--status-cancelled);
+  --color-status-cancelled-fg: var(--status-cancelled-fg);
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -54,83 +74,152 @@
 
 :root {
   --radius: 0.625rem;
+
+  /* --- Neutres (base zinc, shadcn) --- */
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.141 0.005 285.823);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.141 0.005 285.823);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.141 0.005 285.823);
-  --primary: oklch(0.21 0.006 285.885);
-  --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.967 0.001 286.375);
   --secondary-foreground: oklch(0.21 0.006 285.885);
   --muted: oklch(0.967 0.001 286.375);
   --muted-foreground: oklch(0.552 0.016 285.938);
   --accent: oklch(0.967 0.001 286.375);
   --accent-foreground: oklch(0.21 0.006 285.885);
-  --destructive: oklch(0.577 0.245 27.325);
-
-  /* Personnalisation des couleurs */
-  --success: oklch(0.72 0.18 145);
-  --success-foreground: oklch(0.99 0 0);
-  /* Personnalisation des couleurs */
-
   --border: oklch(0.92 0.004 286.32);
   --input: oklch(0.92 0.004 286.32);
-  --ring: oklch(0.705 0.015 286.067);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
+
+  /* --- Marque Akom (bleu) --- */
+  --primary: oklch(0.623 0.214 259.815);       /* ≈ blue-500 #3b82f6 */
+  --primary-hover: oklch(0.546 0.228 262.881); /* ≈ blue-600 */
+  --primary-foreground: oklch(0.99 0 0);
+  --primary-subtle: oklch(0.968 0.028 258);    /* ≈ blue-50 */
+  --ring: oklch(0.623 0.214 259.815);
+
+  /* --- Succès --- */
+  --success: oklch(0.72 0.18 145);
+  --success-foreground: oklch(0.99 0 0);
+  --success-subtle: oklch(0.97 0.05 145);
+
+  /* --- Warning --- */
+  --warning: oklch(0.769 0.188 70.08);         /* ≈ amber-400 */
+  --warning-foreground: oklch(0.286 0.066 53.813);
+  --warning-subtle: oklch(0.98 0.04 75);
+
+  /* --- Destructive --- */
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.99 0 0);
+  --destructive-subtle: oklch(0.971 0.035 27);
+
+  /* --- Info --- */
+  --info: oklch(0.685 0.169 237.323);          /* ≈ sky-500 */
+  --info-foreground: oklch(0.99 0 0);
+  --info-subtle: oklch(0.97 0.028 240);
+
+  /* --- Statuts commandes --- */
+  --status-pending: var(--warning);
+  --status-pending-fg: var(--warning-foreground);
+  --status-preparing: var(--primary);
+  --status-preparing-fg: var(--primary-foreground);
+  --status-ready: var(--success);
+  --status-ready-fg: var(--success-foreground);
+  --status-delivered: oklch(0.552 0.016 285.938);
+  --status-delivered-fg: oklch(0.99 0 0);
+  --status-cancelled: var(--destructive);
+  --status-cancelled-fg: var(--destructive-foreground);
+
+  /* --- Graphiques (alignés sur la sémantique) --- */
+  --chart-1: oklch(0.623 0.214 259.815);       /* primary blue */
+  --chart-2: oklch(0.72 0.18 145);             /* success green */
+  --chart-3: oklch(0.769 0.188 70.08);         /* warning amber */
+  --chart-4: oklch(0.685 0.169 237.323);       /* info sky */
+  --chart-5: oklch(0.585 0.233 277.117);       /* violet */
+
+  /* --- Sidebar --- */
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.141 0.005 285.823);
-  --sidebar-primary: oklch(0.21 0.006 285.885);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.623 0.214 259.815);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
   --sidebar-accent: oklch(0.967 0.001 286.375);
   --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
   --sidebar-border: oklch(0.92 0.004 286.32);
-  --sidebar-ring: oklch(0.705 0.015 286.067);
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.141 0.005 285.823);
+  --sidebar-ring: oklch(0.623 0.214 259.815);
 }
 
 .dark {
+  /* --- Neutres dark --- */
   --background: oklch(0.141 0.005 285.823);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.21 0.006 285.885);
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.21 0.006 285.885);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.92 0.004 286.32);
-  --primary-foreground: oklch(0.21 0.006 285.885);
   --secondary: oklch(0.274 0.006 286.033);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.274 0.006 286.033);
   --muted-foreground: oklch(0.705 0.015 286.067);
   --accent: oklch(0.274 0.006 286.033);
   --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-
-  /* Personnalisation des couleurs */
-  --success: oklch(0.66 0.16 145);
-  --success-foreground: oklch(0.99 0 0);
-  /* Personnalisation des couleurs */
-
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.552 0.016 285.938);
+
+  /* --- Marque Akom dark (bleu clair sur fond sombre) --- */
+  --primary: oklch(0.707 0.165 254.624);       /* ≈ blue-400 */
+  --primary-hover: oklch(0.78 0.15 255);
+  --primary-foreground: oklch(0.141 0.005 285.823);
+  --primary-subtle: oklch(0.25 0.05 259);
+  --ring: oklch(0.707 0.165 254.624);
+
+  /* --- Succès dark --- */
+  --success: oklch(0.66 0.16 145);
+  --success-foreground: oklch(0.141 0.005 285.823);
+  --success-subtle: oklch(0.22 0.06 145);
+
+  /* --- Warning dark --- */
+  --warning: oklch(0.828 0.189 84.429);
+  --warning-foreground: oklch(0.141 0.005 285.823);
+  --warning-subtle: oklch(0.22 0.05 75);
+
+  /* --- Destructive dark --- */
+  --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: oklch(0.141 0.005 285.823);
+  --destructive-subtle: oklch(0.22 0.06 27);
+
+  /* --- Info dark --- */
+  --info: oklch(0.75 0.15 237);
+  --info-foreground: oklch(0.141 0.005 285.823);
+  --info-subtle: oklch(0.22 0.05 240);
+
+  /* --- Statuts commandes dark (héritent des sémantiques) --- */
+  --status-pending: var(--warning);
+  --status-pending-fg: var(--warning-foreground);
+  --status-preparing: var(--primary);
+  --status-preparing-fg: var(--primary-foreground);
+  --status-ready: var(--success);
+  --status-ready-fg: var(--success-foreground);
+  --status-delivered: oklch(0.705 0.015 286.067);
+  --status-delivered-fg: oklch(0.141 0.005 285.823);
+  --status-cancelled: var(--destructive);
+  --status-cancelled-fg: var(--destructive-foreground);
+
+  /* --- Graphiques dark --- */
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
+
+  /* --- Sidebar dark --- */
   --sidebar: oklch(0.21 0.006 285.885);
   --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.707 0.165 254.624);
+  --sidebar-primary-foreground: oklch(0.141 0.005 285.823);
   --sidebar-accent: oklch(0.274 0.006 286.033);
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.552 0.016 285.938);
+  --sidebar-ring: oklch(0.707 0.165 254.624);
 }
 
 @layer base {
@@ -161,15 +250,15 @@
 @keyframes radical-pulse {
   0% {
     transform: scale(0.95);
-    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); /* Vert */
+    box-shadow: 0 0 0 0 oklch(0.72 0.18 145 / 70%);
   }
   70% {
     transform: scale(1.2);
-    box-shadow: 0 0 0 10px rgba(34, 197, 94, 0);
+    box-shadow: 0 0 0 10px oklch(0.72 0.18 145 / 0%);
   }
   100% {
     transform: scale(0.95);
-    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+    box-shadow: 0 0 0 0 oklch(0.72 0.18 145 / 0%);
   }
 }
 

@@ -10,14 +10,8 @@ interface CategoryPieChartProps {
     data: CategorySales[]
 }
 
-const COLORS = [
-    '#3b82f6', // blue
-    '#10b981', // green
-    '#f59e0b', // amber
-    '#ef4444', // red
-    '#8b5cf6', // violet
-    '#ec4899', // pink
-]
+// Utilise les variables CSS --chart-1 à --chart-5 définies dans globals.css
+const CHART_COLORS = Array.from({ length: 5 }, (_, i) => `var(--chart-${i + 1})`)
 
 export function CategoryPieChart({ data }: CategoryPieChartProps) {
     const chartData = data.map((cat) => ({
@@ -35,7 +29,7 @@ export function CategoryPieChart({ data }: CategoryPieChartProps) {
             </CardHeader>
             <CardContent>
                 {data.length === 0 ? (
-                    <div className="flex h-64 items-center justify-center text-sm text-zinc-500">
+                    <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">
                         Aucune catégorie trouvée
                     </div>
                 ) : (
@@ -55,7 +49,7 @@ export function CategoryPieChart({ data }: CategoryPieChartProps) {
                                     {chartData.map((_, index) => (
                                         <Cell
                                             key={`cell-${index}`}
-                                            fill={COLORS[index % COLORS.length]}
+                                            fill={CHART_COLORS[index % CHART_COLORS.length]}
                                         />
                                     ))}
                                 </Pie>
@@ -64,14 +58,14 @@ export function CategoryPieChart({ data }: CategoryPieChartProps) {
                                         if (!active || !payload?.length) return null
 
                                         return (
-                                            <div className="rounded-lg border bg-white p-3 shadow-lg dark:bg-zinc-900">
+                                            <div className="rounded-lg border bg-card p-3 shadow-lg">
                                                 <p className="text-sm font-medium">
                                                     {payload[0].payload.name}
                                                 </p>
-                                                <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">
+                                                <p className="mt-1 text-xs text-muted-foreground">
                                                     {formatPrice(payload[0].value as number)}
                                                 </p>
-                                                <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                                                <p className="text-xs text-muted-foreground">
                                                     {payload[0].payload.percentage}% du total
                                                 </p>
                                             </div>
@@ -88,9 +82,9 @@ export function CategoryPieChart({ data }: CategoryPieChartProps) {
                                     <div className="flex items-center gap-2">
                                         <div
                                             className="h-3 w-3 rounded-sm"
-                                            style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                                            style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }}
                                         />
-                                        <span className="text-xs text-zinc-600 dark:text-zinc-400 truncate">
+                                        <span className="text-xs text-muted-foreground truncate">
                                             {cat.categoryName}
                                         </span>
                                     </div>

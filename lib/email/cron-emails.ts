@@ -5,6 +5,7 @@
  */
 
 import nodemailer from 'nodemailer'
+import { emailColors as c } from './colors'
 
 // ============================================================
 // CONFIGURATION DU TRANSPORTEUR SMTP
@@ -116,16 +117,16 @@ export async function sendStockAlertEmail({
 <head>
     <meta charset="utf-8">
     <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: ${c.foreground}; }
         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background-color: #ff6b6b; color: white; padding: 20px; border-radius: 8px 8px 0 0; }
-        .content { background-color: #f9f9f9; padding: 20px; border-radius: 0 0 8px 8px; }
-        .alert-item { background-color: white; padding: 15px; margin-bottom: 10px; border-left: 4px solid #ff6b6b; border-radius: 4px; }
-        .product-name { font-weight: bold; font-size: 16px; color: #2c3e50; }
-        .category { color: #7f8c8d; font-size: 14px; }
+        .header { background-color: ${c.destructive}; color: white; padding: 20px; border-radius: 8px 8px 0 0; }
+        .content { background-color: ${c.mutedBg}; padding: 20px; border-radius: 0 0 8px 8px; }
+        .alert-item { background-color: ${c.background}; padding: 15px; margin-bottom: 10px; border-left: 4px solid ${c.destructive}; border-radius: 4px; }
+        .product-name { font-weight: bold; font-size: 16px; color: ${c.foreground}; }
+        .category { color: ${c.mutedForeground}; font-size: 14px; }
         .stock-info { margin-top: 8px; }
-        .critical { color: #ff6b6b; font-weight: bold; }
-        .footer { text-align: center; margin-top: 20px; color: #7f8c8d; font-size: 12px; }
+        .critical { color: ${c.destructive}; font-weight: bold; }
+        .footer { text-align: center; margin-top: 20px; color: ${c.mutedForeground}; font-size: 12px; }
     </style>
 </head>
 <body>
@@ -137,7 +138,7 @@ export async function sendStockAlertEmail({
         <div class="content">
             <p>Bonjour,</p>
             <p><strong>${alerts.length} produit(s)</strong> de votre restaurant ont atteint ou dépassé leur seuil d'alerte de stock :</p>
-            
+
             ${alerts
         .map(
             alert => `
@@ -145,7 +146,7 @@ export async function sendStockAlertEmail({
                 <div class="product-name">${alert.productName}</div>
                 <div class="category">${alert.categoryName}</div>
                 <div class="stock-info">
-                    <span class="critical">Stock actuel : ${alert.currentQuantity}</span> / 
+                    <span class="critical">Stock actuel : ${alert.currentQuantity}</span> /
                     Seuil d'alerte : ${alert.alertThreshold}
                     ${
                 alert.currentQuantity <= 0
@@ -157,12 +158,12 @@ export async function sendStockAlertEmail({
             `
         )
         .join('')}
-            
+
             <p style="margin-top: 20px;">
-                <strong>Action recommandée :</strong> Réapprovisionnez ces produits dès que possible 
+                <strong>Action recommandée :</strong> Réapprovisionnez ces produits dès que possible
                 pour éviter toute rupture de stock et garantir la satisfaction de vos clients.
             </p>
-            
+
             <p>
                 Vous pouvez gérer vos stocks directement depuis votre dashboard Akôm.
             </p>
@@ -209,16 +210,15 @@ export async function sendPendingOrderAlertEmail({
 <head>
     <meta charset="utf-8">
     <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: ${c.foreground}; }
         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background-color: #e74c3c; color: white; padding: 20px; border-radius: 8px 8px 0 0; }
-        .urgent { font-size: 24px; font-weight: bold; animation: blink 1s infinite; }
-        .content { background-color: #f9f9f9; padding: 20px; border-radius: 0 0 8px 8px; }
-        .order-box { background-color: white; padding: 20px; border: 2px solid #e74c3c; border-radius: 8px; margin: 15px 0; }
-        .order-number { font-size: 20px; font-weight: bold; color: #e74c3c; }
-        .item { padding: 8px 0; border-bottom: 1px solid #eee; }
-        .warning { background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 10px; margin: 15px 0; }
-        @keyframes blink { 50% { opacity: 0.5; } }
+        .header { background-color: ${c.destructive}; color: white; padding: 20px; border-radius: 8px 8px 0 0; }
+        .urgent { font-size: 24px; font-weight: bold; }
+        .content { background-color: ${c.mutedBg}; padding: 20px; border-radius: 0 0 8px 8px; }
+        .order-box { background-color: ${c.background}; padding: 20px; border: 2px solid ${c.destructive}; border-radius: 8px; margin: 15px 0; }
+        .order-number { font-size: 20px; font-weight: bold; color: ${c.destructive}; }
+        .item { padding: 8px 0; border-bottom: 1px solid ${c.border}; }
+        .warning { background-color: ${c.warningBg}; border-left: 4px solid ${c.warning}; padding: 10px; margin: 15px 0; }
     </style>
 </head>
 <body>
@@ -231,35 +231,35 @@ export async function sendPendingOrderAlertEmail({
             <div class="warning">
                 ⚠️ <strong>Une commande attend depuis ${order.minutesOld} minutes sans être prise en charge !</strong>
             </div>
-            
+
             <div class="order-box">
                 <div class="order-number">Commande ${order.orderNumber}</div>
                 <p style="margin: 5px 0;">
                     <strong>Montant :</strong> ${order.totalAmount.toLocaleString()} FCFA<br>
                     <strong>Créée à :</strong> ${new Date(order.createdAt).toLocaleString('fr-FR')}
                 </p>
-                
+
                 <h3>Détail des produits :</h3>
                 ${order.items
         .map(
             item => `
                 <div class="item">
-                    <strong>${item.quantity}x</strong> ${item.productName} 
+                    <strong>${item.quantity}x</strong> ${item.productName}
                     <span style="float: right;">${item.unitPrice.toLocaleString()} FCFA</span>
                 </div>
                 `
         )
         .join('')}
             </div>
-            
+
             <p>
                 <strong>Action immédiate requise :</strong><br>
-                Veuillez vérifier l'interface cuisine et prendre en charge cette commande immédiatement 
+                Veuillez vérifier l'interface cuisine et prendre en charge cette commande immédiatement
                 pour assurer la satisfaction du client.
             </p>
-            
-            <p style="color: #7f8c8d; font-size: 14px;">
-                Si cette commande a déjà été traitée et que le statut n'a pas été mis à jour, 
+
+            <p style="color: ${c.mutedForeground}; font-size: 14px;">
+                Si cette commande a déjà été traitée et que le statut n'a pas été mis à jour,
                 veuillez le faire dans l'interface dès que possible.
             </p>
         </div>
@@ -293,7 +293,7 @@ export async function sendDailyReportEmail({
 }) {
     const subject = `📊 Rapport quotidien - ${reportData.restaurantName} - ${reportData.date}`
 
-    const evolutionColor = reportData.comparison.evolution >= 0 ? '#27ae60' : '#e74c3c'
+    const evolutionColor = reportData.comparison.evolution >= 0 ? c.success : c.destructive
     const evolutionSymbol = reportData.comparison.evolution >= 0 ? '↗' : '↘'
 
     const html = `
@@ -302,17 +302,17 @@ export async function sendDailyReportEmail({
 <head>
     <meta charset="utf-8">
     <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: ${c.foreground}; }
         .container { max-width: 700px; margin: 0 auto; padding: 20px; }
-        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px; border-radius: 8px 8px 0 0; }
-        .content { background-color: #f9f9f9; padding: 20px; border-radius: 0 0 8px 8px; }
+        .header { background-color: ${c.primary}; color: white; padding: 25px; border-radius: 8px 8px 0 0; }
+        .content { background-color: ${c.mutedBg}; padding: 20px; border-radius: 0 0 8px 8px; }
         .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin: 20px 0; }
-        .stat-box { background-color: white; padding: 15px; border-radius: 8px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .stat-value { font-size: 24px; font-weight: bold; color: #667eea; }
-        .stat-label { font-size: 12px; color: #7f8c8d; text-transform: uppercase; margin-top: 5px; }
-        .section { background-color: white; padding: 20px; margin: 15px 0; border-radius: 8px; }
-        .product-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
-        .comparison { text-align: center; padding: 15px; background-color: #e8f4f8; border-radius: 8px; margin: 15px 0; }
+        .stat-box { background-color: ${c.background}; padding: 15px; border-radius: 8px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .stat-value { font-size: 24px; font-weight: bold; color: ${c.primary}; }
+        .stat-label { font-size: 12px; color: ${c.mutedForeground}; text-transform: uppercase; margin-top: 5px; }
+        .section { background-color: ${c.background}; padding: 20px; margin: 15px 0; border-radius: 8px; }
+        .product-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid ${c.border}; }
+        .comparison { text-align: center; padding: 15px; background-color: ${c.infoBg}; border-radius: 8px; margin: 15px 0; }
         .evolution { font-size: 20px; font-weight: bold; }
     </style>
 </head>
@@ -338,25 +338,25 @@ export async function sendDailyReportEmail({
                     <div class="stat-label">Panier Moyen</div>
                 </div>
             </div>
-            
+
             <div class="comparison">
-                <p style="margin: 0 0 10px 0; color: #7f8c8d; font-size: 14px;">
+                <p style="margin: 0 0 10px 0; color: ${c.mutedForeground}; font-size: 14px;">
                     Comparaison avec la veille (${reportData.comparison.previousDay} commandes)
                 </p>
                 <div class="evolution" style="color: ${evolutionColor};">
                     ${evolutionSymbol} ${Math.abs(reportData.comparison.evolution)}%
                 </div>
             </div>
-            
+
             <div class="section">
-                <h2 style="margin-top: 0; color: #2c3e50;">🏆 Top 5 des produits</h2>
+                <h2 style="margin-top: 0; color: ${c.foreground};">🏆 Top 5 des produits</h2>
                 ${reportData.topProducts
         .map(
             (product, index) => `
                 <div class="product-item">
                     <div>
                         <strong>#${index + 1} ${product.name}</strong><br>
-                        <span style="color: #7f8c8d; font-size: 14px;">
+                        <span style="color: ${c.mutedForeground}; font-size: 14px;">
                             ${product.quantity} vente(s)
                         </span>
                     </div>
@@ -368,9 +368,9 @@ export async function sendDailyReportEmail({
         )
         .join('')}
             </div>
-            
+
             <div class="section">
-                <h2 style="margin-top: 0; color: #2c3e50;">📈 Répartition par statut</h2>
+                <h2 style="margin-top: 0; color: ${c.foreground};">📈 Répartition par statut</h2>
                 ${Object.entries(reportData.statusBreakdown)
         .map(
             ([status, count]) => `
@@ -382,8 +382,8 @@ export async function sendDailyReportEmail({
         )
         .join('')}
             </div>
-            
-            <p style="text-align: center; color: #7f8c8d; margin-top: 25px;">
+
+            <p style="text-align: center; color: ${c.mutedForeground}; margin-top: 25px;">
                 Continuez comme ça ! 🎉<br>
                 Consultez votre dashboard pour plus de détails.
             </p>
@@ -421,8 +421,8 @@ export async function sendWeeklyReportEmail({
     const ordersEvolution = reportData.comparison.evolution.orders
     const revenueEvolution = reportData.comparison.evolution.revenue
 
-    const ordersColor = ordersEvolution >= 0 ? '#27ae60' : '#e74c3c'
-    const revenueColor = revenueEvolution >= 0 ? '#27ae60' : '#e74c3c'
+    const ordersColor = ordersEvolution >= 0 ? c.success : c.destructive
+    const revenueColor = revenueEvolution >= 0 ? c.success : c.destructive
 
     const html = `
 <!DOCTYPE html>
@@ -430,18 +430,18 @@ export async function sendWeeklyReportEmail({
 <head>
     <meta charset="utf-8">
     <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: ${c.foreground}; }
         .container { max-width: 700px; margin: 0 auto; padding: 20px; }
-        .header { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 25px; border-radius: 8px 8px 0 0; }
-        .content { background-color: #f9f9f9; padding: 20px; border-radius: 0 0 8px 8px; }
+        .header { background-color: ${c.info}; color: white; padding: 25px; border-radius: 8px 8px 0 0; }
+        .content { background-color: ${c.mutedBg}; padding: 20px; border-radius: 0 0 8px 8px; }
         .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin: 20px 0; }
-        .stat-box { background-color: white; padding: 20px; border-radius: 8px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .stat-value { font-size: 28px; font-weight: bold; color: #4facfe; }
-        .stat-label { font-size: 13px; color: #7f8c8d; text-transform: uppercase; margin-top: 8px; }
-        .section { background-color: white; padding: 20px; margin: 15px 0; border-radius: 8px; }
-        .day-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
+        .stat-box { background-color: ${c.background}; padding: 20px; border-radius: 8px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .stat-value { font-size: 28px; font-weight: bold; color: ${c.info}; }
+        .stat-label { font-size: 13px; color: ${c.mutedForeground}; text-transform: uppercase; margin-top: 8px; }
+        .section { background-color: ${c.background}; padding: 20px; margin: 15px 0; border-radius: 8px; }
+        .day-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid ${c.border}; }
         .comparison-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 15px 0; }
-        .comparison-box { text-align: center; padding: 15px; background-color: #f8f9fa; border-radius: 8px; }
+        .comparison-box { text-align: center; padding: 15px; background-color: ${c.cardBg}; border-radius: 8px; }
     </style>
 </head>
 <body>
@@ -458,27 +458,27 @@ export async function sendWeeklyReportEmail({
                 <div class="stat-box">
                     <div class="stat-value">${reportData.totalOrders}</div>
                     <div class="stat-label">Total Commandes</div>
-                    <div style="margin-top: 10px; font-size: 14px; color: #7f8c8d;">
+                    <div style="margin-top: 10px; font-size: 14px; color: ${c.mutedForeground};">
                         Moyenne : ${Math.round(reportData.avgDailyOrders)}/jour
                     </div>
                 </div>
                 <div class="stat-box">
                     <div class="stat-value">${reportData.totalRevenue.toLocaleString()}</div>
                     <div class="stat-label">CA Total (FCFA)</div>
-                    <div style="margin-top: 10px; font-size: 14px; color: #7f8c8d;">
+                    <div style="margin-top: 10px; font-size: 14px; color: ${c.mutedForeground};">
                         Moyenne : ${Math.round(reportData.avgDailyRevenue).toLocaleString()}/jour
                     </div>
                 </div>
             </div>
-            
+
             <div class="section">
-                <h2 style="margin-top: 0; color: #2c3e50;">📊 Comparaison avec la semaine précédente</h2>
+                <h2 style="margin-top: 0; color: ${c.foreground};">📊 Comparaison avec la semaine précédente</h2>
                 <div class="comparison-grid">
                     <div class="comparison-box">
                         <div style="font-size: 20px; font-weight: bold; color: ${ordersColor};">
                             ${ordersEvolution >= 0 ? '↗' : '↘'} ${Math.abs(ordersEvolution)}%
                         </div>
-                        <div style="font-size: 13px; color: #7f8c8d; margin-top: 5px;">
+                        <div style="font-size: 13px; color: ${c.mutedForeground}; margin-top: 5px;">
                             Commandes (${reportData.comparison.previousWeek.orders} → ${reportData.totalOrders})
                         </div>
                     </div>
@@ -486,22 +486,22 @@ export async function sendWeeklyReportEmail({
                         <div style="font-size: 20px; font-weight: bold; color: ${revenueColor};">
                             ${revenueEvolution >= 0 ? '↗' : '↘'} ${Math.abs(revenueEvolution)}%
                         </div>
-                        <div style="font-size: 13px; color: #7f8c8d; margin-top: 5px;">
+                        <div style="font-size: 13px; color: ${c.mutedForeground}; margin-top: 5px;">
                             Chiffre d'affaires
                         </div>
                     </div>
                 </div>
             </div>
-            
+
             <div class="section">
-                <h2 style="margin-top: 0; color: #2c3e50;">🏆 Top produits de la semaine</h2>
+                <h2 style="margin-top: 0; color: ${c.foreground};">🏆 Top produits de la semaine</h2>
                 ${reportData.topProducts
         .map(
             (product, index) => `
                 <div class="day-item">
                     <div>
                         <strong>#${index + 1} ${product.name}</strong><br>
-                        <span style="color: #7f8c8d; font-size: 14px;">
+                        <span style="color: ${c.mutedForeground}; font-size: 14px;">
                             ${product.quantity} vente(s)
                         </span>
                     </div>
@@ -513,9 +513,9 @@ export async function sendWeeklyReportEmail({
         )
         .join('')}
             </div>
-            
+
             <div class="section">
-                <h2 style="margin-top: 0; color: #2c3e50;">📅 Détail par jour</h2>
+                <h2 style="margin-top: 0; color: ${c.foreground};">📅 Détail par jour</h2>
                 ${reportData.dailyBreakdown
         .map(
             day => `
@@ -523,7 +523,7 @@ export async function sendWeeklyReportEmail({
                     <span>${day.date}</span>
                     <div style="text-align: right;">
                         <strong>${day.orders}</strong> commandes<br>
-                        <span style="color: #7f8c8d; font-size: 14px;">
+                        <span style="color: ${c.mutedForeground}; font-size: 14px;">
                             ${day.revenue.toLocaleString()} FCFA
                         </span>
                     </div>
@@ -532,8 +532,8 @@ export async function sendWeeklyReportEmail({
         )
         .join('')}
             </div>
-            
-            <p style="text-align: center; color: #7f8c8d; margin-top: 25px;">
+
+            <p style="text-align: center; color: ${c.mutedForeground}; margin-top: 25px;">
                 Excellente semaine ! 🚀<br>
                 Accédez à votre dashboard pour une analyse détaillée.
             </p>
