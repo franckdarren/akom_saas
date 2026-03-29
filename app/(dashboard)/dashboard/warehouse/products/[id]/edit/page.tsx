@@ -113,6 +113,12 @@ export default async function EditWarehouseProductPage({
 
             {/* Title */}
             <div>
+                <Button asChild variant="ghost" size="sm" className="-ml-2 mb-2">
+                    <Link href={`/dashboard/warehouse/products/${id}`}>
+                        <ArrowLeft className="h-4 w-4 mr-1"/>
+                        Retour au produit
+                    </Link>
+                </Button>
                 <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">
                     Modifier le produit d&#39;entrepôt
                 </h1>

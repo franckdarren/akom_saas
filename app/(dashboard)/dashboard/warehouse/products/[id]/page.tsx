@@ -3,7 +3,7 @@ import {Metadata} from "next"
 import {notFound} from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
-import {Edit, Package} from "lucide-react"
+import {ArrowLeft, Edit, Package} from "lucide-react"
 
 import {Button} from "@/components/ui/button"
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card"
@@ -167,6 +167,14 @@ export default async function WarehouseProductDetailPage({params}: PageProps) {
                 </header>
 
                 <div className="flex flex-1 flex-col gap-4 p-4">
+                    <div>
+                        <Button asChild variant="ghost" size="sm" className="-ml-2">
+                            <Link href="/dashboard/warehouse">
+                                <ArrowLeft className="h-4 w-4 mr-1"/>
+                                Retour au magasin
+                            </Link>
+                        </Button>
+                    </div>
                     {/* IMAGE + INFOS */}
                     <div className="grid gap-6 md:grid-cols-[300px_1fr]">
                         <div className="relative aspect-square rounded-lg border overflow-hidden bg-muted">

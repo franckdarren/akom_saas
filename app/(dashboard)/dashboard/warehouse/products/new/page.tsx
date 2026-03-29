@@ -14,6 +14,9 @@ import {
     BreadcrumbPage,
     BreadcrumbSeparator
 } from "@/components/ui/breadcrumb"
+import {ArrowLeft} from 'lucide-react'
+import Link from 'next/link'
+import {Button} from '@/components/ui/button'
 
 export const metadata: Metadata = {
     title: "Nouveau produit d'entrepôt | Akôm",
@@ -68,6 +71,12 @@ export default async function NewWarehouseProductPage() {
 
             <div className="flex flex-1 flex-col gap-4 p-4">
                 <div>
+                    <Button asChild variant="ghost" size="sm" className="-ml-2 mb-2">
+                        <Link href="/dashboard/warehouse">
+                            <ArrowLeft className="h-4 w-4 mr-1"/>
+                            Retour au magasin
+                        </Link>
+                    </Button>
                     <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">
                         Nouveau produit d&#39;entrepôt
                     </h1>

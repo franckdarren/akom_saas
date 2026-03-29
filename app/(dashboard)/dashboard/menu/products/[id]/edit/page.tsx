@@ -15,6 +15,9 @@ import {Separator} from '@/components/ui/separator'
 import {SidebarTrigger} from '@/components/ui/sidebar'
 import {ProductForm} from '../../product-form'
 import {getLabels} from "@/lib/config/activity-labels" // ← NOUVEAU
+import {ArrowLeft} from 'lucide-react'
+import Link from 'next/link'
+import {Button} from '@/components/ui/button'
 
 export default async function EditProductPage({
                                                   params,
@@ -116,6 +119,12 @@ export default async function EditProductPage({
 
             <div className="flex flex-1 flex-col gap-4 p-4 max-w-2xl">
                 <div>
+                    <Button asChild variant="ghost" size="sm" className="-ml-2 mb-2">
+                        <Link href="/dashboard/menu/products">
+                            <ArrowLeft className="h-4 w-4 mr-1"/>
+                            Retour aux {labels.productNameCapital}s
+                        </Link>
+                    </Button>
                     {/* ← Titre dynamique */}
                     <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">
                         Modifier le {labels.productName}

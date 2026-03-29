@@ -15,6 +15,8 @@ import { SidebarTrigger } from '@/components/ui/sidebar'
 import { Button } from '@/components/ui/button'
 import { FamiliesList } from './families-list'
 import { CreateFamilyDialog } from './create-family-dialog'
+import { ArrowLeft } from 'lucide-react'
+import Link from 'next/link'
 
 /**
  * Page de gestion des familles pour une catégorie spécifique
@@ -130,6 +132,12 @@ export default async function CategoryFamiliesPage({
                 {/* En-tête de la page avec titre et bouton de création */}
                 <div className="flex items-center justify-between">
                     <div>
+                        <Button asChild variant="ghost" size="sm" className="-ml-2 mb-2">
+                            <Link href="/dashboard/menu/categories">
+                                <ArrowLeft className="h-4 w-4 mr-1"/>
+                                Retour aux catégories
+                            </Link>
+                        </Button>
                         <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">
                             Familles de {category.name}
                         </h1>
