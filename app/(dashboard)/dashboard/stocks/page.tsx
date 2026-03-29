@@ -86,7 +86,7 @@ export default async function StocksPage({
                 </div>
             </header>
 
-            <div className="flex flex-1 flex-col gap-4 p-4">
+            <div className="layout-page">
                 <div>
                     {/* ← Titre dynamique */}
                     <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">

@@ -79,7 +79,7 @@ export default async function SubscriptionExpiredPage() {
                         </CardDescription>
                     </CardHeader>
 
-                    <CardContent className="space-y-6">
+                    <CardContent className="layout-card-body">
 
                         {/* Infos plan */}
                         <div className="bg-muted rounded-lg p-4 space-y-3">

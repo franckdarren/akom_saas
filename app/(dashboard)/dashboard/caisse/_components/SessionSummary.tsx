@@ -108,7 +108,7 @@ export function SessionSummary({
                     </CardTitle>
                 </CardHeader>
 
-                <CardContent className="space-y-4">
+                <CardContent className="layout-card-body">
                     {[
                         {label: "Fond d'ouverture", value: session.openingBalance},
                         {

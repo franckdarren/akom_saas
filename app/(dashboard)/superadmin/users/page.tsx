@@ -54,7 +54,7 @@ export default async function UsersManagementPage() {
                     </Breadcrumb>
                 </div>
             </header>
-            <div className="flex flex-col gap-6 p-6">
+            <div className="layout-page">
                 <div className="flex justify-between items-center">
                     <div>
                         <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">Utilisateurs</h1>

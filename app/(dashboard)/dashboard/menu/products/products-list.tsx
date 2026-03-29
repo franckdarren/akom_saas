@@ -70,7 +70,7 @@ export function ProductsList({products}: { products: Product[] }) {
     if (products.length === 0) {
         return (
             <Card>
-                <CardContent className="flex flex-col items-center justify-center py-12">
+                <CardContent className="layout-empty-state">
                     <p className="text-muted-foreground text-center">
                         Aucun produit pour le moment.<br/>
                         Créez votre premier produit pour compléter votre menu.

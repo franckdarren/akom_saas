@@ -94,7 +94,7 @@ export default async function ProductsPage({
                 </div>
             </header>
 
-            <div className="flex flex-1 flex-col gap-6 p-6">
+            <div className="layout-page">
                 <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                     <div>
                         <div className="flex items-center gap-3">
@@ -138,7 +138,7 @@ export default async function ProductsPage({
 
                 {productsQuota.limit !== "unlimited" && (
                     <Card>
-                        <CardContent className="p-6 space-y-4">
+                        <CardContent className="layout-card-body">
                             <div className="flex items-center justify-between">
                                 <div>
                                     <h3 className="font-semibold">

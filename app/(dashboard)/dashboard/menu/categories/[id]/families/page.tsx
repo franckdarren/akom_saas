@@ -128,7 +128,7 @@ export default async function CategoryFamiliesPage({
             </header>
 
             {/* Contenu principal */}
-            <div className="flex flex-1 flex-col gap-4 p-4">
+            <div className="layout-page">
                 {/* En-tête de la page avec titre et bouton de création */}
                 <div className="flex items-center justify-between">
                     <div>

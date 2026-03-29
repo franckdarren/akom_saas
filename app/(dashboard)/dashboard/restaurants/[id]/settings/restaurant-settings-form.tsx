@@ -95,7 +95,7 @@ export function RestaurantSettingsForm({restaurant, labels}: RestaurantSettingsF
                 <CardHeader>
                     <CardTitle>🏢 Informations générales</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="layout-card-body">
                     <div>
                         {/* ← Label dynamique */}
                         <Label htmlFor="name" className="mb-2">{labels.nameFieldLabel} *</Label>

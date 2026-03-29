@@ -68,7 +68,7 @@ export default function OrdersPage() {
                 </div>
             </header>
 
-            <div className="flex flex-1 flex-col gap-4 p-4">
+            <div className="layout-page">
                 <div className="flex items-center justify-between">
                     <div>
                         {/* ← Titre dynamique */}
@@ -105,7 +105,7 @@ export default function OrdersPage() {
 
                 {orders.length === 0 ? (
                     <Card>
-                        <CardContent className="flex flex-col items-center justify-center py-12">
+                        <CardContent className="layout-empty-state">
                             <p className="text-muted-foreground text-center">
                                 {statusFilter === 'all'
                                     ? `Aucune ${labels.orderName} pour le moment`

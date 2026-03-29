@@ -69,7 +69,7 @@ export default async function NewWarehouseProductPage() {
                 </div>
             </header>
 
-            <div className="flex flex-1 flex-col gap-4 p-4">
+            <div className="layout-page">
                 <div>
                     <Button asChild variant="ghost" size="sm" className="-ml-2 mb-2">
                         <Link href="/dashboard/warehouse">

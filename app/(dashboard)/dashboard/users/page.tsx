@@ -56,7 +56,7 @@ export default async function UsersPage() {
                 </div>
             </header>
 
-            <div className="flex flex-col gap-6 p-6">
+            <div className="layout-page">
                 <div>
                     <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">
                         Gestion de l&apos;équipe

@@ -120,7 +120,7 @@ export function OpenSessionCard({
                     </CardDescription>
                 </CardHeader>
 
-                <CardContent className="space-y-5">
+                <CardContent className="layout-card-body">
                     {/* Alerte mode historique */}
                     {mode === 'historical' && (
                         <div className={cn(

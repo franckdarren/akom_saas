@@ -87,7 +87,7 @@ export default async function RestaurantsPage() {
                 </div>
             </header>
 
-            <div className="flex flex-col gap-6 p-6">
+            <div className="layout-page">
 
                 {/* En-tête de la page */}
                 <div>
@@ -305,7 +305,7 @@ export default async function RestaurantsPage() {
                     {/* Message si aucun restaurant */}
                     {restaurants.length === 0 && (
                         <Card>
-                            <CardContent className="p-12 text-center text-muted-foreground">
+                            <CardContent className="layout-empty-state text-muted-foreground">
                                 Aucun restaurant inscrit pour le moment
                             </CardContent>
                         </Card>

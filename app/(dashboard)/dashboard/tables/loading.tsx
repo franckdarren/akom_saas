@@ -14,7 +14,7 @@ export default function TablesLoading() {
                 </div>
             </header>
 
-            <div className="flex flex-1 flex-col gap-6 p-6">
+            <div className="layout-page">
                 {/* Titre + badge quota + sous-titre + bouton ajout */}
                 <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                     <div className="space-y-2">

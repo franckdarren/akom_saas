@@ -104,7 +104,7 @@ export function BalanceCard({session}: BalanceCardProps) {
                 </CardTitle>
             </CardHeader>
 
-            <CardContent className="space-y-5">
+            <CardContent className="layout-card-body">
                 {/* KPI row */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     {stats.map((stat) => (

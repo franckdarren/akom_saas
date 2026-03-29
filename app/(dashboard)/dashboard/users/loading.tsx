@@ -14,7 +14,7 @@ export default function UsersLoading() {
                 </div>
             </header>
 
-            <div className="flex flex-col gap-6 p-6">
+            <div className="layout-page">
                 {/* Titre + sous-titre */}
                 <div className="space-y-1.5">
                     <Skeleton className="h-9 w-56" />

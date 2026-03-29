@@ -58,7 +58,7 @@ export default async function DashboardPage({ searchParams }: PageProps) {
                         <h1 className="text-sm font-medium my-auto">Interface Cuisine</h1>
                     </div>
                 </header>
-                <div className="flex flex-1 flex-col gap-4 p-4">
+                <div className="layout-page">
                     <p className="text-muted-foreground">
                         Consultez l&apos;écran des {labels.orderNamePlural} pour gérer les préparations en temps réel.
                     </p>

@@ -10,7 +10,7 @@ export default function SuperadminLoading() {
                 <Skeleton className="h-4 w-32" />
             </header>
 
-            <div className="flex flex-1 flex-col gap-6 p-6">
+            <div className="layout-page">
                 {/* Titre + sous-titre */}
                 <div className="space-y-1.5">
                     <Skeleton className="h-8 w-56" />

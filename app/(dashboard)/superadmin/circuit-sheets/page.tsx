@@ -67,7 +67,7 @@ export default async function CircuitSheetsPage() {
                     </Breadcrumb>
                 </div>
             </header>
-            <div className="flex flex-col gap-6 p-6">
+            <div className="layout-page">
                 <div>
                     <h1 className="type-page-title">Fiches circuit à valider</h1>
                     <p className="text-muted-foreground mt-2">

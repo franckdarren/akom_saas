@@ -291,7 +291,7 @@ export function PlanCard({
                 </div>
             </CardHeader>
 
-            <CardContent className="space-y-6">
+            <CardContent className="layout-card-body">
                 {/* Liste des fonctionnalités du plan */}
                 <div className="space-y-3">
                     <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">

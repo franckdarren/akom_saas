@@ -14,7 +14,7 @@ export default function OrdersLoading() {
                 </div>
             </header>
 
-            <div className="flex flex-1 flex-col gap-4 p-4">
+            <div className="layout-page">
                 {/* Titre + sous-titre */}
                 <div className="space-y-1.5">
                     <Skeleton className="h-9 w-40" />

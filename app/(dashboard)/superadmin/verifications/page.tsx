@@ -61,7 +61,7 @@ export default async function VerificationsPage() {
                     </Breadcrumb>
                 </div>
             </header>
-            <div className="flex flex-col gap-6 p-6">
+            <div className="layout-page">
                 <div>
                     <h1 className="type-page-title">Vérifications des restaurants</h1>
                     <p className="text-muted-foreground mt-2">

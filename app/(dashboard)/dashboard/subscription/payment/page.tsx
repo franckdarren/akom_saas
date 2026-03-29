@@ -169,7 +169,7 @@ export default async function PaymentPage({
                             </CardDescription>
                         </CardHeader>
 
-                        <CardContent className="space-y-6">
+                        <CardContent className="layout-card-body">
 
                             <div className="space-y-3">
                                 <div className="flex justify-between text-sm">
@@ -286,7 +286,7 @@ export default async function PaymentPage({
                             </CardDescription>
                         </CardHeader>
 
-                        <CardContent className="space-y-6 text-sm">
+                        <CardContent className="layout-card-body text-sm">
 
                             <div>
                                 <p className="font-medium mb-2">Mobile Money</p>

@@ -59,7 +59,7 @@ export default async function StatsPage({ searchParams }: PageProps) {
                 </div>
             </header>
 
-            <div className="space-y-6 p-6">
+            <div className="layout-page">
                 <div className="flex items-center justify-between">
                     <div>
                         <h1 className="type-page-title">Statistiques</h1>

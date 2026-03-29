@@ -117,7 +117,7 @@ export default async function EditProductPage({
                 </div>
             </header>
 
-            <div className="flex flex-1 flex-col gap-4 p-4 max-w-2xl">
+            <div className="layout-page max-w-2xl">
                 <div>
                     <Button asChild variant="ghost" size="sm" className="-ml-2 mb-2">
                         <Link href="/dashboard/menu/products">

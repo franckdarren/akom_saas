@@ -125,7 +125,7 @@ export default async function SubscriptionPage() {
                 </Breadcrumb>
             </header>
 
-            <div className="flex flex-1 flex-col gap-6 p-6">
+            <div className="layout-page">
 
                 <div>
                     <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">Abonnement</h1>
@@ -206,7 +206,7 @@ export default async function SubscriptionPage() {
                             </div>
                         </CardHeader>
 
-                        <CardContent className="space-y-6">
+                        <CardContent className="layout-card-body">
                             <div className="grid md:grid-cols-3 gap-6">
                                 <div className="space-y-4">
                                     <div>

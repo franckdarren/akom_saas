@@ -30,7 +30,7 @@ export function StocksList({stocks}: { stocks: Stock[] }) {
     if (stocks.length === 0) {
         return (
             <Card>
-                <CardContent className="flex flex-col items-center justify-center py-12">
+                <CardContent className="layout-empty-state">
                     <p className="text-muted-foreground text-center">
                         Aucun produit pour le moment.
                         <br/>
@@ -73,7 +73,7 @@ export function StocksList({stocks}: { stocks: Stock[] }) {
                                     </Badge>
                                 </div>
                             </CardHeader>
-                            <CardContent className="space-y-4">
+                            <CardContent className="layout-card-body">
                                 {/* Quantité actuelle */}
                                 <div className="flex items-center justify-between">
                                     <span className="text-sm text-muted-foreground">Quantité</span>

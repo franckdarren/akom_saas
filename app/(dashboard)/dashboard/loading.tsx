@@ -13,7 +13,7 @@ export default function DashboardLoading() {
                 </div>
             </header>
 
-            <div className="flex flex-1 flex-col gap-6 p-6 overflow-auto">
+            <div className="layout-page overflow-auto">
                 {/* 4 KPI cards */}
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                     {Array.from({ length: 4 }).map((_, i) => (

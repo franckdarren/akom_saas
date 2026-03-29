@@ -126,6 +126,30 @@ Les classes sémantiques et le token `--text-2xs` sont définis dans `app/global
 - `font-regular` — classe Tailwind inexistante, utiliser `font-normal`
 - Écrire `text-xl sm:text-2xl md:text-3xl font-bold tracking-tight` à la main — utiliser `type-page-title`
 
+## Design system — espacement
+
+Les classes sémantiques sont définies dans `app/globals.css` (`@layer components`).
+
+**Toujours utiliser ces classes — ne jamais recréer les patterns à la main :**
+
+| Rôle | Classe |
+|------|--------|
+| Conteneur racine d'une page dashboard | `layout-page` — `flex flex-1 flex-col gap-4 p-4` |
+| Empilage de sections majeures | `layout-sections` — `flex flex-col gap-6` |
+| Contenu interne d'une Card | `layout-card-body` — `space-y-4` |
+| Formulaire (entre groupes de champs) | `layout-form` — `space-y-4` |
+| Groupe champ (label + input + erreur) | `layout-field` — `space-y-2` |
+| Rangée inline (icône + texte, boutons) | `layout-inline` — `flex items-center gap-2` |
+| État vide (liste vide dans une Card) | `layout-empty-state` — `flex flex-col items-center gap-3 py-12` |
+| Grille de métriques / KPIs | `layout-kpi-grid` — `grid grid-cols-2 gap-4 sm:grid-cols-4` |
+
+**Interdits absolus :**
+- `space-y-5` — utiliser `space-y-4` ou `space-y-6`
+- `py-10` dans un état vide — utiliser `layout-empty-state`
+- `p-6 space-y-4` sur `CardContent` — le `px-6` est déjà dans le composant ; écrire `layout-card-body` sur l'enfant direct
+- `mr-2` pour espacer des boutons — utiliser `layout-inline` (gap sur le parent)
+- `flex flex-1 flex-col gap-6 p-6` à la main — utiliser `layout-page`
+
 ## Design system — couleurs
 
 Les variables de couleur sont definies dans `app/globals.css` (tokens Tailwind v4 via `@theme inline`). Toujours utiliser les classes semantiques Tailwind plutot que des valeurs hex ou des couleurs arbitraires :

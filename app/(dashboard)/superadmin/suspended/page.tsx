@@ -65,7 +65,7 @@ export default async function SuspendedRestaurantsPage() {
           </Breadcrumb>
         </div>
       </header>
-      <div className="flex flex-col gap-6 p-6">
+      <div className="layout-page">
       <div>
         <h1 className="type-page-title">Restaurants suspendus</h1>
         <p className="text-muted-foreground mt-2">

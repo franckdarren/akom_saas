@@ -75,7 +75,7 @@ export function TablesList({tables}: { tables: Table[] }) {
     if (tables.length === 0) {
         return (
             <Card>
-                <CardContent className="flex flex-col items-center justify-center py-12">
+                <CardContent className="layout-empty-state">
                     <p className="text-muted-foreground text-center">
                         Aucune table pour le moment.
                         <br/>
@@ -101,7 +101,7 @@ export function TablesList({tables}: { tables: Table[] }) {
                             </div>
                         </CardHeader>
 
-                        <CardContent className="space-y-4 flex-1">
+                        <CardContent className="layout-card-body flex-1">
                             {table._count.orders > 0 && (
                                 <div className="text-sm">
         <span className="text-orange-500 font-medium">

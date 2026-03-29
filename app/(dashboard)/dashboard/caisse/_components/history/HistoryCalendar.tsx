@@ -295,7 +295,7 @@ export function HistoryCalendar({
                             </div>
                         </CardHeader>
 
-                        <CardContent className="space-y-4">
+                        <CardContent className="layout-card-body">
                             {/* En-têtes */}
                             <div className="grid grid-cols-7">
                                 {DAY_NAMES.map(d => (

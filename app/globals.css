@@ -360,6 +360,110 @@
 
 }
 
+/* ============================================
+   SYSTÈME D'ESPACEMENT — AKOM
+   ============================================
+
+   Échelle sémantique de référence :
+     2   →   8px   Micro (icône+texte, éléments inline)
+     3   →  12px   Interne card (lignes de données)
+     4   →  16px   Standard (page padding, entre champs, entre sections)
+     6   →  24px   Large (entre sections majeures dans une page)
+     12  →  48px   État vide (centrage vertical)
+
+   Table de décision — quoi utiliser où :
+
+     Conteneur de page (racine)         → layout-page
+     Sections majeures dans une page    → layout-sections
+     Contenu interne d'une Card         → layout-card-body
+     Formulaire (entre groupes champs)  → layout-form
+     Groupe champ (label + input)       → layout-field
+     Rangée inline (icône + texte)      → layout-inline
+     État vide (liste vide dans card)   → layout-empty-state
+     Grille de métriques / KPIs         → layout-kpi-grid
+
+   Interdits absolus :
+     space-y-5  → préférer space-y-4 ou space-y-6 selon le niveau
+     py-10      → utiliser layout-empty-state (py-12)
+     p-12 dans CardContent → utiliser layout-empty-state
+     mr-2 pour espacer des boutons → flex + layout-inline (gap-2 sur le parent)
+   ============================================ */
+
+@layer components {
+
+  /* ---- Conteneur de page --------------------------------------- */
+
+  /* Usage : div racine dans chaque page du dashboard
+     Remplace : flex flex-1 flex-col gap-4 p-4  (pages denses : warehouse, caisse…)
+                flex flex-1 flex-col gap-6 p-6  (pages de liste et contenu principal)
+                flex flex-col gap-6 p-6         (users, stats, superadmin)
+     Note : p-6 (24px) retenu — offre suffisamment d'espace face à la sidebar
+            et sous le header. p-4 (16px) rendait le contenu visuellement collé. */
+  .layout-page {
+    @apply flex flex-1 flex-col gap-4 p-6;
+  }
+
+  /* ---- Empilements verticaux ----------------------------------- */
+
+  /* Usage : sépare les sections majeures dans une page
+             (en-tête + tableau, filtres + liste, titre + grille KPI…)
+     Remplace : space-y-6, gap-6 entre blocs distincts */
+  .layout-sections {
+    @apply flex flex-col gap-6;
+  }
+
+  /* Usage : contenu interne d'une Card (enfants directs)
+     Remplace : space-y-4 / space-y-5 / space-y-6 → normaliser sur 4
+     Note : appliquer sur l'enfant de <CardContent>, pas sur CardContent lui-même
+            car CardContent a déjà px-6 — ne pas écrire p-6 space-y-4 en double */
+  .layout-card-body {
+    @apply space-y-4;
+  }
+
+  /* ---- Formulaires --------------------------------------------- */
+
+  /* Usage : espace entre les groupes de champs d'un formulaire ou dialog
+     Remplace : space-y-4 / space-y-5 / space-y-6 dans les modals (→ normaliser) */
+  .layout-form {
+    @apply space-y-4;
+  }
+
+  /* Usage : groupe label + input + message d'erreur (un champ complet)
+     Remplace : space-y-2 sur chaque FormItem / div wrappant un champ
+     Déjà cohérent en pratique — cette classe documente la convention */
+  .layout-field {
+    @apply space-y-2;
+  }
+
+  /* ---- Rangée inline ------------------------------------------- */
+
+  /* Usage : icône + texte, boutons groupés, badges côte à côte
+     Remplace : mr-2 sur les enfants (93 occ.)
+     → toujours préférer gap-2 sur le parent plutôt que mr-* sur les enfants */
+  .layout-inline {
+    @apply flex items-center gap-2;
+  }
+
+  /* ---- État vide ----------------------------------------------- */
+
+  /* Usage : contenu centré dans une Card quand la liste est vide
+     Remplace : flex flex-col items-center justify-center py-12  (dominant, 9 occ.)
+                flex flex-col items-center justify-center py-10  (1 occ. → migrer)
+                p-12 text-center                                 (1 occ. → migrer) */
+  .layout-empty-state {
+    @apply flex flex-col items-center justify-center gap-3 py-12 text-center;
+  }
+
+  /* ---- Grilles ------------------------------------------------- */
+
+  /* Usage : grille de métriques, KPIs, statistiques (2 col mobile → 4 col desktop)
+     Remplace : grid grid-cols-2 gap-4 / grid-cols-4 gap-4 (variantes incohérentes) */
+  .layout-kpi-grid {
+    @apply grid grid-cols-2 gap-4 sm:grid-cols-4;
+  }
+
+}
+
 /* Masquer la scrollbar pour les filtres horizontaux */
 .scrollbar-hide {
   -ms-overflow-style: none;
