@@ -69,7 +69,7 @@ export default async function CircuitSheetsPage() {
             </header>
             <div className="flex flex-col gap-6 p-6">
                 <div>
-                    <h1 className="text-3xl font-bold">Fiches circuit à valider</h1>
+                    <h1 className="type-page-title">Fiches circuit à valider</h1>
                     <p className="text-muted-foreground mt-2">
                         Vérifiez et validez les fiches circuit soumises par les restaurants Business
                     </p>

@@ -220,7 +220,7 @@ export function POSShell({categories, restaurantId}: POSShellProps) {
                                 <div className="relative">
                                     <ShoppingCart className="h-5 w-5"/>
                                     <span
-                                        className="absolute -top-2 -right-2 w-4 h-4 rounded-full text-[10px] font-bold flex items-center justify-center bg-primary-foreground text-primary">
+                                        className="absolute -top-2 -right-2 w-4 h-4 rounded-full text-2xs font-bold flex items-center justify-center bg-primary-foreground text-primary">
                                         {itemCount}
                                     </span>
                                 </div>

@@ -146,7 +146,7 @@ export function ProductsList({products}: { products: Product[] }) {
                                 <div className="absolute top-2 right-2">
                                     <Badge
                                         variant={product.productType === 'good' ? 'default' : 'secondary'}
-                                        className="text-[10px] shadow-sm"
+                                        className="text-2xs shadow-sm"
                                     >
                                         {PRODUCT_TYPE_LABELS[product.productType]}
                                     </Badge>

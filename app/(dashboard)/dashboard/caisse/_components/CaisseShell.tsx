@@ -63,7 +63,7 @@ export function CaisseShell({
                         </Button>
                     )}
                     <div>
-                        <h1 className="text-2xl font-bold tracking-tight">
+                        <h1 className="type-page-title">
                             {showHistory ? 'Historique de caisse' : 'Caisse'}
                         </h1>
                         <p className="text-sm text-muted-foreground">

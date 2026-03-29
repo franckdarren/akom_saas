@@ -98,7 +98,7 @@ export default async function RestaurantSettingsPage({
 
             <div className="flex flex-1 flex-col gap-4 p-4">
                 <div>
-                    <h1 className="text-3xl font-bold">{labels.settingsTitle}</h1>
+                    <h1 className="type-page-title">{labels.settingsTitle}</h1>
                     <p className="text-muted-foreground mt-2">
                         Gérez les informations et les documents de votre {labels.structureName}
                     </p>

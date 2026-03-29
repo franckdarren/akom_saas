@@ -231,7 +231,7 @@ export function Cart({items, total, onUpdateQty, onClear, onOrderComplete}: Cart
                                         </p>
                                     </div>
                                     {mode === 'pay_now' && (
-                                        <Badge variant="default" className="text-[10px] px-2">Sélectionné</Badge>
+                                        <Badge variant="default" className="text-2xs px-2">Sélectionné</Badge>
                                     )}
                                 </button>
 
@@ -257,7 +257,7 @@ export function Cart({items, total, onUpdateQty, onClear, onOrderComplete}: Cart
                                         </p>
                                     </div>
                                     {mode === 'pay_later' && (
-                                        <Badge variant="default" className="text-[10px] px-2">Sélectionné</Badge>
+                                        <Badge variant="default" className="text-2xs px-2">Sélectionné</Badge>
                                     )}
                                 </button>
                             </div>

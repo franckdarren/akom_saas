@@ -67,7 +67,7 @@ export default async function SuspendedRestaurantsPage() {
       </header>
       <div className="flex flex-col gap-6 p-6">
       <div>
-        <h1 className="text-3xl font-bold">Restaurants suspendus</h1>
+        <h1 className="type-page-title">Restaurants suspendus</h1>
         <p className="text-muted-foreground mt-2">
           Gérez les restaurants dont le compte a été suspendu
         </p>

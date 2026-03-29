@@ -47,7 +47,7 @@ function PlanBadge({plan}: {plan?: string}) {
     }
     return (
         <span className={cn(
-            'inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-semibold',
+            'inline-flex items-center rounded-full px-1.5 py-0.5 text-2xs font-semibold',
             styles[plan] ?? styles.starter
         )}>
             {plan === 'premium' && <Crown className="mr-0.5 h-2.5 w-2.5"/>}
@@ -140,7 +140,7 @@ export function RestaurantSwitcher({canAddMore = false, variant = 'sidebar'}: Re
                                         {currentRestaurant.name}
                                     </span>
                                     {hasMultipleRestaurants && (
-                                        <span className="text-[10px] text-muted-foreground leading-tight">
+                                        <span className="type-caption leading-tight">
                                             {restaurants.length} structures
                                         </span>
                                     )}
@@ -160,7 +160,7 @@ export function RestaurantSwitcher({canAddMore = false, variant = 'sidebar'}: Re
                 </DropdownMenuTrigger>
 
                 <DropdownMenuContent className="w-72 max-w-[calc(100vw-2rem)] p-1.5" align="start" side="bottom" sideOffset={4}>
-                    <DropdownMenuLabel className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    <DropdownMenuLabel className="px-2 py-1.5 type-label-meta">
                         Mes structures ({restaurants.length})
                     </DropdownMenuLabel>
 
@@ -200,7 +200,7 @@ export function RestaurantSwitcher({canAddMore = false, variant = 'sidebar'}: Re
                                                 </span>
                                                 {sub && <PlanBadge plan={sub.plan}/>}
                                             </div>
-                                            <span className="text-[11px] text-muted-foreground capitalize">
+                                            <span className="type-caption capitalize">
                                                 {restaurant.activityType?.replace('_', ' ') ?? 'restaurant'}
                                                 {' · '}
                                                 {getRoleBadge(restaurant.role).label}
@@ -242,7 +242,7 @@ export function RestaurantSwitcher({canAddMore = false, variant = 'sidebar'}: Re
                                 </div>
                                 <div className="flex flex-col">
                                     <span className="text-sm font-medium">Nouvelle structure</span>
-                                    <span className="text-[11px] text-muted-foreground">
+                                    <span className="type-caption">
                                         Restaurant, boutique, service…
                                     </span>
                                 </div>

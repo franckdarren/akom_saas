@@ -97,6 +97,35 @@ GitHub Actions cron (`.github/workflows/cron-tasks.yml`) appelle des routes API 
 - RLS active sur toutes les tables liees a `restaurant_id`
 - Labels d'activite dynamiques : voir `lib/config/activity-labels.ts`
 
+## Design system — typographie
+
+Les classes sémantiques et le token `--text-2xs` sont définis dans `app/globals.css` (`@layer components`).
+
+**Toujours utiliser ces classes — ne jamais recréer les patterns à la main :**
+
+| Rôle | Classe |
+|------|--------|
+| Titre de page h1 | `type-page-title` — responsive intégré (`xl→2xl→3xl`) |
+| Titre hero / page plans | `type-hero-title` |
+| Titre de section | `type-section-title` |
+| CardTitle | `type-card-title` |
+| DialogTitle / SheetTitle | `type-dialog-title` |
+| Corps de texte | `type-body` |
+| Corps atténué (CardDescription) | `type-body-muted` |
+| Description courte sous titre | `type-description` |
+| Label de formulaire | `type-label` |
+| Label uppercase (modales, dropdowns) | `type-label-meta` |
+| Timestamp, métadonnée compacte | `type-caption` |
+| Entête de tableau uppercase | `type-table-head` |
+| Badge (hors composant Badge) | `type-badge` |
+| Code / identifiant technique | `type-code` |
+
+**Interdits absolus :**
+- `text-[Xpx]` / `text-[Xrem]` — utiliser `text-2xs`, `text-xs`, `text-sm`, etc.
+- `text-gray-*`, `text-zinc-*` — utiliser `text-foreground` ou `text-muted-foreground`
+- `font-regular` — classe Tailwind inexistante, utiliser `font-normal`
+- Écrire `text-xl sm:text-2xl md:text-3xl font-bold tracking-tight` à la main — utiliser `type-page-title`
+
 ## Design system — couleurs
 
 Les variables de couleur sont definies dans `app/globals.css` (tokens Tailwind v4 via `@theme inline`). Toujours utiliser les classes semantiques Tailwind plutot que des valeurs hex ou des couleurs arbitraires :

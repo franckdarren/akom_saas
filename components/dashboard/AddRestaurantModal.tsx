@@ -257,7 +257,7 @@ export function AddRestaurantModal({open, onOpenChange}: AddRestaurantModalProps
                 {step === 'info' && (
                     <form onSubmit={handleSubmit} className="p-5 space-y-4">
                         <div className="space-y-1.5">
-                            <Label htmlFor="modal-name" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                            <Label htmlFor="modal-name" className="type-label-meta">
                                 Nom de la structure{' '}
                                 <span className="text-destructive normal-case font-normal tracking-normal">*</span>
                             </Label>
@@ -287,7 +287,7 @@ export function AddRestaurantModal({open, onOpenChange}: AddRestaurantModalProps
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div className="space-y-1.5">
-                                <Label htmlFor="modal-phone" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                                <Label htmlFor="modal-phone" className="type-label-meta">
                                     Téléphone{' '}
                                     <span className="normal-case font-normal tracking-normal text-muted-foreground/60">(opt.)</span>
                                 </Label>
@@ -305,7 +305,7 @@ export function AddRestaurantModal({open, onOpenChange}: AddRestaurantModalProps
                             </div>
 
                             <div className="space-y-1.5">
-                                <Label htmlFor="modal-address" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                                <Label htmlFor="modal-address" className="type-label-meta">
                                     Adresse{' '}
                                     <span className="normal-case font-normal tracking-normal text-muted-foreground/60">(opt.)</span>
                                 </Label>

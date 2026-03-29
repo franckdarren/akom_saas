@@ -93,7 +93,7 @@ export function MenuItem({ product }: MenuItemProps) {
 
             {/* Infos */}
             <div className="flex-1 min-w-0">
-                <h3 className="font-regular text-[14px]">{product.name}</h3>
+                <h3 className="font-normal text-sm">{product.name}</h3>
 
                 {product.description && (
                     <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
@@ -101,7 +101,7 @@ export function MenuItem({ product }: MenuItemProps) {
                     </p>
                 )}
 
-                <p className="font-bold text-primary text-[14px] mt-2">
+                <p className="font-bold text-primary text-sm mt-2">
                     {formatPrice(product.price)}
                 </p>
             </div>

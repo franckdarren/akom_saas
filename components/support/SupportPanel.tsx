@@ -400,7 +400,7 @@ export function SupportPanel({showHeader = true, onClose}: SupportPanelProps) {
                                                     </div>
                                                 )}
                                                 {message.message}
-                                                <div className="text-[10px] opacity-60 mt-1">
+                                                <div className="type-caption opacity-60 mt-1">
                                                     {formatDate(message.createdAt)}
                                                 </div>
                                             </div>

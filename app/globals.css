@@ -8,6 +8,10 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  /* Typographie — token sub-xs pour métadonnées très compactes */
+  /* Remplace text-[10px] (6 occ.) dans l'UI                   */
+  --text-2xs: 0.625rem;           /* 10px */
+  --text-2xs--line-height: 1rem;  /* 16px */
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -228,10 +232,133 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground leading-normal;
+    /* Aktive le crénage et les ligatures de Geist */
+    font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1;
   }
 }
 
+
+/* ============================================
+   SYSTÈME TYPOGRAPHIQUE — AKOM
+   ============================================
+
+   Échelle de référence (Tailwind v4 defaults) :
+     text-2xs  →  10px / lh 16px   (token custom — remplace text-[10px])
+     text-xs   →  12px / lh 16px   (métadonnées, timestamps, badges)
+     text-sm   →  14px / lh 20px   (labels, corps compact, tableaux)
+     text-base →  16px / lh 24px   (corps par défaut)
+     text-lg   →  18px / lh 28px   (dialog title, section title)
+     text-xl   →  20px / lh 28px   (titre page — mobile)
+     text-2xl  →  24px / lh 32px   (titre page — tablette)
+     text-3xl  →  30px / lh 36px   (titre page — desktop)
+     text-4xl  →  36px / lh 40px   (titre hero / page plans)
+
+   Classes sémantiques disponibles :
+     Titres       → type-page-title, type-hero-title, type-section-title
+     UI shadcn    → type-card-title, type-dialog-title
+     Corps        → type-body, type-body-muted, type-description
+     Labels       → type-label, type-label-meta
+     Tableau      → type-table-head
+     Micro-texte  → type-caption, type-badge
+     Code         → type-code
+   ============================================ */
+
+@layer components {
+
+  /* ---- Titres de page ------------------------------------------ */
+
+  /* Usage : <h1 className="type-page-title">
+     Remplace : text-xl sm:text-2xl md:text-3xl font-bold tracking-tight */
+  .type-page-title {
+    @apply text-xl sm:text-2xl md:text-3xl font-bold tracking-tight;
+  }
+
+  /* Usage : page de choix de plan, landing
+     Remplace : text-4xl font-bold tracking-tight */
+  .type-hero-title {
+    @apply text-3xl sm:text-4xl font-bold tracking-tight;
+  }
+
+  /* Usage : sous-sections, groupes dans une page paramètres */
+  .type-section-title {
+    @apply text-xl font-semibold tracking-tight;
+  }
+
+  /* ---- Composants UI ------------------------------------------- */
+
+  /* Usage : CardTitle — ajoute text-base explicite (était hérité, donc imprévisible)
+     Voir : components/ui/card.tsx */
+  .type-card-title {
+    @apply text-base font-semibold leading-none;
+  }
+
+  /* Usage : DialogTitle, SheetTitle
+     Existant dans dialog.tsx : text-lg leading-none font-semibold ✓ */
+  .type-dialog-title {
+    @apply text-lg font-semibold leading-none;
+  }
+
+  /* ---- Corps de texte ------------------------------------------ */
+
+  /* Usage : paragraphes, contenu de carte, blocs de texte */
+  .type-body {
+    @apply text-sm leading-relaxed;
+  }
+
+  /* Usage : CardDescription, textes secondaires avec couleur atténuée */
+  .type-body-muted {
+    @apply text-sm text-muted-foreground leading-relaxed;
+  }
+
+  /* Usage : description courte sous un titre (sans leading-relaxed) */
+  .type-description {
+    @apply text-sm text-muted-foreground;
+  }
+
+  /* ---- Labels et métadonnées ----------------------------------- */
+
+  /* Usage : <Label>, FormLabel — reproduit le style hors du composant Label */
+  .type-label {
+    @apply text-sm font-medium leading-none;
+  }
+
+  /* Usage : labels uppercase dans modales, dropdowns, sections
+     Remplace : text-xs font-semibold text-muted-foreground uppercase tracking-wider
+     Fichiers : AddRestaurantModal.tsx, RestaurantSwitcher.tsx */
+  .type-label-meta {
+    @apply text-xs font-semibold text-muted-foreground uppercase tracking-wider;
+  }
+
+  /* Usage : timestamps, type d'activité, info secondaire très compacte
+     Remplace : text-[10px] text-muted-foreground (6 occ.)
+                text-[11px] text-muted-foreground (5 occ.) */
+  .type-caption {
+    @apply text-2xs text-muted-foreground;
+  }
+
+  /* ---- Tableau ------------------------------------------------- */
+
+  /* Usage : entêtes de colonnes avec style uppercase discret
+     Note : ne pas appliquer au composant TableHead de base (shadcn)
+            car cela changerait tous les tableaux — utiliser en surcharge ciblée */
+  .type-table-head {
+    @apply text-xs font-medium text-muted-foreground uppercase tracking-wide;
+  }
+
+  /* ---- Éléments UI --------------------------------------------- */
+
+  /* Usage : reproduit le style badge hors du composant Badge */
+  .type-badge {
+    @apply text-xs font-medium;
+  }
+
+  /* Usage : blocs <code>, clés API, identifiants techniques */
+  .type-code {
+    @apply font-mono text-sm leading-relaxed;
+  }
+
+}
 
 /* Masquer la scrollbar pour les filtres horizontaux */
 .scrollbar-hide {

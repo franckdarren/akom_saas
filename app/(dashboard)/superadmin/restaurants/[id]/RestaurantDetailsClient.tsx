@@ -45,8 +45,8 @@ export default function RestaurantDetailsClient({ restaurant }: Props) {
                 <div className="flex items-center gap-4">
                     
                     <div>
-                        <h1 className="text-3xl font-bold">{restaurant.name}</h1>
-                        <p className="text-zinc-600 dark:text-zinc-400">
+                        <h1 className="type-page-title">{restaurant.name}</h1>
+                        <p className="type-description">
                             {restaurant.slug}
                         </p>
                     </div>

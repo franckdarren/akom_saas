@@ -62,8 +62,8 @@ export default async function StatsPage({ searchParams }: PageProps) {
             <div className="space-y-6 p-6">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-2xl font-bold">Statistiques</h1>
-                        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                        <h1 className="type-page-title">Statistiques</h1>
+                        <p className="type-description">
                             Analysez les performances de votre structure
                         </p>
                     </div>

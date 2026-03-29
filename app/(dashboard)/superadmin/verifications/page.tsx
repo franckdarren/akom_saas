@@ -63,7 +63,7 @@ export default async function VerificationsPage() {
             </header>
             <div className="flex flex-col gap-6 p-6">
                 <div>
-                    <h1 className="text-3xl font-bold">Vérifications des restaurants</h1>
+                    <h1 className="type-page-title">Vérifications des restaurants</h1>
                     <p className="text-muted-foreground mt-2">
                         Validez ou rejetez les documents d'identité soumis par les restaurants
                     </p>

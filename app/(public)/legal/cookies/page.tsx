@@ -9,14 +9,14 @@ export const metadata: Metadata = {
 
 export default function CookiesPage() {
     return (
-        <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-3xl mx-auto bg-white rounded-lg shadow-sm p-8">
+        <div className="min-h-screen bg-muted/30 py-12 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-3xl mx-auto bg-card rounded-lg shadow-sm p-8">
                 {/* En-tête */}
                 <div className="border-b pb-6 mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                    <h1 className="text-3xl font-bold text-foreground mb-2">
                         Politique de Cookies
                     </h1>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-muted-foreground">
                         Dernière mise à jour : {new Date().toLocaleDateString('fr-FR', {
                             day: 'numeric',
                             month: 'long',
@@ -27,15 +27,15 @@ export default function CookiesPage() {
 
                 {/* Introduction */}
                 <section className="mb-8">
-                    <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+                    <h2 className="text-2xl font-semibold text-foreground mb-4">
                         Qu'est-ce qu'un cookie ?
                     </h2>
-                    <p className="text-gray-700 mb-4">
+                    <p className="text-foreground mb-4">
                         Un cookie est un petit fichier texte déposé sur votre ordinateur ou appareil mobile
                         lors de votre visite sur notre site web. Les cookies nous permettent de reconnaître
                         votre navigateur et de mémoriser certaines informations sur vos préférences.
                     </p>
-                    <p className="text-gray-700">
+                    <p className="text-foreground">
                         Akôm utilise des cookies pour améliorer votre expérience, analyser l'utilisation
                         de nos services et personnaliser le contenu que nous vous proposons.
                     </p>
@@ -43,58 +43,58 @@ export default function CookiesPage() {
 
                 {/* Types de cookies */}
                 <section className="mb-8">
-                    <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+                    <h2 className="text-2xl font-semibold text-foreground mb-4">
                         Types de cookies que nous utilisons
                     </h2>
 
                     {/* Cookies nécessaires */}
                     <div className="mb-6">
-                        <h3 className="text-xl font-semibold text-gray-800 mb-3 flex items-center">
+                        <h3 className="text-xl font-semibold text-foreground mb-3 flex items-center">
                             <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded mr-2">
                                 NÉCESSAIRES
                             </span>
                             Cookies strictement nécessaires
                         </h3>
-                        <p className="text-gray-700 mb-3">
+                        <p className="text-foreground mb-3">
                             Ces cookies sont essentiels au fonctionnement du site et ne peuvent pas être
                             désactivés. Ils sont généralement définis en réponse à des actions que vous
                             effectuez, comme la connexion à votre compte ou le remplissage de formulaires.
                         </p>
-                        <div className="bg-gray-50 rounded-lg p-4">
-                            <h4 className="font-semibold text-gray-900 mb-2">Exemples de cookies nécessaires :</h4>
-                            <ul className="list-disc list-inside space-y-1 text-gray-700">
-                                <li><code className="bg-gray-200 px-2 py-0.5 rounded text-sm">supabase-auth-token</code> - Authentification de session (durée : 7 jours)</li>
-                                <li><code className="bg-gray-200 px-2 py-0.5 rounded text-sm">currentRestaurantId</code> - Restaurant actif (durée : permanente)</li>
-                                <li><code className="bg-gray-200 px-2 py-0.5 rounded text-sm">cookie-consent</code> - Préférences de consentement (durée : 1 an)</li>
+                        <div className="bg-muted/50 rounded-lg p-4">
+                            <h4 className="font-semibold text-foreground mb-2">Exemples de cookies nécessaires :</h4>
+                            <ul className="list-disc list-inside space-y-1 text-foreground">
+                                <li><code className="bg-muted px-2 py-0.5 rounded text-sm">supabase-auth-token</code> - Authentification de session (durée : 7 jours)</li>
+                                <li><code className="bg-muted px-2 py-0.5 rounded text-sm">currentRestaurantId</code> - Restaurant actif (durée : permanente)</li>
+                                <li><code className="bg-muted px-2 py-0.5 rounded text-sm">cookie-consent</code> - Préférences de consentement (durée : 1 an)</li>
                             </ul>
                         </div>
                     </div>
 
                     {/* Cookies analytiques */}
                     <div className="mb-6">
-                        <h3 className="text-xl font-semibold text-gray-800 mb-3 flex items-center">
+                        <h3 className="text-xl font-semibold text-foreground mb-3 flex items-center">
                             <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded mr-2">
                                 ANALYTIQUES
                             </span>
                             Cookies de mesure d'audience
                         </h3>
-                        <p className="text-gray-700 mb-3">
+                        <p className="text-foreground mb-3">
                             Ces cookies nous aident à comprendre comment les visiteurs interagissent avec
                             notre site. Toutes les informations collectées sont anonymes et nous permettent
                             d'améliorer le fonctionnement de notre plateforme.
                         </p>
-                        <div className="bg-gray-50 rounded-lg p-4">
-                            <h4 className="font-semibold text-gray-900 mb-2">Outils utilisés :</h4>
-                            <ul className="list-disc list-inside space-y-2 text-gray-700">
+                        <div className="bg-muted/50 rounded-lg p-4">
+                            <h4 className="font-semibold text-foreground mb-2">Outils utilisés :</h4>
+                            <ul className="list-disc list-inside space-y-2 text-foreground">
                                 <li>
                                     <strong>Google Analytics</strong> - Analyse du trafic et du comportement utilisateur
                                     <br />
-                                    <span className="text-sm text-gray-600">Cookies : _ga, _gid, _gat (durée : 2 ans)</span>
+                                    <span className="text-sm text-muted-foreground">Cookies : _ga, _gid, _gat (durée : 2 ans)</span>
                                 </li>
                                 <li>
                                     <strong>Plausible Analytics</strong> - Analyse respectueuse de la vie privée (sans cookies)
                                     <br />
-                                    <span className="text-sm text-gray-600">Conforme RGPD, ne collecte aucune donnée personnelle</span>
+                                    <span className="text-sm text-muted-foreground">Conforme RGPD, ne collecte aucune donnée personnelle</span>
                                 </li>
                             </ul>
                         </div>
@@ -102,29 +102,29 @@ export default function CookiesPage() {
 
                     {/* Cookies marketing */}
                     <div className="mb-6">
-                        <h3 className="text-xl font-semibold text-gray-800 mb-3 flex items-center">
+                        <h3 className="text-xl font-semibold text-foreground mb-3 flex items-center">
                             <span className="bg-purple-100 text-purple-800 text-xs font-medium px-2.5 py-0.5 rounded mr-2">
                                 MARKETING
                             </span>
                             Cookies publicitaires et réseaux sociaux
                         </h3>
-                        <p className="text-gray-700 mb-3">
+                        <p className="text-foreground mb-3">
                             Ces cookies sont utilisés pour afficher des publicités pertinentes et mesurer
                             l'efficacité de nos campagnes marketing. Ils peuvent être définis par nos
                             partenaires publicitaires via notre site.
                         </p>
-                        <div className="bg-gray-50 rounded-lg p-4">
-                            <h4 className="font-semibold text-gray-900 mb-2">Outils utilisés :</h4>
-                            <ul className="list-disc list-inside space-y-2 text-gray-700">
+                        <div className="bg-muted/50 rounded-lg p-4">
+                            <h4 className="font-semibold text-foreground mb-2">Outils utilisés :</h4>
+                            <ul className="list-disc list-inside space-y-2 text-foreground">
                                 <li>
                                     <strong>Facebook Pixel</strong> - Suivi des conversions et publicités ciblées
                                     <br />
-                                    <span className="text-sm text-gray-600">Cookies : _fbp, fr (durée : 90 jours)</span>
+                                    <span className="text-sm text-muted-foreground">Cookies : _fbp, fr (durée : 90 jours)</span>
                                 </li>
                                 <li>
                                     <strong>Google Ads</strong> - Remarketing et mesure de performance
                                     <br />
-                                    <span className="text-sm text-gray-600">Cookies : _gcl_au, IDE (durée : 1 an)</span>
+                                    <span className="text-sm text-muted-foreground">Cookies : _gcl_au, IDE (durée : 1 an)</span>
                                 </li>
                             </ul>
                         </div>
@@ -133,13 +133,13 @@ export default function CookiesPage() {
 
                 {/* Gestion des cookies */}
                 <section className="mb-8">
-                    <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+                    <h2 className="text-2xl font-semibold text-foreground mb-4">
                         Comment gérer vos préférences de cookies ?
                     </h2>
 
-                    <div className="space-y-4 text-gray-700">
+                    <div className="space-y-4 text-foreground">
                         <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
-                            <h3 className="font-semibold text-gray-900 mb-2">
+                            <h3 className="font-semibold text-foreground mb-2">
                                 Via notre outil de gestion des cookies
                             </h3>
                             <p className="mb-3">
@@ -152,7 +152,7 @@ export default function CookiesPage() {
                         </div>
 
                         <div>
-                            <h3 className="font-semibold text-gray-900 mb-2">
+                            <h3 className="font-semibold text-foreground mb-2">
                                 Via les paramètres de votre navigateur
                             </h3>
                             <p className="mb-3">
@@ -168,7 +168,7 @@ export default function CookiesPage() {
                         </div>
 
                         <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded">
-                            <h3 className="font-semibold text-gray-900 mb-2">
+                            <h3 className="font-semibold text-foreground mb-2">
                                 ⚠️ Attention
                             </h3>
                             <p>
@@ -182,50 +182,50 @@ export default function CookiesPage() {
 
                 {/* Durée de conservation */}
                 <section className="mb-8">
-                    <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+                    <h2 className="text-2xl font-semibold text-foreground mb-4">
                         Durée de conservation des cookies
                     </h2>
                     <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200 border rounded-lg">
-                            <thead className="bg-gray-50">
+                        <table className="min-w-full divide-y divide-border border rounded-lg">
+                            <thead className="bg-muted/50">
                                 <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <th className="px-6 py-3 text-left type-table-head">
                                         Type de cookie
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <th className="px-6 py-3 text-left type-table-head">
                                         Durée maximale
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
+                            <tbody className="bg-card divide-y divide-border">
                                 <tr>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                                         Cookies nécessaires
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                                         Session à 1 an
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                                         Cookies analytiques
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                                         2 ans maximum
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                                         Cookies marketing
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                                         90 jours à 1 an
                                     </td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
-                    <p className="text-sm text-gray-600 mt-3">
+                    <p className="text-sm text-muted-foreground mt-3">
                         Votre consentement est valable pour une durée de 13 mois à compter de votre premier
                         choix. Au-delà, nous vous demanderons de nouveau votre consentement.
                     </p>
@@ -233,14 +233,14 @@ export default function CookiesPage() {
 
                 {/* Transferts internationaux */}
                 <section className="mb-8">
-                    <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+                    <h2 className="text-2xl font-semibold text-foreground mb-4">
                         Transferts de données en dehors du Gabon
                     </h2>
-                    <p className="text-gray-700 mb-3">
+                    <p className="text-foreground mb-3">
                         Certains de nos partenaires (Google Analytics, Facebook) peuvent stocker des
                         données en dehors du Gabon et de l'Union Européenne, notamment aux États-Unis.
                     </p>
-                    <p className="text-gray-700">
+                    <p className="text-foreground">
                         Ces transferts sont encadrés par des garanties appropriées (clauses contractuelles
                         types approuvées par la Commission Européenne) pour assurer la protection de vos
                         données personnelles.
@@ -249,14 +249,14 @@ export default function CookiesPage() {
 
                 {/* Vos droits */}
                 <section className="mb-8">
-                    <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+                    <h2 className="text-2xl font-semibold text-foreground mb-4">
                         Vos droits concernant vos données
                     </h2>
-                    <p className="text-gray-700 mb-3">
+                    <p className="text-foreground mb-3">
                         Conformément au RGPD et aux lois gabonaises sur la protection des données,
                         vous disposez des droits suivants :
                     </p>
-                    <ul className="list-disc list-inside space-y-2 text-gray-700 ml-4">
+                    <ul className="list-disc list-inside space-y-2 text-foreground ml-4">
                         <li><strong>Droit d'accès</strong> : obtenir une copie de vos données personnelles</li>
                         <li><strong>Droit de rectification</strong> : corriger vos données inexactes</li>
                         <li><strong>Droit à l'effacement</strong> : demander la suppression de vos données</li>
@@ -264,8 +264,8 @@ export default function CookiesPage() {
                         <li><strong>Droit à la limitation</strong> : limiter l'utilisation de vos données</li>
                         <li><strong>Droit à la portabilité</strong> : récupérer vos données dans un format structuré</li>
                     </ul>
-                    <div className="bg-gray-50 rounded-lg p-4 mt-4">
-                        <p className="text-gray-700">
+                    <div className="bg-muted/50 rounded-lg p-4 mt-4">
+                        <p className="text-foreground">
                             Pour exercer ces droits, contactez-nous à l'adresse :{' '}
                             <a href="mailto:privacy@akom.ga" className="text-blue-600 hover:underline font-medium">
                                 privacy@akom.ga
@@ -276,24 +276,24 @@ export default function CookiesPage() {
 
                 {/* Contact */}
                 <section className="mb-8">
-                    <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+                    <h2 className="text-2xl font-semibold text-foreground mb-4">
                         Questions sur notre politique de cookies ?
                     </h2>
-                    <p className="text-gray-700 mb-4">
+                    <p className="text-foreground mb-4">
                         Si vous avez des questions concernant notre utilisation des cookies ou cette
                         politique, n'hésitez pas à nous contacter :
                     </p>
-                    <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-                        <p className="text-gray-700">
+                    <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+                        <p className="text-foreground">
                             <strong>Email :</strong>{' '}
                             <a href="mailto:privacy@akom.ga" className="text-blue-600 hover:underline">
                                 privacy@akom.ga
                             </a>
                         </p>
-                        <p className="text-gray-700">
+                        <p className="text-foreground">
                             <strong>Adresse :</strong> [Votre adresse au Gabon]
                         </p>
-                        <p className="text-gray-700">
+                        <p className="text-foreground">
                             <strong>Téléphone :</strong> [Votre numéro de téléphone]
                         </p>
                     </div>
@@ -301,10 +301,10 @@ export default function CookiesPage() {
 
                 {/* Modifications */}
                 <section className="mb-8">
-                    <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+                    <h2 className="text-2xl font-semibold text-foreground mb-4">
                         Modifications de cette politique
                     </h2>
-                    <p className="text-gray-700">
+                    <p className="text-foreground">
                         Nous nous réservons le droit de modifier cette politique de cookies à tout moment
                         pour refléter les changements dans nos pratiques ou pour d'autres raisons
                         opérationnelles, légales ou réglementaires. Nous vous encourageons à consulter
