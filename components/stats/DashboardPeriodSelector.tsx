@@ -66,9 +66,9 @@ export function DashboardPeriodSelector({ value }: { value: TimePeriod }) {
     }
 
     return (
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
             <Select value={value} onValueChange={handlePeriodChange}>
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-[150px] sm:w-[180px]">
                     <SelectValue placeholder="Sélectionner une période" />
                 </SelectTrigger>
                 <SelectContent>
