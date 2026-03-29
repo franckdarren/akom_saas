@@ -254,43 +254,47 @@ export function POSOrdersShell({orders: initialOrders, stats, selectedDate}: POS
     const canGoNext = !isFutureDate(shiftDate(selectedDate, 1))
 
     return (
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-4 sm:gap-6">
 
             {/* ── En-tête + sélecteur de date ── */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight">Historique des ventes</h1>
+                    <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Historique des ventes</h1>
                     <p className="text-sm text-muted-foreground mt-0.5 capitalize">
                         {formatDateLabel(selectedDate)}
                     </p>
                 </div>
 
-                <div className="flex items-center gap-2">
-                    <Button variant="outline" size="icon"
-                            onClick={() => goToDate(shiftDate(selectedDate, -1))}
-                            title="Jour précédent"
-                    >
-                        <ChevronLeft className="h-4 w-4"/>
-                    </Button>
+                <div className="flex flex-wrap items-center gap-2">
+                    {/* Navigation date — groupée pour éviter le split sur mobile */}
+                    <div className="flex items-center gap-1.5">
+                        <Button variant="outline" size="icon"
+                                onClick={() => goToDate(shiftDate(selectedDate, -1))}
+                                title="Jour précédent"
+                        >
+                            <ChevronLeft className="h-4 w-4"/>
+                        </Button>
 
-                    <input
-                        type="date"
-                        value={selectedDate}
-                        max={new Date().toISOString().split('T')[0]}
-                        onChange={e => e.target.value && goToDate(e.target.value)}
-                        className={cn(
-                            'h-9 rounded-md border border-input bg-background px-3 text-sm',
-                            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer'
-                        )}
-                    />
+                        <input
+                            type="date"
+                            value={selectedDate}
+                            max={new Date().toISOString().split('T')[0]}
+                            onChange={e => e.target.value && goToDate(e.target.value)}
+                            className={cn(
+                                'h-9 rounded-md border border-input bg-background px-2 text-sm',
+                                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer',
+                                'w-[130px] sm:w-auto'
+                            )}
+                        />
 
-                    <Button variant="outline" size="icon"
-                            onClick={() => goToDate(shiftDate(selectedDate, 1))}
-                            disabled={!canGoNext}
-                            title="Jour suivant"
-                    >
-                        <ChevronRight className="h-4 w-4"/>
-                    </Button>
+                        <Button variant="outline" size="icon"
+                                onClick={() => goToDate(shiftDate(selectedDate, 1))}
+                                disabled={!canGoNext}
+                                title="Jour suivant"
+                        >
+                            <ChevronRight className="h-4 w-4"/>
+                        </Button>
+                    </div>
 
                     {!isToday(parseISO(selectedDate)) && (
                         <Button variant="secondary" size="sm"
@@ -312,7 +316,7 @@ export function POSOrdersShell({orders: initialOrders, stats, selectedDate}: POS
             </div>
 
             {/* ── Cartes statistiques ── */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2 sm:gap-3">
                 <StatCard label="Commandes" value={stats.total} icon={ShoppingBag}
                           className="col-span-2 sm:col-span-1"/>
                 <StatCard label="En attente" value={stats.pending} icon={Clock} highlight={stats.pending > 0}
@@ -670,12 +674,12 @@ function StatCard({
 }) {
     return (
         <Card className={cn('transition-all', highlight && highlightClass, className)}>
-            <CardContent className="p-3 sm:p-4 flex flex-col gap-1">
+            <CardContent className="p-2.5 sm:p-4 flex flex-col gap-1">
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     <Icon className="h-3.5 w-3.5"/>
                     {label}
                 </div>
-                <p className={cn('font-bold', isText ? 'text-sm leading-tight' : 'text-2xl')}>
+                <p className={cn('font-bold', isText ? 'text-sm leading-tight' : 'text-xl sm:text-2xl')}>
                     {value}
                 </p>
             </CardContent>
