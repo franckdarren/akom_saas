@@ -1,6 +1,9 @@
 // components/roles/RolesList.tsx
 'use client'
 
+import { useEffect, useState } from 'react'
+import { useRestaurant } from '@/lib/hooks/use-restaurant'
+import { getRestaurantRoles } from '@/lib/actions/roles'
 import { RoleCard } from './RoleCard'
 import { Card, CardContent } from '@/components/ui/card'
 import { ShieldAlert } from 'lucide-react'
@@ -28,11 +31,57 @@ export interface RoleItem {
     }
 }
 
-interface RolesListProps {
-    roles: RoleItem[]
-}
+export function RolesList() {
+    const { currentRestaurant } = useRestaurant()
+    const [roles, setRoles] = useState<RoleItem[]>([])
+    const [loading, setLoading] = useState(true)
 
-export function RolesList({ roles }: RolesListProps) {
+    useEffect(() => {
+        async function loadRoles() {
+            if (!currentRestaurant) return
+
+            setLoading(true)
+            const result = await getRestaurantRoles(currentRestaurant.id)
+
+            if (result.success && result.roles) {
+                setRoles(result.roles)
+            }
+
+            setLoading(false)
+        }
+
+        loadRoles()
+    }, [currentRestaurant])
+
+    if (loading) {
+        return (
+            <div className="space-y-4">
+                <div>
+                    <div className="h-6 w-40 bg-muted animate-pulse rounded" />
+                    <div className="h-4 w-64 bg-muted animate-pulse rounded mt-2" />
+                </div>
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {[1, 2, 3].map((i) => (
+                        <Card key={i}>
+                            <CardContent className="p-6 space-y-4">
+                                <div className="flex items-center gap-2">
+                                    <div className="h-5 w-5 bg-muted animate-pulse rounded" />
+                                    <div className="h-5 w-32 bg-muted animate-pulse rounded" />
+                                </div>
+                                <div className="h-4 w-full bg-muted animate-pulse rounded" />
+                                <div className="flex gap-2">
+                                    <div className="h-5 w-20 bg-muted animate-pulse rounded-full" />
+                                    <div className="h-5 w-20 bg-muted animate-pulse rounded-full" />
+                                </div>
+                                <div className="h-9 w-full bg-muted animate-pulse rounded" />
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+            </div>
+        )
+    }
+
     if (roles.length === 0) {
         return (
             <Card>

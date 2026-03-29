@@ -15,7 +15,6 @@ import {
 } from '@/components/ui/breadcrumb'
 import {TeamManagementTabs} from '@/components/users/TeamManagementTabs'
 import {InvitationsSection} from '@/components/users/InvitationsSection'
-import {getRestaurantRoles} from '@/lib/actions/roles'
 import {getLabels} from "@/lib/config/activity-labels"
 
 export default async function UsersPage() {
@@ -33,9 +32,6 @@ export default async function UsersPage() {
     })
 
     if (!restaurantUser) redirect('/onboarding')
-
-    const rolesResult = await getRestaurantRoles(restaurantUser.restaurantId)
-    const roles = rolesResult.success ? rolesResult.roles : []
 
     // ← Calcul des labels
     const labels = getLabels(restaurantUser.restaurant.activityType)
@@ -78,7 +74,7 @@ export default async function UsersPage() {
                         </div>
                     }
                 >
-                    <TeamManagementTabs roles={roles}>
+                    <TeamManagementTabs>
                         <InvitationsSection/>
                     </TeamManagementTabs>
                 </Suspense>
