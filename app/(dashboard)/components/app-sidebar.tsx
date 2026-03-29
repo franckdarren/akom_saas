@@ -59,6 +59,7 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
+    useSidebar,
 } from "@/components/ui/sidebar"
 import {
     Tooltip,
@@ -127,6 +128,7 @@ export function AppSidebar({
     const {loading, startLoading} = useNavigationLoading()
     const [isSigningOut, setIsSigningOut] = useState(false)
     const router = useRouter()
+    const {isMobile, setOpenMobile} = useSidebar()
 
     const {hasFeature, getRequiredPlan, planName} = useSubscriptionFeatures(currentPlan)
 
@@ -319,6 +321,7 @@ export function AppSidebar({
                             href="/superadmin"
                             onClick={() => {
                                 if (pathname !== "/superadmin") startLoading()
+                                if (isMobile) setOpenMobile(false)
                             }}
                             className="flex items-center gap-2 px-1"
                         >
@@ -436,6 +439,7 @@ export function AppSidebar({
                                                                 href={item.href}
                                                                 onClick={() => {
                                                                     if (pathname !== item.href) startLoading()
+                                                                    if (isMobile) setOpenMobile(false)
                                                                 }}
                                                                 className="flex items-center gap-2 w-full"
                                                             >
