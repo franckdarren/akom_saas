@@ -47,21 +47,22 @@ export function VerificationBanner({restaurantId, status, isFirstRestaurant}: Ve
 
     return (
         <div className={cn(
-            'flex items-center gap-3 border-b px-4 py-2.5 text-sm',
+            'flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 border-b px-4 py-3 text-sm',
             config.color
         )}>
-            <Icon className={cn('h-4 w-4 shrink-0', config.iconCls)}/>
-
-            <div className="flex flex-1 items-center gap-2 flex-wrap">
-                <span className="font-semibold">{config.title}.</span>
-                <span className="opacity-80">{config.message}</span>
+            <div className="flex items-start sm:items-center gap-3 flex-1 min-w-0">
+                <Icon className={cn('h-4 w-4 shrink-0 mt-0.5 sm:mt-0', config.iconCls)}/>
+                <p className="flex-1 min-w-0">
+                    <span className="font-semibold">{config.title}. </span>
+                    <span className="opacity-80">{config.message}</span>
+                </p>
             </div>
 
             {config.cta && (
                 <Link
                     href={verifyHref}
                     className={cn(
-                        'shrink-0 rounded-md px-3 py-1 text-xs font-semibold',
+                        'self-start sm:self-auto shrink-0 rounded-md px-3 py-1.5 text-xs font-semibold',
                         'bg-current/10 hover:bg-current/20 transition-colors',
                         'border border-current/20',
                         'flex items-center gap-1.5'
