@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
+import { PageHeader } from '@/components/ui/page-header'
 import { getCurrentUserAndRestaurant } from '@/lib/auth/session'
 import prisma from '@/lib/prisma'
 import { WarehouseProductForm } from '@/components/warehouse/WarehouseProductForm'
@@ -112,20 +113,16 @@ export default async function EditWarehouseProductPage({
             <div className="layout-page">
 
             {/* Title */}
-            <div>
-                <Button asChild variant="ghost" size="sm" className="-ml-2 mb-2">
-                    <Link href={`/dashboard/warehouse/products/${id}`}>
-                        <ArrowLeft className="h-4 w-4 mr-1"/>
-                        Retour au produit
-                    </Link>
-                </Button>
-                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">
-                    Modifier le produit d&#39;entrepôt
-                </h1>
-                <p className="text-muted-foreground mt-1">
-                    Mettez à jour les informations de {product.name}
-                </p>
-            </div>
+            <Button asChild variant="ghost" size="sm" className="-ml-2">
+                <Link href={`/dashboard/warehouse/products/${id}`}>
+                    <ArrowLeft className="h-4 w-4 mr-1"/>
+                    Retour au produit
+                </Link>
+            </Button>
+            <PageHeader
+                title="Modifier le produit d'entrepôt"
+                description={`Mettez à jour les informations de ${product.name}`}
+            />
 
             {/* Info box */}
             <div className="rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/20 p-4">

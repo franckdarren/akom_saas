@@ -46,6 +46,7 @@ import {Alert, AlertDescription, AlertTitle} from '@/components/ui/alert'
 import {Progress} from '@/components/ui/progress'
 import prisma from '@/lib/prisma'
 import {getLabels} from '@/lib/config/activity-labels' // ← NOUVEAU
+import {PageHeader} from '@/components/ui/page-header'
 
 export default async function SubscriptionPage() {
     const supabase = await createClient()
@@ -126,14 +127,10 @@ export default async function SubscriptionPage() {
             </header>
 
             <div className="layout-page">
-
-                <div>
-                    <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">Abonnement</h1>
-                    {/* ← Description dynamique */}
-                    <p className="text-muted-foreground mt-2">
-                        Gérez l&apos;abonnement de votre {labels.structureName}
-                    </p>
-                </div>
+                <PageHeader
+                    title="Abonnement"
+                    description={`Gérez l'abonnement de votre ${labels.structureName}`}
+                />
 
                 <div className="space-y-4">
                     {isExpiringSoon && subscription.status === 'trial' && (

@@ -17,6 +17,7 @@ import {
 import {ArrowLeft} from 'lucide-react'
 import Link from 'next/link'
 import {Button} from '@/components/ui/button'
+import {PageHeader} from '@/components/ui/page-header'
 
 export const metadata: Metadata = {
     title: "Nouveau produit d'entrepôt | Akôm",
@@ -70,21 +71,16 @@ export default async function NewWarehouseProductPage() {
             </header>
 
             <div className="layout-page">
-                <div>
-                    <Button asChild variant="ghost" size="sm" className="-ml-2 mb-2">
-                        <Link href="/dashboard/warehouse">
-                            <ArrowLeft className="h-4 w-4 mr-1"/>
-                            Retour au magasin
-                        </Link>
-                    </Button>
-                    <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">
-                        Nouveau produit d&#39;entrepôt
-                    </h1>
-
-                    <p className="text-muted-foreground mt-1">
-                        Ajoutez un produit que vous stockez en volume dans votre entrepôt
-                    </p>
-                </div>
+                <Button asChild variant="ghost" size="sm" className="-ml-2">
+                    <Link href="/dashboard/warehouse">
+                        <ArrowLeft className="h-4 w-4 mr-1"/>
+                        Retour au magasin
+                    </Link>
+                </Button>
+                <PageHeader
+                    title="Nouveau produit d'entrepôt"
+                    description="Ajoutez un produit que vous stockez en volume dans votre entrepôt"
+                />
 
                 <WarehouseProductForm availableProducts={menuProducts}/>
             </div>

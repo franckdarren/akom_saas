@@ -18,6 +18,7 @@ import {getLabels} from "@/lib/config/activity-labels" // ← NOUVEAU
 import {ArrowLeft} from 'lucide-react'
 import Link from 'next/link'
 import {Button} from '@/components/ui/button'
+import {PageHeader} from '@/components/ui/page-header'
 
 export default async function NewProductPage() {
     const supabase = await createClient()
@@ -93,21 +94,16 @@ export default async function NewProductPage() {
             </header>
 
             <div className="layout-page max-w-2xl">
-                <div>
-                    <Button asChild variant="ghost" size="sm" className="-ml-2 mb-2">
-                        <Link href="/dashboard/menu/products">
-                            <ArrowLeft className="h-4 w-4 mr-1"/>
-                            Retour aux {labels.productNameCapital}s
-                        </Link>
-                    </Button>
-                    {/* ← Titre dynamique */}
-                    <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">
-                        Nouveau {labels.productName}
-                    </h1>
-                    <p className="text-muted-foreground mt-2">
-                        Ajoutez un {labels.productName} à votre {labels.catalogName}
-                    </p>
-                </div>
+                <Button asChild variant="ghost" size="sm" className="-ml-2">
+                    <Link href="/dashboard/menu/products">
+                        <ArrowLeft className="h-4 w-4 mr-1"/>
+                        Retour aux {labels.productNameCapital}s
+                    </Link>
+                </Button>
+                <PageHeader
+                    title={`Nouveau ${labels.productName}`}
+                    description={`Ajoutez un ${labels.productName} à votre ${labels.catalogName}`}
+                />
 
                 <ProductForm
                     categories={categories}

@@ -6,6 +6,7 @@ import {PaymentForm} from './PaymentForm'
 import {ArrowLeft, AlertCircle, Users} from 'lucide-react'
 import Link from 'next/link'
 import {Button} from '@/components/ui/button'
+import {PageHeader} from '@/components/ui/page-header'
 import {Alert, AlertDescription, AlertTitle} from '@/components/ui/alert'
 import {
     SUBSCRIPTION_CONFIG,
@@ -125,22 +126,17 @@ export default async function PaymentPage({
         <div className="container mx-auto py-8 px-4 space-y-8">
 
             {/* HEADER */}
-            <div className="space-y-3">
+            <div className="space-y-4">
                 <Button asChild variant="ghost">
                     <Link href="/dashboard/subscription/choose-plan">
                         <ArrowLeft className="mr-2 h-4 w-4"/>
                         Retour au choix du plan
                     </Link>
                 </Button>
-
-                <div>
-                    <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">
-                        Paiement de l'abonnement
-                    </h1>
-                    <p className="text-muted-foreground">
-                        {restaurantName}
-                    </p>
-                </div>
+                <PageHeader
+                    title="Paiement de l'abonnement"
+                    description={restaurantName}
+                />
             </div>
 
             {/* ALERTE AJUSTEMENT */}

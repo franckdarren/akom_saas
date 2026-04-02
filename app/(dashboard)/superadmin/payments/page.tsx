@@ -13,6 +13,7 @@ import {
 import { Suspense } from 'react'
 import { Separator } from '@/components/ui/separator'
 import { SidebarTrigger } from '@/components/ui/sidebar'
+import { PageHeader } from '@/components/ui/page-header'
 
 export default async function PaymentsPage() {
     const payments = await prisma.subscriptionPayment.findMany({
@@ -49,12 +50,10 @@ export default async function PaymentsPage() {
             </header>
 
             <div className='layout-page'>
-                <div>
-                    <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">Gestion des Paiements</h1>
-                    <p className="text-muted-foreground mt-2">
-                        Validez ou refusez les paiements manuels
-                    </p>
-                </div>
+                <PageHeader
+                    title="Gestion des Paiements"
+                    description="Validez ou refusez les paiements manuels"
+                />
 
                 {/* Tabs */}
                 <Tabs defaultValue="pending" className="w-full">

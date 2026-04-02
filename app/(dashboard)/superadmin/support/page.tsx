@@ -14,6 +14,7 @@ import {
 import { Suspense } from 'react'
 import { Separator } from '@/components/ui/separator'
 import { SidebarTrigger } from '@/components/ui/sidebar'
+import { PageHeader } from '@/components/ui/page-header'
 
 
 export default async function SupportPage() {
@@ -44,12 +45,10 @@ export default async function SupportPage() {
             </header>
 
             <div className='layout-page'>
-                <div>
-                    <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">Support Client</h1>
-                    <p className="text-muted-foreground mt-2">
-                        Gérez les tickets de support client
-                    </p>
-                </div>
+                <PageHeader
+                    title="Support Client"
+                    description="Gérez les tickets de support client"
+                />
 
                 <SupportStatsCards stats={stats} />
                 <SupportTicketsTable tickets={tickets} />

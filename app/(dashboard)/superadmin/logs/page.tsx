@@ -28,6 +28,7 @@ import {
 import { Suspense } from 'react'
 import { Separator } from '@/components/ui/separator'
 import { SidebarTrigger } from '@/components/ui/sidebar'
+import { PageHeader } from '@/components/ui/page-header'
 import { Info, AlertTriangle, XCircle, AlertOctagon, type LucideIcon } from 'lucide-react'
 
 export default async function LogsPage() {
@@ -84,12 +85,10 @@ export default async function LogsPage() {
             </header>
 
             <div className='layout-page'>
-                <div>
-                    <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">Logs Système</h1>
-                    <p className="text-muted-foreground mt-2">
-                        Historique des événements système
-                    </p>
-                </div>
+                <PageHeader
+                    title="Logs Système"
+                    description="Historique des événements système"
+                />
 
                 {/* Stats */}
                 <div className="grid gap-4 md:grid-cols-4">

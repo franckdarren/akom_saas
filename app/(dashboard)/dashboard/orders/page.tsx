@@ -19,6 +19,7 @@ import {Card, CardContent} from '@/components/ui/card'
 import {useAuth} from '@/lib/hooks/use-auth'
 import {useRestaurant} from '@/lib/hooks/use-restaurant'
 import {getLabels} from '@/lib/config/activity-labels' // ← NOUVEAU
+import {PageHeader} from '@/components/ui/page-header'
 
 export default function OrdersPage() {
     const {user} = useAuth()
@@ -69,18 +70,10 @@ export default function OrdersPage() {
             </header>
 
             <div className="layout-page">
-                <div className="flex items-center justify-between">
-                    <div>
-                        {/* ← Titre dynamique */}
-                        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">
-                            {labels.orderNameCapital}s
-                        </h1>
-                        <p className="text-muted-foreground mt-2">
-                            Gérez les {labels.orderNamePlural} en temps réel
-                        </p>
-                    </div>
-
-                    {pendingCount > 0 && (
+                <PageHeader
+                    title={`${labels.orderNameCapital}s`}
+                    description={`Gérez les ${labels.orderNamePlural} en temps réel`}
+                    action={pendingCount > 0 ? (
                         <Card className="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800">
                             <CardContent className="p-4">
                                 <div className="flex items-center gap-2">
@@ -94,8 +87,8 @@ export default function OrdersPage() {
                                 </div>
                             </CardContent>
                         </Card>
-                    )}
-                </div>
+                    ) : undefined}
+                />
 
                 <OrderFilters
                     activeFilter={statusFilter}

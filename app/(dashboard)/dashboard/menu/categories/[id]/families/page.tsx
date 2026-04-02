@@ -17,6 +17,7 @@ import { FamiliesList } from './families-list'
 import { CreateFamilyDialog } from './create-family-dialog'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
+import {PageHeader} from '@/components/ui/page-header'
 
 /**
  * Page de gestion des familles pour une catégorie spécifique
@@ -129,41 +130,24 @@ export default async function CategoryFamiliesPage({
 
             {/* Contenu principal */}
             <div className="layout-page">
-                {/* En-tête de la page avec titre et bouton de création */}
-                <div className="flex items-center justify-between">
-                    <div>
-                        <Button asChild variant="ghost" size="sm" className="-ml-2 mb-2">
-                            <Link href="/dashboard/menu/categories">
-                                <ArrowLeft className="h-4 w-4 mr-1"/>
-                                Retour aux catégories
-                            </Link>
-                        </Button>
-                        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">
-                            Familles de {category.name}
-                        </h1>
-                        <p className="text-muted-foreground mt-2">
-                            {category.description || 
-                                'Organisez vos produits en familles pour faciliter la navigation dans votre menu'}
-                        </p>
-                        <p className="text-sm text-muted-foreground mt-1">
-                            {families.length === 0 ? (
-                                'Aucune famille créée pour le moment'
-                            ) : families.length === 1 ? (
-                                '1 famille dans cette catégorie'
-                            ) : (
-                                `${families.length} familles dans cette catégorie`
-                            )}
-                        </p>
-                    </div>
-
-                    {/* Bouton de création de famille */}
-                    <CreateFamilyDialog 
-                        categoryId={categoryId}
-                        categoryName={category.name}
-                    >
-                        <Button>+ Nouvelle famille</Button>
-                    </CreateFamilyDialog>
-                </div>
+                <Button asChild variant="ghost" size="sm" className="-ml-2">
+                    <Link href="/dashboard/menu/categories">
+                        <ArrowLeft className="h-4 w-4 mr-1"/>
+                        Retour aux catégories
+                    </Link>
+                </Button>
+                <PageHeader
+                    title={`Familles de ${category.name}`}
+                    description={category.description || 'Organisez vos produits en familles pour faciliter la navigation dans votre menu'}
+                    action={
+                        <CreateFamilyDialog
+                            categoryId={categoryId}
+                            categoryName={category.name}
+                        >
+                            <Button>+ Nouvelle famille</Button>
+                        </CreateFamilyDialog>
+                    }
+                />
 
                 {/* Liste des familles OU message si vide */}
                 {families.length === 0 ? (

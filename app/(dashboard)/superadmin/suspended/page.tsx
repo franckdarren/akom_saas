@@ -10,6 +10,7 @@ import { SuspendedRestaurantCard } from '@/components/superadmin/suspended-resta
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 import { Separator } from '@/components/ui/separator'
+import { PageHeader } from '@/components/ui/page-header'
 
 
 export default async function SuspendedRestaurantsPage() {
@@ -66,12 +67,10 @@ export default async function SuspendedRestaurantsPage() {
         </div>
       </header>
       <div className="layout-page">
-      <div>
-        <h1 className="type-page-title">Restaurants suspendus</h1>
-        <p className="text-muted-foreground mt-2">
-          Gérez les restaurants dont le compte a été suspendu
-        </p>
-      </div>
+        <PageHeader
+            title="Restaurants suspendus"
+            description="Gérez les restaurants dont le compte a été suspendu"
+        />
 
       {/* Alert d'information */}
       <Alert variant="destructive">

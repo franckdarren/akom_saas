@@ -18,6 +18,7 @@ import {getLabels} from "@/lib/config/activity-labels" // ← NOUVEAU
 import {ArrowLeft} from 'lucide-react'
 import Link from 'next/link'
 import {Button} from '@/components/ui/button'
+import {PageHeader} from '@/components/ui/page-header'
 
 export default async function EditProductPage({
                                                   params,
@@ -118,19 +119,16 @@ export default async function EditProductPage({
             </header>
 
             <div className="layout-page max-w-2xl">
-                <div>
-                    <Button asChild variant="ghost" size="sm" className="-ml-2 mb-2">
-                        <Link href="/dashboard/menu/products">
-                            <ArrowLeft className="h-4 w-4 mr-1"/>
-                            Retour aux {labels.productNameCapital}s
-                        </Link>
-                    </Button>
-                    {/* ← Titre dynamique */}
-                    <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">
-                        Modifier le {labels.productName}
-                    </h1>
-                    <p className="text-muted-foreground mt-2">{product.name}</p>
-                </div>
+                <Button asChild variant="ghost" size="sm" className="-ml-2">
+                    <Link href="/dashboard/menu/products">
+                        <ArrowLeft className="h-4 w-4 mr-1"/>
+                        Retour aux {labels.productNameCapital}s
+                    </Link>
+                </Button>
+                <PageHeader
+                    title={`Modifier le ${labels.productName}`}
+                    description={product.name}
+                />
 
                 <ProductForm
                     categories={categories}

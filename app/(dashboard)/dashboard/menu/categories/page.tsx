@@ -22,6 +22,7 @@ import {CreateCategoryDialog} from "./create-category-dialog"
 import {QuotaGuard} from "@/components/subscription/QuotaGuard"
 import {getQuotaStatus} from "@/lib/services/subscription-checker"
 import {getLabels} from "@/lib/config/activity-labels" // ← NOUVEAU
+import {PageHeader} from "@/components/ui/page-header"
 
 export default async function CategoriesPage() {
     const supabase = await createClient()
@@ -84,32 +85,22 @@ export default async function CategoriesPage() {
             </header>
 
             <div className="layout-page">
-                <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                    <div>
-                        <div className="flex items-center gap-3">
-                            {/* ← Titre dynamique */}
-                            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">
-                                {labels.categoryNameCapital}s
-                            </h1>
-                            <Badge
-                                variant={
-                                    categoriesQuota.isAtLimit ? "destructive"
-                                        : categoriesQuota.isNearLimit ? "secondary"
-                                            : "outline"
-                                }
-                            >
-                                {categoriesQuota.used}/
-                                {categoriesQuota.limit === "unlimited" ? "∞" : categoriesQuota.limit}
-                            </Badge>
-                        </div>
-                        <p className="mt-2 text-muted-foreground">
-                            {/* ← Description dynamique */}
-                            Organisez
-                            votre {labels.catalogName} en {labels.categoryName + 's'}
-                        </p>
-                    </div>
-
-                    <div className="shrink-0">
+                <PageHeader
+                    title={`${labels.categoryNameCapital}s`}
+                    description={`Organisez votre ${labels.catalogName} en ${labels.categoryName}s`}
+                    titleBadge={
+                        <Badge
+                            variant={
+                                categoriesQuota.isAtLimit ? "destructive"
+                                    : categoriesQuota.isNearLimit ? "secondary"
+                                        : "outline"
+                            }
+                        >
+                            {categoriesQuota.used}/
+                            {categoriesQuota.limit === "unlimited" ? "∞" : categoriesQuota.limit}
+                        </Badge>
+                    }
+                    action={
                         <QuotaGuard
                             status={categoriesQuota}
                             quotaName={labels.categoryName + 's'}
@@ -119,13 +110,12 @@ export default async function CategoriesPage() {
                             <CreateCategoryDialog>
                                 <Button>
                                     <Plus className="mr-2 h-4 w-4"/>
-                                    {/* ← Bouton dynamique */}
                                     Nouvelle {labels.categoryName}
                                 </Button>
                             </CreateCategoryDialog>
                         </QuotaGuard>
-                    </div>
-                </div>
+                    }
+                />
 
                 {categoriesQuota.limit !== "unlimited" && (
                     <Card>

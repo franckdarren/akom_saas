@@ -52,6 +52,7 @@ import {
 } from '@/components/ui/breadcrumb'
 import {Separator} from '@/components/ui/separator'
 import {SidebarTrigger} from '@/components/ui/sidebar'
+import {PageHeader} from '@/components/ui/page-header'
 
 export default async function SuperAdminDashboard() {
     const [stats, activity, topRestaurants] = await Promise.all([
@@ -84,14 +85,10 @@ export default async function SuperAdminDashboard() {
             </header>
 
             <div className="layout-page">
-                <div>
-                    <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">
-                        SuperAdmin Dashboard
-                    </h1>
-                    <p className="text-muted-foreground mt-2">
-                        Vue globale de la plateforme Akôm
-                    </p>
-                </div>
+                <PageHeader
+                    title="SuperAdmin Dashboard"
+                    description="Vue globale de la plateforme Akôm"
+                />
 
                 {/* ================= KPI GLOBAL ================= */}
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

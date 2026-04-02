@@ -8,6 +8,7 @@ import { getDashboardStats } from '@/lib/actions/stats'
 import { getLabels } from '@/lib/config/activity-labels'
 import { Separator } from '@/components/ui/separator'
 import { SidebarTrigger } from '@/components/ui/sidebar'
+import { PageHeader } from '@/components/ui/page-header'
 import { KpiCard } from '@/components/stats/kpi-card'
 import { StockAlertsCard } from '@/components/stats/stock-alerts-card'
 import { RecentOrdersCard } from '@/components/stats/recent-orders-card'
@@ -97,9 +98,7 @@ export default async function DashboardPage({ searchParams }: PageProps) {
             </header>
 
             <div className="flex flex-1 flex-col gap-4 sm:gap-6 p-3 sm:p-4 md:p-6 overflow-auto">
-                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">
-                    Tableau de bord
-                </h1>
+                <PageHeader title="Tableau de bord" />
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                     <KpiCard
                         title="Chiffre d'affaires"

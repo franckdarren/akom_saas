@@ -10,6 +10,7 @@ import { RestaurantVerificationCard } from '@/components/superadmin/restaurant-v
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 import { Separator } from '@/components/ui/separator'
+import { PageHeader } from '@/components/ui/page-header'
 
 export default async function VerificationsPage() {
     const user = await getSuperadminUser()
@@ -62,12 +63,10 @@ export default async function VerificationsPage() {
                 </div>
             </header>
             <div className="layout-page">
-                <div>
-                    <h1 className="type-page-title">Vérifications des restaurants</h1>
-                    <p className="text-muted-foreground mt-2">
-                        Validez ou rejetez les documents d'identité soumis par les restaurants
-                    </p>
-                </div>
+                <PageHeader
+                    title="Vérifications des restaurants"
+                    description="Validez ou rejetez les documents d'identité soumis par les restaurants"
+                />
 
                 {/* Alert d'information */}
                 <Alert>

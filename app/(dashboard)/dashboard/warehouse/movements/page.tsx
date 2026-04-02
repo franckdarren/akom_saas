@@ -21,6 +21,7 @@ import {
     BreadcrumbPage,
     BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
+import {PageHeader} from '@/components/ui/page-header'
 
 import {WarehouseMovement, WarehouseMovementType} from '@/types/warehouse'
 import type {Prisma} from '@prisma/client'
@@ -144,18 +145,16 @@ export default async function WarehouseMovementsPage({searchParams}: PageProps) 
                 </header>
 
                 <div className="layout-page">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">Mouvements de stock</h1>
-                            <p className="text-muted-foreground mt-1">
-                                Historique complet de tous les mouvements d&#39;entrepôt
-                            </p>
-                        </div>
-                        <Button variant="outline" disabled className="gap-2">
-                            <Download className="h-4 w-4"/>
-                            Exporter (à venir)
-                        </Button>
-                    </div>
+                    <PageHeader
+                        title="Mouvements de stock"
+                        description="Historique complet de tous les mouvements d'entrepôt"
+                        action={
+                            <Button variant="outline" disabled className="gap-2">
+                                <Download className="h-4 w-4"/>
+                                Exporter (à venir)
+                            </Button>
+                        }
+                    />
 
                     {/* Statistiques */}
                     <Suspense fallback={<StatsCardsSkeleton/>}>

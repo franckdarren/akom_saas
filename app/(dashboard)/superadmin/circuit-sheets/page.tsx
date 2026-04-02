@@ -11,6 +11,7 @@ import { getDaysRemaining, isDeadlineOverdue } from '@/types/restaurant-verifica
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 import { Separator } from '@/components/ui/separator'
+import { PageHeader } from '@/components/ui/page-header'
 
 export default async function CircuitSheetsPage() {
     const user = await getSuperadminUser()
@@ -68,12 +69,10 @@ export default async function CircuitSheetsPage() {
                 </div>
             </header>
             <div className="layout-page">
-                <div>
-                    <h1 className="type-page-title">Fiches circuit à valider</h1>
-                    <p className="text-muted-foreground mt-2">
-                        Vérifiez et validez les fiches circuit soumises par les restaurants Business
-                    </p>
-                </div>
+                <PageHeader
+                    title="Fiches circuit à valider"
+                    description="Vérifiez et validez les fiches circuit soumises par les restaurants Business"
+                />
 
                 {/* Alert d'information */}
                 <Alert>

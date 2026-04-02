@@ -28,6 +28,7 @@ import {
 } from '@/components/ui/breadcrumb'
 import { Suspense } from 'react'
 import { Separator } from '@/components/ui/separator'
+import { PageHeader } from '@/components/ui/page-header'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 
 
@@ -55,17 +56,11 @@ export default async function UsersManagementPage() {
                 </div>
             </header>
             <div className="layout-page">
-                <div className="flex justify-between items-center">
-                    <div>
-                        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">Utilisateurs</h1>
-                        <p className="text-muted-foreground mt-2">
-                            Tous les utilisateurs de la plateforme
-                        </p>
-                    </div>
-                    <div className="text-sm text-zinc-600 dark:text-zinc-400">
-                        Total : {formatNumber(users.length)}
-                    </div>
-                </div>
+                <PageHeader
+                    title="Utilisateurs"
+                    description="Tous les utilisateurs de la plateforme"
+                    action={<span className="text-sm text-muted-foreground">Total : {formatNumber(users.length)}</span>}
+                />
                 {/* Table */}
                 <Card>
                     <CardHeader>

@@ -15,6 +15,7 @@ import {SidebarTrigger} from '@/components/ui/sidebar'
 import {StocksList} from './stocks-list'
 import {getUserRole} from "@/lib/actions/auth"
 import {getLabels} from "@/lib/config/activity-labels" // ← NOUVEAU
+import {PageHeader} from "@/components/ui/page-header"
 
 export default async function StocksPage({
     searchParams,
@@ -87,16 +88,10 @@ export default async function StocksPage({
             </header>
 
             <div className="layout-page">
-                <div>
-                    {/* ← Titre dynamique */}
-                    <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">
-                        Stocks — {labels.productNameCapital}s
-                    </h1>
-                    <p className="text-muted-foreground mt-2">
-                        Ajustez les quantités en stock. Les {labels.productNamePlural} avec stock &gt; 0 sont
-                        automatiquement disponibles.
-                    </p>
-                </div>
+                <PageHeader
+                    title={`Stocks — ${labels.productNameCapital}s`}
+                    description={`Ajustez les quantités en stock. Les ${labels.productNamePlural} avec stock > 0 sont automatiquement disponibles.`}
+                />
 
                 <StocksList stocks={stocks}/>
             </div>

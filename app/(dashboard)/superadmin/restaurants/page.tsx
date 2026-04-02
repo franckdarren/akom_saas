@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/breadcrumb'
 import {Separator} from '@/components/ui/separator'
 import {SidebarTrigger} from '@/components/ui/sidebar'
+import {PageHeader} from '@/components/ui/page-header'
 import {Badge} from '@/components/ui/badge'
 import {Card, CardContent} from '@/components/ui/card'
 import {formatPrice, calculateMonthlyPrice} from '@/lib/config/subscription'
@@ -88,16 +89,10 @@ export default async function RestaurantsPage() {
             </header>
 
             <div className="layout-page">
-
-                {/* En-tête de la page */}
-                <div>
-                    <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">
-                        Tous les Restaurants
-                    </h1>
-                    <p className="text-muted-foreground mt-2">
-                        {restaurants.length} restaurant{restaurants.length > 1 ? 's' : ''} inscrit{restaurants.length > 1 ? 's' : ''}
-                    </p>
-                </div>
+                <PageHeader
+                    title="Tous les Restaurants"
+                    description={`${restaurants.length} restaurant${restaurants.length > 1 ? 's' : ''} inscrit${restaurants.length > 1 ? 's' : ''}`}
+                />
 
                 {/* Liste des restaurants */}
                 <div className="grid gap-4">

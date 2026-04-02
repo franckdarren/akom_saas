@@ -22,6 +22,7 @@ import {getUserRole} from "@/lib/actions/auth"
 import {QuotaGuard} from "@/components/subscription/QuotaGuard"
 import {getQuotaStatus} from "@/lib/services/subscription-checker"
 import {getLabels} from "@/lib/config/activity-labels" // ← NOUVEAU
+import {PageHeader} from "@/components/ui/page-header"
 
 export default async function ProductsPage({
     searchParams,
@@ -95,30 +96,22 @@ export default async function ProductsPage({
             </header>
 
             <div className="layout-page">
-                <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                    <div>
-                        <div className="flex items-center gap-3">
-                            {/* ← Titre dynamique */}
-                            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">
-                                {labels.productNameCapital}s
-                            </h1>
-                            <Badge
-                                variant={
-                                    productsQuota.isAtLimit ? "destructive"
-                                        : productsQuota.isNearLimit ? "secondary"
-                                            : "outline"
-                                }
-                            >
-                                {productsQuota.used}/
-                                {productsQuota.limit === "unlimited" ? "∞" : productsQuota.limit}
-                            </Badge>
-                        </div>
-                        <p className="mt-2 text-muted-foreground">
-                            Gérez tous vos {labels.productNamePlural}
-                        </p>
-                    </div>
-
-                    <div className="shrink-0">
+                <PageHeader
+                    title={`${labels.productNameCapital}s`}
+                    description={`Gérez tous vos ${labels.productNamePlural}`}
+                    titleBadge={
+                        <Badge
+                            variant={
+                                productsQuota.isAtLimit ? "destructive"
+                                    : productsQuota.isNearLimit ? "secondary"
+                                        : "outline"
+                            }
+                        >
+                            {productsQuota.used}/
+                            {productsQuota.limit === "unlimited" ? "∞" : productsQuota.limit}
+                        </Badge>
+                    }
+                    action={
                         <QuotaGuard
                             status={productsQuota}
                             quotaName={labels.productNamePlural}
@@ -128,13 +121,12 @@ export default async function ProductsPage({
                             <Link href="/dashboard/menu/products/new">
                                 <Button>
                                     <Plus className="mr-2 h-4 w-4"/>
-                                    {/* ← Bouton dynamique */}
                                     Nouveau {labels.productName}
                                 </Button>
                             </Link>
                         </QuotaGuard>
-                    </div>
-                </div>
+                    }
+                />
 
                 {productsQuota.limit !== "unlimited" && (
                     <Card>

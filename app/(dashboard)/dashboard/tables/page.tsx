@@ -23,6 +23,7 @@ import {getUserRole} from "@/lib/actions/auth"
 import {QuotaGuard} from "@/components/subscription/QuotaGuard"
 import {getQuotaStatus} from "@/lib/services/subscription-checker"
 import {getLabels} from "@/lib/config/activity-labels" // ← NOUVEAU
+import {PageHeader} from "@/components/ui/page-header"
 
 export default async function TablesPage() {
     const supabase = await createClient()
@@ -85,31 +86,22 @@ export default async function TablesPage() {
             </header>
 
             <div className="layout-page">
-                <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                    <div>
-                        <div className="flex items-center gap-3">
-                            {/* ← Titre dynamique */}
-                            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">
-                                {labels.tableNameCapital}s
-                            </h1>
-                            <Badge
-                                variant={
-                                    tablesQuota.isAtLimit ? "destructive"
-                                        : tablesQuota.isNearLimit ? "secondary"
-                                            : "outline"
-                                }
-                            >
-                                {tablesQuota.used}/
-                                {tablesQuota.limit === "unlimited" ? "∞" : tablesQuota.limit}
-                            </Badge>
-                        </div>
-                        <p className="mt-2 text-muted-foreground">
-                            {/* ← Description dynamique */}
-                            Gérez les {labels.tableNamePlural} de votre {labels.structureName} et générez les QR codes
-                        </p>
-                    </div>
-
-                    <div className="shrink-0">
+                <PageHeader
+                    title={`${labels.tableNameCapital}s`}
+                    description={`Gérez les ${labels.tableNamePlural} de votre ${labels.structureName} et générez les QR codes`}
+                    titleBadge={
+                        <Badge
+                            variant={
+                                tablesQuota.isAtLimit ? "destructive"
+                                    : tablesQuota.isNearLimit ? "secondary"
+                                        : "outline"
+                            }
+                        >
+                            {tablesQuota.used}/
+                            {tablesQuota.limit === "unlimited" ? "∞" : tablesQuota.limit}
+                        </Badge>
+                    }
+                    action={
                         <QuotaGuard
                             status={tablesQuota}
                             quotaName={labels.tableNamePlural}
@@ -119,13 +111,12 @@ export default async function TablesPage() {
                             <CreateTableDialog>
                                 <Button>
                                     <Plus className="mr-2 h-4 w-4"/>
-                                    {/* ← Bouton dynamique */}
                                     Nouvelle {labels.tableName}
                                 </Button>
                             </CreateTableDialog>
                         </QuotaGuard>
-                    </div>
-                </div>
+                    }
+                />
 
                 {tablesQuota.limit !== "unlimited" && (
                     <Card>

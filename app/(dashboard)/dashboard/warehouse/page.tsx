@@ -23,6 +23,7 @@ import {
     BreadcrumbPage,
     BreadcrumbSeparator
 } from "@/components/ui/breadcrumb"
+import {PageHeader} from "@/components/ui/page-header"
 
 export const metadata: Metadata = {
     title: 'Magasin de stockage | Akôm',
@@ -145,21 +146,18 @@ export default async function WarehousePage({
             </header>
 
             <div className="layout-page">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">Magasin de stockage</h1>
-                        <p className="text-muted-foreground mt-1">
-                            Gérez votre stock d&apos;entrepôt et réapprovisionnez votre restaurant
-                        </p>
-                    </div>
-
-                    <Button asChild size="lg" className="gap-2">
-                        <Link href="/dashboard/warehouse/products/new">
-                            <Plus className="h-4 w-4"/>
-                            Nouveau produit
-                        </Link>
-                    </Button>
-                </div>
+                <PageHeader
+                    title="Magasin de stockage"
+                    description="Gérez votre stock d'entrepôt et réapprovisionnez votre restaurant"
+                    action={
+                        <Button asChild size="lg" className="gap-2">
+                            <Link href="/dashboard/warehouse/products/new">
+                                <Plus className="h-4 w-4"/>
+                                Nouveau produit
+                            </Link>
+                        </Button>
+                    }
+                />
 
                 <Suspense fallback={<StatsCardsSkeleton/>}>
                     <WarehouseStatsCards stats={stats}/>

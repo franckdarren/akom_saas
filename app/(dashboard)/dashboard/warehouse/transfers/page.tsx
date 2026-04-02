@@ -26,6 +26,7 @@ import {getCurrentUserAndRestaurant} from '@/lib/auth/session'
 import {FeatureGuard} from '@/components/guards/FeatureGuard'
 import prisma from '@/lib/prisma'
 import {BackToWarehouseButton} from './back-button'
+import {PageHeader} from '@/components/ui/page-header'
 
 export const metadata: Metadata = {
     title: 'Historique des transferts | Akôm',
@@ -102,17 +103,11 @@ export default async function WarehouseTransfersPage() {
             </header>
 
             <div className="layout-page">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">
-                            Historique des transferts
-                        </h1>
-                        <p className="text-muted-foreground mt-1">
-                            Tous les transferts du magasin vers votre stock opérationnel
-                        </p>
-                    </div>
-                    <BackToWarehouseButton/>
-                </div>
+                <PageHeader
+                    title="Historique des transferts"
+                    description="Tous les transferts du magasin vers votre stock opérationnel"
+                    action={<BackToWarehouseButton/>}
+                />
 
                 {totalTransfers === 0 ? (
                     <div className="flex flex-1 items-center justify-center">

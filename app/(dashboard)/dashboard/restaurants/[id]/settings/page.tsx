@@ -18,6 +18,7 @@ import {CircuitSheetForm} from '@/components/restaurant/circuit-sheet-form'
 import {Alert, AlertDescription} from '@/components/ui/alert'
 import {AlertTriangle} from 'lucide-react'
 import {getLabels} from '@/lib/config/activity-labels'
+import {PageHeader} from '@/components/ui/page-header'
 import {DeleteRestaurantDialog} from '@/components/dashboard/DeleteRestaurantDialog'
 
 export default async function RestaurantSettingsPage({
@@ -97,12 +98,10 @@ export default async function RestaurantSettingsPage({
             </header>
 
             <div className="layout-page">
-                <div>
-                    <h1 className="type-page-title">{labels.settingsTitle}</h1>
-                    <p className="text-muted-foreground mt-2">
-                        Gérez les informations et les documents de votre {labels.structureName}
-                    </p>
-                </div>
+                <PageHeader
+                    title={labels.settingsTitle}
+                    description={`Gérez les informations et les documents de votre ${labels.structureName}`}
+                />
 
                 {/* Alerte vérification */}
                 {needsVerification && (

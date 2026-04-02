@@ -16,6 +16,7 @@ import {
 import {TeamManagementTabs} from '@/components/users/TeamManagementTabs'
 import {InvitationsSection} from '@/components/users/InvitationsSection'
 import {getLabels} from "@/lib/config/activity-labels"
+import {PageHeader} from "@/components/ui/page-header"
 
 export default async function UsersPage() {
     const supabase = await createClient()
@@ -57,15 +58,10 @@ export default async function UsersPage() {
             </header>
 
             <div className="layout-page">
-                <div>
-                    <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">
-                        Gestion de l&apos;équipe
-                    </h1>
-                    {/* ← Description dynamique */}
-                    <p className="text-muted-foreground mt-2">
-                        Gérez les membres de votre {labels.structureName}, leurs rôles et permissions
-                    </p>
-                </div>
+                <PageHeader
+                    title="Gestion de l'équipe"
+                    description={`Gérez les membres de votre ${labels.structureName}, leurs rôles et permissions`}
+                />
 
                 <Suspense
                     fallback={

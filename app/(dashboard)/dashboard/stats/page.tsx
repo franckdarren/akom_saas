@@ -18,6 +18,7 @@ import {
     BreadcrumbPage,
     BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
+import { PageHeader } from '@/components/ui/page-header'
 
 const VALID_PERIODS = new Set<string>([TIME_PERIODS.TODAY, TIME_PERIODS.WEEK, TIME_PERIODS.MONTH])
 
@@ -60,17 +61,15 @@ export default async function StatsPage({ searchParams }: PageProps) {
             </header>
 
             <div className="layout-page">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h1 className="type-page-title">Statistiques</h1>
-                        <p className="type-description">
-                            Analysez les performances de votre structure
-                        </p>
-                    </div>
-                    <Suspense>
-                        <PeriodFilterNav value={period} />
-                    </Suspense>
-                </div>
+                <PageHeader
+                    title="Statistiques"
+                    description="Analysez les performances de votre structure"
+                    action={
+                        <Suspense>
+                            <PeriodFilterNav value={period} />
+                        </Suspense>
+                    }
+                />
 
                 {/* KPI Cards */}
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
