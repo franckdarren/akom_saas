@@ -11,7 +11,6 @@ import {
     calculateMonthlyPrice,
     getPlanConfig,
 } from '@/lib/config/subscription'
-import Link from 'next/link'
 import {
     Calendar,
     CreditCard,
@@ -19,7 +18,6 @@ import {
     Clock,
     XCircle,
     AlertCircle,
-    ArrowRight,
     Users,
     TrendingUp,
 } from 'lucide-react'
@@ -40,13 +38,14 @@ import {
 } from '@/components/ui/breadcrumb'
 import {Separator} from '@/components/ui/separator'
 import {SidebarTrigger} from '@/components/ui/sidebar'
-import {Button} from '@/components/ui/button'
 import {Badge} from '@/components/ui/badge'
 import {Alert, AlertDescription, AlertTitle} from '@/components/ui/alert'
 import {Progress} from '@/components/ui/progress'
 import prisma from '@/lib/prisma'
 import {getLabels} from '@/lib/config/activity-labels' // ← NOUVEAU
 import {PageHeader} from '@/components/ui/page-header'
+import {RenewButton, ChangePlanButton} from './RenewButton'
+import type {BillingCycle} from '@/lib/config/subscription'
 
 export default async function SubscriptionPage() {
     const supabase = await createClient()
@@ -379,18 +378,16 @@ export default async function SubscriptionPage() {
                             <Separator/>
 
                             <div className="flex flex-col sm:flex-row gap-3">
-                                <Button asChild className="w-full sm:flex-1" size="lg">
-                                    <Link href="/dashboard/subscription/choose-plan">
-                                        {subscription.status === 'trial' ? 'Choisir mon plan' : 'Changer de plan'}
-                                        <ArrowRight className="ml-2 h-4 w-4"/>
-                                    </Link>
-                                </Button>
+                                <ChangePlanButton
+                                    label={subscription.status === 'trial' ? 'Choisir mon plan' : 'Changer de plan'}
+                                />
                                 {subscription.status === 'active' && (
-                                    <Button asChild variant="outline" className="w-full sm:flex-1" size="lg">
-                                        <Link href="/dashboard/subscription/choose-plan">
-                                            Renouveler maintenant
-                                        </Link>
-                                    </Button>
+                                    <RenewButton
+                                        plan={subscription.plan}
+                                        billingCycle={subscription.billingCycle as BillingCycle}
+                                        userCount={userCount}
+                                        restaurantId={restaurantId}
+                                    />
                                 )}
                             </div>
                         </CardContent>

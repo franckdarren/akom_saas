@@ -4,12 +4,12 @@ import {createClient} from '@/lib/supabase/server'
 import {getRestaurantSubscription} from '@/lib/actions/subscription'
 import {PlanCard} from './PlanCard'
 import {getAllPlans} from '@/lib/config/subscription'
-import {ArrowLeft} from 'lucide-react'
+import {ArrowLeft, Info} from 'lucide-react'
 import Link from 'next/link'
+import {cookies} from 'next/headers'
 import {Button} from '@/components/ui/button'
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
 import {Alert, AlertDescription} from '@/components/ui/alert'
-import {Info} from 'lucide-react'
 
 /**
  * Page de sélection du plan d'abonnement avec support de la tarification par utilisateur
@@ -40,20 +40,40 @@ export default async function ChoosePlanPage() {
     }
 
     // ============================================================
-    // ÉTAPE 2 : Récupérer le Restaurant
+    // ÉTAPE 2 : Récupérer le Restaurant (en respectant le cookie multi-tenant)
     // ============================================================
 
-    const {data: restaurantUser} = await supabase
-        .from('restaurant_users')
-        .select('restaurant_id')
-        .eq('user_id', user.id)
-        .single()
+    const cookieStore = await cookies()
+    const savedRestaurantId = cookieStore.get('akom_current_restaurant_id')?.value
 
-    if (!restaurantUser) {
-        redirect('/dashboard')
+    let restaurantId: string | null = null
+
+    if (savedRestaurantId) {
+        const {data} = await supabase
+            .from('restaurant_users')
+            .select('restaurant_id')
+            .eq('user_id', user.id)
+            .eq('restaurant_id', savedRestaurantId)
+            .maybeSingle()
+
+        if (data) restaurantId = data.restaurant_id
     }
 
-    const restaurantId = restaurantUser.restaurant_id
+    if (!restaurantId) {
+        const {data} = await supabase
+            .from('restaurant_users')
+            .select('restaurant_id')
+            .eq('user_id', user.id)
+            .order('created_at', {ascending: true})
+            .limit(1)
+            .maybeSingle()
+
+        restaurantId = data?.restaurant_id ?? null
+    }
+
+    if (!restaurantId) {
+        redirect('/onboarding')
+    }
 
     // ============================================================
     // ÉTAPE 3 : Récupérer l'Abonnement Actuel
@@ -98,7 +118,7 @@ export default async function ChoosePlanPage() {
     // ============================================================
 
     return (
-        <div className="min-h-screen bg-background py-12 px-4">
+        <div className="min-h-screen bg-background py-6 sm:py-12 px-4">
             <div className="max-w-7xl mx-auto space-y-8">
 
                 {/* ========================================
@@ -112,11 +132,11 @@ export default async function ChoosePlanPage() {
                         </Link>
                     </Button>
 
-                    <h1 className="text-4xl font-bold tracking-tight">
+                    <h1 className="type-page-title">
                         Choisissez votre plan
                     </h1>
 
-                    <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                    <p className="type-description max-w-2xl mx-auto">
                         Sélectionnez l&apos;offre qui correspond à vos besoins.
                         Ajustez le nombre d&apos;utilisateurs pour voir le prix en temps réel.
                     </p>

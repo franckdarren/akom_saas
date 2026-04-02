@@ -33,6 +33,7 @@ interface SearchParams {
     cycle?: string
     users?: string
     restaurantId?: string
+    mode?: string
 }
 
 // ============================================================
@@ -81,11 +82,15 @@ export default async function PaymentPage({
 
     if (!user) redirect('/login')
 
+    const restaurantIdParam = params.restaurantId
+    if (!restaurantIdParam) redirect('/dashboard/subscription/choose-plan')
+
     const {data: restaurantUser} = await supabase
         .from('restaurant_users')
         .select('restaurant_id, restaurants(name)')
         .eq('user_id', user.id)
-        .single()
+        .eq('restaurant_id', restaurantIdParam)
+        .maybeSingle()
 
     if (!restaurantUser) redirect('/dashboard')
 
@@ -134,7 +139,7 @@ export default async function PaymentPage({
                     </Link>
                 </Button>
                 <PageHeader
-                    title="Paiement de l'abonnement"
+                    title={params.mode === 'renew' ? "Renouvellement de l'abonnement" : "Paiement de l'abonnement"}
                     description={restaurantName}
                 />
             </div>

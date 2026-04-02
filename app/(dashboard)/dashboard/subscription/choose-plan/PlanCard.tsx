@@ -144,7 +144,7 @@ export function PlanCard({
         <Card
             className={cn(
                 'relative transition-all duration-200 hover:border-primary/50 hover:shadow-md',
-                recommended && 'border-primary shadow-lg scale-105 hover:border-primary/50 hover:shadow-md',
+                recommended && 'border-primary shadow-lg sm:scale-105 hover:border-primary/50 hover:shadow-md',
                 isCurrent && 'bg-muted/50 hover:border-primary/50 hover:shadow-md'
             )}
         >
@@ -177,7 +177,7 @@ export function PlanCard({
                     {/* Prix principal avec décomposition */}
                     <div className="space-y-2">
                         {/* Prix total mensuel */}
-                        <div className="text-4xl font-bold tracking-tight text-primary">
+                        <div className="text-3xl sm:text-4xl font-bold tracking-tight text-primary">
                             {formatPrice(pricingDetails.monthlyTotal)}
                             <span className="text-base font-normal text-muted-foreground">
                 /mois
