@@ -94,22 +94,6 @@ export async function checkQuota(
     const plan = await getRestaurantPlan(restaurantId)
     const limitValue = PLAN_FEATURES[plan][quota]
 
-    // Cas 'unlimited'
-    if (limitValue === 'unlimited') {
-        return {allowed: true, limit: 'unlimited', currentUsage: 0}
-    }
-
-    // Sécurité : convertir en nombre si possible
-    const limit: number = typeof limitValue === 'number' ? limitValue : 0
-    if (limit === 0) {
-        return {
-            allowed: false,
-            limit: 0,
-            currentUsage: 0,
-            reason: 'Configuration de limite invalide',
-        }
-    }
-
     // Compter l'utilisation actuelle selon le type de quota
     let currentUsage = 0
 
@@ -122,7 +106,7 @@ export async function checkQuota(
 
         case 'max_products':
             currentUsage = await prisma.product.count({
-                where: {restaurantId},
+                where: {restaurantId, isAvailable: true},
             })
             break
 
@@ -144,6 +128,22 @@ export async function checkQuota(
                 },
             })
             break
+    }
+
+    // Cas 'unlimited' — on retourne le comptage réel, sans limite
+    if (limitValue === 'unlimited') {
+        return {allowed: true, limit: 'unlimited', currentUsage}
+    }
+
+    // Sécurité : convertir en nombre si possible
+    const limit: number = typeof limitValue === 'number' ? limitValue : 0
+    if (limit === 0) {
+        return {
+            allowed: false,
+            limit: 0,
+            currentUsage,
+            reason: 'Configuration de limite invalide',
+        }
     }
 
     const allowed = currentUsage < limit
