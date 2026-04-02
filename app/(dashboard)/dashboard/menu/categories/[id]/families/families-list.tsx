@@ -180,7 +180,7 @@ export function FamiliesList({ families, categoryName }: FamiliesListProps) {
                                 {/* Menu d'actions (3 points verticaux) */}
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                                        <Button variant="ghost" size="icon-sm">
                                             <MoreVertical className="h-4 w-4" />
                                         </Button>
                                     </DropdownMenuTrigger>
@@ -235,8 +235,7 @@ export function FamiliesList({ families, categoryName }: FamiliesListProps) {
                                 <div className="flex gap-1">
                                     <Button
                                         variant="outline"
-                                        size="icon"
-                                        className="h-8 w-8"
+                                        size="icon-sm"
                                         onClick={() => handleMoveUp(family.id)}
                                         disabled={index === 0}
                                         title="Monter"
@@ -245,8 +244,7 @@ export function FamiliesList({ families, categoryName }: FamiliesListProps) {
                                     </Button>
                                     <Button
                                         variant="outline"
-                                        size="icon"
-                                        className="h-8 w-8"
+                                        size="icon-sm"
                                         onClick={() => handleMoveDown(family.id)}
                                         disabled={index === families.length - 1}
                                         title="Descendre"

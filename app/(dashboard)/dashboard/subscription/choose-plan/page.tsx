@@ -105,7 +105,7 @@ export default async function ChoosePlanPage() {
             HEADER
             ======================================== */}
                 <div className="text-center space-y-4">
-                    <Button asChild variant="ghost" className="mb-4">
+                    <Button asChild variant="ghost" size="sm" className="-ml-2">
                         <Link href="/dashboard/subscription">
                             <ArrowLeft className="mr-2 h-4 w-4"/>
                             Retour à l&apos;abonnement

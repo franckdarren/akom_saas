@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { Package, AlertTriangle, Eye, Edit, TrendingUp } from 'lucide-react'
+import { Package, AlertTriangle, Eye, Edit, TrendingUp, MoreVertical } from 'lucide-react'
 
 import {
     Table,
@@ -129,7 +129,7 @@ export function WarehouseProductsTable({ products }: WarehouseProductsTableProps
                             <TableCell>
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="sm" className="h-9 w-9 p-0">⋮</Button>
+                                        <Button variant="ghost" size="icon-sm"><MoreVertical className="h-4 w-4"/></Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
                                         <DropdownMenuItem asChild>

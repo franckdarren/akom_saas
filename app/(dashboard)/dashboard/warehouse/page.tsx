@@ -150,7 +150,7 @@ export default async function WarehousePage({
                     title="Magasin de stockage"
                     description="Gérez votre stock d'entrepôt et réapprovisionnez votre restaurant"
                     action={
-                        <Button asChild size="lg" className="gap-2">
+                        <Button asChild className="gap-2">
                             <Link href="/dashboard/warehouse/products/new">
                                 <Plus className="h-4 w-4"/>
                                 Nouveau produit

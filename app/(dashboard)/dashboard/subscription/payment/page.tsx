@@ -127,7 +127,7 @@ export default async function PaymentPage({
 
             {/* HEADER */}
             <div className="space-y-4">
-                <Button asChild variant="ghost">
+                <Button asChild variant="ghost" size="sm" className="-ml-2">
                     <Link href="/dashboard/subscription/choose-plan">
                         <ArrowLeft className="mr-2 h-4 w-4"/>
                         Retour au choix du plan

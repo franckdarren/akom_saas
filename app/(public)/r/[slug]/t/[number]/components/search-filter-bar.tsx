@@ -40,16 +40,14 @@ export function SearchFilterBar({
                         className="pl-10 pr-10"
                     />
                     {searchQuery && (
-                        // <Button
-                        //     size="icon-sm"
-                        //     variant="ghost"
-                        //     className="absolute right-2 top-1/2 -translate-y-1/2"
-                        //     onClick={() => onSearchChange('')}
-                        // >
-                        // </Button>
-                        <div onClick={() => onSearchChange('')}>
-                            <X className="h-4 w-4 absolute right-2 top-1/2 -translate-y-1/2" />
-                        </div>
+                        <Button
+                            size="icon-sm"
+                            variant="ghost"
+                            className="absolute right-2 top-1/2 -translate-y-1/2"
+                            onClick={() => onSearchChange('')}
+                        >
+                            <X className="h-4 w-4" />
+                        </Button>
                     )}
                 </div>
 

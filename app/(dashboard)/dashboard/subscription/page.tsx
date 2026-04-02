@@ -192,7 +192,6 @@ export default async function SubscriptionPage() {
                                             : subscription.status === 'trial' ? 'secondary'
                                                 : 'destructive'
                                     }
-                                    className="text-sm px-3 py-1"
                                 >
                                     {subscription.status === 'trial' && "Période d'essai"}
                                     {subscription.status === 'active' && 'Actif'}
@@ -380,14 +379,14 @@ export default async function SubscriptionPage() {
                             <Separator/>
 
                             <div className="flex flex-col sm:flex-row gap-3">
-                                <Button asChild className="flex-1" size="lg">
+                                <Button asChild className="w-full sm:flex-1" size="lg">
                                     <Link href="/dashboard/subscription/choose-plan">
                                         {subscription.status === 'trial' ? 'Choisir mon plan' : 'Changer de plan'}
                                         <ArrowRight className="ml-2 h-4 w-4"/>
                                     </Link>
                                 </Button>
                                 {subscription.status === 'active' && (
-                                    <Button asChild variant="outline" className="flex-1" size="lg">
+                                    <Button asChild variant="outline" className="w-full sm:flex-1" size="lg">
                                         <Link href="/dashboard/subscription/choose-plan">
                                             Renouveler maintenant
                                         </Link>
