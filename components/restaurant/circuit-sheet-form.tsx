@@ -3,7 +3,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { AppCard, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/app-card'
 import { Button } from '@/components/ui/button'
 import { LoadingButton } from '@/components/ui/loading-button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -146,7 +146,7 @@ export function CircuitSheetForm({
     // ============================================================
 
     return (
-        <Card>
+        <AppCard variant="flat">
             <CardHeader>
                 <div className="flex items-center justify-between">
                     <div>
@@ -172,7 +172,7 @@ export function CircuitSheetForm({
                 </div>
             </CardHeader>
 
-            <CardContent className="space-y-6">
+            <CardContent className="layout-form">
 
                 {/* Statut validé */}
                 {isValidated && (
@@ -321,6 +321,6 @@ export function CircuitSheetForm({
                     </div>
                 )}
             </CardContent>
-        </Card>
+        </AppCard>
     )
 }

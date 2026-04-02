@@ -8,7 +8,7 @@ import {
     Clock, ArrowUpDown, TrendingDown,
 } from 'lucide-react'
 import {toast} from 'sonner'
-import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
+import {AppCard, CardContent, CardHeader, CardTitle} from '@/components/ui/app-card'
 import {Button} from '@/components/ui/button'
 import {Badge} from '@/components/ui/badge'
 import {Input} from '@/components/ui/input'
@@ -265,7 +265,7 @@ export function HistoryCalendar({
       ══════════════════════════════════════ */}
             {view === 'calendar' && (
                 <div className="space-y-4">
-                    <Card>
+                    <AppCard>
                         <CardHeader className="pb-3">
                             <div className="flex items-center justify-between">
                                 <Button variant="ghost" size="icon" onClick={() => {
@@ -372,11 +372,11 @@ export function HistoryCalendar({
                 </span>
                             </div>
                         </CardContent>
-                    </Card>
+                    </AppCard>
 
                     {/* Résumé du mois */}
                     {monthSessions.length > 0 && (
-                        <Card>
+                        <AppCard>
                             <CardContent className="pt-5">
                                 <div className="grid grid-cols-3 gap-4 text-center divide-x">
                                     <div>
@@ -395,7 +395,7 @@ export function HistoryCalendar({
                                     </div>
                                 </div>
                             </CardContent>
-                        </Card>
+                        </AppCard>
                     )}
                 </div>
             )}
@@ -406,7 +406,7 @@ export function HistoryCalendar({
             {view === 'table' && (
                 <div className="space-y-3">
                     {/* Barre de filtres */}
-                    <Card>
+                    <AppCard>
                         <CardContent className="pt-4 pb-4 space-y-3">
                             <div className="flex flex-col sm:flex-row gap-3">
                                 <div className="relative flex-1">
@@ -471,10 +471,10 @@ export function HistoryCalendar({
                                 )}
                             </div>
                         </CardContent>
-                    </Card>
+                    </AppCard>
 
                     {/* Tableau */}
-                    <Card>
+                    <AppCard>
                         <CardContent className="p-0">
                             <Table>
                                 <TableHeader>
@@ -634,7 +634,7 @@ export function HistoryCalendar({
                                 </TableBody>
                             </Table>
                         </CardContent>
-                    </Card>
+                    </AppCard>
                 </div>
             )}
         </div>

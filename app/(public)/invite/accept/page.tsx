@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { acceptInvitation } from '@/lib/actions/invitation'
 import prisma from '@/lib/prisma'
 import { InvitationAcceptForm } from '@/components/invite/InvitationAcceptForm'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { AppCard, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/app-card'
 import { Badge } from '@/components/ui/badge'
 import { Building2, Shield, AlertCircle, CheckCircle2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -49,7 +49,7 @@ async function AcceptInvitationContent({ token }: { token: string }) {
     if (!invitation) {
         return (
             <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background via-background to-muted">
-                <Card className="w-full max-w-md">
+                <AppCard className="w-full max-w-md">
                     <CardHeader>
                         <div className="flex items-center gap-2 text-destructive mb-2">
                             <AlertCircle className="h-5 w-5" />
@@ -59,7 +59,7 @@ async function AcceptInvitationContent({ token }: { token: string }) {
                             Ce lien d'invitation n'est pas valide ou a expiré.
                         </CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4">
+                    <CardContent className="layout-card-body">
                         <p className="text-sm text-muted-foreground">
                             Vérifiez que vous avez utilisé le bon lien ou demandez à
                             l'administrateur de votre restaurant de vous renvoyer une invitation.
@@ -68,7 +68,7 @@ async function AcceptInvitationContent({ token }: { token: string }) {
                             <Link href="/login">Aller à la connexion</Link>
                         </Button>
                     </CardContent>
-                </Card>
+                </AppCard>
             </div>
         )
     }
@@ -97,7 +97,7 @@ async function AcceptInvitationContent({ token }: { token: string }) {
 
         return (
             <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background via-background to-muted">
-                <Card className="w-full max-w-md">
+                <AppCard className="w-full max-w-md">
                     <CardHeader>
                         <div className="flex items-center gap-2 mb-2">
                             {info.icon}
@@ -110,7 +110,7 @@ async function AcceptInvitationContent({ token }: { token: string }) {
                             <Link href="/login">Aller à la connexion</Link>
                         </Button>
                     </CardContent>
-                </Card>
+                </AppCard>
             </div>
         )
     }
@@ -125,7 +125,7 @@ async function AcceptInvitationContent({ token }: { token: string }) {
 
         return (
             <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background via-background to-muted">
-                <Card className="w-full max-w-md">
+                <AppCard className="w-full max-w-md">
                     <CardHeader>
                         <div className="flex items-center gap-2 text-orange-600 mb-2">
                             <AlertCircle className="h-5 w-5" />
@@ -140,7 +140,7 @@ async function AcceptInvitationContent({ token }: { token: string }) {
                             })}.
                         </CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4">
+                    <CardContent className="layout-card-body">
                         <p className="text-sm text-muted-foreground">
                             Pour rejoindre <strong>{invitation.restaurant.name}</strong>, demandez
                             à l'administrateur de vous renvoyer une nouvelle invitation.
@@ -149,7 +149,7 @@ async function AcceptInvitationContent({ token }: { token: string }) {
                             <Link href="/login">Aller à la connexion</Link>
                         </Button>
                     </CardContent>
-                </Card>
+                </AppCard>
             </div>
         )
     }
@@ -161,7 +161,7 @@ async function AcceptInvitationContent({ token }: { token: string }) {
         if (user.email?.toLowerCase() !== invitation.email) {
             return (
                 <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background via-background to-muted">
-                    <Card className="w-full max-w-md">
+                    <AppCard className="w-full max-w-md">
                         <CardHeader>
                             <div className="flex items-center gap-2 text-destructive mb-2">
                                 <AlertCircle className="h-5 w-5" />
@@ -171,7 +171,7 @@ async function AcceptInvitationContent({ token }: { token: string }) {
                                 Cette invitation est destinée à une autre adresse email
                             </CardDescription>
                         </CardHeader>
-                        <CardContent className="space-y-4">
+                        <CardContent className="layout-card-body">
                             <div className="bg-muted p-4 rounded-lg space-y-2">
                                 <div className="text-sm">
                                     <span className="text-muted-foreground">Invitation pour :</span>
@@ -195,7 +195,7 @@ async function AcceptInvitationContent({ token }: { token: string }) {
                                 </Button>
                             </div>
                         </CardContent>
-                    </Card>
+                    </AppCard>
                 </div>
             )
         }
@@ -211,7 +211,7 @@ async function AcceptInvitationContent({ token }: { token: string }) {
             // Erreur lors de l'acceptation
             return (
                 <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background via-background to-muted">
-                    <Card className="w-full max-w-md">
+                    <AppCard className="w-full max-w-md">
                         <CardHeader>
                             <div className="flex items-center gap-2 text-destructive mb-2">
                                 <AlertCircle className="h-5 w-5" />
@@ -219,7 +219,7 @@ async function AcceptInvitationContent({ token }: { token: string }) {
                             </div>
                             <CardDescription>{result.message}</CardDescription>
                         </CardHeader>
-                        <CardContent className="space-y-4">
+                        <CardContent className="layout-card-body">
                             {result.error && (
                                 <p className="text-sm text-muted-foreground">
                                     {result.error}
@@ -229,7 +229,7 @@ async function AcceptInvitationContent({ token }: { token: string }) {
                                 <Link href="/dashboard">Aller au dashboard</Link>
                             </Button>
                         </CardContent>
-                    </Card>
+                    </AppCard>
                 </div>
             )
         }
@@ -240,7 +240,7 @@ async function AcceptInvitationContent({ token }: { token: string }) {
     // Cas 6 : Afficher le formulaire de connexion/inscription
     return (
         <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background via-background to-muted">
-            <Card className="w-full max-w-lg">
+            <AppCard className="w-full max-w-lg">
                 <CardHeader className="space-y-4">
                     {/* En-tête avec informations sur l'invitation */}
                     <div className="flex items-start gap-4">
@@ -286,7 +286,7 @@ async function AcceptInvitationContent({ token }: { token: string }) {
                         restaurantName={invitation.restaurant.name}
                     />
                 </CardContent>
-            </Card>
+            </AppCard>
         </div>
     )
 }

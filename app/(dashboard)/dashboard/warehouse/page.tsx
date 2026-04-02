@@ -5,7 +5,7 @@ import Link from 'next/link'
 import {Package, Plus, TrendingDown, AlertTriangle} from 'lucide-react'
 
 import {Button} from '@/components/ui/button'
-import {Card} from '@/components/ui/card'
+import {AppCard, CardContent} from '@/components/ui/app-card'
 import {WarehouseStatsCards} from '@/components/warehouse/WarehouseStatsCards'
 import {WarehouseProductsTable} from '@/components/warehouse/WarehouseProductsTable'
 import {WarehouseFilters} from '@/components/warehouse/WarehouseFilters'
@@ -163,8 +163,8 @@ export default async function WarehousePage({
                     <WarehouseStatsCards stats={stats}/>
                 </Suspense>
 
-                <Card className="p-6">
-                    <div className="space-y-6">
+                <AppCard>
+                    <CardContent className="layout-card-body">
                         <WarehouseFilters/>
 
                         {stats && stats.lowStockCount > 0 && (
@@ -189,11 +189,11 @@ export default async function WarehousePage({
                         <Suspense fallback={<TableSkeleton/>}>
                             <WarehouseProductsTable products={products}/>
                         </Suspense>
-                    </div>
-                </Card>
+                    </CardContent>
+                </AppCard>
 
                 <div className="grid gap-4 md:grid-cols-2">
-                    <Card className="p-6 hover:shadow-md transition-shadow cursor-pointer">
+                    <AppCard variant="stat">
                         <Link href="/dashboard/warehouse/movements" className="block">
                             <div className="flex items-start gap-4">
                                 <div className="p-3 rounded-lg bg-blue-100 dark:bg-blue-900/20">
@@ -207,9 +207,9 @@ export default async function WarehousePage({
                                 </div>
                             </div>
                         </Link>
-                    </Card>
+                    </AppCard>
 
-                    <Card className="p-6 hover:shadow-md transition-shadow cursor-pointer">
+                    <AppCard variant="stat">
                         <Link href="/dashboard/warehouse/transfers" className="block">
                             <div className="flex items-start gap-4">
                                 <div className="p-3 rounded-lg bg-green-100 dark:bg-green-900/20">
@@ -223,7 +223,7 @@ export default async function WarehousePage({
                                 </div>
                             </div>
                         </Link>
-                    </Card>
+                    </AppCard>
                 </div>
             </div>
         </FeatureGuard>
@@ -235,12 +235,12 @@ function StatsCardsSkeleton() {
     return (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             {[...Array(4)].map((_, i) => (
-                <Card key={i} className="p-6">
+                <AppCard key={i} className="p-6">
                     <div className="animate-pulse space-y-3">
                         <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"/>
                         <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/2"/>
                     </div>
-                </Card>
+                </AppCard>
             ))}
         </div>
     )

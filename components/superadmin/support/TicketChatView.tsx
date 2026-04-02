@@ -5,7 +5,7 @@ import {Send, AlertCircle} from 'lucide-react'
 import {Button} from '@/components/ui/button'
 import {LoadingButton} from '@/components/ui/loading-button'
 import {Textarea} from '@/components/ui/textarea'
-import {Card} from '@/components/ui/card'
+import {AppCard} from '@/components/ui/app-card'
 import {Alert, AlertDescription} from '@/components/ui/alert'
 import {sendAdminMessage, getTicketMessages} from '@/lib/actions/support'
 import {toast} from 'sonner'
@@ -161,7 +161,7 @@ export function TicketChatView({
 
             {/* Conversation */}
             <div className="lg:col-span-2 flex flex-col">
-                <Card className="flex-1 flex flex-col overflow-hidden">
+                <AppCard className="flex-1 flex flex-col overflow-hidden">
 
                     {/* Header */}
                     <div className="p-4 border-b bg-muted/40">
@@ -236,7 +236,7 @@ export function TicketChatView({
                         </p>
                     </form>
 
-                </Card>
+                </AppCard>
             </div>
 
             {/* Sidebar */}

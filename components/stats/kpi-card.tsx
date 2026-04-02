@@ -1,6 +1,6 @@
 'use client'
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { AppCard, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/app-card'
 import { ArrowDown, ArrowUp, TrendingUp } from 'lucide-react'
 import { formatPrice } from '@/lib/utils/format'
 
@@ -26,7 +26,7 @@ export function KpiCard({ title, value, description, trend, icon, format = 'text
                 : value
 
     return (
-        <Card>
+        <AppCard variant="stat">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">{title}</CardTitle>
                 {icon}
@@ -50,6 +50,6 @@ export function KpiCard({ title, value, description, trend, icon, format = 'text
                     <p className="text-xs text-muted-foreground mt-1">{description}</p>
                 )}
             </CardContent>
-        </Card>
+        </AppCard>
     )
 }

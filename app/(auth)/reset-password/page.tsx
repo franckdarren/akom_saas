@@ -99,7 +99,7 @@ export default function ResetPasswordPage() {
     return (
         <div>
             <h2 className="text-2xl font-bold mb-2">Nouveau mot de passe</h2>
-            <p className="text-sm text-zinc-600 mb-6">Choisissez un nouveau mot de passe</p>
+            <p className="text-sm text-muted-foreground mb-6">Choisissez un nouveau mot de passe</p>
 
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
@@ -123,7 +123,7 @@ export default function ResetPasswordPage() {
                             {showPassword ? <EyeOff className="h-4 w-4"/> : <Eye className="h-4 w-4"/>}
                         </button>
                     </div>
-                    <p className="text-xs text-zinc-500 mt-1">Minimum 6 caractères</p>
+                    <p className="text-xs text-muted-foreground mt-1">Minimum 6 caractères</p>
                 </div>
 
                 <div>

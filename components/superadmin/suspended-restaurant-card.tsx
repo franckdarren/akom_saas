@@ -2,7 +2,7 @@
 
 import {useState} from 'react'
 import {useRouter} from 'next/navigation'
-import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
+import {AppCard, CardContent, CardHeader, CardTitle} from '@/components/ui/app-card'
 import {Button} from '@/components/ui/button'
 import {Badge} from '@/components/ui/badge'
 import {Label} from '@/components/ui/label'
@@ -83,7 +83,7 @@ export function SuspendedRestaurantCard({restaurant, suspensionReason}: Suspende
     }
 
     return (
-        <Card className="overflow-hidden border-destructive">
+        <AppCard className="overflow-hidden border-destructive">
             <CardHeader className="bg-destructive/50">
                 <div className="flex items-start justify-between">
                     <div>
@@ -267,6 +267,6 @@ export function SuspendedRestaurantCard({restaurant, suspensionReason}: Suspende
                     </AlertDialog>
                 </div>
             </CardContent>
-        </Card>
+        </AppCard>
     )
 }

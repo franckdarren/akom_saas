@@ -5,12 +5,12 @@ import { formatDate, formatNumber, formatPrice } from '@/lib/utils/format'
 import { getRoleBadge } from '@/lib/utils/permissions'
 import { SystemRole } from '@/types/auth'
 import {
-    Card,
+    AppCard,
     CardContent,
     CardDescription,
     CardHeader,
     CardTitle,
-} from '@/components/ui/card'
+} from '@/components/ui/app-card'
 import {
     Table,
     TableBody,
@@ -59,7 +59,7 @@ export default function RestaurantDetailsClient({ restaurant }: Props) {
             </div>
 
             {/* Infos générales */}
-            <Card>
+            <AppCard>
                 <CardHeader>
                     <CardTitle>Informations</CardTitle>
                 </CardHeader>
@@ -79,7 +79,7 @@ export default function RestaurantDetailsClient({ restaurant }: Props) {
                         {formatDate(new Date(restaurant.createdAt))}
                     </Info>
                 </CardContent>
-            </Card>
+            </AppCard>
 
             {/* Statistiques */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -87,30 +87,30 @@ export default function RestaurantDetailsClient({ restaurant }: Props) {
                     title="Commandes Total"
                     value={formatNumber(restaurant.stats.totalOrders)}
                     sub={`${restaurant.stats.ordersThisMonth} ce mois`}
-                    icon={<ShoppingCart className="h-4 w-4 text-zinc-500" />}
+                    icon={<ShoppingCart className="h-4 w-4 text-muted-foreground" />}
                 />
 
                 <StatCard
                     title="Revenu Total"
                     value={formatPrice(restaurant.stats.totalRevenue)}
-                    icon={<TrendingUp className="h-4 w-4 text-zinc-500" />}
+                    icon={<TrendingUp className="h-4 w-4 text-muted-foreground" />}
                 />
 
                 <StatCard
                     title="Produits"
                     value={formatNumber(restaurant._count.products)}
-                    icon={<Building2 className="h-4 w-4 text-zinc-500" />}
+                    icon={<Building2 className="h-4 w-4 text-muted-foreground" />}
                 />
 
                 <StatCard
                     title="Tables"
                     value={formatNumber(restaurant._count.tables)}
-                    icon={<Building2 className="h-4 w-4 text-zinc-500" />}
+                    icon={<Building2 className="h-4 w-4 text-muted-foreground" />}
                 />
             </div>
 
             {/* Utilisateurs */}
-            <Card>
+            <AppCard>
                 <CardHeader>
                     <CardTitle>Utilisateurs</CardTitle>
                     <CardDescription>
@@ -133,7 +133,7 @@ export default function RestaurantDetailsClient({ restaurant }: Props) {
                                 <TableRow>
                                     <TableCell
                                         colSpan={3}
-                                        className="text-center text-zinc-600"
+                                        className="text-center text-muted-foreground"
                                     >
                                         Aucun utilisateur
                                     </TableCell>
@@ -154,7 +154,7 @@ export default function RestaurantDetailsClient({ restaurant }: Props) {
                                                     {roleBadge.label}
                                                 </Badge>
                                             </TableCell>
-                                            <TableCell className="text-zinc-600">
+                                            <TableCell className="text-muted-foreground">
                                                 {formatDate(user.createdAt)}
                                             </TableCell>
                                         </TableRow>
@@ -164,7 +164,7 @@ export default function RestaurantDetailsClient({ restaurant }: Props) {
                         </TableBody>
                     </Table>
                 </CardContent>
-            </Card>
+            </AppCard>
         </div>
     )
 }
@@ -182,7 +182,7 @@ function Info({
 }) {
     return (
         <div>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">{label}</p>
+            <p className="text-sm text-muted-foreground">{label}</p>
             <div className="font-medium">{children}</div>
         </div>
     )
@@ -200,7 +200,7 @@ function StatCard({
     icon: React.ReactNode
 }) {
     return (
-        <Card>
+        <AppCard>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium">{title}</CardTitle>
                 {icon}
@@ -208,11 +208,11 @@ function StatCard({
             <CardContent>
                 <div className="text-2xl font-bold">{value}</div>
                 {sub && (
-                    <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                    <p className="text-xs text-muted-foreground">
                         {sub}
                     </p>
                 )}
             </CardContent>
-        </Card>
+        </AppCard>
     )
 }

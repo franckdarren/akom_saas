@@ -3,7 +3,7 @@ import {Metadata} from 'next'
 import Image from 'next/image'
 import {Package, ArrowRight, ArrowLeftRight} from 'lucide-react'
 
-import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
+import {AppCard, CardContent, CardHeader, CardTitle} from '@/components/ui/app-card'
 import {
     Table,
     TableBody,
@@ -127,7 +127,7 @@ export default async function WarehouseTransfersPage() {
                 ) : (
                     <>
                         <div className="grid gap-4 md:grid-cols-2">
-                            <Card>
+                            <AppCard>
                                 <CardHeader className="pb-2">
                                     <CardTitle className="text-sm font-medium text-muted-foreground">
                                         Total des transferts
@@ -136,8 +136,8 @@ export default async function WarehouseTransfersPage() {
                                 <CardContent>
                                     <p className="text-2xl font-bold">{totalTransfers}</p>
                                 </CardContent>
-                            </Card>
-                            <Card>
+                            </AppCard>
+                            <AppCard>
                                 <CardHeader className="pb-2">
                                     <CardTitle className="text-sm font-medium text-muted-foreground">
                                         7 derniers jours
@@ -146,10 +146,10 @@ export default async function WarehouseTransfersPage() {
                                 <CardContent>
                                     <p className="text-2xl font-bold">{last7Days}</p>
                                 </CardContent>
-                            </Card>
+                            </AppCard>
                         </div>
 
-                        <Card>
+                        <AppCard>
                             <Table>
                                 <TableHeader>
                                     <TableRow>
@@ -214,7 +214,7 @@ export default async function WarehouseTransfersPage() {
                                     ))}
                                 </TableBody>
                             </Table>
-                        </Card>
+                        </AppCard>
                     </>
                 )}
             </div>

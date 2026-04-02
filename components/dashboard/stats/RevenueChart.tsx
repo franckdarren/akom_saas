@@ -1,7 +1,7 @@
 // components/dashboard/stats/RevenueChart.tsx
 'use client'
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { AppCard, CardContent, CardHeader, CardTitle } from '@/components/ui/app-card'
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import type { DailySales } from '@/types/stats'
 import { formatPrice } from '@/lib/utils/format'
@@ -21,7 +21,7 @@ export function RevenueChart({ data }: RevenueChartProps) {
     }))
 
     return (
-        <Card>
+        <AppCard>
             <CardHeader>
                 <CardTitle className="text-base font-semibold">
                     Évolution du chiffre d'affaires
@@ -29,7 +29,7 @@ export function RevenueChart({ data }: RevenueChartProps) {
             </CardHeader>
             <CardContent>
                 {data.length === 0 ? (
-                    <div className="flex h-64 items-center justify-center text-sm text-zinc-500">
+                    <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">
                         Aucune donnée disponible
                     </div>
                 ) : (
@@ -54,14 +54,14 @@ export function RevenueChart({ data }: RevenueChartProps) {
                                     if (!active || !payload?.length) return null
 
                                     return (
-                                        <div className="rounded-lg border bg-white p-3 shadow-lg dark:bg-zinc-900">
+                                        <div className="rounded-lg border bg-card p-3 shadow-sm">
                                             <p className="text-sm font-medium">
                                                 {payload[0].payload.date}
                                             </p>
-                                            <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">
+                                            <p className="mt-1 text-xs text-muted-foreground">
                                                 CA: {formatPrice(payload[0].value as number)}
                                             </p>
-                                            <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                                            <p className="text-xs text-muted-foreground">
                                                 {payload[0].payload.orders} commande(s)
                                             </p>
                                         </div>
@@ -79,6 +79,6 @@ export function RevenueChart({ data }: RevenueChartProps) {
                     </ResponsiveContainer>
                 )}
             </CardContent>
-        </Card>
+        </AppCard>
     )
 }

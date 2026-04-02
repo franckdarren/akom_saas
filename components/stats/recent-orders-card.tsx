@@ -1,6 +1,6 @@
 'use client'
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { AppCard, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/app-card'
 import { Badge } from '@/components/ui/badge'
 import { formatPrice } from '@/lib/utils/format'
 import { formatDistanceToNow } from 'date-fns'
@@ -22,7 +22,7 @@ const STATUS_CONFIG = {
 export function RecentOrdersCard({ data }: RecentOrdersCardProps) {
     if (data.length === 0) {
         return (
-            <Card>
+            <AppCard>
                 <CardHeader>
                     <CardTitle>Commandes récentes</CardTitle>
                     <CardDescription>Aucune commande enregistrée</CardDescription>
@@ -32,12 +32,12 @@ export function RecentOrdersCard({ data }: RecentOrdersCardProps) {
                         Les nouvelles commandes apparaîtront ici
                     </p>
                 </CardContent>
-            </Card>
+            </AppCard>
         )
     }
 
     return (
-        <Card>
+        <AppCard>
             <CardHeader>
                 <CardTitle>Commandes récentes</CardTitle>
                 <CardDescription>Dernières commandes enregistrées</CardDescription>
@@ -84,6 +84,6 @@ export function RecentOrdersCard({ data }: RecentOrdersCardProps) {
                     ))}
                 </div>
             </CardContent>
-        </Card>
+        </AppCard>
     )
 }

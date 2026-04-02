@@ -8,7 +8,7 @@ import {LoadingButton} from '@/components/ui/loading-button'
 import {Input} from '@/components/ui/input'
 import {Label} from '@/components/ui/label'
 import {Textarea} from '@/components/ui/textarea'
-import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
+import {AppCard, CardContent, CardHeader, CardTitle} from '@/components/ui/app-card'
 import {CoverImageUploader} from '@/components/dashboard/cover-image-uploader'
 import {ImageUploader} from '@/components/image-uploader'
 import {CatalogLinkSection} from '@/components/dashboard/catalog-link-section'
@@ -75,7 +75,7 @@ export function RestaurantSettingsForm({restaurant, labels}: RestaurantSettingsF
         <form onSubmit={handleSubmit} className="space-y-6">
 
             {/* Image de couverture */}
-            <Card>
+            <AppCard variant="flat">
                 <CardHeader>
                     {/* ← Label dynamique */}
                     <CardTitle>📸 {labels.coverImageLabel}</CardTitle>
@@ -88,10 +88,10 @@ export function RestaurantSettingsForm({restaurant, labels}: RestaurantSettingsF
                         disabled={isSubmitting}
                     />
                 </CardContent>
-            </Card>
+            </AppCard>
 
             {/* Informations générales */}
-            <Card>
+            <AppCard variant="flat">
                 <CardHeader>
                     <CardTitle>🏢 Informations générales</CardTitle>
                 </CardHeader>
@@ -133,7 +133,7 @@ export function RestaurantSettingsForm({restaurant, labels}: RestaurantSettingsF
                         />
                     </div>
                 </CardContent>
-            </Card>
+            </AppCard>
 
             {/* Lien catalogue public */}
             <CatalogLinkSection
@@ -142,7 +142,7 @@ export function RestaurantSettingsForm({restaurant, labels}: RestaurantSettingsF
             />
 
             {/* Logo */}
-            <Card>
+            <AppCard variant="flat">
                 <CardHeader>
                     {/* ← Label dynamique */}
                     <CardTitle>🎨 {labels.logoLabel} (optionnel)</CardTitle>
@@ -158,10 +158,10 @@ export function RestaurantSettingsForm({restaurant, labels}: RestaurantSettingsF
                         Le logo peut être utilisé dans les emails et documents
                     </p>
                 </CardContent>
-            </Card>
+            </AppCard>
 
             {/* Statut */}
-            <Card>
+            <AppCard variant="flat">
                 <CardHeader>
                     {/* ← Label dynamique */}
                     <CardTitle>⚙️ Statut {isActive ? 'actif' : 'inactif'} — {labels.structureNameCapital}</CardTitle>
@@ -186,7 +186,7 @@ export function RestaurantSettingsForm({restaurant, labels}: RestaurantSettingsF
                         </Label>
                     </div>
                 </CardContent>
-            </Card>
+            </AppCard>
 
             {/* Actions */}
             <div className="flex gap-3 justify-end">

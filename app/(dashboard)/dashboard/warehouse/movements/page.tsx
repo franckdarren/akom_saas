@@ -4,7 +4,7 @@ import {Suspense} from 'react'
 import {Download} from 'lucide-react'
 
 import {Button} from '@/components/ui/button'
-import {Card} from '@/components/ui/card'
+import {AppCard} from '@/components/ui/app-card'
 import {getCurrentUserAndRestaurant} from '@/lib/auth/session'
 import prisma from '@/lib/prisma'
 import {WarehouseMovementsTimeline} from '@/components/warehouse/WarehouseMovementsTimeline'
@@ -162,7 +162,7 @@ export default async function WarehouseMovementsPage({searchParams}: PageProps) 
                     </Suspense>
 
                     {/* Filtres et timeline */}
-                    <Card className="p-6 space-y-6">
+                    <AppCard>
                         <MovementsFilters products={products}/>
 
                         <div className="flex items-center justify-between text-sm text-muted-foreground">
@@ -180,7 +180,7 @@ export default async function WarehouseMovementsPage({searchParams}: PageProps) 
                         <Suspense fallback={<TimelineSkeleton/>}>
                             <WarehouseMovementsTimeline movements={movements}/>
                         </Suspense>
-                    </Card>
+                    </AppCard>
                 </div>
             </>
         </FeatureGuard>
@@ -192,12 +192,12 @@ function StatsCardsSkeleton() {
     return (
         <div className="grid gap-4 md:grid-cols-4">
             {[...Array(4)].map((_, i) => (
-                <Card key={i} className="p-6">
+                <AppCard key={i} className="p-6">
                     <div className="animate-pulse space-y-3">
                         <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"/>
                         <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/2"/>
                     </div>
-                </Card>
+                </AppCard>
             ))}
         </div>
     )

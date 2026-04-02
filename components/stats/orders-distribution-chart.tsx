@@ -1,6 +1,6 @@
 'use client'
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { AppCard, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/app-card'
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
 import type { OrdersStats } from '@/types/stats'
 
@@ -30,7 +30,7 @@ export function OrdersDistributionChart({ data }: OrdersDistributionChartProps) 
     const totalActive = data.pending + data.preparing + data.ready
 
     return (
-        <Card>
+        <AppCard>
             <CardHeader>
                 <CardTitle>Répartition des commandes</CardTitle>
                 <CardDescription>
@@ -94,6 +94,6 @@ export function OrdersDistributionChart({ data }: OrdersDistributionChartProps) 
                     </div>
                 </div>
             </CardContent>
-        </Card>
+        </AppCard>
     )
 }

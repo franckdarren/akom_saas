@@ -15,7 +15,7 @@ import {Separator} from "@/components/ui/separator"
 import {SidebarTrigger} from "@/components/ui/sidebar"
 import {Button} from "@/components/ui/button"
 import {Badge} from "@/components/ui/badge"
-import {Card, CardContent} from "@/components/ui/card"
+import {AppCard, CardContent} from "@/components/ui/app-card"
 import {Plus} from "lucide-react"
 import {ProductsList} from "./products-list"
 import {getUserRole} from "@/lib/actions/auth"
@@ -129,7 +129,7 @@ export default async function ProductsPage({
                 />
 
                 {productsQuota.limit !== "unlimited" && (
-                    <Card>
+                    <AppCard>
                         <CardContent className="layout-card-body">
                             <div className="flex items-center justify-between">
                                 <div>
@@ -173,7 +173,7 @@ export default async function ProductsPage({
                                 </div>
                             )}
                         </CardContent>
-                    </Card>
+                    </AppCard>
                 )}
 
                 <ProductsList products={products}/>

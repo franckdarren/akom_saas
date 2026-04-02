@@ -61,7 +61,7 @@ export default function UpdatePasswordPage() {
         return (
             <div>
                 <div className="mb-6">
-                    <h2 className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-zinc-50">
+                    <h2 className="text-xl sm:text-2xl font-bold text-foreground">
                         Mot de passe modifié
                     </h2>
                 </div>
@@ -82,10 +82,10 @@ export default function UpdatePasswordPage() {
     return (
         <div>
             <div className="mb-6">
-                <h2 className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-zinc-50">
+                <h2 className="text-xl sm:text-2xl font-bold text-foreground">
                     Modifier le mot de passe
                 </h2>
-                <p className="text-zinc-600 dark:text-zinc-400 mt-1">
+                <p className="text-muted-foreground mt-1">
                     Changez votre mot de passe actuel
                 </p>
             </div>
@@ -137,7 +137,7 @@ export default function UpdatePasswordPage() {
                             {showNewPassword ? <EyeOff className="h-4 w-4"/> : <Eye className="h-4 w-4"/>}
                         </button>
                     </div>
-                    <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                         Minimum 6 caractères
                     </p>
                 </div>

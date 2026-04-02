@@ -6,12 +6,12 @@ import Link from 'next/link'
 import {Calendar, CreditCard, AlertCircle} from 'lucide-react'
 import {Button} from '@/components/ui/button'
 import {
-    Card,
+    AppCard,
     CardContent,
     CardDescription,
     CardHeader,
     CardTitle,
-} from '@/components/ui/card'
+} from '@/components/ui/app-card'
 import {Alert, AlertDescription, AlertTitle} from '@/components/ui/alert'
 
 // Cette page est un Server Component
@@ -69,7 +69,7 @@ export default async function SubscriptionExpiredPage() {
                 </Alert>
 
                 {/* Carte d’abonnement */}
-                <Card>
+                <AppCard>
                     <CardHeader>
                         <CardTitle className="text-2xl">Renouveler {restaurantName}</CardTitle>
                         <CardDescription>
@@ -136,10 +136,10 @@ export default async function SubscriptionExpiredPage() {
                             </Button>
                         </div>
                     </CardContent>
-                </Card>
+                </AppCard>
 
                 {/* Note sécurité */}
-                <Card className="bg-blue-50 border-blue-200">
+                <AppCard className="bg-info-subtle border-info">
                     <CardContent>
                         <p className="text-sm text-blue-800">
                             <strong>💡 Vos données sont en sécurité</strong> : Toutes vos informations (menus, commandes,
@@ -147,7 +147,7 @@ export default async function SubscriptionExpiredPage() {
                             l'accès complet à votre compte.
                         </p>
                     </CardContent>
-                </Card>
+                </AppCard>
 
             </div>
         </div>

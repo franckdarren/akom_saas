@@ -2,12 +2,12 @@ import { getAllUsers } from '@/lib/actions/superadmin'
 import { formatDate, formatNumber } from '@/lib/utils/format'
 import { getRoleBadge } from '@/lib/utils/permissions'
 import {
-    Card,
+    AppCard,
     CardContent,
     CardDescription,
     CardHeader,
     CardTitle,
-} from '@/components/ui/card'
+} from '@/components/ui/app-card'
 import {
     Table,
     TableBody,
@@ -62,7 +62,7 @@ export default async function UsersManagementPage() {
                     action={<span className="text-sm text-muted-foreground">Total : {formatNumber(users.length)}</span>}
                 />
                 {/* Table */}
-                <Card>
+                <AppCard>
                     <CardHeader>
                         <CardTitle>Liste complète</CardTitle>
                         <CardDescription>
@@ -84,7 +84,7 @@ export default async function UsersManagementPage() {
                                     <TableRow>
                                         <TableCell
                                             colSpan={4}
-                                            className="text-center text-zinc-600 dark:text-zinc-400"
+                                            className="text-center text-muted-foreground"
                                         >
                                             Aucun utilisateur
                                         </TableCell>
@@ -118,7 +118,7 @@ export default async function UsersManagementPage() {
                                                     }
                                                 </Badge>
                                             </TableCell>
-                                            <TableCell className="text-zinc-600 dark:text-zinc-400">
+                                            <TableCell className="text-muted-foreground">
                                                 {formatDate(user.createdAt)}
                                             </TableCell>
                                         </TableRow>
@@ -127,7 +127,7 @@ export default async function UsersManagementPage() {
                             </TableBody>
                         </Table>
                     </CardContent>
-                </Card>
+                </AppCard>
             </div>
 
 

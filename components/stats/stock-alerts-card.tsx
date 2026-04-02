@@ -1,6 +1,6 @@
 'use client'
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { AppCard, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/app-card'
 import { Badge } from '@/components/ui/badge'
 import { AlertTriangle } from 'lucide-react'
 import type { StockAlert } from '@/types/stats'
@@ -12,7 +12,7 @@ interface StockAlertsCardProps {
 export function StockAlertsCard({ data }: StockAlertsCardProps) {
     if (data.length === 0) {
         return (
-            <Card>
+            <AppCard>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                         <AlertTriangle className="h-5 w-5 text-muted-foreground" />
@@ -25,12 +25,12 @@ export function StockAlertsCard({ data }: StockAlertsCardProps) {
                         ✅ Tous les stocks sont à niveau
                     </p>
                 </CardContent>
-            </Card>
+            </AppCard>
         )
     }
 
     return (
-        <Card className="border-orange-200 dark:border-orange-900">
+        <AppCard className="border-orange-200 dark:border-orange-900">
             <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-orange-600 dark:text-orange-400">
                     <AlertTriangle className="h-5 w-5" />
@@ -84,6 +84,6 @@ export function StockAlertsCard({ data }: StockAlertsCardProps) {
                     })}
                 </div>
             </CardContent>
-        </Card>
+        </AppCard>
     )
 }

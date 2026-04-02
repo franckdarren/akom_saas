@@ -6,12 +6,12 @@ import {
 } from '@/lib/actions/superadmin'
 
 import {
-    Card,
+    AppCard,
     CardContent,
     CardDescription,
     CardHeader,
     CardTitle,
-} from '@/components/ui/card'
+} from '@/components/ui/app-card'
 
 import {
     Table,
@@ -187,7 +187,7 @@ export default async function SuperAdminDashboard() {
                 </div>
 
                 {/* ================= ACTIVITÉ 7 JOURS ================= */}
-                <Card>
+                <AppCard>
                     <CardHeader>
                         <CardTitle>Activité des 7 derniers jours</CardTitle>
                         <CardDescription>Commandes et revenus journaliers</CardDescription>
@@ -199,7 +199,7 @@ export default async function SuperAdminDashboard() {
                                     key={day.date}
                                     className="flex items-center justify-between py-2 border-b last:border-0"
                                 >
-                  <span className="text-sm text-zinc-600 dark:text-zinc-400">
+                  <span className="text-sm text-muted-foreground">
                     {new Date(day.date).toLocaleDateString('fr-FR', {
                         weekday: 'short',
                         day: 'numeric',
@@ -219,10 +219,10 @@ export default async function SuperAdminDashboard() {
                             ))}
                         </div>
                     </CardContent>
-                </Card>
+                </AppCard>
 
                 {/* ================= TOP RESTAURANTS ================= */}
-                <Card>
+                <AppCard>
                     <CardHeader>
                         <CardTitle>Top 5 Restaurants</CardTitle>
                         <CardDescription>Classés par nombre de commandes</CardDescription>
@@ -250,7 +250,7 @@ export default async function SuperAdminDashboard() {
                                             </Link>
                                         </TableCell>
 
-                                        <TableCell className="text-zinc-600 dark:text-zinc-400">
+                                        <TableCell className="text-muted-foreground">
                                             {restaurant.slug}
                                         </TableCell>
 
@@ -270,7 +270,7 @@ export default async function SuperAdminDashboard() {
                             </TableBody>
                         </Table>
                     </CardContent>
-                </Card>
+                </AppCard>
             </div>
         </>
     )
@@ -290,21 +290,21 @@ function StatCard({
     icon: React.ReactNode
 }) {
     return (
-        <Card>
+        <AppCard variant="stat">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium">{title}</CardTitle>
-                <div className="h-4 w-4 text-zinc-600">{icon}</div>
+                <div className="h-4 w-4 text-muted-foreground">{icon}</div>
             </CardHeader>
             <CardContent>
                 <div className="text-2xl font-bold">
                     {typeof value === 'number' ? formatNumber(value) : value}
                 </div>
                 {subtitle && (
-                    <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                         {subtitle}
                     </p>
                 )}
             </CardContent>
-        </Card>
+        </AppCard>
     )
 }

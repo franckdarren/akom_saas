@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 export default function CookiesPage() {
     return (
         <div className="min-h-screen bg-muted/30 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-3xl mx-auto bg-card rounded-lg shadow-sm p-8">
+            <div className="max-w-3xl mx-auto bg-card rounded-xl border shadow-sm p-8">
                 {/* En-tête */}
                 <div className="border-b pb-6 mb-8">
                     <h1 className="text-3xl font-bold text-foreground mb-2">

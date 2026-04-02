@@ -4,12 +4,12 @@
 import {useState, useMemo} from 'react'
 import {useRouter} from 'next/navigation'
 import {
-    Card,
+    AppCard,
     CardContent,
     CardDescription,
     CardHeader,
     CardTitle,
-} from '@/components/ui/card'
+} from '@/components/ui/app-card'
 import {Button} from '@/components/ui/button'
 import {
     Select,
@@ -141,7 +141,8 @@ export function PlanCard({
     }
 
     return (
-        <Card
+        <AppCard
+            variant="pricing"
             className={cn(
                 'relative transition-all duration-200 hover:border-primary/50 hover:shadow-md',
                 recommended && 'border-primary shadow-lg sm:scale-105 hover:border-primary/50 hover:shadow-md',
@@ -335,6 +336,6 @@ export function PlanCard({
                     </p>
                 )}
             </CardContent>
-        </Card>
+        </AppCard>
     )
 }

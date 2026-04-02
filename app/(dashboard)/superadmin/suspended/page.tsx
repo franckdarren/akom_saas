@@ -2,7 +2,7 @@
 import { getSuperadminUser } from '@/lib/auth/superadmin'
 import { redirect } from 'next/navigation'
 import { getSuspendedRestaurants } from '@/lib/actions/superadmin/restaurant-verification'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { AppCard, CardContent, CardHeader, CardTitle } from '@/components/ui/app-card'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { InfoIcon, AlertTriangle } from 'lucide-react'
@@ -84,7 +84,7 @@ export default async function SuspendedRestaurantsPage() {
 
       {/* Statistiques rapides */}
       <div className="grid gap-4 md:grid-cols-3">
-        <Card>
+        <AppCard>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Total suspendus
@@ -95,9 +95,9 @@ export default async function SuspendedRestaurantsPage() {
               {restaurants.length}
             </div>
           </CardContent>
-        </Card>
+        </AppCard>
 
-        <Card>
+        <AppCard>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Fiche circuit manquante
@@ -108,9 +108,9 @@ export default async function SuspendedRestaurantsPage() {
               {suspendedForCircuitSheet.length}
             </div>
           </CardContent>
-        </Card>
+        </AppCard>
 
-        <Card>
+        <AppCard>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Autres raisons
@@ -121,7 +121,7 @@ export default async function SuspendedRestaurantsPage() {
               {otherSuspended.length}
             </div>
           </CardContent>
-        </Card>
+        </AppCard>
       </div>
 
       {/* Section : Suspendus pour fiche circuit */}
@@ -175,13 +175,13 @@ export default async function SuspendedRestaurantsPage() {
 
       {/* Message si aucun restaurant suspendu */}
       {restaurants.length === 0 && (
-        <Card>
-          <CardContent className="text-center py-12">
+        <AppCard>
+          <CardContent className="layout-empty-state">
             <p className="text-muted-foreground">
               Aucun restaurant suspendu pour le moment. 🎉
             </p>
           </CardContent>
-        </Card>
+        </AppCard>
       )}
       </div>
     </>

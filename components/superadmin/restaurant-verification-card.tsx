@@ -2,7 +2,7 @@
 
 import {useState} from 'react'
 import {useRouter} from 'next/navigation'
-import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
+import {AppCard, CardContent, CardHeader, CardTitle} from '@/components/ui/app-card'
 import {Button} from '@/components/ui/button'
 import {LoadingButton} from '@/components/ui/loading-button'
 import {Badge} from '@/components/ui/badge'
@@ -121,7 +121,7 @@ export function RestaurantVerificationCard({
     }
 
     return (
-        <Card>
+        <AppCard>
             <CardHeader className="">
                 <div className="flex items-center justify-between pb-3">
                     <div>
@@ -392,6 +392,6 @@ export function RestaurantVerificationCard({
                     </div>
                 )}
             </CardContent>
-        </Card>
+        </AppCard>
     )
 }

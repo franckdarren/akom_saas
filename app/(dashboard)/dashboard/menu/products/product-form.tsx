@@ -3,7 +3,7 @@
 
 import {useState, useEffect, useMemo} from 'react'
 import {useRouter} from 'next/navigation'
-import {Card, CardContent} from '@/components/ui/card'
+import {AppCard, CardContent} from '@/components/ui/app-card'
 import {Button} from '@/components/ui/button'
 import {LoadingButton} from '@/components/ui/loading-button'
 import {Input} from '@/components/ui/input'
@@ -154,8 +154,8 @@ export function ProductForm({categories, families, product, labels}: ProductForm
     }
 
     return (
-        <Card>
-            <CardContent className="p-6">
+        <AppCard variant="flat">
+            <CardContent className="layout-form">
                 <form onSubmit={handleSubmit} className="space-y-6">
 
                     {/* ========== TYPE ========== */}
@@ -412,6 +412,6 @@ export function ProductForm({categories, families, product, labels}: ProductForm
                     </div>
                 </form>
             </CardContent>
-        </Card>
+        </AppCard>
     )
 }

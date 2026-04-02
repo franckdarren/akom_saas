@@ -7,11 +7,11 @@ import {
     BookOpen,
 } from 'lucide-react'
 import {
-    Card,
+    AppCard,
     CardContent,
     CardHeader,
     CardTitle,
-} from '@/components/ui/card'
+} from '@/components/ui/app-card'
 import {Badge} from '@/components/ui/badge'
 import {Separator} from '@/components/ui/separator'
 import {cn} from '@/lib/utils'
@@ -74,7 +74,7 @@ export function FinancialOverview({
     ]
 
     return (
-        <Card>
+        <AppCard>
             <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                     <CardTitle className="text-base">{title}</CardTitle>
@@ -171,6 +171,6 @@ export function FinancialOverview({
                     </>
                 )}
             </CardContent>
-        </Card>
+        </AppCard>
     )
 }

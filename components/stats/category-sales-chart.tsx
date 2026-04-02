@@ -1,12 +1,12 @@
 'use client'
 
 import {
-    Card,
+    AppCard,
     CardContent,
     CardDescription,
     CardHeader,
     CardTitle,
-} from '@/components/ui/card'
+} from '@/components/ui/app-card'
 import {
     Cell,
     Pie,
@@ -66,7 +66,7 @@ export function CategorySalesChart({ data }: CategorySalesChartProps) {
     }
 
     return (
-        <Card>
+        <AppCard>
             <CardHeader>
                 <CardTitle>Ventes par catégorie</CardTitle>
                 <CardDescription>
@@ -129,6 +129,6 @@ export function CategorySalesChart({ data }: CategorySalesChartProps) {
                     </PieChart>
                 </ResponsiveContainer>
             </CardContent>
-        </Card>
+        </AppCard>
     )
 }

@@ -163,6 +163,36 @@ Interdit : `bg-blue-500`, `text-red-600`, couleurs hex inline, etc.
 
 **Exception emails** : les templates HTML email ne supportent pas les variables CSS. Utiliser les constantes de `lib/email/colors.ts` (`emailColors.primary`, `emailColors.destructive`, etc.).
 
+## Design system — cards
+
+Le composant `AppCard` (`components/ui/app-card.tsx`) wrappe le `Card` shadcn/ui avec des variantes semantiques. **Toujours utiliser `AppCard` — ne jamais importer `Card` depuis `components/ui/card.tsx` directement.**
+
+| Variante | Usage |
+|---|---|
+| `default` | Blocs de contenu dashboard, tableaux encadres, graphiques |
+| `flat` | Sections de formulaire, cards dans modales, cards imbriquees |
+| `stat` | Cards KPI / metriques (shadow-none + hover:shadow-sm) |
+| `pricing` | Cards abonnement (border-2, shadow-none) |
+
+**Table de decision CardContent className :**
+
+| Contexte | className |
+|---|---|
+| Contenu interne standard | `layout-card-body` |
+| Formulaire | `layout-form` |
+| Etat vide (liste vide) | `layout-empty-state` |
+
+**Interdits absolus :**
+- `<Card>` direct — utiliser `<AppCard>` (importer depuis `@/components/ui/app-card`)
+- `<AppCard className="p-6">` — ne jamais mettre de padding sur AppCard, utiliser CardContent
+- `<CardContent className="p-6">` — px-6 est deja dans CardContent
+- `<CardContent className="p-12">` — utiliser `layout-empty-state`
+- `<CardContent className="text-center py-12">` — utiliser `layout-empty-state`
+- `<CardContent className="space-y-4">` — utiliser `layout-card-body`
+- `<CardContent className="space-y-6">` — utiliser `layout-form` ou `layout-card-body`
+- div card-like (`rounded-xl border bg-white p-6 shadow-sm`) — utiliser `<AppCard>`
+- `bg-white dark:bg-zinc-900` — utiliser `bg-card`
+
 ## Regles absolues
 
 - Toujours filtrer les requetes Prisma par `restaurantId`

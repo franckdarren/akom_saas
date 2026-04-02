@@ -10,7 +10,7 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { AppCard, CardDescription, CardHeader, CardTitle } from '@/components/ui/app-card'
 import { Badge } from '@/components/ui/badge'
 import { CreateRoleDialog } from './CreateRoleDialog'
 
@@ -43,7 +43,7 @@ export function RoleTemplateSelector({ open, onOpenChange }: RoleTemplateSelecto
                     {/* CONTENU SCROLLABLE */}
                     <div className="px-6 py-4 overflow-y-auto max-h-[calc(80vh-120px)] space-y-2">
                         {ROLE_TEMPLATES.map((template) => (
-                            <Card
+                            <AppCard
                                 key={template.id}
                                 onClick={() => select(template)}
                                 className="cursor-pointer hover:border-primary"
@@ -58,7 +58,7 @@ export function RoleTemplateSelector({ open, onOpenChange }: RoleTemplateSelecto
                                     </div>
                                     <Badge variant="secondary">{template.permissions.length}</Badge>
                                 </CardHeader>
-                            </Card>
+                            </AppCard>
                         ))}
 
                         <div className="pt-4">

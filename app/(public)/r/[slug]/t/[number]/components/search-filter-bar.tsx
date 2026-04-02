@@ -31,7 +31,7 @@ export function SearchFilterBar({
             <div className="max-w-3xl mx-auto px-4 py-3 space-y-3">
                 {/* Barre de recherche */}
                 <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                         type="search"
                         placeholder="Rechercher un produit..."

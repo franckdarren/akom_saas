@@ -2,7 +2,7 @@
 import { getSuperadminUser } from '@/lib/auth/superadmin'
 import { redirect } from 'next/navigation'
 import { getPendingCircuitSheets } from '@/lib/actions/superadmin/restaurant-verification'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { AppCard, CardContent, CardHeader, CardTitle } from '@/components/ui/app-card'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { InfoIcon, AlertTriangle } from 'lucide-react'
@@ -87,7 +87,7 @@ export default async function CircuitSheetsPage() {
 
                 {/* Statistiques rapides */}
                 <div className="grid gap-4 md:grid-cols-4">
-                    <Card>
+                    <AppCard>
                         <CardHeader className="pb-3">
                             <CardTitle className="text-sm font-medium text-muted-foreground">
                                 Total en attente
@@ -96,9 +96,9 @@ export default async function CircuitSheetsPage() {
                         <CardContent>
                             <div className="text-2xl font-bold">{circuitSheets.length}</div>
                         </CardContent>
-                    </Card>
+                    </AppCard>
 
-                    <Card>
+                    <AppCard>
                         <CardHeader className="pb-3">
                             <CardTitle className="text-sm font-medium text-muted-foreground">
                                 Échéance dépassée
@@ -109,9 +109,9 @@ export default async function CircuitSheetsPage() {
                                 {overdue.length}
                             </div>
                         </CardContent>
-                    </Card>
+                    </AppCard>
 
-                    <Card>
+                    <AppCard>
                         <CardHeader className="pb-3">
                             <CardTitle className="text-sm font-medium text-muted-foreground">
                                 Urgentes (&lt; 7 jours)
@@ -122,9 +122,9 @@ export default async function CircuitSheetsPage() {
                                 {urgent.length}
                             </div>
                         </CardContent>
-                    </Card>
+                    </AppCard>
 
-                    <Card>
+                    <AppCard>
                         <CardHeader className="pb-3">
                             <CardTitle className="text-sm font-medium text-muted-foreground">
                                 Dans les délais
@@ -135,7 +135,7 @@ export default async function CircuitSheetsPage() {
                                 {normal.length}
                             </div>
                         </CardContent>
-                    </Card>
+                    </AppCard>
                 </div>
 
                 {/* Section : Échéance dépassée (priorité maximale) */}
@@ -211,13 +211,13 @@ export default async function CircuitSheetsPage() {
 
                 {/* Message si aucune fiche */}
                 {circuitSheets.length === 0 && (
-                    <Card>
-                        <CardContent className="text-center py-12">
+                    <AppCard>
+                        <CardContent className="layout-empty-state">
                             <p className="text-muted-foreground">
                                 Aucune fiche circuit en attente de validation pour le moment.
                             </p>
                         </CardContent>
-                    </Card>
+                    </AppCard>
                 )}
             </div>
         </>

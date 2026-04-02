@@ -7,7 +7,7 @@ import {Button} from '@/components/ui/button'
 import {LoadingButton} from '@/components/ui/loading-button'
 import {Input} from '@/components/ui/input'
 import {Label} from '@/components/ui/label'
-import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card'
+import {AppCard, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/app-card'
 import {createRestaurant} from '@/lib/actions/restaurant'
 import {
     ACTIVITY_TYPE_OPTIONS,
@@ -51,7 +51,7 @@ export function CreateRestaurantForm() {
     }
 
     return (
-        <Card className="w-full max-w-lg mx-auto">
+        <AppCard variant="flat" className="w-full max-w-lg mx-auto">
             <CardHeader className="text-center">
                 <div className="text-4xl mb-2">{selectedActivity.emoji}</div>
                 <CardTitle className="text-xl">
@@ -165,6 +165,6 @@ export function CreateRestaurantForm() {
                     </LoadingButton>
                 </form>
             </CardContent>
-        </Card>
+        </AppCard>
     )
 }

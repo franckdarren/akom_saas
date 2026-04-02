@@ -1,7 +1,7 @@
 // components/dashboard/stats/StatsCard.tsx
 'use client'
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { AppCard, CardContent, CardHeader, CardTitle } from '@/components/ui/app-card'
 import { ArrowDown, ArrowUp, Minus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { type ReactNode } from 'react'
@@ -34,9 +34,9 @@ export function StatsCard({
     }
 
     return (
-        <Card>
+        <AppCard variant="stat">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
+                <CardTitle className="type-description">
                     {title}
                 </CardTitle>
                 <div
@@ -56,7 +56,7 @@ export function StatsCard({
                     {trend ? (
                         <>
                             {trend.value === 0 ? (
-                                <div className="flex items-center gap-1 text-zinc-500">
+                                <div className="flex items-center gap-1 text-muted-foreground">
                                     <Minus className="h-3 w-3" />
                                     <span>Aucune variation</span>
                                 </div>
@@ -79,17 +79,17 @@ export function StatsCard({
                                     </span>
                                 </div>
                             )}
-                            <span className="text-zinc-500 dark:text-zinc-400">
+                            <span className="text-muted-foreground">
                                 vs période précédente
                             </span>
                         </>
                     ) : description ? (
-                        <p className="text-zinc-600 dark:text-zinc-400">
+                        <p className="text-muted-foreground">
                             {description}
                         </p>
                     ) : null}
                 </div>
             </CardContent>
-        </Card>
+        </AppCard>
     )
 }

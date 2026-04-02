@@ -6,7 +6,7 @@
  * Juste après la section "URL menu QR par table"
  *
  * Dépendances déjà présentes dans le projet :
- * - shadcn/ui : Card, Button, Badge, Input
+ * - shadcn/ui : AppCard, Button, Badge, Input
  * - lucide-react : Copy, Check, ExternalLink, QrCode, Share2, Globe
  * - sonner : toast
  * - qrcode.react : QRCodeSVG (déjà utilisé dans qrcode-dialog.tsx)
@@ -28,12 +28,12 @@ import {Button} from '@/components/ui/button'
 import {Input} from '@/components/ui/input'
 import {Badge} from '@/components/ui/badge'
 import {
-    Card,
+    AppCard,
     CardContent,
     CardHeader,
     CardTitle,
     CardDescription,
-} from '@/components/ui/card'
+} from '@/components/ui/app-card'
 import {
     Dialog,
     DialogContent,
@@ -97,7 +97,7 @@ export function CatalogLinkSection({
 
     return (
         <>
-            <Card
+            <AppCard
                 className="border-2 border-dashed border-orange-200 bg-orange-50/30 dark:border-orange-900/40 dark:bg-orange-950/10">
                 <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
@@ -124,7 +124,7 @@ export function CatalogLinkSection({
                     </div>
                 </CardHeader>
 
-                <CardContent className="space-y-3">
+                <CardContent className="layout-card-body">
                     {/* URL + boutons */}
                     <div className="flex gap-2">
                         <Input
@@ -196,7 +196,7 @@ export function CatalogLinkSection({
                         dans vos statistiques.
                     </p>
                 </CardContent>
-            </Card>
+            </AppCard>
 
             {/* Dialog QR Code */}
             <Dialog open={showQR} onOpenChange={setShowQR}>

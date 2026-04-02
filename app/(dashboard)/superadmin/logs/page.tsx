@@ -1,12 +1,12 @@
 import { getLogs, getLogsStats } from '@/lib/actions/logs'
 import { formatDate } from '@/lib/utils/format'
 import {
-    Card,
+    AppCard,
     CardContent,
     CardDescription,
     CardHeader,
     CardTitle,
-} from '@/components/ui/card'
+} from '@/components/ui/app-card'
 import {
     Table,
     TableBody,
@@ -92,22 +92,22 @@ export default async function LogsPage() {
 
                 {/* Stats */}
                 <div className="grid gap-4 md:grid-cols-4">
-                    <Card>
+                    <AppCard variant="stat">
                         <CardHeader className="flex flex-row items-center justify-between pb-2">
                             <CardTitle className="text-sm font-medium">
                                 Total
                             </CardTitle>
-                            <Info className="h-4 w-4 text-zinc-600 dark:text-zinc-400" />
+                            <Info className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">{stats.total}</div>
-                            <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                            <p className="text-xs text-muted-foreground">
                                 {stats.last24hCount} dernières 24h
                             </p>
                         </CardContent>
-                    </Card>
+                    </AppCard>
 
-                    <Card>
+                    <AppCard variant="stat">
                         <CardHeader className="flex flex-row items-center justify-between pb-2">
                             <CardTitle className="text-sm font-medium">
                                 Warnings
@@ -119,9 +119,9 @@ export default async function LogsPage() {
                                 {stats.warnings}
                             </div>
                         </CardContent>
-                    </Card>
+                    </AppCard>
 
-                    <Card>
+                    <AppCard variant="stat">
                         <CardHeader className="flex flex-row items-center justify-between pb-2">
                             <CardTitle className="text-sm font-medium">
                                 Erreurs
@@ -131,9 +131,9 @@ export default async function LogsPage() {
                         <CardContent>
                             <div className="text-2xl font-bold">{stats.errors}</div>
                         </CardContent>
-                    </Card>
+                    </AppCard>
 
-                    <Card>
+                    <AppCard variant="stat">
                         <CardHeader className="flex flex-row items-center justify-between pb-2">
                             <CardTitle className="text-sm font-medium">
                                 Critiques
@@ -145,11 +145,11 @@ export default async function LogsPage() {
                                 {stats.criticals}
                             </div>
                         </CardContent>
-                    </Card>
+                    </AppCard>
                 </div>
 
                 {/* Liste des logs */}
-                <Card>
+                <AppCard>
                     <CardHeader>
                         <CardTitle>Derniers événements</CardTitle>
                         <CardDescription>
@@ -172,7 +172,7 @@ export default async function LogsPage() {
                                     <TableRow>
                                         <TableCell
                                             colSpan={5}
-                                            className="text-center text-zinc-600 dark:text-zinc-400"
+                                            className="text-center text-muted-foreground"
                                         >
                                             Aucun log
                                         </TableCell>
@@ -184,7 +184,7 @@ export default async function LogsPage() {
 
                                         return (
                                             <TableRow key={log.id}>
-                                                <TableCell className="text-sm text-zinc-600 dark:text-zinc-400">
+                                                <TableCell className="text-sm text-muted-foreground">
                                                     {formatDate(log.createdAt)}
                                                 </TableCell>
                                                 <TableCell>
@@ -202,7 +202,7 @@ export default async function LogsPage() {
                                                 <TableCell>
                                                     {log.message}
                                                 </TableCell>
-                                                <TableCell className="font-mono text-xs text-zinc-600 dark:text-zinc-400">
+                                                <TableCell className="font-mono text-xs text-muted-foreground">
                                                     {log.userId
                                                         ? log.userId.slice(0, 8) +
                                                         '...'
@@ -215,7 +215,7 @@ export default async function LogsPage() {
                             </TableBody>
                         </Table>
                     </CardContent>
-                </Card>
+                </AppCard>
             </div>
 
 

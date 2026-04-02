@@ -4,7 +4,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { AppCard, CardContent, CardHeader, CardTitle } from '@/components/ui/app-card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft, Clock, CheckCircle, Package, UtensilsCrossed, XCircle, type LucideIcon } from 'lucide-react'
@@ -231,7 +231,7 @@ export function OrderTracker({ order: initialOrder, restaurant, table }: OrderTr
             </div>
 
             {/* Carte principale de la commande */}
-            <Card>
+            <AppCard>
                 <CardHeader>
                     <div className="space-y-3">
                         <div className="flex items-center justify-between gap-4">
@@ -256,7 +256,7 @@ export function OrderTracker({ order: initialOrder, restaurant, table }: OrderTr
                     </div>
                 </CardHeader>
 
-                <CardContent className="space-y-6">
+                <CardContent className="layout-card-body">
                     {/* Message de statut actuel */}
                     <div className="bg-muted/50 rounded-lg p-3">
                         <p className="text-center text-lg font-medium">
@@ -368,7 +368,7 @@ export function OrderTracker({ order: initialOrder, restaurant, table }: OrderTr
                         </div>
                     )}
                 </CardContent>
-            </Card>
+            </AppCard>
 
             {/* Actions supplémentaires */}
             <div>

@@ -1,6 +1,6 @@
 'use client'
 
-import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
+import {AppCard, CardContent, CardHeader, CardTitle} from '@/components/ui/app-card'
 import {
     MessageSquare,
     AlertCircle,
@@ -24,7 +24,7 @@ export default function SupportStatsCards({
         <div className="grid gap-2 sm:gap-4 grid-cols-2 lg:grid-cols-4">
 
             {/* Total */}
-            <Card>
+            <AppCard variant="stat">
                 <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
                     <CardTitle className="text-sm font-medium text-muted-foreground">
                         Total
@@ -34,10 +34,10 @@ export default function SupportStatsCards({
                 <CardContent>
                     <div className="text-2xl font-bold">{stats.total}</div>
                 </CardContent>
-            </Card>
+            </AppCard>
 
             {/* Ouverts */}
-            <Card>
+            <AppCard variant="stat">
                 <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
                     <CardTitle className="text-sm font-medium text-muted-foreground">
                         Ouverts
@@ -49,10 +49,10 @@ export default function SupportStatsCards({
                         {stats.open}
                     </div>
                 </CardContent>
-            </Card>
+            </AppCard>
 
             {/* En cours */}
-            <Card>
+            <AppCard variant="stat">
                 <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
                     <CardTitle className="text-sm font-medium text-muted-foreground">
                         En cours
@@ -64,10 +64,10 @@ export default function SupportStatsCards({
                         {stats.inProgress}
                     </div>
                 </CardContent>
-            </Card>
+            </AppCard>
 
             {/* Résolus */}
-            <Card>
+            <AppCard variant="stat">
                 <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
                     <CardTitle className="text-sm font-medium text-muted-foreground">
                         Résolus
@@ -79,7 +79,7 @@ export default function SupportStatsCards({
                         {stats.resolved}
                     </div>
                 </CardContent>
-            </Card>
+            </AppCard>
 
         </div>
     )

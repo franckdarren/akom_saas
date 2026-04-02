@@ -3,12 +3,12 @@ import {redirect} from 'next/navigation'
 import {createClient} from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
 import {
-    Card,
+    AppCard,
     CardContent,
     CardHeader,
     CardTitle,
     CardDescription,
-} from '@/components/ui/card'
+} from '@/components/ui/app-card'
 import {Alert, AlertDescription} from '@/components/ui/alert'
 import {
     CheckCircle2,
@@ -61,7 +61,7 @@ export default async function VerificationPage() {
                     <Progress value={75}/>
                 </div>
 
-                <Card className="mb-8 border-none shadow-lg bg-primary text-primary-foreground">
+                <AppCard className="mb-8 border-none shadow-lg bg-primary text-primary-foreground">
                     <CardHeader>
                         <div className="flex items-start gap-4">
                             <div className="bg-primary-foreground/10 p-2 rounded-xl">
@@ -89,9 +89,9 @@ export default async function VerificationPage() {
                             Vérification sous 24 à 48h après soumission.
                         </div>
                     </CardContent>
-                </Card>
+                </AppCard>
 
-                <Card className="mb-8">
+                <AppCard className="mb-8">
                     <CardHeader>
                         <CardTitle className="text-lg">Comment ça fonctionne ?</CardTitle>
                     </CardHeader>
@@ -136,7 +136,7 @@ export default async function VerificationPage() {
                             </div>
                         </div>
                     </CardContent>
-                </Card>
+                </AppCard>
 
                 <div
                     className="text-sm mb-8 flex items-center gap-3 border border-destructive rounded-md p-5 text-destructive">

@@ -1,5 +1,5 @@
 // components/warehouse/MovementsStats.tsx
-import { Card, CardContent } from '@/components/ui/card'
+import { AppCard, CardContent } from '@/components/ui/app-card'
 import { TrendingUp, TrendingDown, Package, Activity } from 'lucide-react'
 
 interface MovementsStatsProps {
@@ -64,8 +64,8 @@ export function MovementsStats({ stats }: MovementsStatsProps) {
     return (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             {cards.map((card, index) => (
-                <Card key={index} className="hover:shadow-md transition-shadow">
-                    <CardContent className="p-6">
+                <AppCard key={index} variant="stat">
+                    <CardContent>
                         <div className="flex items-start justify-between">
                             <div className="flex-1">
                                 <p className="text-sm font-medium text-muted-foreground">
@@ -84,7 +84,7 @@ export function MovementsStats({ stats }: MovementsStatsProps) {
                             </div>
                         </div>
                     </CardContent>
-                </Card>
+                </AppCard>
             ))}
         </div>
     )

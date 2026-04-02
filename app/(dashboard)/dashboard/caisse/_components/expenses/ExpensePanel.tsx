@@ -3,7 +3,7 @@
 
 import {useState, useMemo} from 'react'
 import {Plus} from 'lucide-react'
-import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
+import {AppCard, CardContent, CardHeader, CardTitle} from '@/components/ui/app-card'
 import {Button} from '@/components/ui/button'
 import {Separator} from '@/components/ui/separator'
 import {ScrollArea} from '@/components/ui/scroll-area'
@@ -37,7 +37,7 @@ export function ExpensePanel({
     }
 
     return (
-        <Card className="flex flex-col h-full">
+        <AppCard className="flex flex-col h-full">
             <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                     <CardTitle className="flex items-center gap-2 text-base">
@@ -79,6 +79,6 @@ export function ExpensePanel({
                     <ExpenseList expenses={session.expenses}/>
                 </ScrollArea>
             </CardContent>
-        </Card>
+        </AppCard>
     )
 }

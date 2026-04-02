@@ -5,7 +5,7 @@ import {
     getRealTimeStats,
 } from '@/lib/actions/superadmin-stats'
 import { formatPrice, formatNumber } from '@/lib/utils/format'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { AppCard, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/app-card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { SuperadminStatsCharts } from '@/components/superadmin/SuperadminStatsCharts'
 import { TrendingUp, Package, Activity } from 'lucide-react'
@@ -67,42 +67,42 @@ export default async function StatsPage() {
 
                 {/* Stats Temps Réel */}
                 <div className="grid gap-4 md:grid-cols-3">
-                    <Card>
+                    <AppCard variant="stat">
                         <CardHeader className="flex flex-row items-center justify-between pb-2">
                             <CardTitle className="text-sm font-medium">Dernières 24h</CardTitle>
-                            <Activity className="h-4 w-4 text-zinc-600 dark:text-zinc-400" />
+                            <Activity className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">{formatNumber(realTimeStats.ordersLast24h)}</div>
-                            <p className="text-xs text-zinc-600 dark:text-zinc-400">Commandes</p>
+                            <p className="text-xs text-muted-foreground">Commandes</p>
                         </CardContent>
-                    </Card>
+                    </AppCard>
 
-                    <Card>
+                    <AppCard variant="stat">
                         <CardHeader className="flex flex-row items-center justify-between pb-2">
                             <CardTitle className="text-sm font-medium">Revenu 24h</CardTitle>
-                            <TrendingUp className="h-4 w-4 text-zinc-600 dark:text-zinc-400" />
+                            <TrendingUp className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">{formatPrice(realTimeStats.revenueLast24h)}</div>
-                            <p className="text-xs text-zinc-600 dark:text-zinc-400">Chiffre d'affaires</p>
+                            <p className="text-xs text-muted-foreground">Chiffre d'affaires</p>
                         </CardContent>
-                    </Card>
+                    </AppCard>
 
-                    <Card>
+                    <AppCard variant="stat">
                         <CardHeader className="flex flex-row items-center justify-between pb-2">
                             <CardTitle className="text-sm font-medium">Restaurants Actifs</CardTitle>
-                            <Package className="h-4 w-4 text-zinc-600 dark:text-zinc-400" />
+                            <Package className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">{formatNumber(realTimeStats.activeRestaurants)}</div>
-                            <p className="text-xs text-zinc-600 dark:text-zinc-400">Avec commandes récentes</p>
+                            <p className="text-xs text-muted-foreground">Avec commandes récentes</p>
                         </CardContent>
-                    </Card>
+                    </AppCard>
                 </div>
 
                 {/* Graphique */}
-                <Card>
+                <AppCard>
                     <CardHeader>
                         <CardTitle>Évolution Mensuelle</CardTitle>
                         <CardDescription>Commandes et revenus des 12 derniers mois</CardDescription>
@@ -110,10 +110,10 @@ export default async function StatsPage() {
                     <CardContent>
                         <SuperadminStatsCharts data={monthlyStats} />
                     </CardContent>
-                </Card>
+                </AppCard>
 
                 {/* Top Restaurants */}
-                <Card>
+                <AppCard>
                     <CardHeader>
                         <CardTitle>Top 10 Restaurants</CardTitle>
                         <CardDescription>Classement par nombre de commandes</CardDescription>
@@ -140,10 +140,10 @@ export default async function StatsPage() {
                             </TableBody>
                         </Table>
                     </CardContent>
-                </Card>
+                </AppCard>
 
                 {/* Top Produits */}
-                <Card>
+                <AppCard>
                     <CardHeader>
                         <CardTitle>Top 10 Produits</CardTitle>
                         <CardDescription>Produits les plus vendus (tous restaurants)</CardDescription>
@@ -170,7 +170,7 @@ export default async function StatsPage() {
                             </TableBody>
                         </Table>
                     </CardContent>
-                </Card>
+                </AppCard>
 
             </div>
 

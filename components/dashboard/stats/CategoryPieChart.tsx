@@ -1,7 +1,7 @@
 // components/dashboard/stats/CategoryPieChart.tsx
 'use client'
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { AppCard, CardContent, CardHeader, CardTitle } from '@/components/ui/app-card'
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
 import type { CategorySales } from '@/types/stats'
 import { formatPrice } from '@/lib/utils/format'
@@ -21,7 +21,7 @@ export function CategoryPieChart({ data }: CategoryPieChartProps) {
     }))
 
     return (
-        <Card>
+        <AppCard>
             <CardHeader>
                 <CardTitle className="text-base font-semibold">
                     Ventes par catégorie
@@ -58,7 +58,7 @@ export function CategoryPieChart({ data }: CategoryPieChartProps) {
                                         if (!active || !payload?.length) return null
 
                                         return (
-                                            <div className="rounded-lg border bg-card p-3 shadow-lg">
+                                            <div className="rounded-lg border bg-card p-3 shadow-sm">
                                                 <p className="text-sm font-medium">
                                                     {payload[0].payload.name}
                                                 </p>
@@ -95,6 +95,6 @@ export function CategoryPieChart({ data }: CategoryPieChartProps) {
                     </div>
                 )}
             </CardContent>
-        </Card>
+        </AppCard>
     )
 }

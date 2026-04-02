@@ -3,7 +3,7 @@
 import {useState, useTransition} from 'react'
 import {toast} from 'sonner'
 import {CalendarDays, Wallet, History, ChevronRight} from 'lucide-react'
-import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card'
+import {AppCard, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/app-card'
 import {Button} from '@/components/ui/button'
 import {Input} from '@/components/ui/input'
 import {Label} from '@/components/ui/label'
@@ -100,7 +100,7 @@ export function OpenSessionCard({
                 </button>
             </div>
 
-            <Card className={cn('border-2 transition-colors', mode === 'historical' && 'border-destructive/10')}>
+            <AppCard className={cn('border-2 transition-colors', mode === 'historical' && 'border-destructive/10')}>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-lg">
                         {mode === 'today' ? (
@@ -205,7 +205,7 @@ export function OpenSessionCard({
                         {!isPending && <ChevronRight className="h-4 w-4"/>}
                     </Button>
                 </CardContent>
-            </Card>
+            </AppCard>
         </div>
     )
 }

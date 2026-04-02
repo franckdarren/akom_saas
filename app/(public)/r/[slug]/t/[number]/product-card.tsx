@@ -4,7 +4,7 @@
 import Image from 'next/image'
 import { Plus, Package, Minus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
+import { AppCard, CardContent } from '@/components/ui/app-card'
 import { Badge } from '@/components/ui/badge'
 import { useCart } from './cart-context'
 import { formatPrice } from '@/lib/utils/format'
@@ -49,7 +49,7 @@ export function ProductCard({ product }: { product: Product }) {
     }
 
     return (
-        <Card className={!isAvailable ? 'opacity-60' : ''}>
+        <AppCard className={!isAvailable ? 'opacity-60' : ''}>
             <CardContent className="px-2">
                 <div className="flex gap-2 items-center">
                     {/* Image */}
@@ -141,6 +141,6 @@ export function ProductCard({ product }: { product: Product }) {
                     </div>
                 </div>
             </CardContent>
-        </Card>
+        </AppCard>
     )
 }

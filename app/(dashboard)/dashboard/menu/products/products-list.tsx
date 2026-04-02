@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import {Card, CardContent} from '@/components/ui/card'
+import {AppCard, CardContent} from '@/components/ui/app-card'
 import {Button} from '@/components/ui/button'
 import {LoadingButton} from '@/components/ui/loading-button'
 import {Badge} from '@/components/ui/badge'
@@ -69,14 +69,14 @@ export function ProductsList({products}: { products: Product[] }) {
     // ── État vide ────────────────────────────────────────────
     if (products.length === 0) {
         return (
-            <Card>
+            <AppCard>
                 <CardContent className="layout-empty-state">
                     <p className="text-muted-foreground text-center">
                         Aucun produit pour le moment.<br/>
                         Créez votre premier produit pour compléter votre menu.
                     </p>
                 </CardContent>
-            </Card>
+            </AppCard>
         )
     }
 
@@ -98,8 +98,8 @@ export function ProductsList({products}: { products: Product[] }) {
                     const priceDisplay = getPriceDisplay(product)
 
                     return (
-                        // ── div remplace Card : on reconstruit manuellement les styles
-                        // de Card (border, radius, shadow, bg) pour que l'image
+                        // ── div remplace AppCard : on reconstruit manuellement les styles
+                        // de AppCard (border, radius, shadow, bg) pour que l'image
                         // soit parfaitement collée aux bords sans aucun espace ──
                         <div
                             key={product.id}

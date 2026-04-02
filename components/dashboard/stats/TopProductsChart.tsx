@@ -1,7 +1,7 @@
 // components/dashboard/stats/TopProductsChart.tsx
 'use client'
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { AppCard, CardContent, CardHeader, CardTitle } from '@/components/ui/app-card'
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import type { TopProduct } from '@/types/stats'
 import { formatPrice } from '@/lib/utils/format'
@@ -22,7 +22,7 @@ export function TopProductsChart({ data }: TopProductsChartProps) {
     }))
 
     return (
-        <Card>
+        <AppCard>
             <CardHeader>
                 <CardTitle className="text-base font-semibold">
                     Top 5 produits vendus
@@ -30,7 +30,7 @@ export function TopProductsChart({ data }: TopProductsChartProps) {
             </CardHeader>
             <CardContent>
                 {data.length === 0 ? (
-                    <div className="flex h-64 items-center justify-center text-sm text-zinc-500">
+                    <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">
                         Aucune vente enregistrée
                     </div>
                 ) : (
@@ -49,14 +49,14 @@ export function TopProductsChart({ data }: TopProductsChartProps) {
                                     if (!active || !payload?.length) return null
 
                                     return (
-                                        <div className="rounded-lg border bg-white p-3 shadow-lg dark:bg-zinc-900">
+                                        <div className="rounded-lg border bg-card p-3 shadow-sm">
                                             <p className="text-sm font-medium">
                                                 {payload[0].payload.fullName}
                                             </p>
-                                            <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">
+                                            <p className="mt-1 text-xs text-muted-foreground">
                                                 Quantité: {payload[0].payload.quantity}
                                             </p>
-                                            <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                                            <p className="text-xs text-muted-foreground">
                                                 CA: {formatPrice(payload[0].payload.revenue)}
                                             </p>
                                         </div>
@@ -68,6 +68,6 @@ export function TopProductsChart({ data }: TopProductsChartProps) {
                     </ResponsiveContainer>
                 )}
             </CardContent>
-        </Card>
+        </AppCard>
     )
 }

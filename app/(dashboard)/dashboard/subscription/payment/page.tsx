@@ -16,12 +16,12 @@ import {
     type BillingCycle,
 } from '@/lib/config/subscription'
 import {
-    Card,
+    AppCard,
     CardContent,
     CardDescription,
     CardHeader,
     CardTitle,
-} from '@/components/ui/card'
+} from '@/components/ui/app-card'
 import {Separator} from '@/components/ui/separator'
 
 // ============================================================
@@ -162,7 +162,7 @@ export default async function PaymentPage({
                 <div className="space-y-6">
 
                     {/* RÉCAPITULATIF */}
-                    <Card>
+                    <AppCard>
                         <CardHeader>
                             <CardTitle>Récapitulatif</CardTitle>
                             <CardDescription>
@@ -276,10 +276,10 @@ export default async function PaymentPage({
                             </Alert>
 
                         </CardContent>
-                    </Card>
+                    </AppCard>
 
                     {/* INFOS PAIEMENT */}
-                    <Card>
+                    <AppCard>
                         <CardHeader>
                             <CardTitle>Informations de paiement</CardTitle>
                             <CardDescription>
@@ -319,7 +319,7 @@ export default async function PaymentPage({
                             </Alert>
 
                         </CardContent>
-                    </Card>
+                    </AppCard>
 
                 </div>
 

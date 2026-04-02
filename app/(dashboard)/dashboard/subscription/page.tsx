@@ -22,12 +22,12 @@ import {
     TrendingUp,
 } from 'lucide-react'
 import {
-    Card,
+    AppCard,
     CardContent,
     CardDescription,
     CardHeader,
     CardTitle,
-} from '@/components/ui/card'
+} from '@/components/ui/app-card'
 import {
     Breadcrumb,
     BreadcrumbList,
@@ -175,7 +175,7 @@ export default async function SubscriptionPage() {
 
                 <div className="grid gap-6 md:grid-cols-2">
 
-                    <Card className="md:col-span-2">
+                    <AppCard className="md:col-span-2">
                         <CardHeader>
                             <div className="flex items-center justify-between">
                                 <div>
@@ -391,9 +391,9 @@ export default async function SubscriptionPage() {
                                 )}
                             </div>
                         </CardContent>
-                    </Card>
+                    </AppCard>
 
-                    <Card className="md:col-span-2">
+                    <AppCard className="md:col-span-2">
                         <CardHeader>
                             <CardTitle>Historique des paiements</CardTitle>
                             <CardDescription>
@@ -445,7 +445,7 @@ export default async function SubscriptionPage() {
                                 </div>
                             )}
                         </CardContent>
-                    </Card>
+                    </AppCard>
                 </div>
             </div>
         </>

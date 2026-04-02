@@ -5,13 +5,13 @@ import { useState } from 'react'
 import { useRestaurant } from '@/lib/hooks/use-restaurant'
 import { deleteCustomRole } from '@/lib/actions/roles'
 import {
-    Card,
+    AppCard,
     CardContent,
     CardDescription,
     CardFooter,
     CardHeader,
     CardTitle,
-} from '@/components/ui/card'
+} from '@/components/ui/app-card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -97,7 +97,7 @@ export function RoleCard({ role }: RoleCardProps) {
 
     return (
         <>
-            <Card className="flex flex-col">
+            <AppCard className="flex flex-col">
                 <CardHeader>
                     <div className="flex items-start justify-between">
                         <div className="flex items-center gap-2">
@@ -203,7 +203,7 @@ export function RoleCard({ role }: RoleCardProps) {
                         Voir les permissions
                     </Button>
                 </CardFooter>
-            </Card>
+            </AppCard>
 
             {/* Dialog de visualisation des permissions */}
             <ViewPermissionsDialog

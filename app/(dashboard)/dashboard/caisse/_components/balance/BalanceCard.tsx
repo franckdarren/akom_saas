@@ -8,11 +8,11 @@ import {
     ArrowRightLeft,
 } from 'lucide-react'
 import {
-    Card,
+    AppCard,
     CardContent,
     CardHeader,
     CardTitle,
-} from '@/components/ui/card'
+} from '@/components/ui/app-card'
 import {Separator} from '@/components/ui/separator'
 import {cn} from '@/lib/utils'
 import type {SessionWithRelations} from '../../_types'
@@ -91,7 +91,7 @@ export function BalanceCard({session}: BalanceCardProps) {
     ]
 
     return (
-        <Card>
+        <AppCard>
             <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-base">
                     <ArrowRightLeft className="h-4 w-4 text-primary"/>
@@ -191,6 +191,6 @@ export function BalanceCard({session}: BalanceCardProps) {
                     automatiquement à la clôture.
                 </p>
             </CardContent>
-        </Card>
+        </AppCard>
     )
 }

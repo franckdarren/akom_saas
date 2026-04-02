@@ -2,7 +2,7 @@
 
 import {useState} from 'react'
 import {useRouter} from 'next/navigation'
-import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
+import {AppCard, CardContent, CardHeader, CardTitle} from '@/components/ui/app-card'
 import {Button} from '@/components/ui/button'
 import {LoadingButton} from '@/components/ui/loading-button'
 import {Badge} from '@/components/ui/badge'
@@ -92,7 +92,7 @@ export function CircuitSheetCard({circuitSheet}: CircuitSheetCardProps) {
     }
 
     return (
-        <Card className={isOverdue ? 'border-destructive' : ''}>
+        <AppCard className={isOverdue ? 'border-destructive' : ''}>
             <CardHeader className="bg-muted/40">
                 <div className="flex items-start justify-between">
                     <div>
@@ -273,6 +273,6 @@ export function CircuitSheetCard({circuitSheet}: CircuitSheetCardProps) {
                     </AlertDialog>
                 )}
             </CardContent>
-        </Card>
+        </AppCard>
     )
 }

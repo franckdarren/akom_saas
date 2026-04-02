@@ -18,7 +18,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select'
-import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card'
+import {AppCard, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/app-card'
 import {storageUnits} from '@/lib/validations/warehouse'
 import {createWarehouseProduct, updateWarehouseProduct} from '@/lib/actions/warehouse'
 import {WarehouseProduct} from '@/types/warehouse'
@@ -285,14 +285,14 @@ export function WarehouseProductForm({
           SECTION 1 : INFORMATIONS DE BASE
           Cette section capture toutes les informations d'identification du produit
           ============================================================ */}
-            <Card>
+            <AppCard variant="flat">
                 <CardHeader>
                     <CardTitle>Informations de base</CardTitle>
                     <CardDescription>
                         Nom, description et image du produit d'entrepôt
                     </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="layout-form">
                     {/* Nom du produit - OBLIGATOIRE */}
                     <div className="space-y-2">
                         <Label htmlFor="name">
@@ -407,20 +407,20 @@ export function WarehouseProductForm({
                         )}
                     </div>
                 </CardContent>
-            </Card>
+            </AppCard>
 
             {/* ============================================================
           SECTION 2 : CONFIGURATION DE L'UNITÉ DE STOCKAGE
           Cette section définit comment le produit est emballé dans l'entrepôt
           ============================================================ */}
-            <Card>
+            <AppCard variant="flat">
                 <CardHeader>
                     <CardTitle>Unité de stockage</CardTitle>
                     <CardDescription>
                         Comment ce produit est-il emballé dans votre entrepôt ?
                     </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="layout-form">
                     <div className="grid gap-2 sm:gap-4 md:grid-cols-2">
                         {/* Type d'emballage avec dropdown pour garantir la cohérence */}
                         <div className="space-y-2">
@@ -479,20 +479,20 @@ export function WarehouseProductForm({
                         </p>
                     </div>
                 </CardContent>
-            </Card>
+            </AppCard>
 
             {/* ============================================================
           SECTION 3 : LIEN AVEC LE MENU (OPTIONNEL)
           Cette section permet d'automatiser les transferts vers le stock opérationnel
           ============================================================ */}
-            <Card>
+            <AppCard variant="flat">
                 <CardHeader>
                     <CardTitle>Lien avec le menu (optionnel)</CardTitle>
                     <CardDescription>
                         Connectez ce produit d&#39;entrepôt à un produit de votre menu pour faciliter les transferts
                     </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="layout-form">
                     {/* Sélection du produit menu */}
                     <div className="space-y-2">
                         <Label htmlFor="linkedProductId">Produit du menu</Label>
@@ -566,21 +566,21 @@ export function WarehouseProductForm({
                         </>
                     )}
                 </CardContent>
-            </Card>
+            </AppCard>
 
             {/* ============================================================
           SECTION 4 : STOCK INITIAL (CRÉATION UNIQUEMENT)
           Cette section permet de définir le stock de départ et sa valorisation
           ============================================================ */}
             {!isEditing && (
-                <Card>
+                <AppCard variant="flat">
                     <CardHeader>
                         <CardTitle>Stock initial</CardTitle>
                         <CardDescription>
                             Définissez le stock de départ et le coût d'achat (optionnel)
                         </CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4">
+                    <CardContent className="layout-form">
                         <div className="grid gap-2 sm:gap-4 md:grid-cols-3">
                             <div className="space-y-2">
                                 <Label htmlFor="initialQuantity">Quantité initiale</Label>
@@ -652,7 +652,7 @@ export function WarehouseProductForm({
                             </div>
                         )}
                     </CardContent>
-                </Card>
+                </AppCard>
             )}
 
             {/* ============================================================

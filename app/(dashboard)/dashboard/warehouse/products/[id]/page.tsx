@@ -6,7 +6,7 @@ import Image from "next/image"
 import {ArrowLeft, Edit, Package} from "lucide-react"
 
 import {Button} from "@/components/ui/button"
-import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card"
+import {AppCard, CardContent, CardHeader, CardTitle} from "@/components/ui/app-card"
 import {Separator} from "@/components/ui/separator"
 import {SidebarTrigger} from "@/components/ui/sidebar"
 import {FeatureGuard} from '@/components/guards/FeatureGuard'
@@ -217,7 +217,7 @@ export default async function WarehouseProductDetailPage({params}: PageProps) {
                     </div>
 
                     {/* STOCK - Afficher avec Badge si stock bas */}
-                    <Card>
+                    <AppCard>
                         <CardHeader>
                             <div className="flex items-center justify-between">
                                 <CardTitle>Stock actuel</CardTitle>
@@ -251,17 +251,17 @@ export default async function WarehouseProductDetailPage({params}: PageProps) {
                                 </p>
                             )}
                         </CardContent>
-                    </Card>
+                    </AppCard>
 
                     {/* HISTORIQUE */}
-                    <Card>
+                    <AppCard>
                         <CardHeader>
                             <CardTitle>Historique des mouvements</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <WarehouseMovementsTimeline movements={product.movements}/>
                         </CardContent>
-                    </Card>
+                    </AppCard>
                 </div>
             </>
         </FeatureGuard>

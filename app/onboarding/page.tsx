@@ -34,10 +34,10 @@ export default async function OnboardingPage() {
                     <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-primary text-primary-foreground mb-4">
                         <ChefHat className="h-8 w-8" />
                     </div>
-                    <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-50">
+                    <h1 className="text-3xl font-bold text-foreground">
                         Bienvenue sur Akôm !
                     </h1>
-                    <p className="text-zinc-600 dark:text-zinc-400 mt-2">
+                    <p className="text-muted-foreground mt-2">
                         Créez votre restaurant pour commencer
                     </p>
                 </div>

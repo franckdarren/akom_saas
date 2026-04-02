@@ -64,15 +64,15 @@ export function FeatureGate({
             <div className="bg-zinc-50 dark:bg-zinc-900 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-lg p-8 text-center">
                 <div className="flex justify-center mb-4">
                     <div className="bg-zinc-100 dark:bg-zinc-800 p-3 rounded-full">
-                        <Lock className="h-6 w-6 text-zinc-600 dark:text-zinc-400"/>
+                        <Lock className="h-6 w-6 text-muted-foreground"/>
                     </div>
                 </div>
 
-                <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
+                <h3 className="text-lg font-semibold text-foreground mb-2">
                     Fonctionnalité Premium
                 </h3>
 
-                <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
+                <p className="text-sm text-muted-foreground mb-4">
                     {FEATURE_LABELS[feature]} est disponible à partir de l&apos;offre Business.
                 </p>
 

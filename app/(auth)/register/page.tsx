@@ -59,10 +59,10 @@ export default function RegisterPage() {
     return (
         <div>
             <div className="mb-6">
-                <h2 className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-zinc-50">
+                <h2 className="text-xl sm:text-2xl font-bold text-foreground">
                     Créer un compte
                 </h2>
-                <p className="text-zinc-600 dark:text-zinc-400 mt-1">
+                <p className="text-muted-foreground mt-1">
                     Commencez à utiliser Akôm gratuitement
                 </p>
             </div>
@@ -116,7 +116,7 @@ export default function RegisterPage() {
                         </button>
                     </div>
 
-                    <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                         Minimum 6 caractères
                     </p>
                 </div>
@@ -200,10 +200,10 @@ export default function RegisterPage() {
                             <Store className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                         </div>
                         <div className="flex-1">
-                            <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-50 mb-1">
+                            <h3 className="text-sm font-semibold text-foreground mb-1">
                                 Prochaine étape : Créez votre restaurant
                             </h3>
-                            <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                            <p className="text-sm text-muted-foreground leading-relaxed">
                                 Après votre inscription, vous serez invité à créer votre premier restaurant. Vous en deviendrez automatiquement l'administrateur, avec tous les droits nécessaires pour gérer votre établissement.
                             </p>
                         </div>
@@ -212,14 +212,14 @@ export default function RegisterPage() {
                     <div className="space-y-2.5 mt-4">
                         <div className="flex items-start gap-2.5">
                             <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-                            <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                                <span className="font-medium text-zinc-900 dark:text-zinc-50">Gestion complète</span> : menu, commandes, stocks et statistiques
+                            <p className="text-sm text-muted-foreground">
+                                <span className="font-medium text-foreground">Gestion complète</span> : menu, commandes, stocks et statistiques
                             </p>
                         </div>
                         <div className="flex items-start gap-2.5">
                             <Users className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-                            <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                                <span className="font-medium text-zinc-900 dark:text-zinc-50">Invitez votre équipe</span> : ajoutez des employés et gérez leurs rôles depuis le tableau de bord
+                            <p className="text-sm text-muted-foreground">
+                                <span className="font-medium text-foreground">Invitez votre équipe</span> : ajoutez des employés et gérez leurs rôles depuis le tableau de bord
                             </p>
                         </div>
                     </div>
@@ -228,7 +228,7 @@ export default function RegisterPage() {
 
             {/* Login Link */}
             <div className="mt-6 text-center">
-                <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                <p className="text-sm text-muted-foreground">
                     Vous avez déjà un compte ?{' '}
                     <Link
                         href="/login"

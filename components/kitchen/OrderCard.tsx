@@ -2,7 +2,7 @@
 'use client'
 
 import {useState} from 'react'
-import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
+import {AppCard, CardContent, CardHeader, CardTitle} from '@/components/ui/app-card'
 import {Badge} from '@/components/ui/badge'
 import {Button} from '@/components/ui/button'
 import {formatDate, formatPrice} from '@/lib/utils/format'
@@ -147,7 +147,7 @@ export function OrderCard({order}: OrderCardProps) {
 
     return (
         <>
-            <Card
+            <AppCard
                 className={order.status === 'pending' ? 'border-yellow-500 shadow-lg hover:border-primary/50 hover:shadow-md' : 'hover:border-primary/50 hover:shadow-md'}>
                 <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
@@ -166,7 +166,7 @@ export function OrderCard({order}: OrderCardProps) {
                     </div>
                 </CardHeader>
 
-                <CardContent className="space-y-4">
+                <CardContent className="layout-card-body">
                     {/* Liste des produits */}
                     <div className="space-y-2">
                         {order.orderItems.map((item) => (
@@ -226,7 +226,7 @@ export function OrderCard({order}: OrderCardProps) {
                         )}
                     </div>
                 </CardContent>
-            </Card>
+            </AppCard>
             {/* AlertDialog suppression */}
             <AlertDialog
                 open={!!deleteTarget}
@@ -242,7 +242,7 @@ export function OrderCard({order}: OrderCardProps) {
                             {/* {deleteTarget && (
                                             <>
                                                 <br />
-                                                <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                                                <span className="font-medium text-foreground">
                                                     {deleteTarget.name}
                                                 </span>
                                             </>

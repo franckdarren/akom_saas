@@ -1,6 +1,6 @@
 'use client'
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { AppCard, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/app-card'
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { formatPrice } from '@/lib/utils/format'
 import type { DailySales } from '@/types/stats'
@@ -20,7 +20,7 @@ export function RevenueChart({ data }: RevenueChartProps) {
     }))
 
     return (
-        <Card>
+        <AppCard>
             <CardHeader>
                 <CardTitle>Évolution du chiffre d'affaires</CardTitle>
                 <CardDescription>
@@ -81,6 +81,6 @@ export function RevenueChart({ data }: RevenueChartProps) {
                     </AreaChart>
                 </ResponsiveContainer>
             </CardContent>
-        </Card>
+        </AppCard>
     )
 }

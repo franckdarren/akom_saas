@@ -10,12 +10,12 @@ import {Label} from '@/components/ui/label'
 import {Textarea} from '@/components/ui/textarea'
 import {Input} from '@/components/ui/input'
 import {
-    Card,
+    AppCard,
     CardContent,
     CardDescription,
     CardHeader,
     CardTitle,
-} from '@/components/ui/card'
+} from '@/components/ui/app-card'
 import {Upload, CheckCircle2, AlertCircle, Users} from 'lucide-react'
 import {Alert, AlertDescription} from '@/components/ui/alert'
 import Image from 'next/image'
@@ -133,7 +133,7 @@ export function PaymentForm({
     const monthlyPrice = calculateMonthlyPrice(plan, userCount)
 
     return (
-        <Card>
+        <AppCard variant="flat">
             <CardHeader>
                 <CardTitle>Soumettre votre paiement</CardTitle>
                 <CardDescription>
@@ -237,6 +237,6 @@ export function PaymentForm({
                     </p>
                 </form>
             </CardContent>
-        </Card>
+        </AppCard>
     )
 }

@@ -1,7 +1,7 @@
 // components/warehouse/WarehouseStatsCards.tsx
 'use client'
 
-import { Card, CardContent } from '@/components/ui/card'
+import { AppCard, CardContent } from '@/components/ui/app-card'
 import { Package, DollarSign, AlertTriangle, Calendar } from 'lucide-react'
 import { WarehouseStats } from '@/types/warehouse'
 import { formatPrice } from '@/lib/utils/format'
@@ -65,8 +65,8 @@ export function WarehouseStatsCards({ stats }: WarehouseStatsCardsProps) {
     return (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             {cards.map((card, index) => (
-                <Card key={index} className="hover:shadow-md transition-shadow">
-                    <CardContent className="p-6">
+                <AppCard key={index} variant="stat">
+                    <CardContent>
                         <div className="flex items-start justify-between">
                             <div className="flex-1">
                                 <p className="text-sm font-medium text-muted-foreground">
@@ -85,7 +85,7 @@ export function WarehouseStatsCards({ stats }: WarehouseStatsCardsProps) {
                             </div>
                         </div>
                     </CardContent>
-                </Card>
+                </AppCard>
             ))}
         </div>
     )

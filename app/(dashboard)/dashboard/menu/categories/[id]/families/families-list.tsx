@@ -3,7 +3,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { AppCard, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/app-card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -157,7 +157,7 @@ export function FamiliesList({ families, categoryName }: FamiliesListProps) {
             {/* Grille responsive : 1 colonne sur mobile, 2 sur tablette, 3 sur desktop */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {families.map((family, index) => (
-                    <Card key={family.id} className={!family.isActive ? 'opacity-60' : ''}>
+                    <AppCard key={family.id} className={!family.isActive ? 'opacity-60' : ''}>
                         <CardHeader>
                             <div className="flex items-start justify-between">
                                 <div className="flex-1">
@@ -254,7 +254,7 @@ export function FamiliesList({ families, categoryName }: FamiliesListProps) {
                                 </div>
                             </div>
                         </CardContent>
-                    </Card>
+                    </AppCard>
                 ))}
             </div>
 

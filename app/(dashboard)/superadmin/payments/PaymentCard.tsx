@@ -2,7 +2,7 @@
 
 import {useState} from 'react'
 import {validateManualPayment} from '@/lib/actions/subscription'
-import {Card, CardContent} from '@/components/ui/card'
+import {AppCard, CardContent} from '@/components/ui/app-card'
 import {Button} from '@/components/ui/button'
 import {Badge} from '@/components/ui/badge'
 import {formatPrice} from '@/lib/config/subscription'
@@ -76,8 +76,8 @@ export function PaymentCard({payment}: PaymentCardProps) {
 
     return (
         <>
-            <Card>
-                <CardContent className="p-6">
+            <AppCard>
+                <CardContent>
                     <div className="flex items-start justify-between gap-4">
                         <div className="flex-1 space-y-4">
                             {/* Header */}
@@ -182,7 +182,7 @@ export function PaymentCard({payment}: PaymentCardProps) {
                         </div>
                     </div>
                 </CardContent>
-            </Card>
+            </AppCard>
 
             {/* MODALE DE CONFIRMATION */}
             <AlertDialog open={openConfirm} onOpenChange={setOpenConfirm}>

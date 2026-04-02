@@ -35,7 +35,7 @@ export default async function StatsPage({ searchParams }: PageProps) {
     if (!stats) {
         return (
             <div className="flex h-[400px] items-center justify-center">
-                <p className="text-zinc-500">Erreur lors du chargement des statistiques</p>
+                <p className="text-muted-foreground">Erreur lors du chargement des statistiques</p>
             </div>
         )
     }

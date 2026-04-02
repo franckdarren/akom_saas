@@ -17,7 +17,7 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog'
 import {Badge} from '@/components/ui/badge'
-import {Card} from '@/components/ui/card'
+import {AppCard} from '@/components/ui/app-card'
 import {useCart} from './t/[number]/cart-context'
 import {formatPrice} from '@/lib/utils/format'
 import {toast} from 'sonner'
@@ -148,7 +148,7 @@ export function CatalogCartDialog({
 
                         <div className="space-y-3 py-4">
                             {/* Option : À emporter */}
-                            <Card
+                            <AppCard
                                 className="p-4 cursor-pointer hover:border-primary transition-all"
                                 onClick={() => setFulfillmentType('takeway')}
                             >
@@ -173,10 +173,10 @@ export function CatalogCartDialog({
                                         )}
                                     </div>
                                 </div>
-                            </Card>
+                            </AppCard>
 
                             {/* Option : Réservation */}
-                            <Card
+                            <AppCard
                                 className="p-4 cursor-pointer hover:border-primary transition-all"
                                 onClick={() => setFulfillmentType('reservation')}
                             >
@@ -196,7 +196,7 @@ export function CatalogCartDialog({
                                         </p>
                                     </div>
                                 </div>
-                            </Card>
+                            </AppCard>
                         </div>
                     </>
                 )}

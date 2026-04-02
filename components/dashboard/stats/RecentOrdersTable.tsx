@@ -1,7 +1,7 @@
 // components/dashboard/stats/RecentOrdersTable.tsx
 'use client'
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { AppCard, CardContent, CardHeader, CardTitle } from '@/components/ui/app-card'
 import {
     Table,
     TableBody,
@@ -28,7 +28,7 @@ const statusVariants = {
 
 export function RecentOrdersTable({ data }: RecentOrdersTableProps) {
     return (
-        <Card>
+        <AppCard>
             <CardHeader>
                 <CardTitle className="text-base font-semibold">
                     Commandes récentes
@@ -36,7 +36,7 @@ export function RecentOrdersTable({ data }: RecentOrdersTableProps) {
             </CardHeader>
             <CardContent>
                 {data.length === 0 ? (
-                    <div className="flex h-32 items-center justify-center text-sm text-zinc-500">
+                    <div className="flex h-32 items-center justify-center text-sm text-muted-foreground">
                         Aucune commande trouvée
                     </div>
                 ) : (
@@ -73,7 +73,7 @@ export function RecentOrdersTable({ data }: RecentOrdersTableProps) {
                                             {statusVariants[order.status].label}
                                         </Badge>
                                     </TableCell>
-                                    <TableCell className="hidden lg:table-cell text-right text-xs text-zinc-500">
+                                    <TableCell className="hidden lg:table-cell text-right text-xs text-muted-foreground">
                                         {formatDate(order.createdAt)}
                                     </TableCell>
                                 </TableRow>
@@ -82,6 +82,6 @@ export function RecentOrdersTable({ data }: RecentOrdersTableProps) {
                     </Table>
                 )}
             </CardContent>
-        </Card>
+        </AppCard>
     )
 }

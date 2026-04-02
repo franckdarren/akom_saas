@@ -1,5 +1,5 @@
 import {ReactNode} from 'react'
-import {Card, CardContent} from '@/components/ui/card'
+import {AppCard, CardContent} from '@/components/ui/app-card'
 
 export default function AuthLayout({children}: { children: ReactNode }) {
     return (
@@ -8,23 +8,23 @@ export default function AuthLayout({children}: { children: ReactNode }) {
             <div className="w-full max-w-md">
                 {/* Logo */}
                 <div className="text-center mb-4 sm:mb-8">
-                    <h1 className="text-3xl sm:text-4xl font-bold text-zinc-900 dark:text-zinc-50">
+                    <h1 className="text-3xl sm:text-4xl font-bold text-foreground">
                         Akôm
                     </h1>
-                    <p className="text-zinc-600 dark:text-zinc-400 mt-2">
+                    <p className="text-muted-foreground mt-2">
                         Le cœur digital de votre activité commerciale
                     </p>
                 </div>
 
-                {/* Card avec shadcn */}
-                <Card>
+                {/* AppCard avec shadcn */}
+                <AppCard>
                     <CardContent className="p-4 sm:p-8">
                         {children}
                     </CardContent>
-                </Card>
+                </AppCard>
 
                 {/* Footer */}
-                <p className="text-center text-sm text-zinc-600 dark:text-zinc-400 mt-4 sm:mt-8">
+                <p className="text-center text-sm text-muted-foreground mt-4 sm:mt-8">
                     © {new Date().getFullYear()} Akôm. Tous droits réservés.
                 </p>
             </div>

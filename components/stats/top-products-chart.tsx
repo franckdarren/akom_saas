@@ -1,6 +1,6 @@
 'use client'
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { AppCard, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/app-card'
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { formatPrice } from '@/lib/utils/format'
 import type { TopProduct } from '@/types/stats'
@@ -14,7 +14,7 @@ export function TopProductsChart({ data }: TopProductsChartProps) {
     const topProducts = data.slice(0, 10)
 
     return (
-        <Card>
+        <AppCard>
             <CardHeader>
                 <CardTitle>Produits les plus vendus</CardTitle>
                 <CardDescription>
@@ -65,6 +65,6 @@ export function TopProductsChart({ data }: TopProductsChartProps) {
                     </BarChart>
                 </ResponsiveContainer>
             </CardContent>
-        </Card>
+        </AppCard>
     )
 }

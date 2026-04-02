@@ -1,5 +1,5 @@
 // app/invite/existing-user/page.tsx
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { AppCard, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/app-card'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Info, Mail } from 'lucide-react'
@@ -8,7 +8,7 @@ import Link from 'next/link'
 export default function ExistingUserPage() {
     return (
         <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background via-background to-muted">
-            <Card className="w-full max-w-lg">
+            <AppCard className="w-full max-w-lg">
                 <CardHeader>
                     <CardTitle className="text-2xl">Vous avez déjà un compte ?</CardTitle>
                     <CardDescription>
@@ -16,7 +16,7 @@ export default function ExistingUserPage() {
                         compte sur Akôm
                     </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
+                <CardContent className="layout-card-body">
                     <Alert>
                         <Info className="h-4 w-4" />
                         <AlertDescription>
@@ -55,7 +55,7 @@ export default function ExistingUserPage() {
                         </Button>
                     </div>
                 </CardContent>
-            </Card>
+            </AppCard>
         </div>
     )
 }

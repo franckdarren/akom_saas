@@ -11,7 +11,7 @@ import {Label} from '@/components/ui/label'
 import {Eye, EyeOff} from 'lucide-react'
 import {toast} from 'sonner'
 import {translateAuthError} from '@/lib/translate/auth-error-messages'
-import {Card, CardContent, CardHeader, CardTitle, CardDescription} from '@/components/ui/card'
+import {AppCard, CardContent, CardHeader, CardTitle, CardDescription} from '@/components/ui/app-card'
 
 export default function LoginPage() {
     const router = useRouter()
@@ -48,7 +48,7 @@ export default function LoginPage() {
         <div className="max-w-md mx-auto">
             <CardHeader className="text-center">
                 <CardTitle className="text-2xl">Connexion</CardTitle>
-                <CardDescription className="text-zinc-600 dark:text-zinc-400">
+                <CardDescription className="text-muted-foreground">
                     Accédez à votre tableau de bord
                 </CardDescription>
             </CardHeader>
@@ -90,7 +90,7 @@ export default function LoginPage() {
                             <button
                                 type="button"
                                 onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-md text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-accent transition-colors"
+                                className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
                                 aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
                             >
                                 {showPassword ? <EyeOff className="h-4 w-4"/> : <Eye className="h-4 w-4"/>}
@@ -113,7 +113,7 @@ export default function LoginPage() {
                 </form>
 
                 {/* Register Link */}
-                <p className="mt-6 text-center text-sm text-zinc-600 dark:text-zinc-400">
+                <p className="mt-6 text-center text-sm text-muted-foreground">
                     Pas encore de compte ?{' '}
                     <Link
                         href="/register"

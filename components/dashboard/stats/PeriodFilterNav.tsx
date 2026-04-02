@@ -35,7 +35,7 @@ export function PeriodFilterNav({ value }: PeriodFilterNavProps) {
 
     return (
         <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-zinc-500" />
+            <Calendar className="h-4 w-4 text-muted-foreground" />
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                     <Button variant="outline" className="gap-2">

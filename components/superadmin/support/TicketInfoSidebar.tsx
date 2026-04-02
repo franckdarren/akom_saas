@@ -1,6 +1,6 @@
 'use client'
 
-import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
+import {AppCard, CardContent, CardHeader, CardTitle} from '@/components/ui/app-card'
 import {Badge} from '@/components/ui/badge'
 import {Separator} from '@/components/ui/separator'
 import {formatDate} from '@/lib/utils/format'
@@ -64,14 +64,14 @@ export function TicketInfoSidebar({
         <div className="space-y-4">
 
             {/* Statut */}
-            <Card>
+            <AppCard>
                 <CardHeader>
                     <CardTitle className="text-sm font-medium">
                         État du ticket
                     </CardTitle>
                 </CardHeader>
 
-                <CardContent className="space-y-3">
+                <CardContent className="layout-card-body">
                     <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">
               Statut
@@ -93,10 +93,10 @@ export function TicketInfoSidebar({
                         <span>{ticket._count.messages} messages</span>
                     </div>
                 </CardContent>
-            </Card>
+            </AppCard>
 
             {/* Restaurant */}
-            <Card>
+            <AppCard>
                 <CardHeader>
                     <CardTitle className="text-sm font-medium flex items-center gap-2">
                         <Building2 className="h-4 w-4 text-muted-foreground"/>
@@ -104,7 +104,7 @@ export function TicketInfoSidebar({
                     </CardTitle>
                 </CardHeader>
 
-                <CardContent className="space-y-3">
+                <CardContent className="layout-card-body">
                     <p className="font-semibold">
                         {ticket.restaurant.name}
                     </p>
@@ -133,17 +133,17 @@ export function TicketInfoSidebar({
                         </div>
                     )}
                 </CardContent>
-            </Card>
+            </AppCard>
 
             {/* Chronologie */}
-            <Card>
+            <AppCard>
                 <CardHeader>
                     <CardTitle className="text-sm font-medium">
                         Chronologie
                     </CardTitle>
                 </CardHeader>
 
-                <CardContent className="space-y-3">
+                <CardContent className="layout-card-body">
 
                     <div className="flex items-start gap-2">
                         <Calendar className="h-4 w-4 text-muted-foreground mt-0.5"/>
@@ -183,10 +183,10 @@ export function TicketInfoSidebar({
                         </div>
                     )}
                 </CardContent>
-            </Card>
+            </AppCard>
 
             {/* Description */}
-            <Card>
+            <AppCard>
                 <CardHeader>
                     <CardTitle className="text-sm font-medium">
                         Description initiale
@@ -198,7 +198,7 @@ export function TicketInfoSidebar({
                         {ticket.description}
                     </p>
                 </CardContent>
-            </Card>
+            </AppCard>
 
         </div>
     )

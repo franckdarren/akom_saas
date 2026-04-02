@@ -11,7 +11,7 @@ import {
     AlertCircle, Banknote, Smartphone,
     ChevronLeft, ChevronRight, ChevronDown,
 } from 'lucide-react'
-import {Card, CardContent} from '@/components/ui/card'
+import {AppCard, CardContent} from '@/components/ui/app-card'
 import {Badge} from '@/components/ui/badge'
 import {Button} from '@/components/ui/button'
 import {Separator} from '@/components/ui/separator'
@@ -438,7 +438,7 @@ function OrderCard({
         || '—'
 
     return (
-        <Card className={cn(
+        <AppCard className={cn(
             'flex flex-col overflow-hidden transition-shadow',
             !isCancelled && 'hover:shadow-md',
             isCancelled && 'opacity-55'
@@ -611,7 +611,7 @@ function OrderCard({
                     )}
                 </div>
             </div>
-        </Card>
+        </AppCard>
     )
 }
 
@@ -673,7 +673,7 @@ function StatCard({
     isText?: boolean; className?: string
 }) {
     return (
-        <Card className={cn('transition-all', highlight && highlightClass, className)}>
+        <AppCard className={cn('transition-all', highlight && highlightClass, className)}>
             <CardContent className="p-2.5 sm:p-4 flex flex-col gap-1">
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     <Icon className="h-3.5 w-3.5"/>
@@ -683,6 +683,6 @@ function StatCard({
                     {value}
                 </p>
             </CardContent>
-        </Card>
+        </AppCard>
     )
 }

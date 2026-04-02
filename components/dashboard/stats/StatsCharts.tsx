@@ -36,7 +36,7 @@ export function StatsCharts({ dailySales, topProducts, categorySales, stockAlert
                 <CategoryPieChart data={categorySales} />
 
                 {stockAlerts.length > 0 && (
-                    <div className="rounded-xl border bg-white p-6 shadow-sm dark:bg-zinc-900">
+                    <div className="rounded-xl border bg-card p-6 shadow-sm">
                         <h3 className="mb-4 text-base font-semibold">
                             Produits en rupture de stock
                         </h3>
@@ -49,14 +49,14 @@ export function StatsCharts({ dailySales, topProducts, categorySales, stockAlert
                                     <div>
                                         <p className="text-sm font-medium">{alert.productName}</p>
                                         {alert.categoryName && (
-                                            <p className="text-xs text-zinc-500">{alert.categoryName}</p>
+                                            <p className="text-xs text-muted-foreground">{alert.categoryName}</p>
                                         )}
                                     </div>
                                     <div className="text-right">
                                         <p className="text-sm font-semibold text-amber-700 dark:text-amber-500">
                                             {alert.currentQuantity} restant(s)
                                         </p>
-                                        <p className="text-xs text-zinc-500">Seuil: {alert.alertThreshold}</p>
+                                        <p className="text-xs text-muted-foreground">Seuil: {alert.alertThreshold}</p>
                                     </div>
                                 </div>
                             ))}

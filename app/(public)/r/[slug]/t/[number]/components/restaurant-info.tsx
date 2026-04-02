@@ -2,7 +2,7 @@
 'use client'
 
 import { MapPin, Phone } from 'lucide-react'
-import { Card } from '@/components/ui/card'
+import { AppCard } from '@/components/ui/app-card'
 
 interface RestaurantInfoProps {
     restaurantName: string

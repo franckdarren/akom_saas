@@ -8,7 +8,7 @@ import {ArrowLeft, Info} from 'lucide-react'
 import Link from 'next/link'
 import {cookies} from 'next/headers'
 import {Button} from '@/components/ui/button'
-import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
+import {AppCard, CardContent, CardHeader, CardTitle} from '@/components/ui/app-card'
 import {Alert, AlertDescription} from '@/components/ui/alert'
 
 /**
@@ -179,7 +179,7 @@ export default async function ChoosePlanPage() {
                 {/* ========================================
             TABLEAU COMPARATIF DES LIMITES
             ======================================== */}
-                <Card className="max-w-4xl mx-auto">
+                <AppCard className="max-w-4xl mx-auto">
                     <CardHeader>
                         <CardTitle className="text-center">
                             Comparaison des limites par plan
@@ -267,12 +267,12 @@ export default async function ChoosePlanPage() {
                             </table>
                         </div>
                     </CardContent>
-                </Card>
+                </AppCard>
 
                 {/* ========================================
             SECTION FAQ
             ======================================== */}
-                <Card className="max-w-4xl mx-auto">
+                <AppCard className="max-w-4xl mx-auto">
                     <CardHeader>
                         <CardTitle className="text-2xl text-center">
                             Questions fréquentes
@@ -351,7 +351,7 @@ export default async function ChoosePlanPage() {
 
                         </div>
                     </CardContent>
-                </Card>
+                </AppCard>
 
             </div>
         </div>

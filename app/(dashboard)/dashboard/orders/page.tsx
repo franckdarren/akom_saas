@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/breadcrumb'
 import {Separator} from '@/components/ui/separator'
 import {SidebarTrigger} from '@/components/ui/sidebar'
-import {Card, CardContent} from '@/components/ui/card'
+import {AppCard, CardContent} from '@/components/ui/app-card'
 import {useAuth} from '@/lib/hooks/use-auth'
 import {useRestaurant} from '@/lib/hooks/use-restaurant'
 import {getLabels} from '@/lib/config/activity-labels' // ← NOUVEAU
@@ -74,7 +74,7 @@ export default function OrdersPage() {
                     title={`${labels.orderNameCapital}s`}
                     description={`Gérez les ${labels.orderNamePlural} en temps réel`}
                     action={pendingCount > 0 ? (
-                        <Card className="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800">
+                        <AppCard className="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800">
                             <CardContent className="p-4">
                                 <div className="flex items-center gap-2">
                                     <div className="h-3 w-3 bg-red-500 rounded-full animate-pulse"/>
@@ -86,7 +86,7 @@ export default function OrdersPage() {
                                     </span>
                                 </div>
                             </CardContent>
-                        </Card>
+                        </AppCard>
                     ) : undefined}
                 />
 
@@ -97,7 +97,7 @@ export default function OrdersPage() {
                 />
 
                 {orders.length === 0 ? (
-                    <Card>
+                    <AppCard>
                         <CardContent className="layout-empty-state">
                             <p className="text-muted-foreground text-center">
                                 {statusFilter === 'all'
@@ -111,7 +111,7 @@ export default function OrdersPage() {
                                     }`}
                             </p>
                         </CardContent>
-                    </Card>
+                    </AppCard>
                 ) : (
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                         {orders.map((order) => (

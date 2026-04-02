@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 import { useRestaurant } from '@/lib/hooks/use-restaurant'
 import { getRestaurantRoles } from '@/lib/actions/roles'
 import { RoleCard } from './RoleCard'
-import { Card, CardContent } from '@/components/ui/card'
+import { AppCard, CardContent } from '@/components/ui/app-card'
 import { ShieldAlert } from 'lucide-react'
 
 export interface RoleItem {
@@ -62,8 +62,8 @@ export function RolesList() {
                 </div>
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                     {[1, 2, 3].map((i) => (
-                        <Card key={i}>
-                            <CardContent className="p-6 space-y-4">
+                        <AppCard key={i}>
+                            <CardContent className="layout-card-body">
                                 <div className="flex items-center gap-2">
                                     <div className="h-5 w-5 bg-muted animate-pulse rounded" />
                                     <div className="h-5 w-32 bg-muted animate-pulse rounded" />
@@ -75,7 +75,7 @@ export function RolesList() {
                                 </div>
                                 <div className="h-9 w-full bg-muted animate-pulse rounded" />
                             </CardContent>
-                        </Card>
+                        </AppCard>
                     ))}
                 </div>
             </div>
@@ -84,15 +84,15 @@ export function RolesList() {
 
     if (roles.length === 0) {
         return (
-            <Card>
-                <CardContent className="flex flex-col items-center justify-center p-12">
+            <AppCard>
+                <CardContent className="layout-empty-state">
                     <ShieldAlert className="h-12 w-12 text-muted-foreground mb-4" />
                     <h3 className="font-semibold text-lg mb-2">Aucun rôle trouvé</h3>
                     <p className="text-sm text-muted-foreground text-center max-w-md">
                         Commencez par créer un rôle personnalisé pour votre équipe
                     </p>
                 </CardContent>
-            </Card>
+            </AppCard>
         )
     }
 

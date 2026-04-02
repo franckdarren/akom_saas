@@ -16,7 +16,7 @@ export function RoleGuard({ children, allowedRoles, fallback }: RoleGuardProps) 
     if (loading) {
         return (
             <div className="flex items-center justify-center p-8">
-                <div className="text-zinc-600 dark:text-zinc-400">Chargement...</div>
+                <div className="text-muted-foreground">Chargement...</div>
             </div>
         )
     }

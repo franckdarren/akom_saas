@@ -7,12 +7,12 @@ import {Building2, ArrowLeft, Crown, Lock} from 'lucide-react'
 import Link from 'next/link'
 import {Button} from '@/components/ui/button'
 import {
-    Card,
+    AppCard,
     CardContent,
     CardDescription,
     CardHeader,
     CardTitle,
-} from '@/components/ui/card'
+} from '@/components/ui/app-card'
 import {Alert, AlertDescription, AlertTitle} from '@/components/ui/alert'
 import {cn} from '@/lib/utils'
 
@@ -104,7 +104,7 @@ export default async function AddRestaurantPage() {
 
                 {/* Formulaire */}
                 {quota.canAdd && (
-                    <Card>
+                    <AppCard>
                         <CardHeader>
                             <CardTitle className="text-base">Informations de la structure</CardTitle>
                             <CardDescription>
@@ -114,7 +114,7 @@ export default async function AddRestaurantPage() {
                         <CardContent>
                             <AddRestaurantForm/>
                         </CardContent>
-                    </Card>
+                    </AppCard>
                 )}
 
                 {/* Info multi-structure */}

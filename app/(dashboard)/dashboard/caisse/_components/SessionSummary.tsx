@@ -7,11 +7,11 @@ import {
     History,
 } from 'lucide-react'
 import {
-    Card,
+    AppCard,
     CardContent,
     CardHeader,
     CardTitle,
-} from '@/components/ui/card'
+} from '@/components/ui/app-card'
 import {Badge} from '@/components/ui/badge'
 import {Separator} from '@/components/ui/separator'
 import {cn} from '@/lib/utils'
@@ -101,7 +101,7 @@ export function SessionSummary({
             </div>
 
             {/* Financial summary */}
-            <Card>
+            <AppCard>
                 <CardHeader className="pb-3">
                     <CardTitle className="text-base">
                         Résumé financier
@@ -201,11 +201,11 @@ export function SessionSummary({
                         </div>
                     </div>
                 </CardContent>
-            </Card>
+            </AppCard>
 
             {/* Lists */}
             <div className="grid md:grid-cols-2 gap-4">
-                <Card>
+                <AppCard>
                     <CardHeader className="pb-3">
                         <CardTitle className="text-sm">
                             💰 Recettes ({manualRevenues.length})
@@ -214,9 +214,9 @@ export function SessionSummary({
                     <CardContent>
                         <RevenueList revenues={manualRevenues}/>
                     </CardContent>
-                </Card>
+                </AppCard>
 
-                <Card>
+                <AppCard>
                     <CardHeader className="pb-3">
                         <CardTitle className="text-sm">
                             💸 Dépenses ({expenses.length})
@@ -225,7 +225,7 @@ export function SessionSummary({
                     <CardContent>
                         <ExpenseList expenses={expenses}/>
                     </CardContent>
-                </Card>
+                </AppCard>
             </div>
         </div>
     )

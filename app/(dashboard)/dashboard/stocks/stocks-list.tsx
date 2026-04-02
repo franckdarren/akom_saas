@@ -2,7 +2,7 @@
 'use client'
 
 import {useState} from 'react'
-import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
+import {AppCard, CardContent, CardHeader, CardTitle} from '@/components/ui/app-card'
 import {Badge} from '@/components/ui/badge'
 import {Button} from '@/components/ui/button'
 import {History} from 'lucide-react'
@@ -29,7 +29,7 @@ export function StocksList({stocks}: { stocks: Stock[] }) {
 
     if (stocks.length === 0) {
         return (
-            <Card>
+            <AppCard>
                 <CardContent className="layout-empty-state">
                     <p className="text-muted-foreground text-center">
                         Aucun produit pour le moment.
@@ -37,7 +37,7 @@ export function StocksList({stocks}: { stocks: Stock[] }) {
                         Créez des produits pour gérer leur stock.
                     </p>
                 </CardContent>
-            </Card>
+            </AppCard>
         )
     }
 
@@ -49,7 +49,7 @@ export function StocksList({stocks}: { stocks: Stock[] }) {
                     const isOutOfStock = stock.quantity === 0
 
                     return (
-                        <Card key={stock.id} className="hover:border-primary/50 hover:shadow-md">
+                        <AppCard key={stock.id} className="hover:border-primary/50 hover:shadow-md">
                             <CardHeader>
                                 <div className="flex items-start justify-between">
                                     <div className="space-y-1 flex-1">
@@ -140,7 +140,7 @@ export function StocksList({stocks}: { stocks: Stock[] }) {
                                     </p>
                                 )}
                             </CardContent>
-                        </Card>
+                        </AppCard>
                     )
                 })}
             </div>

@@ -12,7 +12,7 @@ import {Separator} from '@/components/ui/separator'
 import {SidebarTrigger} from '@/components/ui/sidebar'
 import {PageHeader} from '@/components/ui/page-header'
 import {Badge} from '@/components/ui/badge'
-import {Card, CardContent} from '@/components/ui/card'
+import {AppCard, CardContent} from '@/components/ui/app-card'
 import {formatPrice, calculateMonthlyPrice} from '@/lib/config/subscription'
 import Link from 'next/link'
 import {ExternalLink, Users} from 'lucide-react'
@@ -138,8 +138,8 @@ export default async function RestaurantsPage() {
                             : 0
 
                         return (
-                            <Card key={restaurant.id}>
-                                <CardContent className="p-6">
+                            <AppCard key={restaurant.id}>
+                                <CardContent>
                                     <div className="flex items-start justify-between">
 
                                         {/* Informations principales du restaurant */}
@@ -293,17 +293,17 @@ export default async function RestaurantsPage() {
                                         </Link>
                                     </div>
                                 </CardContent>
-                            </Card>
+                            </AppCard>
                         )
                     })}
 
                     {/* Message si aucun restaurant */}
                     {restaurants.length === 0 && (
-                        <Card>
+                        <AppCard>
                             <CardContent className="layout-empty-state text-muted-foreground">
                                 Aucun restaurant inscrit pour le moment
                             </CardContent>
-                        </Card>
+                        </AppCard>
                     )}
                 </div>
             </div>

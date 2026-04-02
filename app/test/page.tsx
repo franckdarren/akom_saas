@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Card } from "@/components/ui/card"
+import { AppCard } from "@/components/ui/app-card"
 import { Star, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ShoppingCart } from "lucide-react"
@@ -83,7 +83,7 @@ export function RestaurantHeader({ count }: RestaurantHeaderProps) {
 
 export function RestaurantInfo() {
     return (
-        <Card className="p-4 rounded-2xl shadow-lg mx-4">
+        <AppCard className="p-4 rounded-2xl shadow-lg mx-4">
             <div className="flex justify-between items-start">
                 <div>
                     <h1 className="text-lg font-semibold">
@@ -95,7 +95,7 @@ export function RestaurantInfo() {
                     </div>
                 </div>
             </div>
-        </Card>
+        </AppCard>
     )
 }
 

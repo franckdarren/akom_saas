@@ -22,7 +22,7 @@ export function RestaurantSelector() {
 
     if (restaurants.length === 0) {
         return (
-            <div className="text-sm text-zinc-600 dark:text-zinc-400">
+            <div className="text-sm text-muted-foreground">
                 Aucun restaurant
             </div>
         )

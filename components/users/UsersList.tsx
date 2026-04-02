@@ -5,12 +5,12 @@ import { useEffect, useState } from 'react'
 import { useRestaurant } from '@/lib/hooks/use-restaurant'
 import { getRestaurantUsers } from '@/lib/actions/user'
 import {
-    Card,
+    AppCard,
     CardContent,
     CardDescription,
     CardHeader,
     CardTitle,
-} from '@/components/ui/card'
+} from '@/components/ui/app-card'
 import {
     Table,
     TableBody,
@@ -110,7 +110,7 @@ export function UsersList() {
 
     if (loading) {
         return (
-            <Card>
+            <AppCard>
                 <CardHeader>
                     <div className="h-6 w-48 bg-muted animate-pulse rounded" />
                 </CardHeader>
@@ -127,21 +127,21 @@ export function UsersList() {
                         ))}
                     </div>
                 </CardContent>
-            </Card>
+            </AppCard>
         )
     }
 
     if (users.length === 0) {
         return (
-            <Card>
-                <CardContent className="flex flex-col items-center justify-center p-12">
+            <AppCard>
+                <CardContent className="layout-empty-state">
                     <Shield className="h-12 w-12 text-muted-foreground mb-4" />
                     <h3 className="font-semibold text-lg mb-2">Aucun membre</h3>
                     <p className="text-sm text-muted-foreground text-center max-w-md">
                         Commencez par inviter des membres à rejoindre votre équipe
                     </p>
                 </CardContent>
-            </Card>
+            </AppCard>
         )
     }
 

@@ -4,7 +4,7 @@
 import {useState} from 'react'
 import {toast} from "sonner"
 import {useRouter} from 'next/navigation'
-import {Card, CardContent, CardFooter, CardHeader, CardTitle} from '@/components/ui/card'
+import {AppCard, CardContent, CardFooter, CardHeader, CardTitle} from '@/components/ui/app-card'
 import {Button} from '@/components/ui/button'
 import {LoadingButton} from '@/components/ui/loading-button'
 import {Badge} from '@/components/ui/badge'
@@ -74,7 +74,7 @@ export function TablesList({tables}: { tables: Table[] }) {
 
     if (tables.length === 0) {
         return (
-            <Card>
+            <AppCard>
                 <CardContent className="layout-empty-state">
                     <p className="text-muted-foreground text-center">
                         Aucune table pour le moment.
@@ -82,7 +82,7 @@ export function TablesList({tables}: { tables: Table[] }) {
                         Créez votre première table pour générer son QR code.
                     </p>
                 </CardContent>
-            </Card>
+            </AppCard>
         )
     }
 
@@ -90,7 +90,7 @@ export function TablesList({tables}: { tables: Table[] }) {
         <>
             <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-3">
                 {tables.map((table) => (
-                    <Card key={table.id}
+                    <AppCard key={table.id}
                           className={!table.isActive ? "opacity-60 hover:border-primary/50 hover:shadow-md" : "hover:shadow-md transition-shadow h-full flex flex-col hover:border-primary/50"}>
                         <CardHeader>
                             <div className="flex items-center justify-between">
@@ -144,7 +144,7 @@ export function TablesList({tables}: { tables: Table[] }) {
                                 </Button>
                             </div>
                         </CardFooter>
-                    </Card>
+                    </AppCard>
 
                 ))}
             </div>
