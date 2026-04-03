@@ -37,11 +37,16 @@ export async function GET(
             where: {
                 restaurantId: restaurant.id,
                 isActive: true,
+                products: {
+                    some: {
+                        isAvailable: true,
+                    },
+                },
             },
             include: {
                 products: {
                     where: {
-                        // isAvailable: true, on récupère même les produits dont le stock=0
+                        isAvailable: true,
                     },
                     include: {
                         stock: {
