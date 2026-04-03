@@ -44,6 +44,7 @@ interface MenuLayoutProps {
     restaurantSlug: string
     tableId: string
     tableNumber: number
+    onCartOpen?: () => void
 }
 
 export function MenuLayout({
@@ -51,6 +52,7 @@ export function MenuLayout({
                                restaurantSlug,
                                tableId,
                                tableNumber,
+                               onCartOpen,
                            }: MenuLayoutProps) {
     const [menuData, setMenuData] = useState<MenuData | null>(null)
     const [isLoading, setIsLoading] = useState(true)
@@ -150,7 +152,7 @@ export function MenuLayout({
                 restaurantName={menuData.restaurant.name}
                 coverImageUrl={menuData.restaurant.coverImageUrl}
                 itemCount={totalItems}
-                onCartClick={() => setShowCartDialog(true)}
+                onCartClick={() => onCartOpen ? onCartOpen() : setShowCartDialog(true)}
             />
 
             {/*
@@ -229,18 +231,20 @@ export function MenuLayout({
             <FixedBottomBar
                 itemCount={totalItems}
                 totalAmount={totalAmount}
-                onViewCart={() => setShowCartDialog(true)}
+                onViewCart={() => onCartOpen ? onCartOpen() : setShowCartDialog(true)}
             />
 
-            {/* Dialog panier */}
-            <CartDialog
-                open={showCartDialog}
-                onOpenChange={setShowCartDialog}
-                restaurantId={restaurantId}
-                restaurantSlug={restaurantSlug}
-                tableId={tableId}
-                tableNumber={tableNumber}
-            />
+            {/* Dialog panier — masqué en mode catalogue (le parent gère son propre dialog) */}
+            {!onCartOpen && (
+                <CartDialog
+                    open={showCartDialog}
+                    onOpenChange={setShowCartDialog}
+                    restaurantId={restaurantId}
+                    restaurantSlug={restaurantSlug}
+                    tableId={tableId}
+                    tableNumber={tableNumber}
+                />
+            )}
 
             {/* Footer */}
             <footer className="bg-white dark:bg-zinc-800 mt-10 border-t border-zinc-200 dark:border-zinc-700">

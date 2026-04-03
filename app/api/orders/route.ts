@@ -112,15 +112,17 @@ export async function POST(request: NextRequest) {
 
         // Générer le numéro de commande lisible
         const lastOrder = await prisma.order.findFirst({
-            where: {restaurantId: body.restaurantId},
-            orderBy: {createdAt: 'desc'},
+            where: {restaurantId: body.restaurantId, orderNumber: {startsWith: '#'}},
+            orderBy: {orderNumber: 'desc'},
             select: {orderNumber: true},
         })
 
         let orderNumber = '#001'
         if (lastOrder?.orderNumber) {
-            const lastNumber = parseInt(lastOrder.orderNumber.replace('#', ''))
-            orderNumber = `#${String(lastNumber + 1).padStart(3, '0')}`
+            const lastNumber = parseInt(lastOrder.orderNumber.replace('#', ''), 10)
+            if (!isNaN(lastNumber)) {
+                orderNumber = `#${String(lastNumber + 1).padStart(3, '0')}`
+            }
         }
 
         // Créer la commande avec tous les items

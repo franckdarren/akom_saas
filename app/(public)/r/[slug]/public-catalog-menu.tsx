@@ -41,6 +41,7 @@ export function PublicCatalogMenu(props: PublicCatalogMenuProps) {
                 restaurantSlug={props.restaurantSlug}
                 tableId="" // Pas de table dans le contexte catalogue
                 tableNumber={0} // Pas de numéro de table
+                onCartOpen={() => setShowCart(true)}
             />
 
             {/*
@@ -49,6 +50,7 @@ export function PublicCatalogMenu(props: PublicCatalogMenuProps) {
                 l'étape de sélection du fulfillment avant validation.
             */}
             <CatalogCartDialog
+                restaurantId={props.restaurantId}
                 restaurantSlug={props.restaurantSlug}
                 restaurantName={props.restaurantName}
                 open={showCart}

@@ -36,7 +36,7 @@ interface OrderTrackerProps {
         logo_url: string | null
         phone: string | null
     }
-    table: {
+    table?: {
         number: number
     }
 }
@@ -86,8 +86,9 @@ export function OrderTracker({ order: initialOrder, restaurant, table }: OrderTr
     const [isConnected, setIsConnected] = useState(false)
 
     // L'URL pour revenir au menu
-    // On la construit une fois ici pour éviter de la recalculer à chaque render
-    const menuUrl = `/r/${restaurant.slug}/t/${table.number}`
+    const menuUrl = table
+        ? `/r/${restaurant.slug}/t/${table.number}`
+        : `/r/${restaurant.slug}`
 
     useEffect(() => {
         // Créer le client Supabase pour établir la connexion temps réel
@@ -240,7 +241,7 @@ export function OrderTracker({ order: initialOrder, restaurant, table }: OrderTr
                                     Commande {order.order_number}
                                 </CardTitle>
                                 <p className="text-sm text-muted-foreground mt-1 truncate">
-                                    {restaurant.name} • Table {table.number}
+                                    {restaurant.name}{table ? ` • Table ${table.number}` : ''}
                                 </p>
                             </div>
                             <Badge className={`${statusConfig.color} shrink-0`}>
