@@ -28,7 +28,7 @@ export async function middleware(request: NextRequest) {
 
     const {pathname} = request.nextUrl
 
-    const publicRoutes = ['/login', '/register', '/forgot-password', '/reset-password']
+    const publicRoutes = ['/login', '/register', '/forgot-password', '/reset-password', '/r/', '/legal']
     const isPublicRoute = publicRoutes.some(r => pathname.startsWith(r))
 
     // Ne pas appeler getUser() sur les routes publiques — inutile et source de timeout
@@ -44,11 +44,8 @@ export async function middleware(request: NextRequest) {
             user = result.data.user ?? null
         } catch (err) {
             console.error('❌ Middleware auth error:', err)
-            if (!pathname.startsWith('/reset-password')) {
-                const url = request.nextUrl.clone()
-                url.pathname = '/login'
-                return NextResponse.redirect(url)
-            }
+            // Sur timeout, laisser passer — les pages protégées vérifieront l'auth elles-mêmes.
+            // Rediriger vers /login ici causait un rebond inutile après login.
         }
     }
 
