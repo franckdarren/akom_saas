@@ -314,7 +314,7 @@ export function AppSidebar({
 
             <Sidebar>
                 {/* ── Header : switcher multi-structure ── */}
-                <SidebarHeader className="border-b px-2 py-3">
+                <SidebarHeader className="px-2 py-3">
                     {role === 'superadmin' ? (
                         // Superadmin : affichage simple sans switcher
                         <Link
