@@ -8,12 +8,10 @@ import {
     Minus,
     Trash2,
     ShoppingBag,
-    Calendar,
     ArrowLeft,
     User,
     Phone,
     Clock,
-    Users,
     MessageSquare,
     CheckCircle2,
 } from 'lucide-react'
@@ -42,8 +40,7 @@ interface CatalogCartDialogProps {
     onOpenChange: (open: boolean) => void
 }
 
-type FulfillmentType = 'takeway' | 'reservation' | null
-type Step = 'cart' | 'fulfillment' | 'form'
+type Step = 'cart' | 'form'
 
 export function CatalogCartDialog({
                                       restaurantId,
@@ -56,62 +53,39 @@ export function CatalogCartDialog({
     const {items, totalItems, totalAmount, updateQuantity, removeItem, clearCart} = useCart()
 
     const [step, setStep] = useState<Step>('cart')
-    const [fulfillmentType, setFulfillmentType] = useState<FulfillmentType>(null)
 
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [customerName, setCustomerName] = useState('')
     const [customerPhone, setCustomerPhone] = useState('')
     const [notes, setNotes] = useState('')
     const [pickupTime, setPickupTime] = useState('')
-    const [reservationDate, setReservationDate] = useState('')
-    const [partySize, setPartySize] = useState(2)
 
     const isFormValid =
         customerName.trim().length >= 2 &&
-        customerPhone.trim().length >= 8 &&
-        (fulfillmentType === 'takeway' || (fulfillmentType === 'reservation' && reservationDate.trim().length > 0))
+        customerPhone.trim().length >= 8
 
     function handleClose() {
         setStep('cart')
-        setFulfillmentType(null)
         setCustomerName('')
         setCustomerPhone('')
         setNotes('')
         setPickupTime('')
-        setReservationDate('')
-        setPartySize(2)
         onOpenChange(false)
     }
 
-    function handleSelectFulfillment(type: FulfillmentType) {
-        setFulfillmentType(type)
-        setStep('form')
-    }
-
-    function handleBack() {
-        if (step === 'form') {
-            setStep('fulfillment')
-            setFulfillmentType(null)
-        } else if (step === 'fulfillment') {
-            setStep('cart')
-        }
-    }
-
     async function handleCheckout() {
-        if (!isFormValid || !fulfillmentType) return
+        if (!isFormValid) return
 
         setIsSubmitting(true)
 
         try {
             const orderData = {
                 restaurantId,
-                fulfillmentType,
+                fulfillmentType: 'takeway' as const,
                 customerName,
                 customerPhone,
                 notes: notes || undefined,
-                pickupTime: fulfillmentType === 'takeway' ? pickupTime || undefined : undefined,
-                reservationDate: fulfillmentType === 'reservation' ? reservationDate : undefined,
-                partySize: fulfillmentType === 'reservation' ? partySize : undefined,
+                pickupTime: pickupTime || undefined,
                 items: items.map((item) => ({
                     productId: item.productId,
                     quantity: item.quantity,
@@ -133,14 +107,8 @@ export function CatalogCartDialog({
 
             clearCart()
 
-            const successMessage = fulfillmentType === 'takeway'
-                ? `Commande ${result.orderNumber} confirmée !`
-                : `Réservation ${result.orderNumber} confirmée !`
-
-            toast.success(successMessage, {
-                description: fulfillmentType === 'takeway'
-                    ? 'Préparez-vous à récupérer votre commande'
-                    : 'Nous vous contacterons pour confirmer',
+            toast.success(`Commande ${result.orderNumber} confirmée !`, {
+                description: 'Préparez-vous à récupérer votre commande',
             })
 
             router.push(`/r/${restaurantSlug}/orders/${result.orderId}`)
@@ -152,7 +120,7 @@ export function CatalogCartDialog({
         }
     }
 
-    const stepNumber = step === 'cart' ? 1 : step === 'fulfillment' ? 2 : 3
+    const stepNumber = step === 'cart' ? 1 : 2
 
     return (
         <Dialog open={open} onOpenChange={handleClose}>
@@ -166,7 +134,7 @@ export function CatalogCartDialog({
                                 variant="ghost"
                                 size="icon"
                                 className="h-8 w-8 shrink-0"
-                                onClick={handleBack}
+                                onClick={() => setStep('cart')}
                             >
                                 <ArrowLeft className="h-4 w-4"/>
                             </Button>
@@ -174,12 +142,10 @@ export function CatalogCartDialog({
                         <DialogHeader className="flex-1 space-y-0.5">
                             <DialogTitle className="type-card-title">
                                 {step === 'cart' && 'Mon panier'}
-                                {step === 'fulfillment' && 'Mode de retrait'}
-                                {step === 'form' && (fulfillmentType === 'takeway' ? 'Vos coordonnées' : 'Votre réservation')}
+                                {step === 'form' && 'Vos coordonnées'}
                             </DialogTitle>
                             <DialogDescription className="type-caption">
                                 {step === 'cart' && `${restaurantName}`}
-                                {step === 'fulfillment' && 'Comment souhaitez-vous récupérer votre commande ?'}
                                 {step === 'form' && 'Pour vous contacter quand ce sera prêt'}
                             </DialogDescription>
                         </DialogHeader>
@@ -187,7 +153,7 @@ export function CatalogCartDialog({
 
                     {/* Indicateur d'étapes */}
                     <div className="flex items-center gap-1.5">
-                        {[1, 2, 3].map((s) => (
+                        {[1, 2].map((s) => (
                             <div
                                 key={s}
                                 className={`h-1 flex-1 rounded-full transition-colors ${
@@ -265,48 +231,11 @@ export function CatalogCartDialog({
                         </>
                     )}
 
-                    {/* ÉTAPE 2 : Choix du mode */}
-                    {step === 'fulfillment' && (
-                        <div className="space-y-3 py-2">
-                            <button
-                                type="button"
-                                className="w-full flex items-center gap-4 p-4 rounded-xl border-2 border-transparent bg-muted/50 hover:border-primary hover:bg-primary/5 transition-all text-left"
-                                onClick={() => handleSelectFulfillment('takeway')}
-                            >
-                                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                                    <ShoppingBag className="h-6 w-6 text-primary"/>
-                                </div>
-                                <div className="flex-1">
-                                    <p className="font-semibold">À emporter</p>
-                                    <p className="type-caption text-muted-foreground mt-0.5 text-sm">
-                                        Récupérez votre commande sur place
-                                    </p>
-                                </div>
-                            </button>
-
-                            <button
-                                type="button"
-                                className="w-full flex items-center gap-4 p-4 rounded-xl border-2 border-transparent bg-muted/50 hover:border-primary hover:bg-primary/5 transition-all text-left"
-                                onClick={() => handleSelectFulfillment('reservation')}
-                            >
-                                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                                    <Calendar className="h-6 w-6 text-primary"/>
-                                </div>
-                                <div className="flex-1">
-                                    <p className="font-semibold">Réserver une table</p>
-                                    <p className="type-caption text-muted-foreground mt-0.5 text-sm">
-                                        Garantissez votre place à l'avance
-                                    </p>
-                                </div>
-                            </button>
-                        </div>
-                    )}
-
-                    {/* ÉTAPE 3 : Formulaire */}
+                    {/* ÉTAPE 2 : Formulaire */}
                     {step === 'form' && (
                         <div className="layout-form py-2">
-                            {/* Récap compact pour takeway */}
-                            {fulfillmentType === 'takeway' && items.length > 0 && (
+                            {/* Récap compact */}
+                            {items.length > 0 && (
                                 <div className="rounded-lg bg-muted/50 p-3 space-y-1.5">
                                     <div className="flex items-center justify-between">
                                         <span className="type-label-meta">Récapitulatif</span>
@@ -361,59 +290,19 @@ export function CatalogCartDialog({
                                 />
                             </div>
 
-                            {fulfillmentType === 'takeway' && (
-                                <div className="layout-field">
-                                    <Label htmlFor="catalog-pickup" className="type-label layout-inline">
-                                        <Clock className="h-3.5 w-3.5 text-muted-foreground"/>
-                                        Heure de retrait
-                                        <span className="text-muted-foreground font-normal">(optionnel)</span>
-                                    </Label>
-                                    <Input
-                                        id="catalog-pickup"
-                                        type="time"
-                                        value={pickupTime}
-                                        onChange={(e) => setPickupTime(e.target.value)}
-                                    />
-                                </div>
-                            )}
-
-                            {fulfillmentType === 'reservation' && (
-                                <>
-                                    <div className="layout-field">
-                                        <Label htmlFor="catalog-date" className="type-label layout-inline">
-                                            <Calendar className="h-3.5 w-3.5 text-muted-foreground"/>
-                                            Date et heure
-                                        </Label>
-                                        <Input
-                                            id="catalog-date"
-                                            type="datetime-local"
-                                            value={reservationDate}
-                                            onChange={(e) => setReservationDate(e.target.value)}
-                                        />
-                                    </div>
-
-                                    <div className="layout-field">
-                                        <Label className="type-label layout-inline">
-                                            <Users className="h-3.5 w-3.5 text-muted-foreground"/>
-                                            Nombre de personnes
-                                        </Label>
-                                        <div className="flex gap-2 flex-wrap">
-                                            {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
-                                                <Button
-                                                    key={n}
-                                                    type="button"
-                                                    variant={partySize === n ? 'default' : 'outline'}
-                                                    size="sm"
-                                                    onClick={() => setPartySize(n)}
-                                                    className="h-9 w-9 rounded-full"
-                                                >
-                                                    {n}
-                                                </Button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </>
-                            )}
+                            <div className="layout-field">
+                                <Label htmlFor="catalog-pickup" className="type-label layout-inline">
+                                    <Clock className="h-3.5 w-3.5 text-muted-foreground"/>
+                                    Heure de retrait
+                                    <span className="text-muted-foreground font-normal">(optionnel)</span>
+                                </Label>
+                                <Input
+                                    id="catalog-pickup"
+                                    type="time"
+                                    value={pickupTime}
+                                    onChange={(e) => setPickupTime(e.target.value)}
+                                />
+                            </div>
 
                             <div className="layout-field">
                                 <Label htmlFor="catalog-notes" className="type-label layout-inline">
@@ -425,11 +314,7 @@ export function CatalogCartDialog({
                                     id="catalog-notes"
                                     value={notes}
                                     onChange={(e) => setNotes(e.target.value)}
-                                    placeholder={
-                                        fulfillmentType === 'takeway'
-                                            ? 'Allergies, préférences...'
-                                            : 'Occasion spéciale, allergies...'
-                                    }
+                                    placeholder="Allergies, préférences..."
                                     rows={2}
                                     className="resize-none"
                                 />
@@ -449,18 +334,12 @@ export function CatalogCartDialog({
                             <Button
                                 className="w-full mt-2"
                                 size="lg"
-                                onClick={() => setStep('fulfillment')}
+                                onClick={() => setStep('form')}
                             >
                                 <CheckCircle2 className="h-4 w-4"/>
                                 Valider le panier
                             </Button>
                         </>
-                    )}
-
-                    {step === 'fulfillment' && (
-                        <p className="type-caption text-muted-foreground text-center py-1">
-                            {totalItems} article{totalItems > 1 ? 's' : ''} &middot; {formatPrice(totalAmount)}
-                        </p>
                     )}
 
                     {step === 'form' && (
@@ -472,9 +351,7 @@ export function CatalogCartDialog({
                             isLoading={isSubmitting}
                             loadingText="Envoi en cours..."
                         >
-                            {fulfillmentType === 'takeway'
-                                ? `Commander \u00b7 ${formatPrice(totalAmount)}`
-                                : 'Confirmer la réservation'}
+                            {`Commander \u00b7 ${formatPrice(totalAmount)}`}
                         </LoadingButton>
                     )}
                 </div>
