@@ -239,6 +239,27 @@ enum ActivityType {
   @@map("activity_type")
 }
 
+enum SingpayTransactionStatus {
+  start        // Transaction initiée
+  partenaire   // En cours chez l'opérateur
+  terminate    // Terminée (succès ou échec)
+  disbursement // En cours de distribution
+  refund       // Remboursement
+
+  @@map("singpay_transaction_status")
+}
+
+enum SingpayTransactionResult {
+  success        // Paiement réussi
+  password_error // Erreur de code PIN
+  balance_error  // Solde insuffisant
+  timeout_error  // Timeout
+  error          // Erreur générique
+  pending        // En attente
+
+  @@map("singpay_transaction_result")
+}
+
 // ============================================================
 // MODELS
 // ============================================================
@@ -292,6 +313,7 @@ model Restaurant {
   cashSessions            CashSession[]
   manualRevenues          ManualRevenue[]
   expenses                Expense[]
+  singpayConfig           RestaurantSingpayConfig?
 
   @@index([slug])
   @@index([isActive])
@@ -518,6 +540,18 @@ model Payment {
   transactionId String?       @map("transaction_id")
   phoneNumber   String?       @map("phone_number")
   errorMessage  String?       @map("error_message")
+
+  // Champs SingPay
+  singpayReference     String?                    @unique @map("singpay_reference")
+  singpayTransactionId String?                    @map("singpay_transaction_id")
+  singpayStatus        SingpayTransactionStatus?  @map("singpay_status")
+  singpayResult        SingpayTransactionResult?  @map("singpay_result")
+  singpayAirtelId      String?                    @map("singpay_airtel_id")
+  callbackReceived     Boolean                    @default(false) @map("callback_received")
+  callbackData         Json?                      @map("callback_data")
+  callbackAt           DateTime?                  @map("callback_at")
+  paidAt               DateTime?                  @map("paid_at")
+
   createdAt     DateTime      @default(now()) @map("created_at")
   updatedAt     DateTime      @updatedAt @map("updated_at")
 
@@ -528,6 +562,7 @@ model Payment {
   @@index([orderId])
   @@index([restaurantId, status])
   @@index([restaurantId, createdAt(sort: Desc)])
+  @@index([singpayReference])
   @@map("payments")
 }
 
@@ -1173,4 +1208,34 @@ model Expense {
   @@index([restaurantId, category])
   @@index([restaurantId, expenseDate])
   @@map("expenses")
+}
+
+model RestaurantSingpayConfig {
+  id           String  @id @default(uuid()) @db.Uuid
+  restaurantId String  @unique @map("restaurant_id") @db.Uuid
+
+  enabled Boolean @default(false)
+
+  // Informations du portefeuille SingPay (fournies par SingPay, saisies par superadmin)
+  walletId              String? @unique @map("wallet_id")
+  merchantCode          String? @map("merchant_code")
+  defaultDisbursementId String? @map("default_disbursement_id")
+
+  // URL de callback auto-générée : {APP_URL}/api/webhooks/singpay/{restaurantId}
+  callbackUrl String? @map("callback_url")
+
+  // État de la configuration
+  isConfigured Boolean   @default(false) @map("is_configured")
+  configuredAt DateTime? @map("configured_at")
+  configuredBy String?   @map("configured_by") @db.Uuid
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@index([walletId])
+  @@index([enabled])
+  @@map("restaurant_singpay_configs")
 }

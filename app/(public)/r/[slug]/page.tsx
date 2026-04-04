@@ -17,6 +17,9 @@ const getRestaurantBySlug = cache(async (slug: string) =>
             phone: true,
             coverImageUrl: true,
             logoUrl: true,
+            singpayConfig: {
+                select: { enabled: true },
+            },
         },
     })
 )
@@ -46,6 +49,7 @@ export default async function PublicCatalogPage({
             restaurantPhone={restaurant.phone}
             coverImageUrl={restaurant.coverImageUrl}
             logoUrl={restaurant.logoUrl}
+            singpayEnabled={restaurant.singpayConfig?.enabled ?? false}
         />
     )
 }

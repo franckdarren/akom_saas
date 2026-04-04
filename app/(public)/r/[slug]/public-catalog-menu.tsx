@@ -24,6 +24,7 @@ interface PublicCatalogMenuProps {
     restaurantPhone: string | null
     coverImageUrl: string | null
     logoUrl: string | null
+    singpayEnabled: boolean
 }
 
 export function PublicCatalogMenu(props: PublicCatalogMenuProps) {
@@ -53,6 +54,7 @@ export function PublicCatalogMenu(props: PublicCatalogMenuProps) {
                 restaurantId={props.restaurantId}
                 restaurantSlug={props.restaurantSlug}
                 restaurantName={props.restaurantName}
+                singpayEnabled={props.singpayEnabled}
                 open={showCart}
                 onOpenChange={setShowCart}
             />

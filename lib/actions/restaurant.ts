@@ -2,6 +2,7 @@
 'use server'
 
 import {revalidatePath} from 'next/cache'
+import {cookies} from 'next/headers'
 import {createClient} from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
 import type {RestaurantWithRole} from '@/types/auth'
@@ -135,6 +136,16 @@ export async function createRestaurant(data: CreateRestaurantInput) {
         })
 
         await logRestaurantCreated(result.id, user.id)
+
+        // Poser le cookie immédiatement pour que le middleware
+        // trouve le restaurant dès la prochaine requête vers /dashboard
+        const cookieStore = await cookies()
+        cookieStore.set('akom_current_restaurant_id', result.id, {
+            path: '/',
+            sameSite: 'lax',
+            httpOnly: false,
+        })
+
         revalidatePath('/dashboard')
 
         return {success: true, restaurant: result}

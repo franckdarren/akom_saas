@@ -14,9 +14,11 @@ import {
     type ActivityType,
 } from '@/lib/config/activity-labels'
 import {cn} from '@/lib/utils'
+import {useNavigationLoading} from '@/lib/hooks/use-navigation-loading'
 
 export function CreateRestaurantForm() {
     const router = useRouter()
+    const {startLoading} = useNavigationLoading()
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [activityType, setActivityType] = useState<ActivityType>('restaurant')
@@ -47,7 +49,8 @@ export function CreateRestaurantForm() {
             return
         }
 
-        // la redirection se fait automatiquement dans l'action
+        startLoading()
+        router.push('/dashboard')
     }
 
     return (
