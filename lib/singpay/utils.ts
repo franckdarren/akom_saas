@@ -32,12 +32,13 @@ export function formatPhoneForSingpay(phone: string): string {
     cleaned = cleaned.substring(1)
   }
 
-  // Numéro local gabonais (commence par 0) → ajouter préfixe 241
+  // Numéro local gabonais (commence par 0) → ajouter préfixe 241 en gardant le 0
+  // SingPay attend le format 2410XXXXXXXX (12 chiffres)
   if (cleaned.startsWith('0')) {
-    cleaned = '241' + cleaned.substring(1)
+    cleaned = '241' + cleaned
   }
 
-  if (cleaned.length < 10) {
+  if (cleaned.length < 11) {
     throw new Error('Numéro de téléphone invalide')
   }
 

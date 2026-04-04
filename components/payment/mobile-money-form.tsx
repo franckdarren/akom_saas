@@ -2,12 +2,14 @@
 'use client'
 
 import { useState } from 'react'
-import { Phone, Smartphone } from 'lucide-react'
+import { Phone } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { LoadingButton } from '@/components/ui/loading-button'
 import { cn } from '@/lib/utils'
 import { formatPrice } from '@/lib/utils/format'
+import Image from 'next/image'
+
 
 type Operator = 'airtel' | 'moov'
 
@@ -18,9 +20,9 @@ interface MobileMoneyFormProps {
   onSubmit: (phoneNumber: string, operator: Operator) => void
 }
 
-const OPERATORS: { value: Operator; label: string; prefix: string }[] = [
-  { value: 'airtel', label: 'Airtel Money', prefix: '074 / 077' },
-  { value: 'moov', label: 'Moov Money', prefix: '062 / 066' },
+const OPERATORS: { value: Operator; label: string; prefix: string; logo: string }[] = [
+  { value: 'airtel', label: 'Airtel Money', prefix: '074 / 077', logo:"/images/airtelmoney.webp" },
+  { value: 'moov', label: 'Moov Money', prefix: '062 / 066', logo:"/images/moovmoney.png" },
 ]
 
 export function MobileMoneyForm({
@@ -57,7 +59,12 @@ export function MobileMoneyForm({
                   : 'border-border hover:border-muted-foreground/30',
               )}
             >
-              <Smartphone className="h-5 w-5" />
+              <Image
+                src={op.logo}
+                width={80}
+                height={80}
+                alt="logo"
+              />
               <span className="text-sm font-semibold">{op.label}</span>
               <span className="type-caption text-muted-foreground">{op.prefix}</span>
             </button>

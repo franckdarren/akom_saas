@@ -41,19 +41,30 @@ class SingpayClient {
     walletId: string,
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`
+    const headers = this.getHeaders(walletId)
+
+    console.log('[SingPay] Request:', {
+      url,
+      method: options.method,
+      hasClientId: !!this.clientId,
+      hasClientSecret: !!this.clientSecret,
+      clientIdPrefix: this.clientId?.substring(0, 8) + '...',
+    })
 
     const response = await fetch(url, {
       ...options,
-      headers: this.getHeaders(walletId),
+      headers,
       signal: AbortSignal.timeout(SINGPAY_CONFIG.requestTimeout),
     })
 
+    const responseText = await response.text()
+    console.log('[SingPay] HTTP', response.status, responseText)
+
     if (!response.ok) {
-      const errorText = await response.text()
-      throw new Error(`SingPay API Error (${response.status}): ${errorText}`)
+      throw new Error(`SingPay API Error (${response.status}): ${responseText}`)
     }
 
-    return response.json() as Promise<T>
+    return JSON.parse(responseText) as T
   }
 
   /** Initie un paiement Airtel Money (USSD Push) — POST /74/paiement */

@@ -22,7 +22,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ToggleRestaurantStatus } from '@/components/superadmin/ToggleRestaurantStatus'
-import { ArrowLeft, Building2, ShoppingCart, TrendingUp } from 'lucide-react'
+import { ArrowLeft, Building2, ShoppingCart, Smartphone, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
 
 // ----------------------------
@@ -163,6 +163,42 @@ export default function RestaurantDetailsClient({ restaurant }: Props) {
                             )}
                         </TableBody>
                     </Table>
+                </CardContent>
+            </AppCard>
+
+            {/* Paiement SingPay */}
+            <AppCard>
+                <CardHeader>
+                    <div className="flex items-center justify-between">
+                        <div className="layout-inline">
+                            <Smartphone className="h-5 w-5 text-muted-foreground" />
+                            <CardTitle className="type-card-title">Paiement Mobile Money</CardTitle>
+                        </div>
+                        {restaurant.singpayConfig?.enabled ? (
+                            <Badge className="bg-success text-success-foreground">Activé</Badge>
+                        ) : restaurant.singpayConfig?.isConfigured ? (
+                            <Badge variant="secondary">Désactivé</Badge>
+                        ) : (
+                            <Badge variant="outline">Non configuré</Badge>
+                        )}
+                    </div>
+                </CardHeader>
+                <CardContent className="layout-card-body">
+                    {restaurant.singpayConfig?.isConfigured ? (
+                        <p className="type-body-muted">
+                            Wallet ID : <span className="type-code">{restaurant.singpayConfig.walletId?.substring(0, 8)}...{restaurant.singpayConfig.walletId?.slice(-4)}</span>
+                        </p>
+                    ) : (
+                        <p className="type-body-muted">
+                            Aucun portefeuille SingPay n'est relié à cet établissement.
+                        </p>
+                    )}
+                    <Link
+                        href={`/superadmin/restaurants/${restaurant.id}/singpay`}
+                        className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
+                    >
+                        Configurer SingPay
+                    </Link>
                 </CardContent>
             </AppCard>
         </div>

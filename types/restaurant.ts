@@ -9,6 +9,11 @@ export type RestaurantUser = {
 
 export type RestaurantDetails = Restaurant & {
     users: RestaurantUser[]
+    singpayConfig: {
+        enabled: boolean
+        isConfigured: boolean
+        walletId: string | null
+    } | null
     _count: {
         orders: number
         products: number

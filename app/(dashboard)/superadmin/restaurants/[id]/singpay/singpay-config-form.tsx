@@ -25,6 +25,7 @@ export function SingpayConfigForm({ restaurantId, config }: SingpayConfigFormPro
   const [merchantCode, setMerchantCode] = useState(config?.merchantCode ?? '')
   const [disbursementId, setDisbursementId] = useState(config?.defaultDisbursementId ?? '')
   const [enabled, setEnabled] = useState(config?.enabled ?? false)
+  const [isConfigured, setIsConfigured] = useState(config?.isConfigured ?? false)
   const [isSaving, setIsSaving] = useState(false)
   const [isToggling, setIsToggling] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -48,6 +49,7 @@ export function SingpayConfigForm({ restaurantId, config }: SingpayConfigFormPro
       })
 
       if (result.success) {
+        setIsConfigured(true)
         toast.success('Configuration SingPay enregistrée')
       } else {
         toast.error(result.error)
@@ -99,12 +101,12 @@ export function SingpayConfigForm({ restaurantId, config }: SingpayConfigFormPro
               <Switch
                 checked={enabled}
                 onCheckedChange={handleToggle}
-                disabled={isToggling || !config?.isConfigured}
+                disabled={isToggling || !isConfigured}
               />
             </div>
           </div>
         </CardHeader>
-        {!config?.isConfigured && (
+        {!isConfigured && (
           <CardContent>
             <p className="type-body-muted">
               Remplissez et enregistrez la configuration ci-dessous avant de pouvoir activer le paiement.

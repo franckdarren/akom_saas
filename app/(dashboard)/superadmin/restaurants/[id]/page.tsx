@@ -31,6 +31,11 @@ export type RestaurantDetailsType = {
     address?: string | null
     isActive: boolean
     createdAt: string
+    singpayConfig: {
+        enabled: boolean
+        isConfigured: boolean
+        walletId: string | null
+    } | null
     _count: {
         products: number
         tables: number
@@ -64,6 +69,7 @@ export default async function RestaurantDetailsPage({ params }: PageProps) {
             restaurantRaw.createdAt instanceof Date
                 ? restaurantRaw.createdAt.toISOString()
                 : restaurantRaw.createdAt,
+        singpayConfig: restaurantRaw.singpayConfig ?? null,
         users: restaurantRaw.users.map((user: RestaurantUser) => ({
             ...user,
             role: user.role ?? null,

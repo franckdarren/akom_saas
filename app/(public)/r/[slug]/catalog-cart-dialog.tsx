@@ -1,7 +1,7 @@
 // app/(public)/r/[slug]/catalog-cart-dialog.tsx
 'use client'
 
-import {useState} from 'react'
+import {useState, useEffect, useRef, useCallback} from 'react'
 import {useRouter} from 'next/navigation'
 import {
     Plus,
@@ -16,6 +16,9 @@ import {
     CheckCircle2,
     Banknote,
     Smartphone,
+    Loader2,
+    XCircle,
+    RefreshCw,
 } from 'lucide-react'
 import {Button} from '@/components/ui/button'
 import {LoadingButton} from '@/components/ui/loading-button'
@@ -45,8 +48,44 @@ interface CatalogCartDialogProps {
     onOpenChange: (open: boolean) => void
 }
 
-type Step = 'cart' | 'form' | 'payment'
+type Step = 'cart' | 'info' | 'payment' | 'processing' | 'confirmation'
 type PaymentChoice = 'cash' | 'mobile_money'
+type CheckoutResult = 'success_cash' | 'success_mm' | 'failed_mm' | 'timeout_mm'
+
+/** Intervalle de polling inline (3s) */
+const POLL_INTERVAL = 3_000
+/** Nombre max de polls (40 × 3s = 2min) */
+const MAX_POLLS = 40
+
+const STEP_TITLES: Record<Step, string> = {
+    cart: 'Mon panier',
+    info: 'Vos coordonnées',
+    payment: 'Paiement',
+    processing: 'Paiement en cours',
+    confirmation: 'Confirmation',
+}
+
+const STEP_DESCRIPTIONS: Record<Step, string> = {
+    cart: '',
+    info: 'Pour vous contacter quand ce sera prêt',
+    payment: 'Choisissez votre mode de paiement',
+    processing: 'Veuillez valider sur votre téléphone',
+    confirmation: '',
+}
+
+/** Mapping étape → barre de progression (sur 3) */
+function stepProgress(step: Step): number {
+    switch (step) {
+        case 'cart':
+        case 'info':
+            return 1
+        case 'payment':
+            return 2
+        case 'processing':
+        case 'confirmation':
+            return 3
+    }
+}
 
 export function CatalogCartDialog({
                                       restaurantId,
@@ -68,118 +107,156 @@ export function CatalogCartDialog({
     const [notes, setNotes] = useState('')
     const [pickupTime, setPickupTime] = useState('')
 
+    // État checkout
+    const [orderId, setOrderId] = useState<string | null>(null)
+    const [orderNumber, setOrderNumber] = useState<string | null>(null)
+    const [paymentId, setPaymentId] = useState<string | null>(null)
+    const [checkoutResult, setCheckoutResult] = useState<CheckoutResult | null>(null)
+    const [errorMessage, setErrorMessage] = useState('')
+
+    const pollCount = useRef(0)
+
     const isFormValid =
         customerName.trim().length >= 2 &&
         customerPhone.trim().length >= 8
 
-    const totalSteps = singpayEnabled ? 3 : 2
-    const stepNumber = step === 'cart' ? 1 : step === 'form' ? 2 : 3
+    const progress = stepProgress(step)
 
-    function handleClose() {
+    // Description dynamique pour l'étape cart
+    const description = step === 'cart' ? restaurantName : STEP_DESCRIPTIONS[step]
+
+    function resetAll() {
         setStep('cart')
         setPaymentChoice(null)
         setCustomerName('')
         setCustomerPhone('')
         setNotes('')
         setPickupTime('')
+        setOrderId(null)
+        setOrderNumber(null)
+        setPaymentId(null)
+        setCheckoutResult(null)
+        setErrorMessage('')
+        pollCount.current = 0
+    }
+
+    function handleClose() {
+        resetAll()
         onOpenChange(false)
     }
 
     function handleGoBack() {
-        if (step === 'form') setStep('cart')
-        else if (step === 'payment') setStep('form')
+        if (step === 'info') setStep('cart')
+        else if (step === 'payment') setStep('info')
     }
 
-    function handleFormNext() {
-        if (!isFormValid) return
-        if (singpayEnabled) {
-            setStep('payment')
-        } else {
-            handleCheckoutCash()
+    // ── Polling inline pour mobile money ──
+
+    const stopPolling = useCallback(() => {
+        pollCount.current = MAX_POLLS + 1
+    }, [])
+
+    useEffect(() => {
+        if (step !== 'processing' || !paymentId) return
+
+        pollCount.current = 0
+
+        const interval = setInterval(async () => {
+            pollCount.current++
+
+            if (pollCount.current > MAX_POLLS) {
+                setCheckoutResult('timeout_mm')
+                setStep('confirmation')
+                clearInterval(interval)
+                return
+            }
+
+            try {
+                const res = await fetch(`/api/payments/${paymentId}/status`)
+                const data = await res.json()
+
+                if (data.isPaid) {
+                    setCheckoutResult('success_mm')
+                    setStep('confirmation')
+                    clearInterval(interval)
+                } else if (data.isFailed) {
+                    setCheckoutResult('failed_mm')
+                    setErrorMessage(data.errorMessage ?? 'Paiement échoué')
+                    setStep('confirmation')
+                    clearInterval(interval)
+                }
+            } catch {
+                // Erreur réseau, on continue le polling
+            }
+        }, POLL_INTERVAL)
+
+        return () => clearInterval(interval)
+    }, [step, paymentId])
+
+    // ── Création de commande ──
+
+    async function createOrder(): Promise<{orderId: string; orderNumber: string} | null> {
+        const orderData = {
+            restaurantId,
+            fulfillmentType: 'takeway' as const,
+            customerName,
+            customerPhone,
+            notes: notes || undefined,
+            pickupTime: pickupTime || undefined,
+            items: items.map((item) => ({
+                productId: item.productId,
+                quantity: item.quantity,
+            })),
         }
+
+        const response = await fetch('/api/catalog/orders', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(orderData),
+        })
+
+        if (!response.ok) {
+            const error = await response.json()
+            throw new Error(error.error || 'Erreur lors de la création de la commande')
+        }
+
+        const result = await response.json()
+        setOrderId(result.orderId)
+        setOrderNumber(result.orderNumber)
+        return result
     }
 
-    /** Crée la commande (paiement en espèces ou sans paiement en ligne) */
+    // ── Checkout cash ──
+
     async function handleCheckoutCash() {
         if (!isFormValid) return
         setIsSubmitting(true)
 
         try {
-            const orderData = {
-                restaurantId,
-                fulfillmentType: 'takeway' as const,
-                customerName,
-                customerPhone,
-                notes: notes || undefined,
-                pickupTime: pickupTime || undefined,
-                items: items.map((item) => ({
-                    productId: item.productId,
-                    quantity: item.quantity,
-                })),
-            }
-
-            const response = await fetch('/api/catalog/orders', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(orderData),
-            })
-
-            if (!response.ok) {
-                const error = await response.json()
-                throw new Error(error.error || 'Erreur lors de la création de la commande')
-            }
-
-            const result = await response.json()
-
+            await createOrder()
             clearCart()
-
-            toast.success(`Commande ${result.orderNumber} confirmée !`, {
-                description: 'Préparez-vous à récupérer votre commande',
-            })
-
-            router.push(`/r/${restaurantSlug}/orders/${result.orderId}`)
+            setCheckoutResult('success_cash')
+            setStep('confirmation')
         } catch (error) {
-            console.error('Erreur checkout:', error)
+            console.error('Erreur checkout cash:', error)
             toast.error(error instanceof Error ? error.message : 'Une erreur est survenue')
         } finally {
             setIsSubmitting(false)
         }
     }
 
-    /** Crée la commande PUIS initie le paiement mobile money */
+    // ── Checkout mobile money ──
+
     async function handleCheckoutMobileMoney(phoneNumber: string, operator: 'airtel' | 'moov') {
         setIsSubmitting(true)
 
         try {
             // 1. Créer la commande
-            const orderData = {
-                restaurantId,
-                fulfillmentType: 'takeway' as const,
-                customerName,
-                customerPhone,
-                notes: notes || undefined,
-                pickupTime: pickupTime || undefined,
-                items: items.map((item) => ({
-                    productId: item.productId,
-                    quantity: item.quantity,
-                })),
-            }
-
-            const orderResponse = await fetch('/api/catalog/orders', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(orderData),
-            })
-
-            if (!orderResponse.ok) {
-                const error = await orderResponse.json()
-                throw new Error(error.error || 'Erreur lors de la création de la commande')
-            }
-
-            const order = await orderResponse.json()
+            const order = await createOrder()
+            if (!order) throw new Error('Erreur lors de la création de la commande')
 
             // 2. Initier le paiement SingPay
-            const { initiateOrderPayment } = await import('@/lib/actions/singpay-payment')
+            const {initiateOrderPayment} = await import('@/lib/actions/singpay-payment')
             const paymentResult = await initiateOrderPayment({
                 orderId: order.orderId,
                 phoneNumber,
@@ -191,11 +268,8 @@ export function CatalogCartDialog({
             }
 
             clearCart()
-
-            // 3. Rediriger vers la page de suivi du paiement
-            router.push(
-                `/r/${restaurantSlug}/orders/${order.orderId}/payment?paymentId=${paymentResult.paymentId}`,
-            )
+            setPaymentId(paymentResult.paymentId!)
+            setStep('processing')
         } catch (error) {
             console.error('Erreur checkout mobile money:', error)
             toast.error(error instanceof Error ? error.message : 'Une erreur est survenue')
@@ -204,6 +278,45 @@ export function CatalogCartDialog({
         }
     }
 
+    // ── Actions confirmation ──
+
+    function handleConfirmationClose() {
+        resetAll()
+        clearCart()
+        onOpenChange(false)
+    }
+
+    function handleGoToOrder() {
+        if (orderId) {
+            router.push(`/r/${restaurantSlug}/orders/${orderId}`)
+        }
+        handleClose()
+    }
+
+    function handleRetryPayment() {
+        setCheckoutResult(null)
+        setErrorMessage('')
+        setPaymentId(null)
+        pollCount.current = 0
+        setStep('payment')
+    }
+
+    function handleRetryPolling() {
+        setCheckoutResult(null)
+        pollCount.current = 0
+        setStep('processing')
+    }
+
+    /** Fallback vers cash après échec/timeout mobile money */
+    async function handleFallbackToCash() {
+        // La commande existe déjà, on redirige simplement vers le suivi
+        setCheckoutResult('success_cash')
+    }
+
+    // ── Rendu ──
+
+    const canGoBack = step === 'info' || step === 'payment'
+
     return (
         <Dialog open={open} onOpenChange={handleClose}>
             <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-md max-h-[85vh] flex flex-col gap-0 p-0">
@@ -211,7 +324,7 @@ export function CatalogCartDialog({
                 {/* ── Header avec indicateur d'étape ── */}
                 <div className="px-6 pt-6 pb-4">
                     <div className="flex items-center gap-3 mb-3">
-                        {step !== 'cart' && (
+                        {canGoBack && (
                             <Button
                                 variant="ghost"
                                 size="icon"
@@ -223,26 +336,25 @@ export function CatalogCartDialog({
                         )}
                         <DialogHeader className="flex-1 space-y-0.5">
                             <DialogTitle className="type-card-title">
-                                {step === 'cart' && 'Mon panier'}
-                                {step === 'form' && 'Vos coordonnées'}
-                                {step === 'payment' && 'Paiement'}
+                                {STEP_TITLES[step]}
                             </DialogTitle>
-                            <DialogDescription className="type-caption">
-                                {step === 'cart' && `${restaurantName}`}
-                                {step === 'form' && 'Pour vous contacter quand ce sera prêt'}
-                                {step === 'payment' && 'Choisissez votre mode de paiement'}
-                            </DialogDescription>
+                            {description && (
+                                <DialogDescription className="type-caption">
+                                    {description}
+                                </DialogDescription>
+                            )}
                         </DialogHeader>
                     </div>
 
-                    {/* Indicateur d'étapes */}
+                    {/* Indicateur d'étapes — 3 barres */}
                     <div className="flex items-center gap-1.5">
-                        {Array.from({length: totalSteps}, (_, i) => i + 1).map((s) => (
+                        {[1, 2, 3].map((s) => (
                             <div
                                 key={s}
-                                className={`h-1 flex-1 rounded-full transition-colors ${
-                                    s <= stepNumber ? 'bg-primary' : 'bg-muted'
-                                }`}
+                                className={cn(
+                                    'h-1 flex-1 rounded-full transition-colors',
+                                    s <= progress ? 'bg-primary' : 'bg-muted',
+                                )}
                             />
                         ))}
                     </div>
@@ -266,7 +378,6 @@ export function CatalogCartDialog({
                                 <div className="divide-y">
                                     {items.map((item) => (
                                         <div key={item.productId} className="py-3 space-y-2">
-                                            {/* Ligne 1 : Nom + sous-total + supprimer */}
                                             <div className="flex items-start gap-2">
                                                 <div className="flex-1 min-w-0">
                                                     <p className="font-medium leading-snug">{item.name}</p>
@@ -286,7 +397,6 @@ export function CatalogCartDialog({
                                                     <Trash2 className="h-3.5 w-3.5"/>
                                                 </Button>
                                             </div>
-                                            {/* Ligne 2 : Contrôles quantité */}
                                             <div className="flex items-center gap-1.5 w-fit">
                                                 <Button
                                                     variant="outline"
@@ -315,8 +425,8 @@ export function CatalogCartDialog({
                         </>
                     )}
 
-                    {/* ÉTAPE 2 : Formulaire */}
-                    {step === 'form' && (
+                    {/* ÉTAPE 2 : Coordonnées */}
+                    {step === 'info' && (
                         <div className="layout-form py-2">
                             {/* Récap compact */}
                             {items.length > 0 && (
@@ -339,14 +449,14 @@ export function CatalogCartDialog({
                                             </div>
                                         ))}
                                     </div>
-                                    <div className="flex justify-between pt-1.5 border-t border-border/50 font-semibold text-sm">
+                                    <div
+                                        className="flex justify-between pt-1.5 border-t border-border/50 font-semibold text-sm">
                                         <span>Total</span>
                                         <span>{formatPrice(totalAmount)}</span>
                                     </div>
                                 </div>
                             )}
 
-                            {/* Champs coordonnées */}
                             <div className="layout-field">
                                 <Label htmlFor="catalog-name" className="type-label layout-inline">
                                     <User className="h-3.5 w-3.5 text-muted-foreground"/>
@@ -418,7 +528,10 @@ export function CatalogCartDialog({
                             {/* Choix du mode de paiement */}
                             <div className="layout-field">
                                 <Label className="type-label">Mode de paiement</Label>
-                                <div className="grid grid-cols-2 gap-3">
+                                <div className={cn(
+                                    'grid gap-3',
+                                    singpayEnabled ? 'grid-cols-2' : 'grid-cols-1',
+                                )}>
                                     <button
                                         type="button"
                                         onClick={() => setPaymentChoice('cash')}
@@ -430,27 +543,29 @@ export function CatalogCartDialog({
                                         )}
                                     >
                                         <Banknote className="h-6 w-6"/>
-                                        <span className="text-sm font-semibold">Espèces</span>
+                                        <span className="text-sm font-semibold">Payer à la caisse</span>
                                         <span className="type-caption text-muted-foreground">
-                                            Payer au retrait
+                                            Espèces au retrait
                                         </span>
                                     </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => setPaymentChoice('mobile_money')}
-                                        className={cn(
-                                            'flex flex-col items-center gap-2 rounded-lg border-2 p-4 transition-colors',
-                                            paymentChoice === 'mobile_money'
-                                                ? 'border-primary bg-primary/5'
-                                                : 'border-border hover:border-muted-foreground/30',
-                                        )}
-                                    >
-                                        <Smartphone className="h-6 w-6"/>
-                                        <span className="text-sm font-semibold">Mobile Money</span>
-                                        <span className="type-caption text-muted-foreground">
-                                            Airtel / Moov
-                                        </span>
-                                    </button>
+                                    {singpayEnabled && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setPaymentChoice('mobile_money')}
+                                            className={cn(
+                                                'flex flex-col items-center gap-2 rounded-lg border-2 p-4 transition-colors',
+                                                paymentChoice === 'mobile_money'
+                                                    ? 'border-primary bg-primary/5'
+                                                    : 'border-border hover:border-muted-foreground/30',
+                                            )}
+                                        >
+                                            <Smartphone className="h-6 w-6"/>
+                                            <span className="text-sm font-semibold">Mobile Money</span>
+                                            <span className="type-caption text-muted-foreground">
+                                                Airtel / Moov
+                                            </span>
+                                        </button>
+                                    )}
                                 </div>
                             </div>
 
@@ -465,10 +580,87 @@ export function CatalogCartDialog({
                             )}
                         </div>
                     )}
+
+                    {/* ÉTAPE 4 : Processing (mobile money) */}
+                    {step === 'processing' && (
+                        <div className="flex flex-col items-center gap-4 py-8">
+                            <div className="relative">
+                                <Smartphone className="h-12 w-12 text-muted-foreground"/>
+                                <Loader2 className="h-5 w-5 text-primary animate-spin absolute -top-1 -right-1"/>
+                            </div>
+                            <div className="text-center space-y-1">
+                                <p className="font-semibold">En attente de validation</p>
+                                <p className="type-body-muted">
+                                    Composez le code PIN sur votre téléphone pour valider le paiement
+                                </p>
+                            </div>
+                            <div className="flex items-center gap-2 rounded-lg bg-muted/50 px-4 py-2">
+                                <span className="type-caption text-muted-foreground">Montant :</span>
+                                <span className="font-semibold">{formatPrice(totalAmount)}</span>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* ÉTAPE 5 : Confirmation */}
+                    {step === 'confirmation' && (
+                        <div className="flex flex-col items-center gap-4 py-8">
+                            {/* Succès cash */}
+                            {checkoutResult === 'success_cash' && (
+                                <>
+                                    <CheckCircle2 className="h-14 w-14 text-success"/>
+                                    <div className="text-center space-y-1">
+                                        <p className="font-semibold">Commande envoyée !</p>
+                                        <p className="type-body-muted">
+                                            {orderNumber && `Commande ${orderNumber} — `}Présentez-vous à la caisse pour le paiement
+                                        </p>
+                                    </div>
+                                </>
+                            )}
+
+                            {/* Succès mobile money */}
+                            {checkoutResult === 'success_mm' && (
+                                <>
+                                    <CheckCircle2 className="h-14 w-14 text-success"/>
+                                    <div className="text-center space-y-1">
+                                        <p className="font-semibold">Paiement confirmé !</p>
+                                        <p className="type-body-muted">
+                                            {orderNumber && `Commande ${orderNumber} — `}Votre commande est en cours de préparation
+                                        </p>
+                                    </div>
+                                </>
+                            )}
+
+                            {/* Échec mobile money */}
+                            {checkoutResult === 'failed_mm' && (
+                                <>
+                                    <XCircle className="h-14 w-14 text-destructive"/>
+                                    <div className="text-center space-y-1">
+                                        <p className="font-semibold">Paiement échoué</p>
+                                        <p className="type-body-muted">{errorMessage}</p>
+                                    </div>
+                                </>
+                            )}
+
+                            {/* Timeout mobile money */}
+                            {checkoutResult === 'timeout_mm' && (
+                                <>
+                                    <Loader2 className="h-14 w-14 text-warning"/>
+                                    <div className="text-center space-y-1">
+                                        <p className="font-semibold">Délai dépassé</p>
+                                        <p className="type-body-muted">
+                                            Nous n'avons pas reçu de confirmation. Si vous avez validé le paiement,
+                                            il sera traité automatiquement.
+                                        </p>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 {/* ── Footer fixe ── */}
                 <div className="border-t px-6 py-4 space-y-2">
+                    {/* Cart → Valider */}
                     {step === 'cart' && items.length > 0 && (
                         <>
                             <div className="flex justify-between items-center mb-1">
@@ -478,29 +670,27 @@ export function CatalogCartDialog({
                             <Button
                                 className="w-full mt-2"
                                 size="lg"
-                                onClick={() => setStep('form')}
+                                onClick={() => setStep('info')}
                             >
                                 <CheckCircle2 className="h-4 w-4"/>
-                                Valider le panier
+                                Passer la commande
                             </Button>
                         </>
                     )}
 
-                    {step === 'form' && (
+                    {/* Info → Continuer vers le paiement */}
+                    {step === 'info' && (
                         <LoadingButton
                             className="w-full"
                             size="lg"
-                            onClick={handleFormNext}
+                            onClick={() => setStep('payment')}
                             disabled={!isFormValid}
-                            isLoading={!singpayEnabled && isSubmitting}
-                            loadingText="Envoi en cours..."
                         >
-                            {singpayEnabled
-                                ? 'Continuer vers le paiement'
-                                : `Commander · ${formatPrice(totalAmount)}`}
+                            Continuer
                         </LoadingButton>
                     )}
 
+                    {/* Payment → Commander (cash) */}
                     {step === 'payment' && paymentChoice === 'cash' && (
                         <LoadingButton
                             className="w-full"
@@ -511,6 +701,50 @@ export function CatalogCartDialog({
                         >
                             {`Commander · ${formatPrice(totalAmount)}`}
                         </LoadingButton>
+                    )}
+
+                    {/* Processing → pas de bouton footer (attente) */}
+
+                    {/* Confirmation — actions selon le résultat */}
+                    {step === 'confirmation' && checkoutResult === 'success_cash' && (
+                        <div className="flex flex-col gap-2">
+                            <Button className="w-full" size="lg" onClick={handleGoToOrder}>
+                                Suivre ma commande
+                            </Button>
+                            <Button variant="outline" className="w-full" onClick={handleConfirmationClose}>
+                                Fermer
+                            </Button>
+                        </div>
+                    )}
+
+                    {step === 'confirmation' && checkoutResult === 'success_mm' && (
+                        <Button className="w-full" size="lg" onClick={handleGoToOrder}>
+                            Suivre ma commande
+                        </Button>
+                    )}
+
+                    {step === 'confirmation' && checkoutResult === 'failed_mm' && (
+                        <div className="flex flex-col gap-2">
+                            <Button className="w-full" size="lg" onClick={handleRetryPayment}>
+                                <RefreshCw className="h-4 w-4"/>
+                                Réessayer
+                            </Button>
+                            <Button variant="outline" className="w-full" onClick={handleFallbackToCash}>
+                                Payer à la caisse
+                            </Button>
+                        </div>
+                    )}
+
+                    {step === 'confirmation' && checkoutResult === 'timeout_mm' && (
+                        <div className="flex flex-col gap-2">
+                            <Button className="w-full" size="lg" onClick={handleRetryPolling}>
+                                <RefreshCw className="h-4 w-4"/>
+                                Vérifier à nouveau
+                            </Button>
+                            <Button variant="outline" className="w-full" onClick={handleGoToOrder}>
+                                Voir ma commande
+                            </Button>
+                        </div>
                     )}
                 </div>
             </DialogContent>

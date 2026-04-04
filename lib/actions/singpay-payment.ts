@@ -113,16 +113,30 @@ export async function initiateOrderPayment(
       reference,
       client_msisdn: formattedPhone,
       portefeuille: config.walletId,
-      disbursement: config.defaultDisbursementId ?? undefined,
+      // TODO: rétablir le disbursement après debug
+      // disbursement: config.defaultDisbursementId ?? undefined,
       isTransfer: false,
     }
 
     let result
     try {
+      console.log('[SingPay] Initiation paiement:', {
+        operator: params.operator,
+        amount: paymentData.amount,
+        reference: paymentData.reference,
+        client_msisdn: paymentData.client_msisdn,
+        portefeuille: paymentData.portefeuille,
+        disbursement: paymentData.disbursement,
+        walletHeader: config.walletId,
+      })
+      console.log('[SingPay] Body envoyé:', JSON.stringify(paymentData))
+
       result =
         params.operator === 'airtel'
           ? await singpayClient.initiateAirtelPayment(paymentData)
           : await singpayClient.initiateMoovPayment(paymentData)
+
+      console.log('[SingPay] Réponse:', JSON.stringify(result.status))
     } catch (error) {
       // Marquer le paiement comme échoué
       await prisma.payment.update({
