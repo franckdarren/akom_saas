@@ -576,9 +576,9 @@ export function CatalogCartDialog({
                                     >
                                         <Banknote className="h-6 w-6"/>
                                         <span className="text-sm font-semibold">Payer à la caisse</span>
-                                        <span className="type-caption text-muted-foreground">
+                                        {/* <span className="type-caption text-muted-foreground">
                                             Espèces au retrait
-                                        </span>
+                                        </span> */}
                                     </button>
                                     {singpayEnabled && (
                                         <button

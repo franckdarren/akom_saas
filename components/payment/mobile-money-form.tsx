@@ -25,8 +25,8 @@ interface MobileMoneyFormProps {
 }
 
 const OPERATORS: { value: Operator; label: string; prefix: string; logo: string }[] = [
-  { value: 'airtel', label: 'Airtel Money', prefix: '074 / 077', logo:"/images/airtelmoney.webp" },
-  { value: 'moov', label: 'Moov Money', prefix: '062 / 066', logo:"/images/moovmoney.png" },
+  { value: 'airtel', label: 'Airtel Money', prefix: '074 / 076 / 077', logo:"/images/airtelmoney.webp" },
+  { value: 'moov', label: 'Moov Money', prefix: '062 / 065 / 066', logo:"/images/moovmoney.png" },
 ]
 
 export function MobileMoneyForm({
