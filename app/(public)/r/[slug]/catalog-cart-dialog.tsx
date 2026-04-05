@@ -116,6 +116,8 @@ export function CatalogCartDialog({
     const [errorMessage, setErrorMessage] = useState('')
     const [extPaymentLink, setExtPaymentLink] = useState<string | null>(null)
     const [confirmedAmount, setConfirmedAmount] = useState<number>(0)
+    const [mmValid, setMmValid] = useState(false)
+    const mmSubmitRef = useRef<(() => void) | null>(null)
 
     const pollCount = useRef(0)
 
@@ -606,6 +608,11 @@ export function CatalogCartDialog({
                                     defaultPhone={customerPhone}
                                     isLoading={isSubmitting}
                                     onSubmit={handleCheckoutMobileMoney}
+                                    externalSubmit
+                                    onValidityChange={(valid, submit) => {
+                                        setMmValid(valid)
+                                        mmSubmitRef.current = submit
+                                    }}
                                 />
                             )}
                         </div>
@@ -748,6 +755,20 @@ export function CatalogCartDialog({
                             loadingText="Envoi en cours..."
                         >
                             {`Commander · ${formatPrice(totalAmount)}`}
+                        </LoadingButton>
+                    )}
+
+                    {/* Payment → Payer (mobile money) */}
+                    {step === 'payment' && paymentChoice === 'mobile_money' && (
+                        <LoadingButton
+                            className="w-full"
+                            size="lg"
+                            onClick={() => mmSubmitRef.current?.()}
+                            disabled={!mmValid}
+                            isLoading={isSubmitting}
+                            loadingText="Initiation du paiement..."
+                        >
+                            {`Payer · ${formatPrice(totalAmount)}`}
                         </LoadingButton>
                     )}
 

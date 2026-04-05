@@ -1,7 +1,7 @@
 // components/payment/mobile-money-form.tsx
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Phone } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -18,6 +18,10 @@ interface MobileMoneyFormProps {
   defaultPhone?: string
   isLoading: boolean
   onSubmit: (phoneNumber: string, operator: Operator) => void
+  /** Expose validity + submit to parent so the button can live in a fixed footer */
+  onValidityChange?: (valid: boolean, submit: () => void) => void
+  /** When true, the form does NOT render its own submit button */
+  externalSubmit?: boolean
 }
 
 const OPERATORS: { value: Operator; label: string; prefix: string; logo: string }[] = [
@@ -30,16 +34,22 @@ export function MobileMoneyForm({
   defaultPhone,
   isLoading,
   onSubmit,
+  onValidityChange,
+  externalSubmit,
 }: MobileMoneyFormProps) {
   const [operator, setOperator] = useState<Operator | null>(null)
   const [phoneNumber, setPhoneNumber] = useState(defaultPhone ?? '')
 
   const isValid = operator !== null && phoneNumber.replace(/\s/g, '').length >= 8
 
-  function handleSubmit() {
+  const handleSubmit = useCallback(() => {
     if (!isValid || !operator) return
     onSubmit(phoneNumber, operator)
-  }
+  }, [isValid, operator, phoneNumber, onSubmit])
+
+  useEffect(() => {
+    onValidityChange?.(isValid, handleSubmit)
+  }, [isValid, handleSubmit, onValidityChange])
 
   return (
     <div className="layout-form">
@@ -87,17 +97,19 @@ export function MobileMoneyForm({
         />
       </div>
 
-      {/* Bouton payer */}
-      <LoadingButton
-        className="w-full"
-        size="lg"
-        onClick={handleSubmit}
-        disabled={!isValid}
-        isLoading={isLoading}
-        loadingText="Initiation du paiement..."
-      >
-        {`Payer ${formatPrice(amount)}`}
-      </LoadingButton>
+      {/* Bouton payer (uniquement si pas de submit externe) */}
+      {!externalSubmit && (
+        <LoadingButton
+          className="w-full"
+          size="lg"
+          onClick={handleSubmit}
+          disabled={!isValid}
+          isLoading={isLoading}
+          loadingText="Initiation du paiement..."
+        >
+          {`Payer ${formatPrice(amount)}`}
+        </LoadingButton>
+      )}
     </div>
   )
 }
