@@ -102,6 +102,23 @@ export async function getActiveOrdersForTable(tableId: string, restaurantId: str
     }
 }
 
+export async function getActiveCatalogOrders(orderIds: string[], restaurantId: string): Promise<ActiveOrder[]> {
+    if (orderIds.length === 0) return []
+    try {
+        return await prisma.order.findMany({
+            where: {
+                id: { in: orderIds },
+                restaurantId,
+                status: { notIn: ['delivered', 'cancelled'] },
+            },
+            select: { id: true, orderNumber: true, status: true, totalAmount: true, createdAt: true },
+            orderBy: { createdAt: 'desc' },
+        })
+    } catch {
+        return []
+    }
+}
+
 export async function getOrderDetails(orderId: string) {
     const order = await prisma.order.findUnique({
         where: {id: orderId},

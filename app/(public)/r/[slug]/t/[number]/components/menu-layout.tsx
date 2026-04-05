@@ -11,6 +11,7 @@ import {SearchFilterBar} from './search-filter-bar'
 import {ProductCard} from '../product-card'
 import {FixedBottomBar} from './fixed-bottom-bar'
 import {ActiveOrdersBanner} from '@/components/menu/ActiveOrdersBanner'
+import {ActiveCatalogOrdersBanner} from '@/components/menu/ActiveCatalogOrdersBanner'
 
 interface Product {
     id: string
@@ -177,12 +178,19 @@ export function MenuLayout({
                 d'y accéder en un clic pour suivre leur progression.
             */}
             <div className="max-w-3xl mx-auto px-4 mt-6">
-                <ActiveOrdersBanner
-                    tableId={tableId}
-                    tableNumber={tableNumber}
-                    restaurantSlug={restaurantSlug}
-                    restaurantId={restaurantId}
-                />
+                {tableId ? (
+                    <ActiveOrdersBanner
+                        tableId={tableId}
+                        tableNumber={tableNumber}
+                        restaurantSlug={restaurantSlug}
+                        restaurantId={restaurantId}
+                    />
+                ) : (
+                    <ActiveCatalogOrdersBanner
+                        restaurantSlug={restaurantSlug}
+                        restaurantId={restaurantId}
+                    />
+                )}
             </div>
 
             {/* Barre de recherche et filtres */}

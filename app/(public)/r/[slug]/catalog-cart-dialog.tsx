@@ -37,6 +37,7 @@ import {Badge} from '@/components/ui/badge'
 import {MobileMoneyForm} from '@/components/payment/mobile-money-form'
 import {useCart} from './t/[number]/cart-context'
 import {formatPrice} from '@/lib/utils/format'
+import {saveCatalogOrder} from '@/lib/utils/catalog-orders-storage'
 import {toast} from 'sonner'
 import {cn} from '@/lib/utils'
 
@@ -236,7 +237,8 @@ export function CatalogCartDialog({
         setIsSubmitting(true)
 
         try {
-            await createOrder()
+            const order = await createOrder()
+            if (order) saveCatalogOrder(restaurantSlug, order.orderId, order.orderNumber)
             setConfirmedAmount(totalAmount)
             clearCart()
             setCheckoutResult('success_cash')
@@ -261,6 +263,7 @@ export function CatalogCartDialog({
                 const order = await createOrder()
                 if (!order) throw new Error('Erreur lors de la création de la commande')
                 currentOrderId = order.orderId
+                saveCatalogOrder(restaurantSlug, order.orderId, order.orderNumber)
             }
 
             // 2. Initier le paiement SingPay (USSD Push)
