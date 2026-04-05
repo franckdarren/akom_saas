@@ -29,6 +29,9 @@ export const SINGPAY_ENDPOINTS = {
   transactionByReference: (ref: string) =>
     `/transaction/api/search/by-reference/${ref}`,
 
+  /** Interface de paiement externe SingPay */
+  externalPayment: '/ext',
+
   /** Détails d'un portefeuille */
   walletDetails: (id: string) => `/portefeuille/api/${id}`,
 } as const

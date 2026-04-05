@@ -2,9 +2,10 @@
 
 import { SINGPAY_CONFIG, SINGPAY_ENDPOINTS } from './constants'
 import type {
-  SingpayHeaders,
   SingpayPaymentRequest,
   SingpayPaymentResponse,
+  SingpayExtRequest,
+  SingpayExtResponse,
   SingpayTransaction,
 } from './types'
 
@@ -41,30 +42,19 @@ class SingpayClient {
     walletId: string,
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`
-    const headers = this.getHeaders(walletId)
-
-    console.log('[SingPay] Request:', {
-      url,
-      method: options.method,
-      hasClientId: !!this.clientId,
-      hasClientSecret: !!this.clientSecret,
-      clientIdPrefix: this.clientId?.substring(0, 8) + '...',
-    })
 
     const response = await fetch(url, {
       ...options,
-      headers,
+      headers: this.getHeaders(walletId),
       signal: AbortSignal.timeout(SINGPAY_CONFIG.requestTimeout),
     })
 
-    const responseText = await response.text()
-    console.log('[SingPay] HTTP', response.status, responseText)
-
     if (!response.ok) {
-      throw new Error(`SingPay API Error (${response.status}): ${responseText}`)
+      const errorText = await response.text()
+      throw new Error(`SingPay API Error (${response.status}): ${errorText}`)
     }
 
-    return JSON.parse(responseText) as T
+    return response.json() as Promise<T>
   }
 
   /** Initie un paiement Airtel Money (USSD Push) — POST /74/paiement */
@@ -98,6 +88,17 @@ class SingpayClient {
       SINGPAY_ENDPOINTS.transactionStatus(transactionId),
       { method: 'GET' },
       walletId,
+    )
+  }
+
+  /** Génère un lien de paiement externe SingPay — POST /ext */
+  async getExternalPaymentLink(
+    params: SingpayExtRequest,
+  ): Promise<SingpayExtResponse> {
+    return this.request<SingpayExtResponse>(
+      SINGPAY_ENDPOINTS.externalPayment,
+      { method: 'POST', body: JSON.stringify(params) },
+      params.portefeuille,
     )
   }
 

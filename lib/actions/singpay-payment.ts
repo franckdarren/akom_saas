@@ -119,23 +119,10 @@ export async function initiateOrderPayment(
 
     let result
     try {
-      console.log('[SingPay] Initiation paiement:', {
-        operator: params.operator,
-        amount: paymentData.amount,
-        reference: paymentData.reference,
-        client_msisdn: paymentData.client_msisdn,
-        portefeuille: paymentData.portefeuille,
-        disbursement: paymentData.disbursement,
-        walletHeader: config.walletId,
-      })
-      console.log('[SingPay] Body envoyé:', JSON.stringify(paymentData))
-
       result =
         params.operator === 'airtel'
           ? await singpayClient.initiateAirtelPayment(paymentData)
           : await singpayClient.initiateMoovPayment(paymentData)
-
-      console.log('[SingPay] Réponse:', JSON.stringify(result.status))
     } catch (error) {
       // Marquer le paiement comme échoué
       await prisma.payment.update({
@@ -275,5 +262,63 @@ export async function checkOrderPaymentStatus(
   } catch (error) {
     console.error('Erreur checkOrderPaymentStatus:', error)
     return { error: 'Impossible de vérifier le statut du paiement' }
+  }
+}
+
+/**
+ * Génère un lien de paiement externe SingPay (POST /ext).
+ * Utilisé en fallback quand le USSD Push échoue.
+ */
+export async function getExternalPaymentLink(
+  orderId: string,
+): Promise<{ link?: string; error?: string }> {
+  try {
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: {
+        restaurant: {
+          select: { slug: true, singpayConfig: true },
+        },
+      },
+    })
+
+    if (!order) return { error: 'Commande introuvable' }
+
+    const config = order.restaurant.singpayConfig
+    if (!config?.enabled || !config.walletId) {
+      return { error: 'Le paiement mobile money n\'est pas activé pour cet établissement.' }
+    }
+
+    const reference = generateSingpayReference(order.restaurantId)
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || ''
+    const slug = order.restaurant.slug
+
+    // Créer un Payment en BDD pour tracer cette tentative
+    await prisma.payment.create({
+      data: {
+        restaurantId: order.restaurantId,
+        orderId: order.id,
+        amount: order.totalAmount,
+        method: 'mobile_money',
+        status: 'pending',
+        timing: 'before_meal',
+        singpayReference: reference,
+      },
+    })
+
+    const result = await singpayClient.getExternalPaymentLink({
+      portefeuille: config.walletId,
+      reference,
+      amount: order.totalAmount,
+      redirect_success: `${appUrl}/r/${slug}/orders/${order.id}?payment=success`,
+      redirect_error: `${appUrl}/r/${slug}/orders/${order.id}?payment=error`,
+      disbursement: config.defaultDisbursementId ?? undefined,
+      isTransfer: false,
+    })
+
+    return { link: result.link }
+  } catch (error) {
+    console.error('Erreur getExternalPaymentLink:', error)
+    return { error: 'Impossible de générer le lien de paiement.' }
   }
 }

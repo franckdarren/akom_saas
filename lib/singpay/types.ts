@@ -52,5 +52,23 @@ export interface SingpayPaymentResponse {
   }
 }
 
+/** Body pour POST /ext (interface de paiement externe SingPay) */
+export interface SingpayExtRequest {
+  portefeuille: string
+  reference: string
+  amount: number
+  redirect_success: string
+  redirect_error: string
+  disbursement?: string
+  logoURL?: string
+  isTransfer?: boolean
+}
+
+/** Réponse de POST /ext */
+export interface SingpayExtResponse {
+  link: string
+  exp: string
+}
+
 /** Payload reçu sur notre webhook callback (même shape que PaymentResponse) */
 export type SingpayCallbackData = SingpayPaymentResponse

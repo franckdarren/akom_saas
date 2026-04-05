@@ -1,7 +1,7 @@
 // app/(public)/r/[slug]/catalog-cart-dialog.tsx
 'use client'
 
-import {useState, useEffect, useRef, useCallback} from 'react'
+import {useState, useEffect, useRef} from 'react'
 import {useRouter} from 'next/navigation'
 import {
     Plus,
@@ -19,6 +19,7 @@ import {
     Loader2,
     XCircle,
     RefreshCw,
+    ExternalLink,
 } from 'lucide-react'
 import {Button} from '@/components/ui/button'
 import {LoadingButton} from '@/components/ui/loading-button'
@@ -50,7 +51,7 @@ interface CatalogCartDialogProps {
 
 type Step = 'cart' | 'info' | 'payment' | 'processing' | 'confirmation'
 type PaymentChoice = 'cash' | 'mobile_money'
-type CheckoutResult = 'success_cash' | 'success_mm' | 'failed_mm' | 'timeout_mm'
+type CheckoutResult = 'success_cash' | 'success_mm' | 'failed_mm' | 'timeout_mm' | 'redirect_ext'
 
 /** Intervalle de polling inline (3s) */
 const POLL_INTERVAL = 3_000
@@ -113,6 +114,8 @@ export function CatalogCartDialog({
     const [paymentId, setPaymentId] = useState<string | null>(null)
     const [checkoutResult, setCheckoutResult] = useState<CheckoutResult | null>(null)
     const [errorMessage, setErrorMessage] = useState('')
+    const [extPaymentLink, setExtPaymentLink] = useState<string | null>(null)
+    const [confirmedAmount, setConfirmedAmount] = useState<number>(0)
 
     const pollCount = useRef(0)
 
@@ -137,6 +140,8 @@ export function CatalogCartDialog({
         setPaymentId(null)
         setCheckoutResult(null)
         setErrorMessage('')
+        setExtPaymentLink(null)
+        setConfirmedAmount(0)
         pollCount.current = 0
     }
 
@@ -151,10 +156,6 @@ export function CatalogCartDialog({
     }
 
     // ── Polling inline pour mobile money ──
-
-    const stopPolling = useCallback(() => {
-        pollCount.current = MAX_POLLS + 1
-    }, [])
 
     useEffect(() => {
         if (step !== 'processing' || !paymentId) return
@@ -234,6 +235,7 @@ export function CatalogCartDialog({
 
         try {
             await createOrder()
+            setConfirmedAmount(totalAmount)
             clearCart()
             setCheckoutResult('success_cash')
             setStep('confirmation')
@@ -251,22 +253,30 @@ export function CatalogCartDialog({
         setIsSubmitting(true)
 
         try {
-            // 1. Créer la commande
-            const order = await createOrder()
-            if (!order) throw new Error('Erreur lors de la création de la commande')
+            // 1. Créer la commande si elle n'existe pas encore
+            let currentOrderId = orderId
+            if (!currentOrderId) {
+                const order = await createOrder()
+                if (!order) throw new Error('Erreur lors de la création de la commande')
+                currentOrderId = order.orderId
+            }
 
-            // 2. Initier le paiement SingPay
+            // 2. Initier le paiement SingPay (USSD Push)
             const {initiateOrderPayment} = await import('@/lib/actions/singpay-payment')
             const paymentResult = await initiateOrderPayment({
-                orderId: order.orderId,
+                orderId: currentOrderId,
                 phoneNumber,
                 operator,
             })
 
             if (paymentResult.error) {
-                throw new Error(paymentResult.error)
+                // USSD Push échoué → tenter le fallback /ext
+                console.warn('[SingPay] USSD Push échoué, tentative fallback /ext:', paymentResult.error)
+                await handleFallbackToExt(currentOrderId)
+                return
             }
 
+            setConfirmedAmount(totalAmount)
             clearCart()
             setPaymentId(paymentResult.paymentId!)
             setStep('processing')
@@ -275,6 +285,26 @@ export function CatalogCartDialog({
             toast.error(error instanceof Error ? error.message : 'Une erreur est survenue')
         } finally {
             setIsSubmitting(false)
+        }
+    }
+
+    /** Fallback : génère un lien de paiement externe SingPay */
+    async function handleFallbackToExt(targetOrderId: string) {
+        try {
+            const {getExternalPaymentLink} = await import('@/lib/actions/singpay-payment')
+            const result = await getExternalPaymentLink(targetOrderId)
+
+            if (result.link) {
+                setConfirmedAmount(totalAmount)
+                clearCart()
+                setExtPaymentLink(result.link)
+                setCheckoutResult('redirect_ext')
+                setStep('confirmation')
+            } else {
+                toast.error(result.error ?? 'Impossible de générer le lien de paiement')
+            }
+        } catch {
+            toast.error('Impossible de générer le lien de paiement')
         }
     }
 
@@ -596,7 +626,7 @@ export function CatalogCartDialog({
                             </div>
                             <div className="flex items-center gap-2 rounded-lg bg-muted/50 px-4 py-2">
                                 <span className="type-caption text-muted-foreground">Montant :</span>
-                                <span className="font-semibold">{formatPrice(totalAmount)}</span>
+                                <span className="font-semibold">{formatPrice(confirmedAmount)}</span>
                             </div>
                         </div>
                     )}
@@ -651,6 +681,24 @@ export function CatalogCartDialog({
                                             Nous n'avons pas reçu de confirmation. Si vous avez validé le paiement,
                                             il sera traité automatiquement.
                                         </p>
+                                    </div>
+                                </>
+                            )}
+
+                            {/* Redirection vers paiement externe SingPay */}
+                            {checkoutResult === 'redirect_ext' && (
+                                <>
+                                    <Smartphone className="h-14 w-14 text-primary"/>
+                                    <div className="text-center space-y-1">
+                                        <p className="font-semibold">Paiement en ligne</p>
+                                        <p className="type-body-muted">
+                                            Vous allez être redirigé vers la page de paiement sécurisée SingPay
+                                            pour finaliser votre commande.
+                                        </p>
+                                    </div>
+                                    <div className="flex items-center gap-2 rounded-lg bg-muted/50 px-4 py-2">
+                                        <span className="type-caption text-muted-foreground">Montant :</span>
+                                        <span className="font-semibold">{formatPrice(confirmedAmount)}</span>
                                     </div>
                                 </>
                             )}
@@ -728,6 +776,20 @@ export function CatalogCartDialog({
                             <Button className="w-full" size="lg" onClick={handleRetryPayment}>
                                 <RefreshCw className="h-4 w-4"/>
                                 Réessayer
+                            </Button>
+                            <Button variant="outline" className="w-full" onClick={handleFallbackToCash}>
+                                Payer à la caisse
+                            </Button>
+                        </div>
+                    )}
+
+                    {step === 'confirmation' && checkoutResult === 'redirect_ext' && extPaymentLink && (
+                        <div className="flex flex-col gap-2">
+                            <Button className="w-full" size="lg" asChild>
+                                <a href={extPaymentLink} target="_blank" rel="noopener noreferrer">
+                                    <ExternalLink className="h-4 w-4"/>
+                                    Payer maintenant
+                                </a>
                             </Button>
                             <Button variant="outline" className="w-full" onClick={handleFallbackToCash}>
                                 Payer à la caisse
