@@ -113,8 +113,7 @@ export async function initiateOrderPayment(
       reference,
       client_msisdn: formattedPhone,
       portefeuille: config.walletId,
-      // TODO: rétablir le disbursement après debug
-      // disbursement: config.defaultDisbursementId ?? undefined,
+      disbursement: config.defaultDisbursementId ?? undefined,
       isTransfer: false,
     }
 
