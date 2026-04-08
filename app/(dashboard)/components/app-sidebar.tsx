@@ -14,6 +14,7 @@ import type {SubscriptionPlan, FeatureKey} from "@/lib/config/subscription"
 import {getLabels} from "@/lib/config/activity-labels"
 import type {ActivityType} from "@/lib/config/activity-labels"
 import {RestaurantSwitcher} from "@/components/dashboard/RestaurantSwitcher"
+import {Logo} from "@/components/ui/logo"
 
 import {
     ChefHat,
@@ -325,13 +326,8 @@ export function AppSidebar({
                             }}
                             className="flex items-center gap-2 px-1"
                         >
-                            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary/10">
-                                <Crown className="h-3.5 w-3.5 text-primary"/>
-                            </div>
-                            <div className="flex flex-col">
-                                <span className="font-semibold text-sm leading-tight">Akôm Admin</span>
-                                <span className="text-[11px] text-muted-foreground">SuperAdmin</span>
-                            </div>
+                            <Logo size="sm" variant="color" />
+                            <span className="type-caption text-muted-foreground">Admin</span>
                         </Link>
                     ) : (
                         // Utilisateurs normaux : switcher multi-structure

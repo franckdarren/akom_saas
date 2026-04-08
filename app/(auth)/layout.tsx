@@ -1,5 +1,6 @@
 import {ReactNode} from 'react'
 import {AppCard, CardContent} from '@/components/ui/app-card'
+import {Logo} from '@/components/ui/logo'
 
 export default function AuthLayout({children}: { children: ReactNode }) {
     return (
@@ -7,11 +8,9 @@ export default function AuthLayout({children}: { children: ReactNode }) {
             className="min-h-screen flex items-center justify-center bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-900 dark:to-zinc-800 p-4">
             <div className="w-full max-w-md">
                 {/* Logo */}
-                <div className="text-center mb-4 sm:mb-8">
-                    <h1 className="text-3xl sm:text-4xl font-bold text-foreground">
-                        Akôm
-                    </h1>
-                    <p className="text-muted-foreground mt-2">
+                <div className="flex flex-col items-center gap-2 mb-4 sm:mb-8">
+                    <Logo size="lg" variant="color" />
+                    <p className="type-body-muted">
                         Le cœur digital de votre activité commerciale
                     </p>
                 </div>

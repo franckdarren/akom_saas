@@ -22,6 +22,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
     title: "Akôm",
     description: "Akôm - Akom est une plateforme de gestion pour les activités commerciales modernes. Elle offre une suite d'outils pour la gestion des ventes, des clients, des produits et des analyses, permettant aux entreprises de digitaliser leurs opérations et d'améliorer leur efficacité.",
+    icons: {
+        icon: '/favicon.svg',
+    },
 };
 
 export default function RootLayout({
