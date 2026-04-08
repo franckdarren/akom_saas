@@ -70,7 +70,7 @@ export function mapPayment(payment: PaymentWithOrder): UnifiedTransaction {
         amount: payment.amount,
         status: mapPaymentStatus(payment.status),
         method: mapPaymentMethod(payment.method),
-        description: orderNum ? `Commande #${orderNum}` : 'Commande',
+        description: orderNum ? `Commande ${orderNum}` : 'Commande',
         businessDate: (payment.paidAt ?? payment.createdAt).toISOString(),
         createdAt: payment.createdAt.toISOString(),
         orderId: payment.orderId,
