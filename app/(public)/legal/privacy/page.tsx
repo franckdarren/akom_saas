@@ -9,15 +9,15 @@ export const metadata: Metadata = {
 export default function PrivacyPolicyPage() {
     return (
         <div className="container max-w-4xl mx-auto py-12 px-4">
-            <h1 className="text-4xl font-bold mb-8">Politique de confidentialité</h1>
+            <h1 className="type-page-title mb-4">Politique de confidentialité</h1>
+            <p className="type-body-muted mb-8">
+                Dernière mise à jour : {new Date().toLocaleDateString('fr-FR')}
+            </p>
 
             <div className="prose prose-zinc dark:prose-invert max-w-none">
-                <p className="text-muted-foreground text-lg mb-8">
-                    Dernière mise à jour : {new Date().toLocaleDateString('fr-FR')}
-                </p>
 
                 <section className="mb-8">
-                    <h2 className="text-2xl font-semibold mb-4">1. Introduction</h2>
+                    <h2 className="type-section-title mb-4">1. Introduction</h2>
                     <p>
                         Bienvenue sur Akôm. Nous prenons très au sérieux la protection de vos
                         données personnelles et nous nous engageons à respecter votre vie
@@ -29,7 +29,7 @@ export default function PrivacyPolicyPage() {
                 </section>
 
                 <section className="mb-8">
-                    <h2 className="text-2xl font-semibold mb-4">
+                    <h2 className="type-section-title mb-4">
                         2. Responsable du traitement
                     </h2>
                     <p>
@@ -44,11 +44,11 @@ export default function PrivacyPolicyPage() {
                 </section>
 
                 <section className="mb-8">
-                    <h2 className="text-2xl font-semibold mb-4">
+                    <h2 className="type-section-title mb-4">
                         3. Données que nous collectons
                     </h2>
                     
-                    <h3 className="text-xl font-semibold mb-3 mt-6">
+                    <h3 className="text-base font-semibold mb-3 mt-6">
                         3.1 Données d'inscription et de compte
                     </h3>
                     <p>Lorsque vous créez un compte, nous collectons :</p>
@@ -59,7 +59,7 @@ export default function PrivacyPolicyPage() {
                         <li>Les informations de votre restaurant (nom, adresse, téléphone)</li>
                     </ul>
 
-                    <h3 className="text-xl font-semibold mb-3 mt-6">
+                    <h3 className="text-base font-semibold mb-3 mt-6">
                         3.2 Données d'utilisation
                     </h3>
                     <p>
@@ -76,7 +76,7 @@ export default function PrivacyPolicyPage() {
                         <li>La date et l'heure de vos connexions</li>
                     </ul>
 
-                    <h3 className="text-xl font-semibold mb-3 mt-6">
+                    <h3 className="text-base font-semibold mb-3 mt-6">
                         3.3 Données des commandes et transactions
                     </h3>
                     <p>Dans le cadre de la gestion de votre restaurant, nous stockons :</p>
@@ -86,7 +86,7 @@ export default function PrivacyPolicyPage() {
                         <li>L'historique des ventes et des stocks</li>
                     </ul>
 
-                    <h3 className="text-xl font-semibold mb-3 mt-6">3.4 Cookies</h3>
+                    <h3 className="text-base font-semibold mb-3 mt-6">3.4 Cookies</h3>
                     <p>Nous utilisons différents types de cookies :</p>
                     <ul>
                         <li>
@@ -109,7 +109,7 @@ export default function PrivacyPolicyPage() {
                 </section>
 
                 <section className="mb-8">
-                    <h2 className="text-2xl font-semibold mb-4">
+                    <h2 className="type-section-title mb-4">
                         4. Comment nous utilisons vos données
                     </h2>
                     <p>Nous utilisons vos données personnelles pour :</p>
@@ -132,7 +132,7 @@ export default function PrivacyPolicyPage() {
                 </section>
 
                 <section className="mb-8">
-                    <h2 className="text-2xl font-semibold mb-4">
+                    <h2 className="type-section-title mb-4">
                         5. Base légale du traitement
                     </h2>
                     <p>
@@ -160,7 +160,7 @@ export default function PrivacyPolicyPage() {
                 </section>
 
                 <section className="mb-8">
-                    <h2 className="text-2xl font-semibold mb-4">
+                    <h2 className="type-section-title mb-4">
                         6. Partage de vos données
                     </h2>
                     <p>
@@ -185,7 +185,7 @@ export default function PrivacyPolicyPage() {
                 </section>
 
                 <section className="mb-8">
-                    <h2 className="text-2xl font-semibold mb-4">
+                    <h2 className="type-section-title mb-4">
                         7. Transferts internationaux de données
                     </h2>
                     <p>
@@ -198,7 +198,7 @@ export default function PrivacyPolicyPage() {
                 </section>
 
                 <section className="mb-8">
-                    <h2 className="text-2xl font-semibold mb-4">
+                    <h2 className="type-section-title mb-4">
                         8. Durée de conservation
                     </h2>
                     <p>Nous conservons vos données personnelles :</p>
@@ -221,7 +221,7 @@ export default function PrivacyPolicyPage() {
                 </section>
 
                 <section className="mb-8">
-                    <h2 className="text-2xl font-semibold mb-4">9. Vos droits</h2>
+                    <h2 className="type-section-title mb-4">9. Vos droits</h2>
                     <p>
                         Conformément au RGPD, vous disposez des droits suivants concernant
                         vos données personnelles :
@@ -272,7 +272,7 @@ export default function PrivacyPolicyPage() {
                 </section>
 
                 <section className="mb-8">
-                    <h2 className="text-2xl font-semibold mb-4">10. Sécurité</h2>
+                    <h2 className="type-section-title mb-4">10. Sécurité</h2>
                     <p>
                         Nous mettons en œuvre des mesures de sécurité techniques et
                         organisationnelles appropriées pour protéger vos données contre :
@@ -295,7 +295,7 @@ export default function PrivacyPolicyPage() {
                 </section>
 
                 <section className="mb-8">
-                    <h2 className="text-2xl font-semibold mb-4">
+                    <h2 className="type-section-title mb-4">
                         11. Modifications de cette politique
                     </h2>
                     <p>
@@ -308,7 +308,7 @@ export default function PrivacyPolicyPage() {
                 </section>
 
                 <section className="mb-8">
-                    <h2 className="text-2xl font-semibold mb-4">12. Contact</h2>
+                    <h2 className="type-section-title mb-4">12. Contact</h2>
                     <p>
                         Pour toute question concernant cette politique de confidentialité
                         ou le traitement de vos données personnelles, vous pouvez nous

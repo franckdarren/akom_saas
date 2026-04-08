@@ -9,17 +9,17 @@ export const metadata: Metadata = {
 export default function TermsPage() {
     return (
         <div className="container max-w-4xl mx-auto py-12 px-4">
-            <h1 className="text-4xl font-bold mb-8">
+            <h1 className="type-page-title mb-4">
                 Conditions Générales d'Utilisation
             </h1>
+            <p className="type-body-muted mb-8">
+                Dernière mise à jour : {new Date().toLocaleDateString('fr-FR')}
+            </p>
 
             <div className="prose prose-zinc dark:prose-invert max-w-none">
-                <p className="text-muted-foreground text-lg mb-8">
-                    Dernière mise à jour : {new Date().toLocaleDateString('fr-FR')}
-                </p>
 
                 <section className="mb-8">
-                    <h2 className="text-2xl font-semibold mb-4">1. Objet</h2>
+                    <h2 className="type-section-title mb-4">1. Objet</h2>
                     <p>
                         Les présentes Conditions Générales d'Utilisation (ci-après "CGU")
                         ont pour objet de définir les modalités et conditions d'utilisation
@@ -36,7 +36,7 @@ export default function TermsPage() {
                 </section>
 
                 <section className="mb-8">
-                    <h2 className="text-2xl font-semibold mb-4">2. Mentions légales</h2>
+                    <h2 className="type-section-title mb-4">2. Mentions légales</h2>
                     <p>La Plateforme est éditée par :</p>
                     <ul>
                         <li>Raison sociale : Akôm</li>
@@ -53,7 +53,7 @@ export default function TermsPage() {
                 </section>
 
                 <section className="mb-8">
-                    <h2 className="text-2xl font-semibold mb-4">3. Acceptation des CGU</h2>
+                    <h2 className="type-section-title mb-4">3. Acceptation des CGU</h2>
                     <p>
                         L'accès et l'utilisation de la Plateforme impliquent l'acceptation
                         pleine et entière des présentes CGU. En créant un compte ou en
@@ -67,7 +67,7 @@ export default function TermsPage() {
                 </section>
 
                 <section className="mb-8">
-                    <h2 className="text-2xl font-semibold mb-4">
+                    <h2 className="type-section-title mb-4">
                         4. Description du service
                     </h2>
                     <p>
@@ -85,9 +85,9 @@ export default function TermsPage() {
                 </section>
 
                 <section className="mb-8">
-                    <h2 className="text-2xl font-semibold mb-4">5. Inscription</h2>
+                    <h2 className="type-section-title mb-4">5. Inscription</h2>
                     
-                    <h3 className="text-xl font-semibold mb-3 mt-6">
+                    <h3 className="text-base font-semibold mb-3 mt-6">
                         5.1 Création de compte
                     </h3>
                     <p>
@@ -100,7 +100,7 @@ export default function TermsPage() {
                         <li>Les informations relatives à votre restaurant</li>
                     </ul>
 
-                    <h3 className="text-xl font-semibold mb-3 mt-6">
+                    <h3 className="text-base font-semibold mb-3 mt-6">
                         5.2 Exactitude des informations
                     </h3>
                     <p>
@@ -110,7 +110,7 @@ export default function TermsPage() {
                         votre compte.
                     </p>
 
-                    <h3 className="text-xl font-semibold mb-3 mt-6">
+                    <h3 className="text-base font-semibold mb-3 mt-6">
                         5.3 Âge minimum
                     </h3>
                     <p>
@@ -120,11 +120,11 @@ export default function TermsPage() {
                 </section>
 
                 <section className="mb-8">
-                    <h2 className="text-2xl font-semibold mb-4">
+                    <h2 className="type-section-title mb-4">
                         6. Utilisation de la Plateforme
                     </h2>
                     
-                    <h3 className="text-xl font-semibold mb-3 mt-6">
+                    <h3 className="text-base font-semibold mb-3 mt-6">
                         6.1 Utilisation autorisée
                     </h3>
                     <p>Vous vous engagez à utiliser la Plateforme uniquement :</p>
@@ -136,7 +136,7 @@ export default function TermsPage() {
                         <li>Dans le respect des droits de propriété intellectuelle</li>
                     </ul>
 
-                    <h3 className="text-xl font-semibold mb-3 mt-6">
+                    <h3 className="text-base font-semibold mb-3 mt-6">
                         6.2 Interdictions
                     </h3>
                     <p>Il est strictement interdit de :</p>
@@ -162,18 +162,18 @@ export default function TermsPage() {
                 </section>
 
                 <section className="mb-8">
-                    <h2 className="text-2xl font-semibold mb-4">
+                    <h2 className="type-section-title mb-4">
                         7. Tarifs et paiement
                     </h2>
                     
-                    <h3 className="text-xl font-semibold mb-3 mt-6">7.1 Abonnement</h3>
+                    <h3 className="text-base font-semibold mb-3 mt-6">7.1 Abonnement</h3>
                     <p>
                         L'accès à la Plateforme est soumis à un abonnement mensuel ou annuel
                         selon la formule choisie. Les tarifs sont indiqués sur notre site
                         web et peuvent être modifiés moyennant un préavis de 30 jours.
                     </p>
 
-                    <h3 className="text-xl font-semibold mb-3 mt-6">
+                    <h3 className="text-base font-semibold mb-3 mt-6">
                         7.2 Modalités de paiement
                     </h3>
                     <p>
@@ -182,7 +182,7 @@ export default function TermsPage() {
                         votre part.
                     </p>
 
-                    <h3 className="text-xl font-semibold mb-3 mt-6">7.3 Facturation</h3>
+                    <h3 className="text-base font-semibold mb-3 mt-6">7.3 Facturation</h3>
                     <p>
                         Une facture est émise pour chaque paiement et vous est envoyée par
                         email. En cas d'échec de paiement, l'accès à votre compte pourra
@@ -191,11 +191,11 @@ export default function TermsPage() {
                 </section>
 
                 <section className="mb-8">
-                    <h2 className="text-2xl font-semibold mb-4">
+                    <h2 className="type-section-title mb-4">
                         8. Résiliation et suspension
                     </h2>
                     
-                    <h3 className="text-xl font-semibold mb-3 mt-6">
+                    <h3 className="text-base font-semibold mb-3 mt-6">
                         8.1 Résiliation par l'utilisateur
                     </h3>
                     <p>
@@ -205,7 +205,7 @@ export default function TermsPage() {
                         effectué pour les périodes déjà payées.
                     </p>
 
-                    <h3 className="text-xl font-semibold mb-3 mt-6">
+                    <h3 className="text-base font-semibold mb-3 mt-6">
                         8.2 Suspension ou résiliation par Akôm
                     </h3>
                     <p>
@@ -221,9 +221,9 @@ export default function TermsPage() {
                 </section>
 
                 <section className="mb-8">
-                    <h2 className="text-2xl font-semibold mb-4">9. Propriété intellectuelle</h2>
+                    <h2 className="type-section-title mb-4">9. Propriété intellectuelle</h2>
                     
-                    <h3 className="text-xl font-semibold mb-3 mt-6">
+                    <h3 className="text-base font-semibold mb-3 mt-6">
                         9.1 Droits d'Akôm
                     </h3>
                     <p>
@@ -233,7 +233,7 @@ export default function TermsPage() {
                         intellectuelle.
                     </p>
 
-                    <h3 className="text-xl font-semibold mb-3 mt-6">
+                    <h3 className="text-base font-semibold mb-3 mt-6">
                         9.2 Licence d'utilisation
                     </h3>
                     <p>
@@ -242,7 +242,7 @@ export default function TermsPage() {
                         CGU.
                     </p>
 
-                    <h3 className="text-xl font-semibold mb-3 mt-6">
+                    <h3 className="text-base font-semibold mb-3 mt-6">
                         9.3 Contenu utilisateur
                     </h3>
                     <p>
@@ -254,7 +254,7 @@ export default function TermsPage() {
                 </section>
 
                 <section className="mb-8">
-                    <h2 className="text-2xl font-semibold mb-4">
+                    <h2 className="type-section-title mb-4">
                         10. Protection des données personnelles
                     </h2>
                     <p>
@@ -270,11 +270,11 @@ export default function TermsPage() {
                 </section>
 
                 <section className="mb-8">
-                    <h2 className="text-2xl font-semibold mb-4">
+                    <h2 className="type-section-title mb-4">
                         11. Responsabilité et garanties
                     </h2>
                     
-                    <h3 className="text-xl font-semibold mb-3 mt-6">
+                    <h3 className="text-base font-semibold mb-3 mt-6">
                         11.1 Disponibilité du service
                     </h3>
                     <p>
@@ -284,7 +284,7 @@ export default function TermsPage() {
                         pour maintenance ou mise à jour.
                     </p>
 
-                    <h3 className="text-xl font-semibold mb-3 mt-6">
+                    <h3 className="text-base font-semibold mb-3 mt-6">
                         11.2 Limitation de responsabilité
                     </h3>
                     <p>
@@ -298,7 +298,7 @@ export default function TermsPage() {
                         <li>L'interruption d'activité</li>
                     </ul>
 
-                    <h3 className="text-xl font-semibold mb-3 mt-6">
+                    <h3 className="text-base font-semibold mb-3 mt-6">
                         11.3 Sauvegardes
                     </h3>
                     <p>
@@ -309,7 +309,7 @@ export default function TermsPage() {
                 </section>
 
                 <section className="mb-8">
-                    <h2 className="text-2xl font-semibold mb-4">
+                    <h2 className="type-section-title mb-4">
                         12. Modification des CGU
                     </h2>
                     <p>
@@ -325,7 +325,7 @@ export default function TermsPage() {
                 </section>
 
                 <section className="mb-8">
-                    <h2 className="text-2xl font-semibold mb-4">
+                    <h2 className="type-section-title mb-4">
                         13. Droit applicable et juridiction
                     </h2>
                     <p>
@@ -336,7 +336,7 @@ export default function TermsPage() {
                 </section>
 
                 <section className="mb-8">
-                    <h2 className="text-2xl font-semibold mb-4">14. Contact</h2>
+                    <h2 className="type-section-title mb-4">14. Contact</h2>
                     <p>
                         Pour toute question concernant ces CGU, vous pouvez nous contacter :
                     </p>
