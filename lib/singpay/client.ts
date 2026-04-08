@@ -40,13 +40,14 @@ class SingpayClient {
     endpoint: string,
     options: RequestInit,
     walletId: string,
+    timeout: number = SINGPAY_CONFIG.requestTimeout,
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`
 
     const response = await fetch(url, {
       ...options,
       headers: this.getHeaders(walletId),
-      signal: AbortSignal.timeout(SINGPAY_CONFIG.requestTimeout),
+      signal: AbortSignal.timeout(timeout),
     })
 
     if (!response.ok) {
@@ -99,6 +100,7 @@ class SingpayClient {
       SINGPAY_ENDPOINTS.externalPayment,
       { method: 'POST', body: JSON.stringify(params) },
       params.portefeuille,
+      SINGPAY_CONFIG.extRequestTimeout,
     )
   }
 

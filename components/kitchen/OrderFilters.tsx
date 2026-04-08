@@ -8,12 +8,7 @@ interface OrderFiltersProps {
     activeFilter: OrderStatusFilter
     onFilterChange: (filter: OrderStatusFilter) => void
     counts: {
-        all: number
-        pending: number
-        preparing: number
-        ready: number
-        delivered: number
-        cancelled: number
+        [key in OrderStatusFilter]?: number
     }
 }
 
@@ -30,7 +25,7 @@ export function OrderFilters({ activeFilter, onFilterChange, counts }: OrderFilt
     return (
         <div className="flex flex-wrap gap-2">
             {filters.map((filter) => {
-                const count = counts[filter.value]
+                const count = counts[filter.value] ?? 0
                 const isActive = activeFilter === filter.value
 
                 return (

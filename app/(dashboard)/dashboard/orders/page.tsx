@@ -38,7 +38,7 @@ export default function OrdersPage() {
     } = useOrdersRealtime()
 
     const counts = {
-        all: allOrders.length,
+        all: allOrders.filter((o) => o.status !== 'awaiting_payment').length,
         pending: allOrders.filter((o) => o.status === 'pending').length,
         preparing: allOrders.filter((o) => o.status === 'preparing').length,
         ready: allOrders.filter((o) => o.status === 'ready').length,

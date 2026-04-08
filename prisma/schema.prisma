@@ -19,6 +19,7 @@ enum UserRole {
 }
 
 enum OrderStatus {
+  awaiting_payment
   pending
   preparing
   ready
@@ -805,10 +806,17 @@ model SubscriptionPayment {
   validatedBy String?   @map("validated_by") @db.Uuid // ID du super admin
   validatedAt DateTime? @map("validated_at")
 
-  // Informations paiement mobile (V2)
-  transactionId String? @map("transaction_id") // ID transaction Mobile Money
-  phoneNumber   String? @map("phone_number")
-  provider      String? // "airtel" ou "moov"
+  // Informations paiement mobile (SINGPAY)
+  singpayReference     String? @unique @map("singpay_reference")
+  singpayTransactionId String? @map("singpay_transaction_id")
+  transactionId        String? @map("transaction_id") // ID transaction Mobile Money
+  phoneNumber          String? @map("phone_number")
+  provider             String? // "airtel" ou "moov"
+
+  // Callback SingPay
+  callbackReceived Boolean   @default(false) @map("callback_received")
+  callbackData     Json?     @map("callback_data")
+  callbackAt       DateTime? @map("callback_at")
 
   errorMessage String? @map("error_message")
 
@@ -827,6 +835,7 @@ model SubscriptionPayment {
   @@index([subscriptionId])
   @@index([restaurantId, status])
   @@index([status, createdAt])
+  @@index([singpayReference])
   @@map("subscription_payments")
 }
 

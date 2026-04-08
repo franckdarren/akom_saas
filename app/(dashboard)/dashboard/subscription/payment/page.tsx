@@ -278,46 +278,29 @@ export default async function PaymentPage({
                         </CardContent>
                     </AppCard>
 
-                    {/* INFOS PAIEMENT */}
+                    {/* INFOS PAIEMENT MANUEL */}
                     <AppCard>
                         <CardHeader>
-                            <CardTitle>Informations de paiement</CardTitle>
+                            <CardTitle>Paiement par virement</CardTitle>
                             <CardDescription>
-                                Mobile Money ou virement bancaire
+                                Pour le mode de paiement manuel uniquement
                             </CardDescription>
                         </CardHeader>
 
                         <CardContent className="layout-card-body text-sm">
-
-                            <div>
-                                <p className="font-medium mb-2">Mobile Money</p>
-                                <div className="rounded-lg border bg-muted p-4 space-y-2">
-                                    <p><strong>Airtel Money :</strong> +241 XX XX XX XX</p>
-                                    <p><strong>Moov Money :</strong> +241 XX XX XX XX</p>
-                                    <p className="text-muted-foreground text-xs">
-                                        Nom du compte : AKOM SAAS
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div>
-                                <p className="font-medium mb-2">Virement bancaire</p>
-                                <div className="rounded-lg border bg-muted p-4 space-y-2">
-                                    <p><strong>Banque :</strong> BGFI Bank</p>
-                                    <p><strong>IBAN :</strong> GA21 XXXX XXXX XXXX</p>
-                                    <p><strong>Titulaire :</strong> AKOM SAAS</p>
-                                </div>
+                            <div className="rounded-lg border bg-muted p-4 space-y-2">
+                                <p><strong>Banque :</strong> BGFI Bank</p>
+                                <p><strong>IBAN :</strong> GA21 XXXX XXXX XXXX</p>
+                                <p><strong>Titulaire :</strong> AKOM SAAS</p>
                             </div>
 
                             <Alert>
                                 <AlertCircle className="h-4 w-4"/>
-                                <AlertTitle>Important</AlertTitle>
                                 <AlertDescription className="text-xs">
-                                    Indiquez le <strong>nom de votre restaurant</strong>{' '}
+                                    Indiquez le <strong>nom de votre établissement</strong>{' '}
                                     dans le libellé du paiement.
                                 </AlertDescription>
                             </Alert>
-
                         </CardContent>
                     </AppCard>
 

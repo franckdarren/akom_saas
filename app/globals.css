@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@import "flowbite-react/plugin/tailwindcss";
+@source "../.flowbite-react/class-list.json";
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
@@ -10,8 +12,8 @@
   --font-mono: var(--font-geist-mono);
   /* Typographie — token sub-xs pour métadonnées très compactes */
   /* Remplace text-[10px] (6 occ.) dans l'UI                   */
-  --text-2xs: 0.625rem;           /* 10px */
-  --text-2xs--line-height: 1rem;  /* 16px */
+  --text-2xs: 0.625rem; /* 10px */
+  --text-2xs--line-height: 1rem; /* 16px */
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -102,10 +104,10 @@
   --input: oklch(0.92 0.004 286.32);
 
   /* --- Marque Akom (bleu) --- */
-  --primary: oklch(0.623 0.214 259.815);       /* ≈ blue-500 #3b82f6 */
+  --primary: oklch(0.623 0.214 259.815); /* ≈ blue-500 #3b82f6 */
   --primary-hover: oklch(0.546 0.228 262.881); /* ≈ blue-600 */
   --primary-foreground: oklch(0.99 0 0);
-  --primary-subtle: oklch(0.968 0.028 258);    /* ≈ blue-50 */
+  --primary-subtle: oklch(0.968 0.028 258); /* ≈ blue-50 */
   --ring: oklch(0.623 0.214 259.815);
 
   /* --- Succès --- */
@@ -114,7 +116,7 @@
   --success-subtle: oklch(0.97 0.05 145);
 
   /* --- Warning --- */
-  --warning: oklch(0.769 0.188 70.08);         /* ≈ amber-400 */
+  --warning: oklch(0.769 0.188 70.08); /* ≈ amber-400 */
   --warning-foreground: oklch(0.286 0.066 53.813);
   --warning-subtle: oklch(0.98 0.04 75);
 
@@ -124,7 +126,7 @@
   --destructive-subtle: oklch(0.971 0.035 27);
 
   /* --- Info --- */
-  --info: oklch(0.685 0.169 237.323);          /* ≈ sky-500 */
+  --info: oklch(0.685 0.169 237.323); /* ≈ sky-500 */
   --info-foreground: oklch(0.99 0 0);
   --info-subtle: oklch(0.97 0.028 240);
 
@@ -141,11 +143,11 @@
   --status-cancelled-fg: var(--destructive-foreground);
 
   /* --- Graphiques (alignés sur la sémantique) --- */
-  --chart-1: oklch(0.623 0.214 259.815);       /* primary blue */
-  --chart-2: oklch(0.72 0.18 145);             /* success green */
-  --chart-3: oklch(0.769 0.188 70.08);         /* warning amber */
-  --chart-4: oklch(0.685 0.169 237.323);       /* info sky */
-  --chart-5: oklch(0.585 0.233 277.117);       /* violet */
+  --chart-1: oklch(0.623 0.214 259.815); /* primary blue */
+  --chart-2: oklch(0.72 0.18 145); /* success green */
+  --chart-3: oklch(0.769 0.188 70.08); /* warning amber */
+  --chart-4: oklch(0.685 0.169 237.323); /* info sky */
+  --chart-5: oklch(0.585 0.233 277.117); /* violet */
 
   /* --- Sidebar --- */
   --sidebar: oklch(0.985 0 0);
@@ -176,7 +178,7 @@
   --input: oklch(1 0 0 / 15%);
 
   /* --- Marque Akom dark (bleu clair sur fond sombre) --- */
-  --primary: oklch(0.707 0.165 254.624);       /* ≈ blue-400 */
+  --primary: oklch(0.707 0.165 254.624); /* ≈ blue-400 */
   --primary-hover: oklch(0.78 0.15 255);
   --primary-foreground: oklch(0.141 0.005 285.823);
   --primary-subtle: oklch(0.25 0.05 259);
@@ -240,10 +242,12 @@
   body {
     @apply bg-background text-foreground leading-normal;
     /* Aktive le crénage et les ligatures de Geist */
-    font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1;
+    font-feature-settings:
+      "kern" 1,
+      "liga" 1,
+      "calt" 1;
   }
 }
-
 
 /* ============================================
    SYSTÈME TYPOGRAPHIQUE — AKOM
@@ -271,7 +275,6 @@
    ============================================ */
 
 @layer components {
-
   /* ---- Titres de page ------------------------------------------ */
 
   /* Usage : <h1 className="type-page-title">
@@ -363,7 +366,6 @@
   .type-code {
     @apply font-mono text-sm leading-relaxed;
   }
-
 }
 
 /* ============================================
@@ -396,7 +398,6 @@
    ============================================ */
 
 @layer components {
-
   /* ---- Conteneur de page --------------------------------------- */
 
   /* Usage : div racine dans chaque page du dashboard
@@ -467,7 +468,6 @@
   .layout-kpi-grid {
     @apply grid grid-cols-2 gap-4 sm:grid-cols-4;
   }
-
 }
 
 /* Masquer la scrollbar pour les filtres horizontaux */
@@ -515,16 +515,20 @@
 }
 
 .animate-ping-radical::after {
-  content: '';
+  content: "";
   position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   border-radius: 50%;
   background-color: inherit;
   animation: ping-custom 0.8s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 
 @keyframes ping-custom {
-  75%, 100% {
+  75%,
+  100% {
     transform: scale(3);
     opacity: 0;
   }
@@ -535,7 +539,13 @@
 }
 
 @keyframes nav-progress {
-  0%   { transform: translateX(-100%); }
-  60%  { transform: translateX(100%); }
-  100% { transform: translateX(100%); }
+  0% {
+    transform: translateX(-100%);
+  }
+  60% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
 }

@@ -4,6 +4,8 @@ import "./globals.css";
 import {Toaster} from "@/components/ui/sonner"
 import {ThemeProvider} from "@/components/providers/theme-provider";
 import {CookieConsent} from '@/components/gdpr/CookieConsent'
+import 'flowbite';
+
 // import { GoogleAnalytics } from '@/components/analytics/AnalyticsScripts'
 
 
@@ -29,6 +31,7 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="fr" suppressHydrationWarning>
+
         <body
             className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
@@ -48,6 +51,7 @@ export default function RootLayout({
             <GoogleAnalytics measurementId={process.env.NEXT_PUBLIC_GA_ID} />
           )} */}
         </ThemeProvider>
+        
         </body>
         </html>
     );

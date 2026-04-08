@@ -6,10 +6,11 @@ import {createClient} from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
 import {requirePermissionForRestaurant} from '@/lib/permissions/check'
 
-export type OrderStatus = 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled'
+export type OrderStatus = 'awaiting_payment' | 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled'
 
 // Flux séquentiel — cuisine (qr_table, public_link, dashboard)
 const SEQUENTIAL: Record<OrderStatus, OrderStatus[]> = {
+    awaiting_payment: ['pending', 'cancelled'],
     pending: ['preparing', 'cancelled'],
     preparing: ['ready', 'cancelled'],
     ready: ['delivered', 'cancelled'],
@@ -20,6 +21,7 @@ const SEQUENTIAL: Record<OrderStatus, OrderStatus[]> = {
 // Flux libre — comptoir (counter)
 // Sauts d'étapes autorisés, jamais de retour en arrière
 const FREE: Record<OrderStatus, OrderStatus[]> = {
+    awaiting_payment: ['pending', 'cancelled'],
     pending: ['preparing', 'ready', 'delivered', 'cancelled'],
     preparing: ['ready', 'delivered', 'cancelled'],
     ready: ['delivered', 'cancelled'],

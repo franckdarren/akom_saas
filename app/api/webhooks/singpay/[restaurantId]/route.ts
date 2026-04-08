@@ -103,7 +103,16 @@ export async function POST(
       })
       console.log('✅ Paiement confirmé:', payment.order.orderNumber)
     } else if (newStatus === 'failed') {
-      console.log('❌ Paiement échoué:', callbackData.transaction.result)
+      // Si la commande était en attente de paiement, l'annuler
+      if (payment.order.status === 'awaiting_payment') {
+        await prisma.order.update({
+          where: { id: payment.orderId },
+          data: { status: 'cancelled' },
+        })
+        console.log('❌ Paiement échoué, commande annulée:', payment.order.orderNumber)
+      } else {
+        console.log('❌ Paiement échoué:', callbackData.transaction.result)
+      }
     }
 
     return NextResponse.json({ success: true })

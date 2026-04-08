@@ -33,7 +33,7 @@ import {cn} from '@/lib/utils'
 // TYPES
 // ============================================================
 
-type OrderStatus = 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled'
+type OrderStatus = 'awaiting_payment' | 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled'
 type PaymentSt = 'pending' | 'paid' | 'failed' | 'refunded'
 type StatusFilter = OrderStatus | 'unpaid' | 'all'
 
@@ -95,6 +95,13 @@ const STATUS_CONFIG: Record<OrderStatus, {
     nextStatus: OrderStatus | null
     nextLabel: string | null
 }> = {
+    awaiting_payment: {
+        label: 'Attente paiement',
+        icon: Clock,
+        badgeClass: 'bg-purple-100 text-purple-700 border-purple-200',
+        nextStatus: null,
+        nextLabel: null
+    },
     pending: {
         label: 'En attente',
         icon: Clock,
@@ -135,6 +142,7 @@ const STATUS_CONFIG: Record<OrderStatus, {
 // Statuts accessibles depuis le menu libre (comptoir uniquement)
 // Chaque statut indique vers lesquels on peut sauter directement
 const FREE_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
+    awaiting_payment: ['pending', 'cancelled'],
     pending: ['preparing', 'ready', 'delivered', 'cancelled'],
     preparing: ['ready', 'delivered', 'cancelled'],
     ready: ['delivered', 'cancelled'],

@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import {useRouter} from 'next/navigation'
 
-type OrderStatus = 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled'
+type OrderStatus = 'awaiting_payment' | 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled'
 
 interface OrderItem {
     id: string
@@ -49,6 +49,13 @@ interface OrderCardProps {
 
 // Mapping des statuts
 const statusConfig = {
+    awaiting_payment: {
+        label: 'Attente paiement',
+        color: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
+        icon: Clock,
+        nextStatus: null,
+        nextLabel: null,
+    },
     pending: {
         label: 'En attente',
         color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',

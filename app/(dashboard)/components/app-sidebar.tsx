@@ -176,7 +176,7 @@ export function AppSidebar({
                         icon: Package,
                         requiredFeature: 'stock_management',
                     },
-                    {title: "Paiements", href: "/dashboard/payments", icon: CreditCard},
+                    {title: "Transactions", href: "/dashboard/transactions", icon: ArrowRightLeft},
                     {title: "Abonnements", href: "/dashboard/subscription", icon: CalendarSync},
                     {
                         title: "Caisse",

@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
         // les champs nécessaires pour l'annulation et le log
         const abandonedOrders = await prisma.order.findMany({
             where: {
-                status: 'pending',
+                status: { in: ['pending', 'awaiting_payment'] },
                 createdAt: {lt: fourHoursAgo},     // Plus vieille que 4h
                 isArchived: false,                    // Pas encore archivée
                 restaurant: {isActive: true},       // Restaurant encore actif

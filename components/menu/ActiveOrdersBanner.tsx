@@ -6,7 +6,7 @@ import { AlertCircle, ChevronRight, Package, Loader2 } from 'lucide-react'
 import { getActiveOrdersForTable } from '@/lib/actions/order'
 
 // Définir un type local correspondant à l'enum Prisma
-type OrderStatus = 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled'
+type OrderStatus = 'awaiting_payment' | 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled'
 
 interface ActiveOrder {
     id: string
@@ -55,6 +55,7 @@ export function ActiveOrdersBanner({ tableId, tableNumber, restaurantSlug, resta
 
     const getStatusLabel = (status: OrderStatus) => {
         const labels: Record<OrderStatus, string> = {
+            awaiting_payment: 'Attente paiement',
             pending: 'En attente',
             preparing: 'En préparation',
             ready: 'Prête',
@@ -66,6 +67,7 @@ export function ActiveOrdersBanner({ tableId, tableNumber, restaurantSlug, resta
 
     const getStatusColor = (status: OrderStatus) => {
         const colors: Record<OrderStatus, string> = {
+            awaiting_payment: 'bg-purple-50 border-purple-200 text-purple-800 dark:bg-purple-900/20 dark:border-purple-800 dark:text-purple-200',
             pending: 'bg-yellow-50 border-yellow-200 text-yellow-800 dark:bg-yellow-900/20 dark:border-yellow-800 dark:text-yellow-200',
             preparing: 'bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-200',
             ready: 'bg-green-50 border-green-200 text-green-800 dark:bg-green-900/20 dark:border-green-800 dark:text-green-200',

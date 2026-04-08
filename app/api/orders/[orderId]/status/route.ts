@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
 
-type OrderStatus = 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled'
+type OrderStatus = 'awaiting_payment' | 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled'
 
 interface RouteParams {
     params: Promise<{
@@ -90,6 +90,7 @@ export async function PATCH(
         // Validation des transitions de statut autorisées
         // Certaines transitions ne sont pas logiques (ex: delivered → pending)
         const transitions: Record<OrderStatus, OrderStatus[]> = {
+            awaiting_payment: ['pending', 'cancelled'],
             pending: ['preparing', 'cancelled'],
             preparing: ['ready', 'cancelled'],
             ready: ['delivered', 'cancelled'],

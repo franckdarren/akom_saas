@@ -3,7 +3,7 @@
 import type { PaymentStatus } from '@prisma/client'
 
 /**
- * Génère une référence unique pour une transaction SingPay.
+ * Génère une référence unique pour une transaction SingPay (commande).
  *
  * Format : AKOM-ORD-{8 premiers chars restaurantId}-{timestamp}-{6 random}
  * Exemple : AKOM-ORD-a1b2c3d4-1712150400000-X9K2M1
@@ -16,12 +16,30 @@ export function generateSingpayReference(restaurantId: string): string {
 }
 
 /**
+ * Génère une référence unique pour un paiement d'abonnement SingPay.
+ *
+ * Format : AKOM-SUB-{8 premiers chars restaurantId}-{timestamp}-{6 random}
+ * Exemple : AKOM-SUB-a1b2c3d4-1712150400000-X9K2M1
+ */
+export function generateSubscriptionReference(restaurantId: string): string {
+  const shortId = restaurantId.substring(0, 8)
+  const timestamp = Date.now()
+  const random = Math.random().toString(36).substring(2, 8).toUpperCase()
+  return `AKOM-SUB-${shortId}-${timestamp}-${random}`
+}
+
+/** Vérifie si une référence SingPay correspond à un paiement d'abonnement */
+export function isSubscriptionReference(reference: string): boolean {
+  return reference.startsWith('AKOM-SUB-')
+}
+
+/**
  * Formate un numéro de téléphone gabonais pour SingPay.
  *
  * SingPay attend le format international sans le + : 24107XXXXXXX
  *
  * Entrées acceptées :
- * - 07 12 34 56  → 2410712345
+ * - 077 12 34 56  → 2410712345
  * - +24107123456 → 24107123456
  * - 24107123456  → 24107123456
  */

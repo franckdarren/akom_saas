@@ -19,6 +19,7 @@ interface RecentOrdersTableProps {
 }
 
 const statusVariants = {
+    awaiting_payment: { label: 'Attente paiement', variant: 'secondary' as const },
     pending: { label: 'En attente', variant: 'default' as const },
     preparing: { label: 'En préparation', variant: 'default' as const },
     ready: { label: 'Prête', variant: 'success' as const },

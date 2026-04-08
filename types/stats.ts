@@ -84,7 +84,7 @@ export interface RecentOrder {
     tableNumber: number | null
     customerName: string | null
     totalAmount: number
-    status: 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled'
+    status: 'awaiting_payment' | 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled'
     itemsCount: number
     createdAt: Date
 }

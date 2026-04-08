@@ -6,6 +6,7 @@ import {createClient} from '@/lib/supabase/client'
 import {useRestaurant} from '@/lib/hooks/use-restaurant'
 
 export type OrderStatus =
+    | 'awaiting_payment'
     | 'pending'
     | 'preparing'
     | 'ready'
@@ -14,6 +15,7 @@ export type OrderStatus =
 
 
 export type OrderStatusFilter =
+    | 'awaiting_payment'
     | 'pending'
     | 'preparing'
     | 'ready'
@@ -137,9 +139,9 @@ export function useOrdersRealtime() {
      * Refetch toutes les 3 secondes s'il y a des commandes actives
      */
     useEffect(() => {
-        // Vérifier s'il y a des commandes actives (pas delivered ni cancelled)
+        // Vérifier s'il y a des commandes actives (pas delivered, cancelled, ni awaiting_payment)
         const hasActiveOrders = allOrders.some(
-            (order) => !['delivered', 'cancelled'].includes(order.status)
+            (order) => !['delivered', 'cancelled', 'awaiting_payment'].includes(order.status)
         )
 
         // Si commandes actives → polling
@@ -168,7 +170,8 @@ export function useOrdersRealtime() {
      * Filtrage
      */
     const orders = useMemo(() => {
-        if (statusFilter === 'all') return allOrders
+        // Par défaut ('all'), masquer les commandes en attente de paiement
+        if (statusFilter === 'all') return allOrders.filter((o) => o.status !== 'awaiting_payment')
         return allOrders.filter((o) => o.status === statusFilter)
     }, [allOrders, statusFilter])
 

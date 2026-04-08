@@ -199,7 +199,7 @@ export function CatalogCartDialog({
 
     // ── Création de commande ──
 
-    async function createOrder(): Promise<{orderId: string; orderNumber: string} | null> {
+    async function createOrder(options?: { initialStatus?: 'pending' | 'awaiting_payment' }): Promise<{orderId: string; orderNumber: string} | null> {
         const orderData = {
             restaurantId,
             fulfillmentType: 'takeway' as const,
@@ -211,6 +211,7 @@ export function CatalogCartDialog({
                 productId: item.productId,
                 quantity: item.quantity,
             })),
+            ...(options?.initialStatus && { initialStatus: options.initialStatus }),
         }
 
         const response = await fetch('/api/catalog/orders', {
@@ -257,10 +258,10 @@ export function CatalogCartDialog({
         setIsSubmitting(true)
 
         try {
-            // 1. Créer la commande si elle n'existe pas encore
+            // 1. Créer la commande si elle n'existe pas encore (en attente de paiement)
             let currentOrderId = orderId
             if (!currentOrderId) {
-                const order = await createOrder()
+                const order = await createOrder({ initialStatus: 'awaiting_payment' })
                 if (!order) throw new Error('Erreur lors de la création de la commande')
                 currentOrderId = order.orderId
                 saveCatalogOrder(restaurantSlug, order.orderId, order.orderNumber)
@@ -515,7 +516,7 @@ export function CatalogCartDialog({
                                     type="tel"
                                     value={customerPhone}
                                     onChange={(e) => setCustomerPhone(e.target.value)}
-                                    placeholder="07 12 34 56"
+                                    placeholder="077 12 34 56"
                                 />
                             </div>
 

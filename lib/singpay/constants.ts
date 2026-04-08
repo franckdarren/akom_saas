@@ -5,8 +5,17 @@ export const SINGPAY_CONFIG = {
   clientId: process.env.SINGPAY_CLIENT_ID!,
   clientSecret: process.env.SINGPAY_CLIENT_SECRET!,
 
+  /** Wallet Akom pour recevoir les paiements d'abonnement */
+  platformWalletId: process.env.SINGPAY_WALLET_ID!,
+
+  /** Disbursement ID pour les paiements d'abonnement */
+  platformDisbursementId: process.env.SINGPAY_DISBURSEMENT_ID!,
+
   /** Timeout pour les requêtes HTTP vers SingPay (30s) */
   requestTimeout: 30_000,
+
+  /** Timeout pour la génération de lien externe /ext (60s — endpoint plus lent) */
+  extRequestTimeout: 60_000,
 
   /** Intervalle de polling côté client (5s) */
   statusCheckInterval: 5_000,

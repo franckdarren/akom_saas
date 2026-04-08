@@ -16,6 +16,8 @@ const PublicOrderSchema = z.object({
     reservationDate: z.string().optional(),
     partySize: z.number().int().min(1).optional(),
     notes: z.string().optional(),
+    /** Statut initial — 'awaiting_payment' pour les commandes mobile money */
+    initialStatus: z.enum(['pending', 'awaiting_payment']).optional(),
 })
 
 export async function POST(req: Request) {
@@ -90,7 +92,7 @@ export async function POST(req: Request) {
                 fulfillmentType: data.fulfillmentType,
                 customerName: data.customerName,
                 customerPhone: data.customerPhone,
-                status: 'pending',
+                status: data.initialStatus ?? 'pending',
                 orderNumber,
                 totalAmount,
                 pickupTime: data.pickupTime ? new Date(data.pickupTime) : null,
