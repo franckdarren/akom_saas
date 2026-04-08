@@ -72,6 +72,7 @@ import {Avatar, AvatarFallback} from "@/components/ui/avatar"
 import {Badge} from "@/components/ui/badge"
 import {useRestaurant} from "@/lib/hooks/use-restaurant"
 import {DashboardHeader} from "../dashboard/components/DashboardHeader"
+import {ModeToggle} from "@/components/ui/mode-toggle"
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -318,17 +319,19 @@ export function AppSidebar({
                 <SidebarHeader className="px-2 py-3">
                     {role === 'superadmin' ? (
                         // Superadmin : affichage simple sans switcher
-                        <Link
-                            href="/superadmin"
-                            onClick={() => {
-                                if (pathname !== "/superadmin") startLoading()
-                                if (isMobile) setOpenMobile(false)
-                            }}
-                            className="flex items-center gap-2 px-1"
-                        >
-                            <Logo size="sm" variant="color" />
-                            <span className="type-caption text-muted-foreground">Admin</span>
-                        </Link>
+                        <div className="flex items-center justify-between px-1">
+                            <Link
+                                href="/superadmin"
+                                onClick={() => {
+                                    if (pathname !== "/superadmin") startLoading()
+                                    if (isMobile) setOpenMobile(false)
+                                }}
+                                className="flex items-center gap-2"
+                            >
+                                <Logo size="sm" variant="color" />
+                            </Link>
+                            <ModeToggle />
+                        </div>
                     ) : (
                         // Utilisateurs normaux : switcher multi-structure
                         <RestaurantSwitcher
