@@ -122,7 +122,7 @@ export function TransactionsTable({
 
 function TransactionRow({tx}: {tx: UnifiedTransaction}) {
     const isIn = tx.direction === 'in'
-    const amountColor = isIn ? 'text-success-foreground' : 'text-destructive'
+    const amountColor = isIn ? 'text-success' : 'text-destructive'
     const amountPrefix = isIn ? '+' : '−'
 
     const description = tx.expenseCategory

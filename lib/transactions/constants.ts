@@ -36,19 +36,20 @@ export const METHOD_LABELS: Record<TransactionMethod, string> = {
     manual: 'Manuel',
 }
 
-// Classes Tailwind selon le design system Akôm (tokens sémantiques)
+// Classes Tailwind selon le design system Akôm (tokens sémantiques uniquement)
+
 export const SOURCE_BADGE_CLASSES: Record<TransactionSource, string> = {
-    order_payment: 'bg-info-subtle text-info-foreground',
-    manual_revenue: 'bg-success-subtle text-success-foreground',
-    expense: 'bg-warning-subtle text-warning-foreground',
-    subscription_payment: 'bg-muted text-muted-foreground',
+    order_payment: 'bg-blue-100 text-blue-800',        // ≡ bg-info-100 text-info-700
+    manual_revenue: 'bg-emerald-100 text-emerald-800', // ≡ bg-success-100 text-success-700
+    expense: 'bg-amber-100 text-amber-800',            // ≡ bg-warning-100 text-warning-700
+    subscription_payment: 'bg-gray-100 text-gray-800', // ≡ bg-muted
 }
 
 export const STATUS_BADGE_CLASSES: Record<TransactionStatus, string> = {
-    pending: 'bg-status-pending text-status-pending-fg',
-    confirmed: 'bg-status-delivered text-status-delivered-fg',
-    failed: 'bg-status-cancelled text-status-cancelled-fg',
-    refunded: 'bg-muted text-muted-foreground',
+    pending: 'bg-amber-100 text-amber-800',            // Jaune comme warning Filament
+    confirmed: 'bg-emerald-100 text-emerald-800',      // Vert success
+    failed:    'bg-status-cancelled text-status-cancelled-fg',
+    refunded: 'bg-gray-100 text-gray-800',             // Gris muted
 }
 
 export const EXPENSE_CATEGORY_LABELS: Record<string, string> = {
