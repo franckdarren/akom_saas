@@ -12,8 +12,8 @@ const TopProductsChart = dynamic(
     () => import('./TopProductsChart').then(m => ({ default: m.TopProductsChart })),
     { ssr: false, loading: () => <Skeleton className="h-64 w-full rounded-xl" /> }
 )
-const CategoryPieChart = dynamic(
-    () => import('./CategoryPieChart').then(m => ({ default: m.CategoryPieChart })),
+const CategoryRevenueTable = dynamic(
+    () => import('./CategoryRevenueTable').then(m => ({ default: m.CategoryRevenueTable })),
     { ssr: false, loading: () => <Skeleton className="h-64 w-full rounded-xl" /> }
 )
 
@@ -33,7 +33,7 @@ export function StatsCharts({ dailySales, topProducts, categorySales, stockAlert
             </div>
 
             <div className="grid gap-6 md:grid-cols-2">
-                <CategoryPieChart data={categorySales} />
+                <CategoryRevenueTable data={categorySales} />
 
                 {stockAlerts.length > 0 && (
                     <div className="rounded-xl border bg-card p-6 shadow-sm">

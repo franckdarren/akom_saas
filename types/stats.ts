@@ -64,6 +64,7 @@ export interface CategorySales {
     revenue: number
     ordersCount: number
     percentage: number
+    topProduct: string | null
 }
 
 export interface TopProduct {

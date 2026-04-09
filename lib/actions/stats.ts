@@ -339,32 +339,68 @@ async function getSalesByCategory(
         categoryName: string | null
         revenue: bigint
         ordersCount: bigint
+        topProductName: string | null
     }[]>`
+        WITH filtered_items AS (
+            SELECT
+                oi.id,
+                oi.product_name,
+                oi.quantity,
+                oi.unit_price,
+                o.id           AS order_id,
+                p.category_id
+            FROM order_items oi
+            JOIN orders o   ON o.id  = oi.order_id
+            JOIN products p ON p.id  = oi.product_id
+            WHERE o.restaurant_id = ${restaurantId}::uuid
+              AND o.status        = 'delivered'
+              AND o.created_at   >= ${startDate}
+              AND o.created_at   <= ${endDate}
+        ),
+        category_revenue AS (
+            SELECT
+                fi.category_id                              AS "categoryId",
+                c.name                                      AS "categoryName",
+                SUM(fi.quantity * fi.unit_price)::bigint    AS "revenue",
+                COUNT(DISTINCT fi.order_id)::bigint         AS "ordersCount"
+            FROM filtered_items fi
+            LEFT JOIN categories c ON c.id = fi.category_id
+            GROUP BY fi.category_id, c.name
+        ),
+        top_products AS (
+            SELECT DISTINCT ON (sub.category_id)
+                sub.category_id  AS "categoryId",
+                sub.product_name AS "topProductName"
+            FROM (
+                SELECT
+                    fi.category_id,
+                    fi.product_name,
+                    SUM(fi.quantity) AS qty_sold
+                FROM filtered_items fi
+                GROUP BY fi.category_id, fi.product_name
+            ) sub
+            ORDER BY sub.category_id, sub.qty_sold DESC
+        )
         SELECT
-            p.category_id                            AS "categoryId",
-            c.name                                   AS "categoryName",
-            SUM(oi.quantity * oi.unit_price)::bigint AS "revenue",
-            COUNT(oi.id)::bigint                     AS "ordersCount"
-        FROM order_items oi
-        JOIN orders o ON o.id = oi.order_id
-        JOIN products p ON p.id = oi.product_id
-        LEFT JOIN categories c ON c.id = p.category_id
-        WHERE o.restaurant_id = ${restaurantId}::uuid
-          AND o.status NOT IN ('cancelled')
-          AND o.created_at >= ${startDate}
-          AND o.created_at <= ${endDate}
-        GROUP BY p.category_id, c.name
-        ORDER BY SUM(oi.quantity * oi.unit_price) DESC
+            cr."categoryId",
+            cr."categoryName",
+            cr."revenue",
+            cr."ordersCount",
+            tp."topProductName"
+        FROM category_revenue cr
+        LEFT JOIN top_products tp ON tp."categoryId" IS NOT DISTINCT FROM cr."categoryId"
+        ORDER BY cr."revenue" DESC
     `
 
     const totalRevenue = rows.reduce((sum, r) => sum + Number(r.revenue), 0)
 
     return rows.map((r) => ({
-        categoryId: r.categoryId ?? null,
+        categoryId:   r.categoryId ?? null,
         categoryName: r.categoryName ?? 'Sans catégorie',
-        revenue: Number(r.revenue),
-        ordersCount: Number(r.ordersCount),
-        percentage: totalRevenue > 0
+        revenue:      Number(r.revenue),
+        ordersCount:  Number(r.ordersCount),
+        topProduct:   r.topProductName ?? null,
+        percentage:   totalRevenue > 0
             ? Math.round((Number(r.revenue) / totalRevenue) * 100)
             : 0,
     }))
