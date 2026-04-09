@@ -49,9 +49,13 @@ interface SupportPanelProps {
     showHeader?: boolean
     /** Callback pour fermer le panel (uniquement en mode flottant) */
     onClose?: () => void
+    /** Appelé à chaque changement de vue interne */
+    onViewChange?: (view: View) => void
+    /** Ref pour déclencher le retour depuis un bouton externe */
+    backRef?: React.MutableRefObject<(() => void) | null>
 }
 
-export function SupportPanel({showHeader = true, onClose}: SupportPanelProps) {
+export function SupportPanel({showHeader = true, onClose, onViewChange, backRef}: SupportPanelProps) {
     const [view, setView] = useState<View>('list')
     const [tickets, setTickets] = useState<Ticket[]>([])
     const [selectedTicket, setSelectedTicket] = useState<string | null>(null)
@@ -63,6 +67,20 @@ export function SupportPanel({showHeader = true, onClose}: SupportPanelProps) {
 
     const scrollRef = useRef<HTMLDivElement>(null)
     const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+    const changeView = (next: View) => {
+        setView(next)
+        onViewChange?.(next)
+    }
+
+    const handleBack = () => {
+        setSelectedTicket(null)
+        setMessages([])
+        setNewTicket({subject: '', description: '', priority: 'medium'})
+        changeView('list')
+    }
+
+    if (backRef) backRef.current = handleBack
 
     const [newTicket, setNewTicket] = useState({
         subject: '',
@@ -107,14 +125,7 @@ export function SupportPanel({showHeader = true, onClose}: SupportPanelProps) {
     const handleSelectTicket = (ticketId: string) => {
         setSelectedTicket(ticketId)
         setMessages([])
-        setView('conversation')
-    }
-
-    const handleBack = () => {
-        setSelectedTicket(null)
-        setMessages([])
-        setNewTicket({subject: '', description: '', priority: 'medium'})
-        setView('list')
+        changeView('conversation')
     }
 
     const handleSendMessage = async (e: React.FormEvent | React.KeyboardEvent) => {
@@ -147,7 +158,7 @@ export function SupportPanel({showHeader = true, onClose}: SupportPanelProps) {
             alert(result.error)
         } else {
             setNewTicket({subject: '', description: '', priority: 'medium'})
-            setView('list')
+            changeView('list')
             loadTickets()
         }
         setIsLoading(false)
@@ -155,10 +166,10 @@ export function SupportPanel({showHeader = true, onClose}: SupportPanelProps) {
 
     const getStatusBadge = (status: string) => {
         const variants: Record<string, string> = {
-            open: 'bg-blue-500',
-            in_progress: 'bg-yellow-500',
-            resolved: 'bg-green-500',
-            closed: 'bg-gray-500',
+            open: 'bg-info text-info-foreground',
+            in_progress: 'bg-warning text-warning-foreground',
+            resolved: 'bg-success text-success-foreground',
+            closed: 'bg-muted text-muted-foreground',
         }
         const labels: Record<string, string> = {
             open: 'Ouvert',
@@ -167,7 +178,7 @@ export function SupportPanel({showHeader = true, onClose}: SupportPanelProps) {
             closed: 'Fermé',
         }
         return (
-            <Badge className={cn('text-white text-xs', variants[status])}>
+            <Badge className={cn('text-xs', variants[status])}>
                 {labels[status]}
             </Badge>
         )
@@ -217,11 +228,11 @@ export function SupportPanel({showHeader = true, onClose}: SupportPanelProps) {
                 {/* VUE : LISTE */}
                 {view === 'list' && (
                     <>
-                        <div className="p-4 shrink-0">
+                        <div className="py-4 shrink-0">
                             <Button
                                 type="button"
-                                onClick={() => setView('new-ticket')}
-                                className="w-full"
+                                onClick={() => changeView('new-ticket')}
+                                className="w-full sm:w-auto"
                                 size="sm"
                             >
                                 <Plus className="h-4 w-4 mr-2"/>
@@ -229,7 +240,7 @@ export function SupportPanel({showHeader = true, onClose}: SupportPanelProps) {
                             </Button>
                         </div>
 
-                        <ScrollArea className="flex-1 min-h-0 px-3">
+                        <ScrollArea className="flex-1 min-h-0">
                             {isTicketsLoading ? (
                                 <div className="flex justify-center py-8">
                                     <Loader2 className="h-5 w-5 animate-spin text-muted-foreground"/>
@@ -328,7 +339,7 @@ export function SupportPanel({showHeader = true, onClose}: SupportPanelProps) {
                             </div>
                         </ScrollArea>
 
-                        <div className="p-4 border-t border-border shrink-0">
+                        <div className="py-4 border-t border-border shrink-0">
                             <LoadingButton
                                 type="submit"
                                 className="w-full"
@@ -345,7 +356,7 @@ export function SupportPanel({showHeader = true, onClose}: SupportPanelProps) {
                 {/* VUE : CONVERSATION */}
                 {view === 'conversation' && (
                     <>
-                        <ScrollArea className="flex-1 min-h-0 px-4 py-3">
+                        <ScrollArea className="flex-1 min-h-0 py-3">
                             <div className="space-y-4 pb-4">
                                 {tickets
                                     .filter((t) => t.id === selectedTicket)
@@ -395,12 +406,17 @@ export function SupportPanel({showHeader = true, onClose}: SupportPanelProps) {
                                                 )}
                                             >
                                                 {message.isAdmin && (
-                                                    <div className="text-xs font-semibold text-blue-600 mb-1">
+                                                    <div className="text-xs font-semibold text-primary mb-1">
                                                         Support Akom
                                                     </div>
                                                 )}
                                                 {message.message}
-                                                <div className="type-caption opacity-60 mt-1">
+                                                <div className={cn(
+                                                    'text-2xs mt-1',
+                                                    message.isAdmin
+                                                        ? 'text-muted-foreground'
+                                                        : 'text-primary-foreground/60'
+                                                )}>
                                                     {formatDate(message.createdAt)}
                                                 </div>
                                             </div>

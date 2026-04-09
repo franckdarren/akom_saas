@@ -95,6 +95,21 @@ export function TicketInfoSidebar({
                 </CardContent>
             </AppCard>
 
+            {/* Description */}
+            <AppCard>
+                <CardHeader>
+                    <CardTitle className="text-sm font-medium">
+                        Description initiale
+                    </CardTitle>
+                </CardHeader>
+
+                <CardContent>
+                    <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                        {ticket.description}
+                    </p>
+                </CardContent>
+            </AppCard>
+
             {/* Restaurant */}
             <AppCard>
                 <CardHeader>
@@ -185,20 +200,7 @@ export function TicketInfoSidebar({
                 </CardContent>
             </AppCard>
 
-            {/* Description */}
-            <AppCard>
-                <CardHeader>
-                    <CardTitle className="text-sm font-medium">
-                        Description initiale
-                    </CardTitle>
-                </CardHeader>
-
-                <CardContent>
-                    <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                        {ticket.description}
-                    </p>
-                </CardContent>
-            </AppCard>
+            
 
         </div>
     )
