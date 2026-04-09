@@ -162,7 +162,7 @@ export default async function WarehouseMovementsPage({searchParams}: PageProps) 
                     </Suspense>
 
                     {/* Filtres et timeline */}
-                    <AppCard>
+                    <AppCard className='p-4'>
                         <MovementsFilters products={products}/>
 
                         <div className="flex items-center justify-between text-sm text-muted-foreground">
