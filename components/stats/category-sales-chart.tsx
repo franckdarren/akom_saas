@@ -62,6 +62,7 @@ export function CategorySalesChart({ data }: CategorySalesChartProps) {
             revenue: othersRevenue,
             ordersCount: othersCount,
             percentage: Math.round((othersRevenue / totalRevenue) * 100),
+            topProduct: null,
         })
     }
 
