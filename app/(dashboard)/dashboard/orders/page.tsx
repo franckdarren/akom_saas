@@ -1,9 +1,11 @@
 // app/(dashboard)/dashboard/orders/page.tsx
 'use client'
 
+import {useTransition} from 'react'
 import {useOrdersRealtime} from '@/lib/hooks/use-orders-realtime'
 import {OrderCard} from '@/components/kitchen/OrderCard'
 import {OrderFilters} from '@/components/kitchen/OrderFilters'
+import {Skeleton} from '@/components/ui/skeleton'
 import {NotificationSound} from '@/components/kitchen/NotificationSound'
 import {
     Breadcrumb,
@@ -16,14 +18,13 @@ import {
 import {Separator} from '@/components/ui/separator'
 import {SidebarTrigger} from '@/components/ui/sidebar'
 import {AppCard, CardContent} from '@/components/ui/app-card'
-import {useAuth} from '@/lib/hooks/use-auth'
 import {useRestaurant} from '@/lib/hooks/use-restaurant'
 import {getLabels} from '@/lib/config/activity-labels' // ← NOUVEAU
 import {PageHeader} from '@/components/ui/page-header'
 
 export default function OrdersPage() {
-    const {user} = useAuth()
-    const {currentRole, currentRestaurant} = useRestaurant()
+    const {currentRestaurant} = useRestaurant()
+    const [isPending, startTransition] = useTransition()
 
     // ← Labels depuis le restaurant courant (client-side)
     const labels = getLabels(currentRestaurant?.activityType)
@@ -31,11 +32,16 @@ export default function OrdersPage() {
     const {
         orders,
         allOrders,
-        loading,
         pendingCount,
         statusFilter,
         setStatusFilter,
     } = useOrdersRealtime()
+
+    function handleFilterChange(filter: Parameters<typeof setStatusFilter>[0]) {
+        startTransition(() => {
+            setStatusFilter(filter)
+        })
+    }
 
     const counts = {
         all: allOrders.filter((o) => o.status !== 'awaiting_payment').length,
@@ -92,11 +98,17 @@ export default function OrdersPage() {
 
                 <OrderFilters
                     activeFilter={statusFilter}
-                    onFilterChange={setStatusFilter}
+                    onFilterChange={handleFilterChange}
                     counts={counts}
                 />
 
-                {orders.length === 0 ? (
+                {isPending ? (
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                        {Array.from({length: 6}).map((_, i) => (
+                            <Skeleton key={i} className="h-48 rounded-xl"/>
+                        ))}
+                    </div>
+                ) : orders.length === 0 ? (
                     <AppCard>
                         <CardContent className="layout-empty-state">
                             <p className="text-muted-foreground text-center">
