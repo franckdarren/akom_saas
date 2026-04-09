@@ -168,7 +168,7 @@ export default async function WarehouseProductDetailPage({params}: PageProps) {
 
                 <div className="layout-page">
                     <div>
-                        <Button asChild variant="ghost" size="sm" className="-ml-2">
+                        <Button asChild variant="ghost" size="sm" className="-ml-2.5 self-start">
                             <Link href="/dashboard/warehouse">
                                 <ArrowLeft className="h-4 w-4 mr-1"/>
                                 Retour au magasin

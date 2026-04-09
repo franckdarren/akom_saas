@@ -94,7 +94,7 @@ export default async function NewProductPage() {
             </header>
 
             <div className="layout-page max-w-2xl">
-                <Button asChild variant="ghost" size="sm" className="-ml-2">
+                <Button asChild variant="ghost" size="sm" className="-ml-2.5 self-start">
                     <Link href="/dashboard/menu/products">
                         <ArrowLeft className="h-4 w-4 mr-1"/>
                         Retour aux {labels.productNameCapital}s
