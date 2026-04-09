@@ -226,10 +226,10 @@ async function seed() {
   )
 
   // Buffers d'insertion
-  type OrderRow = Parameters<typeof prisma.order.createMany>['0']['data'][number]
-  type OrderItemRow = Parameters<typeof prisma.orderItem.createMany>['0']['data'][number]
-  type PaymentRow = Parameters<typeof prisma.payment.createMany>['0']['data'][number]
-  type StockMovRow = Parameters<typeof prisma.stockMovement.createMany>['0']['data'][number]
+  type OrderRow = NonNullable<Parameters<typeof prisma.order.createMany>['0']>['data'][number]
+  type OrderItemRow = NonNullable<Parameters<typeof prisma.orderItem.createMany>['0']>['data'][number]
+  type PaymentRow = NonNullable<Parameters<typeof prisma.payment.createMany>['0']>['data'][number]
+  type StockMovRow = NonNullable<Parameters<typeof prisma.stockMovement.createMany>['0']>['data'][number]
   type SessionRow = { id: string; sessionDate: Date; openingBalance: number; openedAt: Date; closedAt: Date; theoreticalBalance: number; closingBalance: number; balanceDifference: number }
   type RevenueRow = Parameters<typeof prisma.manualRevenue.createMany>['0']['data'][number]
   type ExpenseRow = Parameters<typeof prisma.expense.createMany>['0']['data'][number]
