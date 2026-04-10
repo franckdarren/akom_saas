@@ -6,7 +6,7 @@ import {AppCard, CardContent, CardHeader, CardTitle} from '@/components/ui/app-c
 import {Badge} from '@/components/ui/badge'
 import {Button} from '@/components/ui/button'
 import {formatDate, formatPrice} from '@/lib/utils/format'
-import {Clock, CheckCircle, XCircle, ChefHat, Package} from 'lucide-react'
+import {Clock, CheckCircle, XCircle, ChefHat, Package, Banknote, AlertCircle, type LucideIcon} from 'lucide-react'
 import {toast} from 'sonner'
 import {
     AlertDialog,
@@ -21,6 +21,14 @@ import {
 import {useRouter} from 'next/navigation'
 
 type OrderStatus = 'awaiting_payment' | 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled'
+type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded'
+type PaymentMethod = 'cash' | 'mobile_money' | 'airtel_money' | 'moov_money' | 'card'
+
+interface OrderPayment {
+    id: string
+    status: PaymentStatus
+    method: PaymentMethod
+}
 
 interface OrderItem {
     id: string
@@ -39,6 +47,7 @@ interface Order {
         number: number
     }
     orderItems: OrderItem[]
+    payments: OrderPayment[]
     customerName?: string
     notes?: string
 }
@@ -93,10 +102,37 @@ const statusConfig = {
     },
 }
 
+type PaymentBadgeInfo = {
+    label: string
+    className: string
+    Icon: LucideIcon
+} | null
+
+function getPaymentBadge(payments: OrderPayment[], orderStatus: OrderStatus): PaymentBadgeInfo {
+    // Pas de badge pour les commandes annulées ou en attente de paiement
+    if (orderStatus === 'cancelled' || orderStatus === 'awaiting_payment') return null
+
+    if (payments.some(p => p.status === 'paid')) {
+        return {label: 'Payé', className: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200', Icon: CheckCircle}
+    }
+
+    if (payments.some(p => p.status === 'pending' && p.method === 'cash')) {
+        return {label: 'Cash', className: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200', Icon: Banknote}
+    }
+
+    if (payments.some(p => p.status === 'pending')) {
+        return {label: 'Paiement en cours', className: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200', Icon: Clock}
+    }
+
+    // Aucun paiement enregistré ou tous échoués
+    return {label: 'Impayé', className: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200', Icon: AlertCircle}
+}
+
 export function OrderCard({order}: OrderCardProps) {
     const [isUpdating, setIsUpdating] = useState(false)
     const config = statusConfig[order.status]
     const Icon = config.icon
+    const paymentBadge = getPaymentBadge(order.payments ?? [], order.status)
 
     const router = useRouter()
     const [loading, setLoading] = useState<string | null>(null)
@@ -166,10 +202,18 @@ export function OrderCard({order}: OrderCardProps) {
                             {config.label}
                         </Badge>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <span>Table {order.table?.number || 'N/A'}</span>
-                        <span>•</span>
-                        <span>{formatDate(new Date(order.createdAt))}</span>
+                    <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <span>Table {order.table?.number || 'N/A'}</span>
+                            <span>•</span>
+                            <span>{formatDate(new Date(order.createdAt))}</span>
+                        </div>
+                        {paymentBadge && (
+                            <Badge className={paymentBadge.className}>
+                                <paymentBadge.Icon className="h-3 w-3 mr-1"/>
+                                {paymentBadge.label}
+                            </Badge>
+                        )}
                     </div>
                 </CardHeader>
 

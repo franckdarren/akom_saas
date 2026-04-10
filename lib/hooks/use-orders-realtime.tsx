@@ -23,6 +23,15 @@ export type OrderStatusFilter =
     | 'cancelled'
     | 'all'
 
+export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded'
+export type PaymentMethod = 'cash' | 'mobile_money' | 'airtel_money' | 'moov_money' | 'card'
+
+export interface OrderPayment {
+    id: string
+    status: PaymentStatus
+    method: PaymentMethod
+}
+
 export interface OrderItem {
     id: string
     productName: string
@@ -40,6 +49,7 @@ export interface Order {
         number: number
     }
     orderItems: OrderItem[]
+    payments: OrderPayment[]
     customerName?: string
     notes?: string
 }
