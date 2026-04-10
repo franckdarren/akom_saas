@@ -13,6 +13,7 @@ import {
     ACTIVITY_TYPE_OPTIONS,
     type ActivityType,
 } from '@/lib/config/activity-labels'
+import type {SubscriptionPlan} from '@/lib/config/subscription'
 import {cn} from '@/lib/utils'
 import {useNavigationLoading} from '@/lib/hooks/use-navigation-loading'
 
@@ -36,11 +37,22 @@ export function CreateRestaurantForm() {
         const phone = formData.get('phone') as string
         const address = formData.get('address') as string
 
+        // Lire le plan sélectionné depuis la landing page (cookie)
+        const planCookie = document.cookie
+            .split('; ')
+            .find(c => c.startsWith('akom_selected_plan='))
+            ?.split('=')[1] as SubscriptionPlan | undefined
+
+        const plan = planCookie && ['starter', 'business', 'premium'].includes(planCookie)
+            ? planCookie as SubscriptionPlan
+            : undefined
+
         const result = await createRestaurant({
             name,
             phone: phone || undefined,
             address: address || undefined,
             activityType,
+            plan,
         })
 
         if (result?.error) {
@@ -48,6 +60,9 @@ export function CreateRestaurantForm() {
             setIsLoading(false)
             return
         }
+
+        // Nettoyer le cookie plan après usage
+        document.cookie = 'akom_selected_plan=;path=/;max-age=0'
 
         startLoading()
         router.push('/dashboard')

@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/dialog'
 import {toast} from 'sonner'
 import {Settings} from 'lucide-react'
+import {Alert, AlertDescription} from '@/components/ui/alert'
 
 interface AlertThresholdEditorProps {
     productId: string
@@ -89,13 +90,11 @@ export function AlertThresholdEditor({
                         </div>
 
                         {threshold !== currentThreshold && (
-                            <div
-                                className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md p-3">
-                                <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                                    Seuil actuel : {currentThreshold} → Nouveau
-                                    seuil : {threshold}
-                                </p>
-                            </div>
+                            <Alert variant="warning">
+                                <AlertDescription>
+                                    Seuil actuel : {currentThreshold} → Nouveau seuil : {threshold}
+                                </AlertDescription>
+                            </Alert>
                         )}
                     </div>
 

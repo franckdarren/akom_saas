@@ -128,7 +128,7 @@ export default function LandingPricing() {
                     className="w-full mt-2"
                     asChild
                   >
-                    <Link href="/register">Créer un compte</Link>
+                    <Link href={`/register?plan=${plan.name.toLowerCase()}`}>Créer un compte</Link>
                   </Button>
                 </div>
               </CardContent>

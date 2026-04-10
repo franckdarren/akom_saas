@@ -68,6 +68,9 @@
   --color-status-delivered-fg: var(--status-delivered-fg);
   --color-status-cancelled: var(--status-cancelled);
   --color-status-cancelled-fg: var(--status-cancelled-fg);
+  --color-status-awaiting-payment: var(--status-awaiting-payment);
+  --color-status-awaiting-payment-fg: var(--status-awaiting-payment-fg);
+  --color-status-awaiting-payment-subtle: var(--status-awaiting-payment-subtle);
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -141,6 +144,9 @@
   --status-delivered-fg: oklch(0.99 0 0);
   --status-cancelled: var(--destructive);
   --status-cancelled-fg: var(--destructive-foreground);
+  --status-awaiting-payment: oklch(0.585 0.233 277.117); /* violet */
+  --status-awaiting-payment-fg: oklch(0.99 0 0);
+  --status-awaiting-payment-subtle: oklch(0.97 0.03 280);
 
   /* --- Graphiques (alignés sur la sémantique) --- */
   --chart-1: oklch(0.623 0.214 259.815); /* primary blue */
@@ -215,6 +221,9 @@
   --status-delivered-fg: oklch(0.141 0.005 285.823);
   --status-cancelled: var(--destructive);
   --status-cancelled-fg: var(--destructive-foreground);
+  --status-awaiting-payment: oklch(0.7 0.2 277);
+  --status-awaiting-payment-fg: oklch(0.141 0.005 285.823);
+  --status-awaiting-payment-subtle: oklch(0.22 0.05 280);
 
   /* --- Graphiques dark --- */
   --chart-1: oklch(0.488 0.243 264.376);

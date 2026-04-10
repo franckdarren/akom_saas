@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { signUp } from '@/lib/actions/auth'
 import { Button } from '@/components/ui/button'
@@ -12,15 +12,27 @@ import { CheckCircle2, Store, Users } from "lucide-react"
 import { Checkbox } from '@/components/ui/checkbox'
 import { Eye, EyeOff } from 'lucide-react'
 import { toast } from 'sonner'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 
 
 
+
+const VALID_PLANS = ['starter', 'business', 'premium']
 
 export default function RegisterPage() {
     const router = useRouter()
+    const searchParams = useSearchParams()
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [showPassword, setShowPassword] = useState(false)
+
+    // Persister le plan sélectionné depuis la landing page dans un cookie
+    const selectedPlan = searchParams.get('plan')
+    useEffect(() => {
+        if (selectedPlan && VALID_PLANS.includes(selectedPlan)) {
+            document.cookie = `akom_selected_plan=${selectedPlan};path=/;max-age=3600;samesite=lax`
+        }
+    }, [selectedPlan])
 
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -159,11 +171,10 @@ export default function RegisterPage() {
                 </div>
 
 
-                {/* Error Message */}
                 {error && (
-                    <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
-                        <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
-                    </div>
+                    <Alert variant="destructive">
+                        <AlertDescription>{error}</AlertDescription>
+                    </Alert>
                 )}
 
                 {/* Accepter la politique de confidentialité */}
@@ -231,7 +242,7 @@ export default function RegisterPage() {
                 <p className="text-sm text-muted-foreground">
                     Vous avez déjà un compte ?{' '}
                     <Link
-                        href="/login"
+                        href={selectedPlan && VALID_PLANS.includes(selectedPlan) ? `/login?plan=${selectedPlan}` : '/login'}
                         className="text-blue-600 hover:text-blue-500 font-medium"
                     >
                         Se connecter

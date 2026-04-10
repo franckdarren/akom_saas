@@ -3,6 +3,7 @@
 import { ReactNode } from 'react'
 import { useRestaurant } from '@/lib/hooks/use-restaurant'
 import type { SystemRole } from '@/types/auth'
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'
 
 interface RoleGuardProps {
     children: ReactNode
@@ -32,16 +33,14 @@ export function RoleGuard({ children, allowedRoles, fallback }: RoleGuardProps) 
         }
 
         return (
-            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-red-900 dark:text-red-100 mb-2">
-                    Accès refusé
-                </h3>
-                <p className="text-sm text-red-800 dark:text-red-200">
-                    Vous n'avez pas les permissions nécessaires pour accéder à cette
-                    section. Contactez un administrateur si vous pensez qu'il s'agit
-                    d'une erreur.
-                </p>
-            </div>
+            <Alert variant="destructive">
+                <AlertTitle>Accès refusé</AlertTitle>
+                <AlertDescription>
+                    Vous n&apos;avez pas les permissions nécessaires pour accéder à cette
+                    section. Contactez un administrateur si vous pensez qu&apos;il s&apos;agit
+                    d&apos;une erreur.
+                </AlertDescription>
+            </Alert>
         )
     }
 

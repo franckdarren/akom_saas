@@ -2,7 +2,7 @@
 import {Suspense} from 'react'
 import {Metadata} from 'next'
 import Link from 'next/link'
-import {Package, Plus, TrendingDown, AlertTriangle} from 'lucide-react'
+import {Package, Plus, TrendingDown} from 'lucide-react'
 
 import {Button} from '@/components/ui/button'
 import {AppCard, CardContent} from '@/components/ui/app-card'
@@ -24,6 +24,7 @@ import {
     BreadcrumbSeparator
 } from "@/components/ui/breadcrumb"
 import {PageHeader} from "@/components/ui/page-header"
+import {Alert, AlertDescription, AlertTitle} from '@/components/ui/alert'
 
 export const metadata: Metadata = {
     title: 'Magasin de stockage | Akôm',
@@ -168,22 +169,18 @@ export default async function WarehousePage({
                         <WarehouseFilters/>
 
                         {stats && stats.lowStockCount > 0 && (
-                            <div
-                                className="flex items-center gap-3 rounded-lg bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 p-4">
-                                <AlertTriangle className="h-5 w-5 text-orange-600 dark:text-orange-400"/>
-                                <div className="flex-1">
-                                    <p className="font-medium text-orange-900 dark:text-orange-100">
-                                        {stats.lowStockCount}{' '}
-                                        {stats.lowStockCount === 1 ? 'produit' : 'produits'} sous le seuil d&apos;alerte
-                                    </p>
-                                    <p className="text-sm text-orange-700 dark:text-orange-300">
-                                        Pensez à réapprovisionner votre entrepôt pour éviter les ruptures
-                                    </p>
-                                </div>
-                                <Button variant="outline" size="sm" asChild>
-                                    <Link href="/dashboard/warehouse?lowStock=true">Voir les produits</Link>
-                                </Button>
-                            </div>
+                            <Alert variant="warning">
+                                <AlertTitle>
+                                    {stats.lowStockCount}{' '}
+                                    {stats.lowStockCount === 1 ? 'produit' : 'produits'} sous le seuil d&apos;alerte
+                                </AlertTitle>
+                                <AlertDescription className="flex items-center justify-between gap-4">
+                                    <span>Pensez à réapprovisionner votre entrepôt pour éviter les ruptures</span>
+                                    <Button variant="outline" size="sm" asChild className="shrink-0">
+                                        <Link href="/dashboard/warehouse?lowStock=true">Voir les produits</Link>
+                                    </Button>
+                                </AlertDescription>
+                            </Alert>
                         )}
 
                         <Suspense fallback={<TableSkeleton/>}>

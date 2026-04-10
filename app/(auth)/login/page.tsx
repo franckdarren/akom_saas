@@ -1,7 +1,7 @@
 'use client'
 
-import {useState} from 'react'
-import {useRouter} from 'next/navigation'
+import {useState, useEffect} from 'react'
+import {useRouter, useSearchParams} from 'next/navigation'
 import Link from 'next/link'
 import {signIn} from '@/lib/actions/auth'
 import {Button} from '@/components/ui/button'
@@ -9,15 +9,27 @@ import {LoadingButton} from '@/components/ui/loading-button'
 import {Input} from '@/components/ui/input'
 import {Label} from '@/components/ui/label'
 import {Eye, EyeOff} from 'lucide-react'
+import {Alert, AlertDescription} from '@/components/ui/alert'
 import {toast} from 'sonner'
 import {translateAuthError} from '@/lib/translate/auth-error-messages'
 import {AppCard, CardContent, CardHeader, CardTitle, CardDescription} from '@/components/ui/app-card'
 
+const VALID_PLANS = ['starter', 'business', 'premium']
+
 export default function LoginPage() {
     const router = useRouter()
+    const searchParams = useSearchParams()
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [showPassword, setShowPassword] = useState(false) // ← toggle mot de passe
+
+    // Persister le plan sélectionné depuis la landing page dans un cookie
+    const selectedPlan = searchParams.get('plan')
+    useEffect(() => {
+        if (selectedPlan && VALID_PLANS.includes(selectedPlan)) {
+            document.cookie = `akom_selected_plan=${selectedPlan};path=/;max-age=3600;samesite=lax`
+        }
+    }, [selectedPlan])
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault()
@@ -98,12 +110,10 @@ export default function LoginPage() {
                         </div>
                     </div>
 
-                    {/* Error Message */}
                     {error && (
-                        <div
-                            className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
-                            <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
-                        </div>
+                        <Alert variant="destructive">
+                            <AlertDescription>{error}</AlertDescription>
+                        </Alert>
                     )}
 
                     {/* Submit Button */}
@@ -116,7 +126,7 @@ export default function LoginPage() {
                 <p className="mt-6 text-center text-sm text-muted-foreground">
                     Pas encore de compte ?{' '}
                     <Link
-                        href="/register"
+                        href={selectedPlan && VALID_PLANS.includes(selectedPlan) ? `/register?plan=${selectedPlan}` : '/register'}
                         className="text-blue-600 hover:text-blue-500 font-medium"
                     >
                         Créer un compte
