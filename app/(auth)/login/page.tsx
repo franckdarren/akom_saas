@@ -1,6 +1,6 @@
 'use client'
 
-import {useState, useEffect} from 'react'
+import {useState, useEffect, Suspense} from 'react'
 import {useRouter, useSearchParams} from 'next/navigation'
 import Link from 'next/link'
 import {signIn} from '@/lib/actions/auth'
@@ -17,6 +17,10 @@ import {AppCard, CardContent, CardHeader, CardTitle, CardDescription} from '@/co
 const VALID_PLANS = ['starter', 'business', 'premium']
 
 export default function LoginPage() {
+    return <Suspense><LoginForm /></Suspense>
+}
+
+function LoginForm() {
     const router = useRouter()
     const searchParams = useSearchParams()
     const [loading, setLoading] = useState(false)

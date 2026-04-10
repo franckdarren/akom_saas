@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { signUp } from '@/lib/actions/auth'
@@ -20,6 +20,10 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 const VALID_PLANS = ['starter', 'business', 'premium']
 
 export default function RegisterPage() {
+    return <Suspense><RegisterForm /></Suspense>
+}
+
+function RegisterForm() {
     const router = useRouter()
     const searchParams = useSearchParams()
     const [loading, setLoading] = useState(false)
