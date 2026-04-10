@@ -209,10 +209,10 @@ export async function GET(req: NextRequest) {
             return NextResponse.json({error: 'Accès refusé'}, {status: 403})
         }
 
-        // Récupérer les commandes du jour (non archivées) avec les items
+        // Récupérer les commandes du jour (non archivées) avec les items et paiements
         const orders = await prisma.order.findMany({
             where: {restaurantId, isArchived: false},
-            include: {orderItems: true, table: true},
+            include: {orderItems: true, table: true, payments: {select: {id: true, status: true, method: true}}},
             orderBy: {createdAt: 'desc'},
         })
 
@@ -228,6 +228,11 @@ export async function GET(req: NextRequest) {
                 productName: oi.productName,
                 quantity: oi.quantity,
                 unitPrice: oi.unitPrice,
+            })),
+            payments: o.payments.map(p => ({
+                id: p.id,
+                status: p.status,
+                method: p.method,
             })),
             customerName: o.customerName || undefined,
             notes: o.notes || undefined,
