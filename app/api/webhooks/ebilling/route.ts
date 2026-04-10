@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import type { Prisma } from '@prisma/client'
+import { deductOrderStock } from '@/lib/stock/deduct-order-stock'
 
 type SubscriptionPaymentWithSub = Prisma.SubscriptionPaymentGetPayload<{
     include: { subscription: { include: { restaurant: true } } }
@@ -179,6 +180,8 @@ async function handleOrderPaymentWebhook(payment: OrderPaymentWithOrder, payload
                     status: 'preparing', // La commande passe en préparation
                 },
             })
+
+            await deductOrderStock(payment.orderId, payment.restaurantId)
 
             console.log(
                 `✅ Paiement commande réussi: ${payment.order.orderNumber}`

@@ -113,21 +113,40 @@ export async function createPOSOrder(payload: POSOrderPayload) {
                 const p = productMap.get(item.productId)!
                 if (!p.hasStock) continue
 
-                await tx.stock.updateMany({
-                    where: {productId: item.productId, restaurantId},
-                    data: {quantity: {decrement: item.quantity}},
-                })
-
-                const updated = await tx.stock.findUnique({
+                const currentStock = await tx.stock.findUnique({
                     where: {restaurantId_productId: {restaurantId, productId: item.productId}},
                     select: {quantity: true},
                 })
-                if ((updated?.quantity ?? 0) <= 0) {
+                if (!currentStock) continue
+
+                const previousQty = currentStock.quantity
+                const newQty = Math.max(0, previousQty - item.quantity)
+
+                await tx.stock.update({
+                    where: {restaurantId_productId: {restaurantId, productId: item.productId}},
+                    data: {quantity: newQty},
+                })
+
+                if (newQty <= 0) {
                     await tx.product.update({
                         where: {id: item.productId},
                         data: {isAvailable: false},
                     })
                 }
+
+                await tx.stockMovement.create({
+                    data: {
+                        restaurantId,
+                        productId: item.productId,
+                        userId,
+                        type: 'order_out',
+                        quantity: -(item.quantity),
+                        previousQty,
+                        newQty,
+                        orderId: newOrder.id,
+                        reason: 'Vente POS',
+                    },
+                })
             }
         }
 
