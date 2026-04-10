@@ -51,7 +51,7 @@ export default async function StatsPage({ searchParams }: PageProps) {
 
     const period: TimePeriod = VALID_PERIODS.has(rawPeriod ?? '')
         ? (rawPeriod as TimePeriod)
-        : TIME_PERIODS.TODAY
+        : TIME_PERIODS.WEEK
 
     const customPeriod: CustomPeriod | undefined =
         period === TIME_PERIODS.CUSTOM && from && to
