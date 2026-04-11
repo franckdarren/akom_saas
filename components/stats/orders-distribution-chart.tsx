@@ -3,29 +3,32 @@
 import { AppCard, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/app-card'
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
 import type { OrdersStats } from '@/types/stats'
+import { useActivityLabels } from '@/lib/hooks/use-activity-labels'
 
 interface OrdersDistributionChartProps {
     data: OrdersStats
 }
 
-// Utilise les variables CSS de statuts définies dans globals.css
-const STATUS_CONFIG = {
-    pending: { color: 'var(--status-pending)', label: 'En attente' },
-    preparing: { color: 'var(--status-preparing)', label: 'En préparation' },
-    ready: { color: 'var(--status-ready)', label: 'Prêtes' },
-    delivered: { color: 'var(--status-delivered)', label: 'Livrées' },
-    cancelled: { color: 'var(--status-cancelled)', label: 'Annulées' },
+const STATUS_COLORS = {
+    pending: 'var(--status-pending)',
+    preparing: 'var(--status-preparing)',
+    ready: 'var(--status-ready)',
+    delivered: 'var(--status-delivered)',
+    cancelled: 'var(--status-cancelled)',
 }
 
 export function OrdersDistributionChart({ data }: OrdersDistributionChartProps) {
+    const labels = useActivityLabels()
+    const s = labels.orderStatuses
+
     // Transformer les données pour le graphique
     const chartData = [
-        { name: 'En attente', value: data.pending, color: STATUS_CONFIG.pending.color },
-        { name: 'En préparation', value: data.preparing, color: STATUS_CONFIG.preparing.color },
-        { name: 'Prêtes', value: data.ready, color: STATUS_CONFIG.ready.color },
-        { name: 'Livrées', value: data.delivered, color: STATUS_CONFIG.delivered.color },
-        { name: 'Annulées', value: data.cancelled, color: STATUS_CONFIG.cancelled.color },
-    ].filter((item) => item.value > 0) // Supprimer les statuts à 0
+        { name: s.pending.filterLabel, value: data.pending, color: STATUS_COLORS.pending },
+        { name: s.preparing.filterLabel, value: data.preparing, color: STATUS_COLORS.preparing },
+        { name: s.ready.filterLabel, value: data.ready, color: STATUS_COLORS.ready },
+        { name: s.delivered.filterLabel, value: data.delivered, color: STATUS_COLORS.delivered },
+        { name: s.cancelled.filterLabel, value: data.cancelled, color: STATUS_COLORS.cancelled },
+    ].filter((item) => item.value > 0)
 
     const totalActive = data.pending + data.preparing + data.ready
 

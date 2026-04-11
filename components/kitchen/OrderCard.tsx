@@ -7,6 +7,7 @@ import {Badge} from '@/components/ui/badge'
 import {Button} from '@/components/ui/button'
 import {formatDate, formatPrice} from '@/lib/utils/format'
 import {Clock, CheckCircle, XCircle, ChefHat, Package, Banknote, AlertCircle, type LucideIcon} from 'lucide-react'
+import {useActivityLabels} from '@/lib/hooks/use-activity-labels'
 import {toast} from 'sonner'
 import {
     AlertDialog,
@@ -56,50 +57,14 @@ interface OrderCardProps {
     order: Order
 }
 
-// Mapping des statuts
-const statusConfig = {
-    awaiting_payment: {
-        label: 'Attente paiement',
-        color: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
-        icon: Clock,
-        nextStatus: null,
-        nextLabel: null,
-    },
-    pending: {
-        label: 'En attente',
-        color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
-        icon: Clock,
-        nextStatus: 'preparing' as OrderStatus,
-        nextLabel: 'Commencer',
-    },
-    preparing: {
-        label: 'En préparation',
-        color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-        icon: ChefHat,
-        nextStatus: 'ready' as OrderStatus,
-        nextLabel: 'Marquer prête',
-    },
-    ready: {
-        label: 'Prête',
-        color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-        icon: CheckCircle,
-        nextStatus: 'delivered' as OrderStatus,
-        nextLabel: 'Servie',
-    },
-    delivered: {
-        label: 'Servie',
-        color: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200',
-        icon: Package,
-        nextStatus: null,
-        nextLabel: null,
-    },
-    cancelled: {
-        label: 'Annulée',
-        color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
-        icon: XCircle,
-        nextStatus: null,
-        nextLabel: null,
-    },
+// Couleurs et icônes par statut (invariants, ne dépendent pas de l'activité)
+const STATUS_STYLE: Record<OrderStatus, { color: string; icon: LucideIcon; nextStatus: OrderStatus | null }> = {
+    awaiting_payment: { color: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200', icon: Clock, nextStatus: null },
+    pending:    { color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200', icon: Clock, nextStatus: 'preparing' },
+    preparing:  { color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200', icon: ChefHat, nextStatus: 'ready' },
+    ready:      { color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200', icon: CheckCircle, nextStatus: 'delivered' },
+    delivered:  { color: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200', icon: Package, nextStatus: null },
+    cancelled:  { color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200', icon: XCircle, nextStatus: null },
 }
 
 type PaymentBadgeInfo = {
@@ -130,8 +95,12 @@ function getPaymentBadge(payments: OrderPayment[], orderStatus: OrderStatus): Pa
 
 export function OrderCard({order}: OrderCardProps) {
     const [isUpdating, setIsUpdating] = useState(false)
-    const config = statusConfig[order.status]
-    const Icon = config.icon
+    const labels = useActivityLabels()
+    const style = STATUS_STYLE[order.status]
+    const Icon = style.icon
+    const statusLabel = labels.orderStatuses[order.status].label
+    const nextStatus = style.nextStatus
+    const nextLabel = nextStatus ? (labels.orderStatuses[nextStatus] as { actionLabel: string }).actionLabel : null
     const paymentBadge = getPaymentBadge(order.payments ?? [], order.status)
 
     const router = useRouter()
@@ -197,9 +166,9 @@ export function OrderCard({order}: OrderCardProps) {
                         <CardTitle className="text-lg font-bold">
                             {order.orderNumber}
                         </CardTitle>
-                        <Badge className={config.color}>
+                        <Badge className={style.color}>
                             <Icon className="h-3 w-3 mr-1"/>
-                            {config.label}
+                            {statusLabel}
                         </Badge>
                     </div>
                     <div className="flex items-center justify-between gap-2">
@@ -251,13 +220,13 @@ export function OrderCard({order}: OrderCardProps) {
 
                     {/* Actions */}
                     <div className="flex gap-2 pt-2">
-                        {config.nextStatus && (
+                        {nextStatus && (
                             <Button
                                 className="flex-1"
-                                onClick={() => handleStatusChange(config.nextStatus!)}
+                                onClick={() => handleStatusChange(nextStatus)}
                                 disabled={isUpdating}
                             >
-                                {isUpdating ? 'Mise à jour...' : config.nextLabel}
+                                {isUpdating ? 'Mise à jour...' : nextLabel}
                             </Button>
                         )}
 

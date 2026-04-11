@@ -13,21 +13,25 @@ import {
 import { Badge } from '@/components/ui/badge'
 import type { RecentOrder } from '@/types/stats'
 import { formatPrice, formatDate } from '@/lib/utils/format'
+import { useActivityLabels } from '@/lib/hooks/use-activity-labels'
+import type { OrderStatusKey } from '@/lib/config/activity-labels'
 
 interface RecentOrdersTableProps {
     data: RecentOrder[]
 }
 
-const statusVariants = {
-    awaiting_payment: { label: 'Attente paiement', variant: 'secondary' as const },
-    pending: { label: 'En attente', variant: 'default' as const },
-    preparing: { label: 'En préparation', variant: 'default' as const },
-    ready: { label: 'Prête', variant: 'success' as const },
-    delivered: { label: 'Livrée', variant: 'success' as const },
-    cancelled: { label: 'Annulée', variant: 'destructive' as const },
+const STATUS_VARIANTS: Record<string, 'secondary' | 'default' | 'success' | 'destructive'> = {
+    awaiting_payment: 'secondary',
+    pending: 'default',
+    preparing: 'default',
+    ready: 'success',
+    delivered: 'success',
+    cancelled: 'destructive',
 }
 
 export function RecentOrdersTable({ data }: RecentOrdersTableProps) {
+    const labels = useActivityLabels()
+    const s = labels.orderStatuses
     return (
         <AppCard>
             <CardHeader>
@@ -70,8 +74,8 @@ export function RecentOrdersTable({ data }: RecentOrdersTableProps) {
                                         {formatPrice(order.totalAmount)}
                                     </TableCell>
                                     <TableCell>
-                                        <Badge variant={statusVariants[order.status].variant}>
-                                            {statusVariants[order.status].label}
+                                        <Badge variant={STATUS_VARIANTS[order.status] ?? 'default'}>
+                                            {s[order.status as OrderStatusKey].label}
                                         </Badge>
                                     </TableCell>
                                     <TableCell className="hidden lg:table-cell text-right text-xs text-muted-foreground">

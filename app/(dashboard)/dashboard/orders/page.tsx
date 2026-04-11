@@ -115,13 +115,8 @@ export default function OrdersPage() {
                             <p className="text-muted-foreground text-center">
                                 {statusFilter === 'all'
                                     ? `Aucune ${labels.orderName} pour le moment`
-                                    : `Aucune ${labels.orderName} ${
-                                        statusFilter === 'pending' ? 'en attente'
-                                            : statusFilter === 'preparing' ? 'en préparation'
-                                                : statusFilter === 'ready' ? 'prête'
-                                                    : statusFilter === 'delivered' ? 'servie'
-                                                        : 'annulée'
-                                    }`}
+                                    : `Aucune ${labels.orderName} — ${labels.orderStatuses[statusFilter as keyof typeof labels.orderStatuses].label.toLowerCase()}`
+                                }
                             </p>
                         </CardContent>
                     </AppCard>

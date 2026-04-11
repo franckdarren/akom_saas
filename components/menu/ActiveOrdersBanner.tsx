@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { AlertCircle, ChevronRight, Package, Loader2 } from 'lucide-react'
 import { getActiveOrdersForTable } from '@/lib/actions/order'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { getLabels, type OrderStatusKey } from '@/lib/config/activity-labels'
 
 // Définir un type local correspondant à l'enum Prisma
 type OrderStatus = 'awaiting_payment' | 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled'
@@ -22,6 +23,7 @@ interface ActiveOrdersBannerProps {
     tableNumber: number
     restaurantSlug: string
     restaurantId: string
+    activityType?: string | null
 }
 
 // Classes Tailwind câblées sur les tokens CSS du design system.
@@ -41,20 +43,12 @@ const STATUS_CLASSES: Record<OrderStatus, string> = {
         'bg-status-cancelled/10 border-status-cancelled/40 text-status-cancelled-fg',
 }
 
-const STATUS_LABELS: Record<OrderStatus, string> = {
-    awaiting_payment: 'Attente paiement',
-    pending: 'En attente',
-    preparing: 'En préparation',
-    ready: 'Prête',
-    delivered: 'Servie',
-    cancelled: 'Annulée',
-}
-
 /**
  * Bandeau informatif affichant les commandes actives d'une table.
  * Permet au client de voir rapidement s'il a déjà commandé et d'accéder au tracking.
  */
-export function ActiveOrdersBanner({ tableId, tableNumber, restaurantSlug, restaurantId }: ActiveOrdersBannerProps) {
+export function ActiveOrdersBanner({ tableId, tableNumber, restaurantSlug, restaurantId, activityType }: ActiveOrdersBannerProps) {
+    const orderStatuses = getLabels(activityType).orderStatuses
     const router = useRouter()
     const [orders, setOrders] = useState<ActiveOrder[]>([])
     const [isInitialLoading, setIsInitialLoading] = useState(true)
@@ -105,7 +99,7 @@ export function ActiveOrdersBanner({ tableId, tableNumber, restaurantSlug, resta
                                         Commande {order.orderNumber || `#${order.id.slice(0, 8)}`}
                                     </span>
                                     <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-white/50 dark:bg-black/20">
-                                        {STATUS_LABELS[order.status]}
+                                        {orderStatuses[order.status as OrderStatusKey].label}
                                     </span>
                                 </div>
                                 <p className="text-sm opacity-90">

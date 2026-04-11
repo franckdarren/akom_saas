@@ -1,24 +1,26 @@
 // components/kitchen/OrderStatusBadge.tsx
-import { Badge } from '@/components/ui/badge'
+'use client'
 
-// Définir un type local correspondant à ton enum Prisma
+import { Badge } from '@/components/ui/badge'
+import { useActivityLabels } from '@/lib/hooks/use-activity-labels'
+
 type OrderStatus = 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled'
 
+const STATUS_STYLE: Record<OrderStatus, string> = {
+    pending: 'bg-red-500 text-white',
+    preparing: 'bg-yellow-500 text-white',
+    ready: 'bg-green-500 text-white',
+    delivered: 'bg-gray-500 text-white',
+    cancelled: 'bg-gray-200 text-gray-700',
+}
 
 interface OrderStatusBadgeProps {
     status: OrderStatus
 }
 
 export function OrderStatusBadge({ status }: OrderStatusBadgeProps) {
-    const STATUS_CONFIG: Record<OrderStatus, { label: string; className: string }> = {
-        pending: { label: 'Nouveau', className: 'bg-red-500 text-white' },
-        preparing: { label: 'En préparation', className: 'bg-yellow-500 text-white' },
-        ready: { label: 'Prête', className: 'bg-green-500 text-white' },
-        delivered: { label: 'Servie', className: 'bg-gray-500 text-white' },
-        cancelled: { label: 'Annulée', className: 'bg-gray-200 text-gray-700' },
-    }
+    const labels = useActivityLabels()
+    const label = labels.orderStatuses[status].label
 
-    const { label, className } = STATUS_CONFIG[status]
-
-    return <Badge className={`px-2 py-1 rounded-md text-sm font-medium ${className}`}>{label}</Badge>
+    return <Badge className={`px-2 py-1 rounded-md text-sm font-medium ${STATUS_STYLE[status]}`}>{label}</Badge>
 }

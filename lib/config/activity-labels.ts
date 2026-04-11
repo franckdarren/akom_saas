@@ -91,6 +91,17 @@ export interface ActivityLabels {
     /** Placeholder du champ nom dans l'onboarding */
     onboardingNamePlaceholder: string
 
+    // ── Statuts de commande ────────────────────────────────────
+    /** Labels dynamiques pour chaque statut de commande */
+    orderStatuses: {
+        awaiting_payment: { label: string; filterLabel: string; description: string }
+        pending:    { label: string; filterLabel: string; actionLabel: string; description: string }
+        preparing:  { label: string; filterLabel: string; actionLabel: string; description: string }
+        ready:      { label: string; filterLabel: string; actionLabel: string; description: string }
+        delivered:  { label: string; filterLabel: string; description: string }
+        cancelled:  { label: string; filterLabel: string; description: string }
+    }
+
     // ── Icône Lucide recommandée ─────────────────────────────
     /** Nom de l'icône lucide-react (ex: "ChefHat", "Store") */
     icon: string
@@ -131,6 +142,14 @@ export const ACTIVITY_LABELS: Record<ActivityType, ActivityLabels> = {
         onboardingSubtitle: 'Configurez votre espace en quelques secondes',
         onboardingNameLabel: 'Nom du restaurant',
         onboardingNamePlaceholder: 'ex : Chez Maman, Le Palmier...',
+        orderStatuses: {
+            awaiting_payment: { label: 'Attente paiement', filterLabel: 'Attente paiement', description: 'En attente du paiement' },
+            pending:    { label: 'En attente', filterLabel: 'Nouvelles', actionLabel: 'Commencer', description: 'Votre commande a été reçue' },
+            preparing:  { label: 'En préparation', filterLabel: 'En préparation', actionLabel: 'Marquer prête', description: 'La cuisine prépare votre commande' },
+            ready:      { label: 'Prête', filterLabel: 'Prêtes', actionLabel: 'Servie', description: 'Votre commande est prête à être servie' },
+            delivered:  { label: 'Servie', filterLabel: 'Servies', description: 'Bon appétit !' },
+            cancelled:  { label: 'Annulée', filterLabel: 'Annulées', description: 'Cette commande a été annulée' },
+        },
         icon: 'ChefHat',
         emoji: '🍽️',
     },
@@ -162,6 +181,14 @@ export const ACTIVITY_LABELS: Record<ActivityType, ActivityLabels> = {
         onboardingSubtitle: 'Configurez votre espace commercial',
         onboardingNameLabel: 'Nom de la boutique',
         onboardingNamePlaceholder: 'ex : Boutique Lumière, Shop Express...',
+        orderStatuses: {
+            awaiting_payment: { label: 'Attente paiement', filterLabel: 'Attente paiement', description: 'En attente du paiement' },
+            pending:    { label: 'En attente', filterLabel: 'Nouvelles', actionLabel: 'Préparer', description: 'Votre commande a été reçue' },
+            preparing:  { label: 'En préparation', filterLabel: 'En préparation', actionLabel: 'Prête à retirer', description: 'Votre commande est en préparation' },
+            ready:      { label: 'Prête', filterLabel: 'Prêtes', actionLabel: 'Remise', description: 'Votre commande est prête à retirer' },
+            delivered:  { label: 'Remise', filterLabel: 'Remises', description: 'Bonne utilisation !' },
+            cancelled:  { label: 'Annulée', filterLabel: 'Annulées', description: 'Cette commande a été annulée' },
+        },
         icon: 'Store',
         emoji: '🏪',
     },
@@ -193,6 +220,14 @@ export const ACTIVITY_LABELS: Record<ActivityType, ActivityLabels> = {
         onboardingSubtitle: 'Gérez vos lignes et réservations simplement',
         onboardingNameLabel: 'Nom de la compagnie',
         onboardingNamePlaceholder: 'ex : Trans Gabon Express...',
+        orderStatuses: {
+            awaiting_payment: { label: 'Attente paiement', filterLabel: 'Attente paiement', description: 'En attente du paiement' },
+            pending:    { label: 'En attente', filterLabel: 'Nouvelles', actionLabel: 'Confirmer', description: 'Votre réservation a été reçue' },
+            preparing:  { label: 'Confirmée', filterLabel: 'Confirmées', actionLabel: 'Prêt à embarquer', description: 'Votre réservation est confirmée' },
+            ready:      { label: 'Prêt à embarquer', filterLabel: 'Embarquement', actionLabel: 'Embarqué', description: 'Embarquement en cours' },
+            delivered:  { label: 'Embarqué', filterLabel: 'Embarqués', description: 'Bon voyage !' },
+            cancelled:  { label: 'Annulée', filterLabel: 'Annulées', description: 'Cette réservation a été annulée' },
+        },
         icon: 'Bus',
         emoji: '🚌',
     },
@@ -224,6 +259,14 @@ export const ACTIVITY_LABELS: Record<ActivityType, ActivityLabels> = {
         onboardingSubtitle: 'Gérez vos véhicules et locations facilement',
         onboardingNameLabel: "Nom de l'agence",
         onboardingNamePlaceholder: 'ex : AutoLoc Gabon, Location Express...',
+        orderStatuses: {
+            awaiting_payment: { label: 'Attente paiement', filterLabel: 'Attente paiement', description: 'En attente du paiement' },
+            pending:    { label: 'En attente', filterLabel: 'Nouvelles', actionLabel: 'Confirmer', description: 'Votre location a été reçue' },
+            preparing:  { label: 'Confirmée', filterLabel: 'Confirmées', actionLabel: 'Disponible', description: 'Votre location est confirmée' },
+            ready:      { label: 'Prêt', filterLabel: 'Disponibles', actionLabel: 'Récupéré', description: 'Votre véhicule est disponible' },
+            delivered:  { label: 'Récupéré', filterLabel: 'Récupérés', description: 'Bonne route !' },
+            cancelled:  { label: 'Annulée', filterLabel: 'Annulées', description: 'Cette location a été annulée' },
+        },
         icon: 'Car',
         emoji: '🚗',
     },
@@ -255,6 +298,14 @@ export const ACTIVITY_LABELS: Record<ActivityType, ActivityLabels> = {
         onboardingSubtitle: 'Gérez vos prestations et réservations facilement',
         onboardingNameLabel: "Nom de l'entreprise",
         onboardingNamePlaceholder: 'ex : TechLoc, Services Pro...',
+        orderStatuses: {
+            awaiting_payment: { label: 'Attente paiement', filterLabel: 'Attente paiement', description: 'En attente du paiement' },
+            pending:    { label: 'En attente', filterLabel: 'Nouvelles', actionLabel: 'Démarrer', description: 'Votre réservation a été reçue' },
+            preparing:  { label: 'En cours', filterLabel: 'En cours', actionLabel: 'Terminé', description: 'Votre prestation est en cours' },
+            ready:      { label: 'Terminé', filterLabel: 'Terminés', actionLabel: 'Remis', description: 'Votre prestation est terminée' },
+            delivered:  { label: 'Remis', filterLabel: 'Remis', description: 'Merci !' },
+            cancelled:  { label: 'Annulée', filterLabel: 'Annulées', description: 'Cette réservation a été annulée' },
+        },
         icon: 'Wrench',
         emoji: '🔧',
     },
@@ -286,6 +337,14 @@ export const ACTIVITY_LABELS: Record<ActivityType, ActivityLabels> = {
         onboardingSubtitle: 'Gérez vos chambres et réservations facilement',
         onboardingNameLabel: "Nom de l'établissement",
         onboardingNamePlaceholder: "ex : Hôtel du Lac, Auberge du Soleil...",
+        orderStatuses: {
+            awaiting_payment: { label: 'Attente paiement', filterLabel: 'Attente paiement', description: 'En attente du paiement' },
+            pending:    { label: 'En attente', filterLabel: 'Nouvelles', actionLabel: 'Préparer', description: 'Votre réservation a été reçue' },
+            preparing:  { label: 'En préparation', filterLabel: 'En préparation', actionLabel: 'Prête', description: 'Votre chambre est en préparation' },
+            ready:      { label: 'Prête', filterLabel: 'Prêtes', actionLabel: 'Check-in', description: 'Votre chambre est prête' },
+            delivered:  { label: 'Check-out', filterLabel: 'Check-out', description: 'Bon séjour !' },
+            cancelled:  { label: 'Annulée', filterLabel: 'Annulées', description: 'Cette réservation a été annulée' },
+        },
         icon: 'Hotel',
         emoji: '🏨',
     },
@@ -317,6 +376,14 @@ export const ACTIVITY_LABELS: Record<ActivityType, ActivityLabels> = {
         onboardingSubtitle: 'Gérez vos prestations et rendez-vous facilement',
         onboardingNameLabel: 'Nom du salon',
         onboardingNamePlaceholder: 'ex : Salon Élégance, Beauty Studio...',
+        orderStatuses: {
+            awaiting_payment: { label: 'Attente paiement', filterLabel: 'Attente paiement', description: 'En attente du paiement' },
+            pending:    { label: 'En attente', filterLabel: 'Nouveaux', actionLabel: 'Démarrer', description: 'Votre rendez-vous est confirmé' },
+            preparing:  { label: 'En cours', filterLabel: 'En cours', actionLabel: 'Terminé', description: 'Votre prestation est en cours' },
+            ready:      { label: 'Terminé', filterLabel: 'Terminés', actionLabel: 'Clôturé', description: 'Votre prestation est terminée' },
+            delivered:  { label: 'Clôturé', filterLabel: 'Clôturés', description: 'Merci de votre visite !' },
+            cancelled:  { label: 'Annulé', filterLabel: 'Annulés', description: 'Ce rendez-vous a été annulé' },
+        },
         icon: 'Scissors',
         emoji: '💅',
     },
@@ -348,6 +415,14 @@ export const ACTIVITY_LABELS: Record<ActivityType, ActivityLabels> = {
         onboardingSubtitle: 'Configurez votre espace en quelques secondes',
         onboardingNameLabel: 'Nom de la structure',
         onboardingNamePlaceholder: 'ex : Mon Entreprise...',
+        orderStatuses: {
+            awaiting_payment: { label: 'Attente paiement', filterLabel: 'Attente paiement', description: 'En attente du paiement' },
+            pending:    { label: 'En attente', filterLabel: 'Nouvelles', actionLabel: 'Démarrer', description: 'Votre commande a été reçue' },
+            preparing:  { label: 'En cours', filterLabel: 'En cours', actionLabel: 'Prêt', description: 'Votre commande est en cours de traitement' },
+            ready:      { label: 'Prêt', filterLabel: 'Prêts', actionLabel: 'Remis', description: 'Votre commande est prête' },
+            delivered:  { label: 'Remis', filterLabel: 'Remis', description: 'Merci !' },
+            cancelled:  { label: 'Annulée', filterLabel: 'Annulées', description: 'Cette commande a été annulée' },
+        },
         icon: 'Building2',
         emoji: '⚙️',
     },
@@ -432,4 +507,24 @@ export function getLabels(activityType?: ActivityType | string | null): Activity
         return ACTIVITY_LABELS[activityType as ActivityType]
     }
     return ACTIVITY_LABELS['restaurant']
+}
+
+// ============================================================
+// Helper statuts de commande
+// ============================================================
+
+export type OrderStatusKey = keyof ActivityLabels['orderStatuses']
+
+/**
+ * Raccourci pour obtenir le label d'un statut de commande.
+ *
+ * @example
+ * const { label, description } = getOrderStatusLabel('retail', 'delivered')
+ * // → { label: 'Remise', description: 'Bonne utilisation !' }
+ */
+export function getOrderStatusLabel(
+    activityType: ActivityType | string | null | undefined,
+    status: OrderStatusKey
+) {
+    return getLabels(activityType).orderStatuses[status]
 }

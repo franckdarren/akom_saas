@@ -8,6 +8,7 @@ import { AppCard, CardContent, CardHeader, CardTitle } from '@/components/ui/app
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft, Clock, CheckCircle, Package, UtensilsCrossed, XCircle, type LucideIcon } from 'lucide-react'
+import { getLabels, type OrderStatusKey } from '@/lib/config/activity-labels'
 import { formatPrice } from '@/lib/utils/format'
 import { formatDistanceToNow } from 'date-fns'
 import { fr } from 'date-fns/locale'
@@ -35,43 +36,20 @@ interface OrderTrackerProps {
         name: string
         logo_url: string | null
         phone: string | null
+        activityType?: string | null
     }
     table?: {
         number: number
     }
 }
 
-const STATUS_CONFIG = {
-    pending: {
-        label: 'En attente',
-        description: 'Votre commande a été reçue',
-        color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
-        icon: Clock
-    },
-    preparing: {
-        label: 'En préparation',
-        description: 'La cuisine prépare votre commande',
-        color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-        icon: UtensilsCrossed
-    },
-    ready: {
-        label: 'Prête',
-        description: 'Votre commande est prête à être servie',
-        color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-        icon: CheckCircle
-    },
-    delivered: {
-        label: 'Servie',
-        description: 'Bon appétit !',
-        color: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200',
-        icon: Package
-    },
-    cancelled: {
-        label: 'Annulée',
-        description: 'Cette commande a été annulée',
-        color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
-        icon: XCircle
-    }
+// Couleurs et icônes (invariants)
+const STATUS_STYLE: Record<string, { color: string; icon: LucideIcon }> = {
+    pending:    { color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200', icon: Clock },
+    preparing:  { color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200', icon: UtensilsCrossed },
+    ready:      { color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200', icon: CheckCircle },
+    delivered:  { color: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200', icon: Package },
+    cancelled:  { color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200', icon: XCircle },
 }
 
 
@@ -168,9 +146,14 @@ export function OrderTracker({ order: initialOrder, restaurant, table }: OrderTr
         }
     }, [order.id]) // L'effet se re-déclenche uniquement si l'ID de la commande change
 
+    // Labels dynamiques selon le type d'activité
+    const activityLabels = getLabels(restaurant.activityType)
+    const orderStatuses = activityLabels.orderStatuses
+
     // Récupérer la configuration du statut actuel
-    const statusConfig = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending;
-    const StatusIcon = statusConfig.icon;
+    const style = STATUS_STYLE[order.status] || STATUS_STYLE.pending
+    const statusLabels = orderStatuses[order.status as OrderStatusKey]
+    const StatusIcon = style.icon;
 
     // Calculer le temps écoulé depuis la création de la commande
     // Cette valeur change automatiquement grâce à React qui re-render
@@ -244,9 +227,9 @@ export function OrderTracker({ order: initialOrder, restaurant, table }: OrderTr
                                     {restaurant.name}{table ? ` • Table ${table.number}` : ''}
                                 </p>
                             </div>
-                            <Badge className={`${statusConfig.color} shrink-0`}>
+                            <Badge className={`${style.color} shrink-0`}>
                                 <StatusIcon className="h-4 w-4 mr-1" />
-                                {statusConfig.label}
+                                {statusLabels.label}
                             </Badge>
                         </div>
 
@@ -261,27 +244,23 @@ export function OrderTracker({ order: initialOrder, restaurant, table }: OrderTr
                     {/* Message de statut actuel */}
                     <div className="bg-muted/50 rounded-lg p-3">
                         <p className="text-center text-lg font-medium">
-                            {statusConfig.description}
+                            {statusLabels.description}
                         </p>
                     </div>
 
                     {/* Timeline de progression */}
                     <div>
-                        <h3 className="font-medium mb-5">Progression de la commande</h3>
+                        <h3 className="font-medium mb-5">Progression</h3>
                         <div className="space-y-3">
-                            {Object.entries(STATUS_CONFIG)
-                                .filter(([key]) => {
-                                    // Si la commande est annulée, on n'affiche que 'pending' et 'cancelled'
+                            {(['pending', 'preparing', 'ready', 'delivered', 'cancelled'] as const)
+                                .filter((key) => {
                                     if (order.status === 'cancelled') {
                                         return ['pending', 'cancelled'].includes(key)
                                     }
-                                    // Sinon, on affiche tout SAUF 'cancelled'
                                     return key !== 'cancelled'
                                 })
-                                .map(([key, config]) => {
+                                .map((key) => {
                                     const isActive = order.status === key
-
-                                    // Logique simplifiée pour 'completed'
                                     const statuses = ['pending', 'preparing', 'ready', 'delivered']
                                     const currentIndex = statuses.indexOf(order.status)
                                     const stepIndex = statuses.indexOf(key)
@@ -293,8 +272,8 @@ export function OrderTracker({ order: initialOrder, restaurant, table }: OrderTr
                                     return (
                                         <StatusStep
                                             key={key}
-                                            label={config.label}
-                                            icon={config.icon}
+                                            label={orderStatuses[key].label}
+                                            icon={(STATUS_STYLE[key] || STATUS_STYLE.pending).icon}
                                             completed={isCompleted}
                                             active={isActive}
                                         />

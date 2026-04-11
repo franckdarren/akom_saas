@@ -2,9 +2,9 @@
 'use client'
 
 import {getLabels, type ActivityLabels} from '@/lib/config/activity-labels'
-import {useDashboard} from '@/components/providers/dashboard-provider'
+import {useRestaurant} from '@/lib/hooks/use-restaurant'
 
 export function useActivityLabels(): ActivityLabels {
-    const {activityType} = useDashboard()
-    return getLabels(activityType)
+    const {currentRestaurant} = useRestaurant()
+    return getLabels(currentRestaurant?.activityType)
 }

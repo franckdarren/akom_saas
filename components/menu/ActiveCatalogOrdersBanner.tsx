@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { AlertCircle, ChevronRight, Package, Loader2 } from 'lucide-react'
 import { getActiveCatalogOrders } from '@/lib/actions/order'
 import { getCatalogOrderIds, removeCatalogOrders } from '@/lib/utils/catalog-orders-storage'
+import { getLabels, type OrderStatusKey } from '@/lib/config/activity-labels'
 
 type OrderStatus = 'awaiting_payment' | 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled'
 
@@ -19,6 +20,7 @@ interface ActiveOrder {
 interface ActiveCatalogOrdersBannerProps {
     restaurantSlug: string
     restaurantId: string
+    activityType?: string | null
 }
 
 /**
@@ -26,7 +28,7 @@ interface ActiveCatalogOrdersBannerProps {
  * Utilise le localStorage pour retrouver les commandes passées
  * depuis ce navigateur, puis vérifie leur statut en base.
  */
-export function ActiveCatalogOrdersBanner({ restaurantSlug, restaurantId }: ActiveCatalogOrdersBannerProps) {
+export function ActiveCatalogOrdersBanner({ restaurantSlug, restaurantId, activityType }: ActiveCatalogOrdersBannerProps) {
     const router = useRouter()
     const [orders, setOrders] = useState<ActiveOrder[]>([])
     const [isInitialLoading, setIsInitialLoading] = useState(true)
@@ -68,16 +70,9 @@ export function ActiveCatalogOrdersBanner({ restaurantSlug, restaurantId }: Acti
 
     if (isInitialLoading || orders.length === 0) return null
 
+    const orderStatuses = getLabels(activityType).orderStatuses
     const getStatusLabel = (status: OrderStatus) => {
-        const labels: Record<OrderStatus, string> = {
-            awaiting_payment: 'Attente paiement',
-            pending: 'En attente',
-            preparing: 'En préparation',
-            ready: 'Prête',
-            delivered: 'Servie',
-            cancelled: 'Annulée',
-        }
-        return labels[status]
+        return orderStatuses[status as OrderStatusKey].label
     }
 
     const getStatusColor = (status: OrderStatus) => {

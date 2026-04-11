@@ -2,6 +2,7 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
+import { useActivityLabels } from '@/lib/hooks/use-activity-labels'
 import type { OrderStatusFilter } from '@/lib/hooks/use-orders-realtime'
 
 interface OrderFiltersProps {
@@ -13,13 +14,16 @@ interface OrderFiltersProps {
 }
 
 export function OrderFilters({ activeFilter, onFilterChange, counts }: OrderFiltersProps) {
+    const labels = useActivityLabels()
+    const s = labels.orderStatuses
+
     const filters: { value: OrderStatusFilter; label: string }[] = [
         { value: 'all', label: 'Toutes' },
-        { value: 'pending', label: 'Nouvelles' },
-        { value: 'preparing', label: 'En préparation' },
-        { value: 'ready', label: 'Prêtes' },
-        { value: 'delivered', label: 'Servies' },
-        { value: 'cancelled', label: 'Annulées' },
+        { value: 'pending', label: s.pending.filterLabel },
+        { value: 'preparing', label: s.preparing.filterLabel },
+        { value: 'ready', label: s.ready.filterLabel },
+        { value: 'delivered', label: s.delivered.filterLabel },
+        { value: 'cancelled', label: s.cancelled.filterLabel },
     ]
 
     return (

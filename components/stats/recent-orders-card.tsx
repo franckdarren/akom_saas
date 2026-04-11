@@ -6,21 +6,25 @@ import { formatPrice } from '@/lib/utils/format'
 import { formatDistanceToNow } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import type { RecentOrder } from '@/types/stats'
+import { useActivityLabels } from '@/lib/hooks/use-activity-labels'
+import type { OrderStatusKey } from '@/lib/config/activity-labels'
 
 interface RecentOrdersCardProps {
     data: RecentOrder[]
 }
 
-const STATUS_CONFIG = {
-    awaiting_payment: { color: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200', label: 'Attente paiement' },
-    pending: { color: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200', label: 'En attente' },
-    preparing: { color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200', label: 'En préparation' },
-    ready: { color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200', label: 'Prête' },
-    delivered: { color: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200', label: 'Livrée' },
-    cancelled: { color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200', label: 'Annulée' },
+const STATUS_COLORS: Record<string, string> = {
+    awaiting_payment: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
+    pending: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
+    preparing: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+    ready: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+    delivered: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200',
+    cancelled: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
 }
 
 export function RecentOrdersCard({ data }: RecentOrdersCardProps) {
+    const labels = useActivityLabels()
+    const s = labels.orderStatuses
     if (data.length === 0) {
         return (
             <AppCard>
@@ -76,9 +80,9 @@ export function RecentOrdersCard({ data }: RecentOrdersCardProps) {
                                 <p className="text-sm font-bold">{formatPrice(order.totalAmount)}</p>
                                 <Badge
                                     variant="secondary"
-                                    className={STATUS_CONFIG[order.status].color}
+                                    className={STATUS_COLORS[order.status]}
                                 >
-                                    {STATUS_CONFIG[order.status].label}
+                                    {s[order.status as OrderStatusKey].label}
                                 </Badge>
                             </div>
                         </div>

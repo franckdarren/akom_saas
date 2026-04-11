@@ -22,7 +22,7 @@ export default async function CatalogOrderTrackingPage({params}: PageProps) {
     // Récupérer le restaurant
     const restaurant = await prisma.restaurant.findUnique({
         where: {slug, isActive: true},
-        select: {id: true, name: true, slug: true, logoUrl: true, phone: true},
+        select: {id: true, name: true, slug: true, logoUrl: true, phone: true, activityType: true},
     })
     if (!restaurant) notFound()
 
@@ -59,6 +59,7 @@ export default async function CatalogOrderTrackingPage({params}: PageProps) {
                 name: restaurant.name,
                 logo_url: restaurant.logoUrl,
                 phone: restaurant.phone,
+                activityType: restaurant.activityType,
             }}
         />
     )
