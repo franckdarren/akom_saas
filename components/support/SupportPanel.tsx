@@ -8,7 +8,6 @@ import {Badge} from '@/components/ui/badge'
 import {Textarea} from '@/components/ui/textarea'
 import {Input} from '@/components/ui/input'
 import {Label} from '@/components/ui/label'
-import {ScrollArea} from '@/components/ui/scroll-area'
 import {
     Select,
     SelectContent,
@@ -240,7 +239,7 @@ export function SupportPanel({showHeader = true, onClose, onViewChange, backRef}
                             </Button>
                         </div>
 
-                        <ScrollArea className="flex-1 min-h-0">
+                        <div className="flex-1 min-h-0 overflow-y-auto">
                             {isTicketsLoading ? (
                                 <div className="flex justify-center py-8">
                                     <Loader2 className="h-5 w-5 animate-spin text-muted-foreground"/>
@@ -272,7 +271,7 @@ export function SupportPanel({showHeader = true, onClose, onViewChange, backRef}
                                     ))}
                                 </div>
                             )}
-                        </ScrollArea>
+                        </div>
                     </>
                 )}
 
@@ -282,7 +281,7 @@ export function SupportPanel({showHeader = true, onClose, onViewChange, backRef}
                         onSubmit={handleCreateTicket}
                         className="flex flex-col flex-1 min-h-0"
                     >
-                        <ScrollArea className="flex-1 min-h-0">
+                        <div className="flex-1 min-h-0 overflow-y-auto">
                             <div className="p-4 space-y-4">
                                 <div className="space-y-1.5">
                                     <Label htmlFor="subject">Sujet *</Label>
@@ -337,7 +336,7 @@ export function SupportPanel({showHeader = true, onClose, onViewChange, backRef}
                                     />
                                 </div>
                             </div>
-                        </ScrollArea>
+                        </div>
 
                         <div className="py-4 border-t border-border shrink-0">
                             <LoadingButton
@@ -356,7 +355,7 @@ export function SupportPanel({showHeader = true, onClose, onViewChange, backRef}
                 {/* VUE : CONVERSATION */}
                 {view === 'conversation' && (
                     <>
-                        <ScrollArea className="flex-1 min-h-0 py-3">
+                        <div className="flex-1 min-h-0 overflow-y-auto py-3">
                             <div className="space-y-4 pb-4">
                                 {tickets
                                     .filter((t) => t.id === selectedTicket)
@@ -424,7 +423,7 @@ export function SupportPanel({showHeader = true, onClose, onViewChange, backRef}
                                     ))
                                 )}
                             </div>
-                        </ScrollArea>
+                        </div>
 
                         <form
                             onSubmit={handleSendMessage}

@@ -11,7 +11,7 @@ export function SupportPageClient() {
     const backRef = useRef<(() => void) | null>(null)
 
     return (
-        <div className="max-w-2xl w-full flex flex-col gap-4 flex-1 min-h-0">
+        <div className="w-full flex flex-col gap-4 flex-1 min-h-0">
             <PageHeader
                 title="Support"
                 description="Contactez notre équipe ou suivez vos tickets"
