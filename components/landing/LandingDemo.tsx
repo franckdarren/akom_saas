@@ -167,7 +167,7 @@ export default function LandingDemo() {
     )
 
     return (
-      <div className="lp-order-sent">
+      <div className="lp-order-sent hidden md:block">
         <div className="lp-check"><IconCheckCircle size={36} /></div>
         <h4>Commande envoyée !</h4>
         <p>Votre commande est en route vers la cuisine. Vous serez prévenu dès qu&apos;elle est prête.</p>
