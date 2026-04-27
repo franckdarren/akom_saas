@@ -182,7 +182,7 @@ export default function LandingDemo() {
   }
 
   return (
-    <section className="lp-s lp-demo-wrap" id="demo">
+    <section className="lp-s lp-demo-wrap hidden md:block" id="demo">
       <div className="lp-container">
         <div className="lp-demo-grid">
           <div className="lp-demo-copy">
