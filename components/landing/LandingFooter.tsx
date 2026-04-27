@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { Logo } from '../ui/logo'
 
 export default function LandingFooter() {
   return (
@@ -7,8 +8,7 @@ export default function LandingFooter() {
         <div className="lp-foot-grid">
           <div className="lp-foot-about">
             <Link href="#top" className="lp-brand">
-              <span className="lp-brand-mark">A</span>
-              <span>Akôm</span>
+              <Logo size="lg" variant="color" />
             </Link>
             <p>Plateforme SaaS de digitalisation pour les restaurants, boutiques et hôtels en Afrique. Conçue au Gabon.</p>
           </div>

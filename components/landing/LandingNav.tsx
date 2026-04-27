@@ -2,14 +2,14 @@
 
 import Link from 'next/link'
 import { IconArrowRight } from './LandingIcons'
+import { Logo } from '../ui/logo'
 
 export default function LandingNav() {
   return (
     <nav className="lp-nav">
       <div className="lp-container lp-nav-inner">
         <Link href="#top" className="lp-brand">
-          <span className="lp-brand-mark">A</span>
-          <span>Akôm</span>
+          <Logo size="lg" variant="color" />
         </Link>
         <div className="lp-nav-links">
           <a href="#how">Comment ça marche</a>
