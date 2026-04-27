@@ -1,72 +1,46 @@
-import Image from 'next/image'
+import { IconBook, IconQr, IconChef } from './LandingIcons'
 
-const steps = [
+const items = [
   {
-    title: 'Créez votre compte',
-    desc: 'Inscrivez votre établissement et accédez à votre tableau de bord sécurisé en quelques minutes.',
+    n: '01',
+    title: 'Configurez votre catalogue',
+    body: "Créez vos catégories, ajoutez vos produits ou services en quelques minutes. Activez ou désactivez un article en un clic, sans aucun outil technique.",
+    icon: <IconBook size={22} />,
   },
   {
-    title: 'Configurez vos catalogues',
-    desc: 'Ajoutez vos produits ou services, organisez vos catégories et définissez vos tarifs.',
+    n: '02',
+    title: 'Imprimez vos QR codes',
+    body: "Akôm génère un QR code unique par table ou par espace. Vos clients scannent, parcourent le menu et commandent depuis leur téléphone — sans application.",
+    icon: <IconQr size={22} />,
   },
   {
-    title: 'Générez vos QR Codes',
-    desc: 'Créez et téléchargez des QR codes sécurisés à afficher dans votre établissement.',
-  },
-  {
-    title: 'Suivez vos ventes',
-    desc: 'Consultez les commandes, encaissements et statistiques en temps réel depuis le dashboard.',
+    n: '03',
+    title: 'Cuisine et caisse synchronisées',
+    body: "Chaque commande arrive en temps réel dans l'écran cuisine, avec notification sonore. Le paiement Airtel/Moov est encaissé directement depuis l'application.",
+    icon: <IconChef size={22} />,
   },
 ]
 
 export default function LandingHowItWorks() {
   return (
-    <section id="how-it-works" className="py-20 bg-muted/30 scroll-mt-20">
-      <div className="max-w-6xl mx-auto px-4">
-
-        {/* En-tête */}
-        <div className="text-center flex flex-col items-center gap-3 mb-16">
-          <h2 className="type-hero-title text-foreground">
-            Comment fonctionne Akôm ?
-          </h2>
-          <p className="type-description">
-            Mise en place et gestion intuitive en 4 étapes.
-          </p>
+    <section className="lp-s" id="how">
+      <div className="lp-container">
+        <div className="lp-s-head">
+          <span className="lp-label-meta" style={{ color: 'var(--primary)' }}>Comment ça marche</span>
+          <h2>Trois étapes pour digitaliser votre établissement</h2>
+          <p>De la configuration du menu à la première commande encaissée, comptez moins d&apos;une heure.</p>
         </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-
-          {/* Étapes */}
-          <ol className="flex flex-col gap-8">
-            {steps.map((step, i) => (
-              <li key={i} className="flex items-start gap-4">
-                <div
-                  className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center type-card-title shrink-0"
-                  aria-hidden="true"
-                >
-                  {i + 1}
-                </div>
-                <div className="flex flex-col gap-1 pt-1">
-                  <h3 className="type-card-title text-foreground">{step.title}</h3>
-                  <p className="type-body-muted">{step.desc}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
-
-          {/* Illustration */}
-          <div className="hidden lg:block">
-            <div className="relative aspect-square rounded-xl overflow-hidden bg-primary-subtle shadow-md ring-1 ring-border">
-              <Image
-                src="/images/3.png"
-                alt="Interface Akôm — suivi des ventes en temps réel"
-                fill
-                className="object-cover"
-                sizes="50vw"
-              />
+        <div className="lp-steps">
+          {items.map((it, i) => (
+            <div key={i} className="lp-step">
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span className="lp-step-num">{it.n}</span>
+                <span style={{ color: 'var(--primary)' }}>{it.icon}</span>
+              </div>
+              <h3>{it.title}</h3>
+              <p>{it.body}</p>
             </div>
-          </div>
-
+          ))}
         </div>
       </div>
     </section>

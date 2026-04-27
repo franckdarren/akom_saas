@@ -1,12 +1,13 @@
 import LandingNav from '@/components/landing/LandingNav'
 import LandingHero from '@/components/landing/LandingHero'
-import LandingFeatures from '@/components/landing/LandingFeatures'
-import LandingUseCases from '@/components/landing/LandingUseCases'
+import LandingLogos from '@/components/landing/LandingLogos'
 import LandingHowItWorks from '@/components/landing/LandingHowItWorks'
-import LandingWhyUs from '@/components/landing/LandingWhyUs'
-import LandingTestimonials from '@/components/landing/LandingTestimonials'
+import LandingFeatures from '@/components/landing/LandingFeatures'
+import LandingDemo from '@/components/landing/LandingDemo'
 import LandingPricing from '@/components/landing/LandingPricing'
-import LandingBlog from '@/components/landing/LandingBlog'
+import LandingTestimonials from '@/components/landing/LandingTestimonials'
+import LandingFAQ from '@/components/landing/LandingFAQ'
+import LandingCTA from '@/components/landing/LandingCTA'
 import LandingFooter from '@/components/landing/LandingFooter'
 
 export default function Home() {
@@ -15,13 +16,14 @@ export default function Home() {
       <LandingNav />
       <main>
         <LandingHero />
-        <LandingFeatures />
-        <LandingUseCases />
+        <LandingLogos />
         <LandingHowItWorks />
-        <LandingWhyUs />
-        <LandingTestimonials />
+        <LandingFeatures />
+        <LandingDemo />
         <LandingPricing />
-        <LandingBlog />
+        <LandingTestimonials />
+        <LandingFAQ />
+        <LandingCTA />
       </main>
       <LandingFooter />
     </>

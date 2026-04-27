@@ -1,112 +1,35 @@
-import Image from 'next/image'
+import { IconBook, IconQr, IconChef, IconCard, IconBox, IconChart, IconLock, IconUsers, IconWifi } from './LandingIcons'
 
-const features = [
-  {
-    tag: 'Catalogue intelligent',
-    title: 'Gestion complète de vos catalogues',
-    image: '/images/1.png',
-    imageAlt: 'Interface de gestion du catalogue Akôm',
-    items: [
-      'Création de catégories et familles personnalisées',
-      'Ajout de produits ou services en quelques clics',
-      'Activation / désactivation instantanée des articles',
-      'Mise à jour en temps réel sur tous les appareils',
-      'Génération de QR codes publics ou privés en un clic',
-    ],
-    quote: "Adaptez vos catalogues à chaque établissement ou secteur d'activité.",
-    imageLeft: true,
-  },
-  {
-    tag: 'Sécurité & Organisation',
-    title: 'Une plateforme sécurisée et structurée',
-    image: '/images/2.png',
-    imageAlt: 'Gestion des utilisateurs et permissions Akôm',
-    items: [
-      'Authentification sécurisée pour chaque utilisateur',
-      'Gestion multi-établissement centralisée',
-      'Isolation stricte des données par structure',
-      'Profils différenciés : Admin, Caissier, Cuisine…',
-      'Contrôle précis des accès et permissions',
-    ],
-    quote: 'Chaque structure conserve ses données de manière indépendante et sécurisée.',
-    imageLeft: false,
-  },
-  {
-    tag: 'Performance & Analytics',
-    title: 'Pilotez votre activité en temps réel',
-    image: '/images/3.png',
-    imageAlt: 'Tableau de bord statistiques Akôm',
-    items: [
-      'Nombre de commandes en direct',
-      'Montant total des ventes journalières',
-      'Historique journalier détaillé',
-      'Statistiques simples et lisibles',
-      'Gestion de stock simplifiée',
-      'Alertes de stock bas automatiques',
-    ],
-    quote: 'Prenez des décisions éclairées grâce à des indicateurs clairs et accessibles.',
-    imageLeft: true,
-  },
+const items = [
+  { icon: <IconBook />, title: 'Catalogue digital', body: "Catégories, produits, options. Activation instantanée, pas d'application à installer pour vos clients." },
+  { icon: <IconQr />, title: 'QR code par table', body: 'Un QR unique par table, généré et imprimable depuis votre tableau de bord. Lien direct à votre menu.' },
+  { icon: <IconChef />, title: 'Écran cuisine (KDS)', body: 'Réception en temps réel avec notification sonore. Statuts : en attente → en préparation → prête → livrée.' },
+  { icon: <IconCard />, title: 'Mobile money intégré', body: 'Encaissement Airtel Money et Moov Money à la commande. Espèces et carte également pris en charge.' },
+  { icon: <IconBox />, title: 'Stock simplifié', body: 'Décrément automatique à chaque commande. Alertes de stock bas et historique des mouvements.' },
+  { icon: <IconChart />, title: 'Statistiques claires', body: 'Volume de commandes, ventes journalières, top produits. Pas de tableurs, pas de complexité inutile.' },
+  { icon: <IconLock />, title: 'Multi-établissement', body: 'Gérez plusieurs sites depuis un seul compte. Données strictement isolées et permissions par rôle.' },
+  { icon: <IconUsers />, title: 'Rôles & permissions', body: 'Admin, caissier, cuisine. Chaque utilisateur voit uniquement ce qui le concerne.' },
+  { icon: <IconWifi />, title: 'Conçu pour le terrain', body: 'Léger, rapide, fonctionne avec une connexion limitée. Pas de matériel coûteux à acheter.' },
 ]
 
 export default function LandingFeatures() {
   return (
-    <section id="features" className="py-20 bg-muted/30 scroll-mt-20">
-      <div className="max-w-6xl mx-auto px-4">
-
-        {/* En-tête */}
-        <div className="text-center flex flex-col items-center gap-3 mb-16">
-          <span className="type-label-meta text-primary">Fonctionnalités avancées</span>
-          <h2 className="type-hero-title max-w-2xl text-foreground">
-            Tout ce dont vous avez besoin à un seul endroit
-          </h2>
-          <p className="type-description max-w-xl">
-            Une plateforme complète pour gérer et piloter votre activité.
-          </p>
+    <section className="lp-s" id="features" style={{ background: 'color-mix(in srgb, var(--muted) 35%, var(--background))' }}>
+      <div className="lp-container">
+        <div className="lp-s-head">
+          <span className="lp-label-meta" style={{ color: 'var(--primary)' }}>Fonctionnalités</span>
+          <h2>Tout ce dont vous avez besoin, rien de superflu</h2>
+          <p>Akôm couvre l&apos;essentiel du quotidien d&apos;un commerce digitalisé — sans la complexité des gros ERP.</p>
         </div>
-
-        {/* Blocs alternés */}
-        <div className="flex flex-col gap-24">
-          {features.map((feature, i) => (
-            <div
-              key={i}
-              className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center"
-            >
-              {/* Image */}
-              <div className={feature.imageLeft ? '' : 'lg:order-2'}>
-                <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-muted shadow-md ring-1 ring-border">
-                  <Image
-                    src={feature.image}
-                    alt={feature.imageAlt}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 1024px) 100vw, 50vw"
-                  />
-                </div>
-              </div>
-
-              {/* Texte */}
-              <div className={`flex flex-col gap-5 ${feature.imageLeft ? '' : 'lg:order-1'}`}>
-                <span className="bg-primary-subtle text-primary type-badge px-3 py-1 rounded-full w-fit">
-                  {feature.tag}
-                </span>
-                <h3 className="type-section-title text-foreground">{feature.title}</h3>
-                <ul className="flex flex-col gap-2.5">
-                  {feature.items.map((item, j) => (
-                    <li key={j} className="flex items-start gap-3 type-body text-foreground">
-                      <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0" aria-hidden="true" />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-                <p className="type-body-muted italic border-l-2 border-primary pl-4">
-                  &ldquo;{feature.quote}&rdquo;
-                </p>
-              </div>
+        <div className="lp-features">
+          {items.map((it, i) => (
+            <div key={i} className="lp-feat">
+              <div className="lp-feat-ico">{it.icon}</div>
+              <h3>{it.title}</h3>
+              <p>{it.body}</p>
             </div>
           ))}
         </div>
-
       </div>
     </section>
   )

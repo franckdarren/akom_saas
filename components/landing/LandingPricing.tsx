@@ -1,141 +1,100 @@
 import Link from 'next/link'
-import { Check } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import {
-  AppCard,
-  CardHeader,
-  CardContent,
-  CardTitle,
-} from '@/components/ui/app-card'
+import { IconCheck } from './LandingIcons'
 
 const plans = [
   {
     name: 'STARTER',
     price: '3 000',
-    desc: 'Idéal pour les petits établissements qui débutent la digitalisation',
-    extra: '+ 5 000 FCFA pour chaque profil supplémentaire',
+    desc: 'Pour les petits établissements qui démarrent.',
     featured: false,
+    extra: '+ 5 000 FCFA / profil supplémentaire',
     features: [
       '1 profil administrateur',
-      '3 comptes au maximum',
-      '10 tables au maximum',
-      '5 catégories',
-      '30 produits',
-      'Gestion des stocks',
-      'Statistiques',
-      'Personnalisation limitée',
-      'Menu digital accessible par QR code',
+      '3 comptes utilisateurs',
+      '10 tables maximum',
+      '5 catégories · 30 produits',
+      'Menu digital + QR codes',
+      'Gestion de stock simplifiée',
+      'Statistiques de base',
     ],
   },
   {
     name: 'BUSINESS',
     price: '5 000',
-    desc: 'Conçu pour les établissements en croissance',
-    extra: '+ 7 500 FCFA pour chaque profil supplémentaire',
+    desc: 'Pour les structures en croissance — le plus choisi.',
     featured: true,
+    extra: '+ 7 500 FCFA / profil supplémentaire',
     features: [
-      'Toutes les fonctionnalités STARTER',
-      '5 comptes au maximum',
-      '50 tables au maximum',
-      '15 catégories',
-      'Alertes stocks',
-      'Historique des mouvements de stocks',
-      'Statistiques avancées',
-      'Paiements en ligne (Airtel Money, Moov Money)',
-      'Magasin de stockage',
-      'Données comptables',
-      'Support prioritaire',
-      'Multi-établissement',
+      'Tout du plan Starter',
+      '5 comptes utilisateurs',
+      '50 tables maximum',
+      '15 catégories illimitées',
+      'Paiements Airtel & Moov Money',
       'Caisse intégrée',
+      'Multi-établissement',
+      'Statistiques avancées + alertes',
+      'Support prioritaire',
     ],
   },
   {
     name: 'PREMIUM',
     price: '8 000',
-    desc: 'Pour les structures multi-sites exigeantes',
-    extra: '+ 10 000 FCFA pour chaque profil supplémentaire',
+    desc: 'Pour les structures multi-sites exigeantes.',
     featured: false,
+    extra: '+ 10 000 FCFA / profil supplémentaire',
     features: [
-      'Comptes illimités',
-      'Tables illimitées',
-      'Catégories illimitées',
-      'Produits illimités',
-      'Gestion des stocks avancée',
-      'Statistiques complètes',
-      'Personnalisation avancée',
-      'Données comptables',
-      'Alertes stocks et rapports périodiques',
-      'Historique des mouvements de stocks',
-      'Magasin de stockage',
-      'Support prioritaire',
-      'Caisse intégrée',
+      'Tout du plan Business',
+      'Comptes & tables illimités',
+      'Catégories & produits illimités',
       'Multi-établissement illimité',
+      'Données comptables exportables',
+      'Personnalisation avancée',
+      'Rapports périodiques automatiques',
+      'Historique stock complet',
     ],
   },
 ]
 
 export default function LandingPricing() {
   return (
-    <section id="pricing" className="py-20 bg-muted/30 scroll-mt-20">
-      <div className="max-w-5xl mx-auto px-4">
-
-        {/* En-tête */}
-        <div className="text-center flex flex-col items-center gap-3 mb-12">
-          <h2 className="type-hero-title text-foreground">Nos offres d'abonnement</h2>
-          <p className="type-description max-w-2xl">
-            Choisissez l'offre adaptée à la taille et aux besoins de votre établissement.
-          </p>
+    <section className="lp-s" id="pricing">
+      <div className="lp-container">
+        <div className="lp-s-head">
+          <span className="lp-label-meta" style={{ color: 'var(--primary)' }}>Tarifs</span>
+          <h2>Un plan adapté à chaque taille d&apos;établissement</h2>
+          <p>Tarification mensuelle en FCFA. Aucun matériel requis, aucun frais caché. Annulable à tout moment.</p>
         </div>
-
-        {/* Grille des plans */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-          {plans.map((plan) => (
-            <AppCard
-              key={plan.name}
-              variant="pricing"
-              className={`relative ${plan.featured ? 'border-primary shadow-lg md:-mt-4' : ''}`}
-            >
-              {plan.featured && (
-                <div className="absolute -top-4 inset-x-0 flex justify-center">
-                  <span className="bg-primary text-primary-foreground type-badge px-4 py-1.5 rounded-full whitespace-nowrap">
-                    Le plus vendu
-                  </span>
+        <div className="lp-pricing">
+          {plans.map((p) => (
+            <div key={p.name} className={`lp-plan${p.featured ? ' featured' : ''}`}>
+              {p.featured && <span className="lp-plan-tag">Le plus choisi</span>}
+              <div>
+                <div className="lp-plan-name">Pack {p.name}</div>
+                <div className="lp-plan-price">
+                  <span className="lp-num">{p.price}</span>
+                  <span className="lp-unit">FCFA / mois</span>
                 </div>
-              )}
-
-              <CardHeader className={plan.featured ? 'pt-8' : ''}>
-                <CardTitle className="type-card-title">Pack {plan.name}</CardTitle>
-                <div className="mt-3">
-                  <span className="text-3xl font-bold text-foreground">{plan.price}</span>
-                  <span className="type-body-muted"> FCFA / mois</span>
-                </div>
-                <p className="type-description text-muted-foreground mt-1">{plan.desc}</p>
-                <p className="type-caption mt-1">{plan.extra}</p>
-              </CardHeader>
-
-              <CardContent>
-                <div className="layout-card-body">
-                  <ul className="flex flex-col gap-2">
-                    {plan.features.map((feature, i) => (
-                      <li key={i} className="flex items-start gap-2 type-body text-foreground">
-                        <Check className="size-4 text-primary mt-0.5 shrink-0" aria-hidden="true" />
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                  <Button
-                    variant={plan.featured ? 'default' : 'outline'}
-                    className="w-full mt-2"
-                    asChild
-                  >
-                    <Link href={`/register?plan=${plan.name.toLowerCase()}`}>Créer un compte</Link>
-                  </Button>
-                </div>
-              </CardContent>
-            </AppCard>
+                <p className="lp-plan-desc">{p.desc}</p>
+              </div>
+              <ul>
+                {p.features.map((f, i) => (
+                  <li key={i}>
+                    <IconCheck size={14} />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href="/register"
+                className={`lp-btn${p.featured ? ' lp-btn-primary' : ' lp-btn-outline'}`}
+                style={{ justifyContent: 'center', width: '100%' }}
+              >
+                Choisir {p.name}
+              </Link>
+              <div className="lp-plan-extra">{p.extra}</div>
+            </div>
           ))}
         </div>
-
       </div>
     </section>
   )
