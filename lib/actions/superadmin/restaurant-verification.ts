@@ -4,6 +4,7 @@
 import { createClient } from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
+import { sendVerificationApprovedEmail } from '@/lib/email/send-verification-email'
 
 // ============================================================
 // TYPES
@@ -160,8 +161,8 @@ export async function approveRestaurantVerification(
             })
         })
 
-        // TODO: Envoyer une notification email au restaurant
-        // await sendVerificationApprovedEmail(restaurantId)
+        // Notification email (non bloquante)
+        void sendVerificationApprovedEmail(restaurantId)
 
         revalidatePath('/superadmin/verifications')
         revalidatePath('/dashboard')

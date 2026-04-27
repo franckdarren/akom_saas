@@ -13,7 +13,7 @@ export default function LandingCTA() {
           <h2>Lancez votre commerce digital cette semaine</h2>
           <p>Sans matériel, sans formation longue, sans engagement. Choisissez votre plan et configurez votre premier menu en moins d&apos;une heure.</p>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center', marginTop: 12 }}>
-            <Link href="/register" className="lp-btn lp-btn-primary lp-btn-lg">
+            <Link href="#pricing" className="lp-btn lp-btn-primary lp-btn-lg">
               Choisir un plan <IconArrowRight />
             </Link>
             <a href="#demo" className="lp-btn lp-btn-outline lp-btn-lg">
