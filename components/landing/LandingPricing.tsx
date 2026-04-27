@@ -67,7 +67,7 @@ export default function LandingPricing() {
         <div className="lp-pricing">
           {plans.map((p) => (
             <div key={p.name} className={`lp-plan${p.featured ? ' featured' : ''}`}>
-              {p.featured && <span className="lp-plan-tag">Le plus choisi</span>}
+              {p.featured && <span className="lp-plan-tag">Le plus populaire</span>}
               <div>
                 <div className="lp-plan-name">Pack {p.name}</div>
                 <div className="lp-plan-price">

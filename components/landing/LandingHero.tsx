@@ -1,3 +1,6 @@
+import Image from 'next/image';
+
+
 export default function LandingHero() {
   return (
     <section className="lp-hero" id="top">
@@ -27,19 +30,35 @@ export default function LandingHero() {
           </div>
           <div className="lp-hero-trust">
             <span className="lp-label-meta">Paiements&nbsp;:</span>
+            <div className="flex gap-1">
             <span className="lp-pay-pill">
-              <span className="lp-swatch" style={{ background: '#E4002B' }} />
+              {/* <span className="lp-swatch" style={{ background: '#E4002B' }} /> */}
+              <Image
+                src="/images/airtelmoney.webp"
+                alt="logo airtelmoney"
+                width={25}      
+                height={25}      
+                // className="lp-swatch"
+              />
               Airtel Money
             </span>
             <span className="lp-pay-pill">
-              <span className="lp-swatch" style={{ background: '#005CA9' }} />
+              {/* <span className="lp-swatch" style={{ background: '#005CA9' }} /> */}
+              <Image
+                src="/images/moovmoney.png"
+                alt="logo airtelmoney"
+                width={25}      
+                height={25}      
+                // className="lp-swatch"
+              />
               Moov Money
             </span>
-            <span className="lp-pay-pill">Espèces · Carte</span>
+            <span className="lp-pay-pill">Espèces</span>
+          </div>
           </div>
         </div>
 
-        <div className="lp-hero-visual lp-hero-visual-v2" aria-hidden="true">
+        <div className="lp-hero-visual lp-hero-visual-v2 hidden md:block" aria-hidden="true">
           {/* Phone — client menu */}
           <div className="lp-hv-phone">
             <div className="lp-hv-phone-frame">

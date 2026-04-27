@@ -9,7 +9,7 @@ export default function LandingNav() {
     <nav className="lp-nav">
       <div className="lp-container lp-nav-inner">
         <Link href="#top" className="lp-brand">
-          <Logo size="lg" variant="color" />
+          <Logo size="md" variant="color" />
         </Link>
         <div className="lp-nav-links">
           <a href="#how">Comment ça marche</a>
@@ -23,7 +23,7 @@ export default function LandingNav() {
             Se connecter
           </Link>
           <Link href="#pricing" className="lp-btn lp-btn-primary">
-            Essayer Akôm <IconArrowRight />
+            Essayer <IconArrowRight />
           </Link>
         </div>
       </div>
