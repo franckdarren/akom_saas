@@ -6,6 +6,7 @@ import { mapSingpayToPaymentStatus } from '@/lib/singpay/utils'
 import type { SingpayCallbackData } from '@/lib/singpay/types'
 import type { SingpayTransactionStatus, SingpayTransactionResult } from '@prisma/client'
 import { deductOrderStock } from '@/lib/stock/deduct-order-stock'
+import { notifyRestaurantAdmins } from '@/lib/notifications'
 
 /**
  * Webhook SingPay — reçoit les notifications de paiement.
@@ -104,6 +105,13 @@ export async function POST(
       })
       await deductOrderStock(payment.orderId, restaurantId)
       console.log('✅ Paiement confirmé:', payment.order.orderNumber)
+
+      // Notifier les admins (in-app uniquement par défaut, voir templates.ts)
+      void notifyRestaurantAdmins(restaurantId, 'payment_received', {
+        orderId: payment.orderId,
+        orderNumber: payment.order.orderNumber,
+        amount: payment.amount,
+      })
     } else if (newStatus === 'failed') {
       // Si la commande était en attente de paiement, l'annuler
       if (payment.order.status === 'awaiting_payment') {

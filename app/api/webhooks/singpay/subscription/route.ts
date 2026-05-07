@@ -6,6 +6,7 @@ import { mapSingpayToPaymentStatus, isSubscriptionReference } from '@/lib/singpa
 import { activateSubscriptionAfterPayment } from '@/lib/actions/singpay-subscription'
 import type { SingpayCallbackData } from '@/lib/singpay/types'
 import type { SubscriptionPaymentStatus } from '@prisma/client'
+import { notifyRestaurantAdmins } from '@/lib/notifications'
 
 /**
  * Webhook SINGPAY pour les paiements d'abonnement.
@@ -88,10 +89,14 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    // 6. Si confirmé → activer l'abonnement
+    // 6. Si confirmé → activer l'abonnement + notifier
     if (newStatus === 'confirmed') {
       await activateSubscriptionAfterPayment(payment.id)
       console.log('✅ Abonnement activé via callback pour:', payment.restaurantId)
+
+      void notifyRestaurantAdmins(payment.restaurantId, 'subscription_paid', {
+        amount: payment.amount,
+      })
     } else if (newStatus === 'failed') {
       console.log('❌ Paiement abonnement échoué:', callbackData.transaction.result)
     }

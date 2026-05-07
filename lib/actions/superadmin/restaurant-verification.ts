@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import { sendVerificationApprovedEmail } from '@/lib/email/send-verification-email'
+import { notifyRestaurantAdmins } from '@/lib/notifications'
 
 // ============================================================
 // TYPES
@@ -232,8 +233,10 @@ export async function rejectRestaurantVerification(
             })
         })
 
-        // TODO: Envoyer une notification email au restaurant avec la raison du rejet
-        // await sendVerificationRejectedEmail(restaurantId, rejectionReason)
+        // Notification (in-app + email) — best-effort
+        void notifyRestaurantAdmins(restaurantId, 'verification_rejected', {
+            reason: rejectionReason.trim(),
+        })
 
         revalidatePath('/superadmin/verifications')
 

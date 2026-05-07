@@ -5,6 +5,7 @@ import {createClient} from '@/lib/supabase/server'
 import {supabaseAdmin} from '@/lib/supabase/admin'
 import prisma from '@/lib/prisma'
 import {isSuperAdminEmail} from '@/lib/utils/permissions'
+import {notifyRestaurantAdmins, notifySuperAdmins} from '@/lib/notifications'
 import type {TicketStatus, TicketPriority} from '@prisma/client'
 
 // ============================================================
@@ -52,6 +53,14 @@ export async function createSupportTicket(data: {
                 priority: data.priority || 'medium',
                 status: 'open',
             },
+            include: { restaurant: { select: { name: true } } },
+        })
+
+        // Notifier les superadmins du nouveau ticket — best-effort
+        void notifySuperAdmins('new_support_ticket', {
+            ticketId: ticket.id,
+            subject: ticket.subject,
+            restaurantName: ticket.restaurant.name,
         })
 
         revalidatePath('/dashboard/support')
@@ -272,12 +281,20 @@ export async function sendAdminMessage(data: {
             },
         })
 
-        await prisma.supportTicket.update({
+        const ticket = await prisma.supportTicket.update({
             where: {id: data.ticketId},
             data: {
                 status: 'in_progress',
                 updatedAt: new Date(),
             },
+            select: {restaurantId: true, subject: true},
+        })
+
+        // Notifier les admins du restaurant — best-effort, n'échoue pas l'envoi
+        void notifyRestaurantAdmins(ticket.restaurantId, 'support_reply', {
+            ticketId: data.ticketId,
+            subject: ticket.subject,
+            preview: data.message,
         })
 
         return {success: true, message}
@@ -336,6 +353,13 @@ export async function resolveTicket(ticketId: string) {
                 status: 'resolved',
                 resolvedAt: new Date(),
             },
+            select: { restaurantId: true, subject: true },
+        })
+
+        // Notifier les admins du restaurant que leur ticket est résolu
+        void notifyRestaurantAdmins(ticket.restaurantId, 'support_ticket_resolved', {
+            ticketId,
+            subject: ticket.subject,
         })
 
         revalidatePath('/superadmin/support')

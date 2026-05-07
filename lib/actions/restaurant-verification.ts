@@ -4,6 +4,7 @@
 import { createClient } from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
+import { notifySuperAdmins } from '@/lib/notifications'
 import type {
     VerificationDocumentData,
     CircuitSheetData,
@@ -100,6 +101,15 @@ export async function submitVerificationDocuments(
                 performedBy: user.id,
                 comment: 'Documents de vérification soumis',
             },
+        })
+
+        // Notifier les superadmins — best-effort
+        const restaurant = await prisma.restaurant.findUnique({
+            where: { id: restaurantId },
+            select: { name: true },
+        })
+        void notifySuperAdmins('new_verification_submitted', {
+            restaurantName: restaurant?.name,
         })
 
         revalidatePath('/dashboard')

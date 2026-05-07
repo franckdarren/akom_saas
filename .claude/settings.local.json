@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node \"c:/Users/HP USERS/Downloads/akom_saas/node_modules/.typescript-JGqnii09/lib/tsc.js\" --noEmit -p tsconfig.check.json)"
+    ]
+  }
+}

@@ -73,6 +73,7 @@ import {Badge} from "@/components/ui/badge"
 import {useRestaurant} from "@/lib/hooks/use-restaurant"
 import {DashboardHeader} from "../dashboard/components/DashboardHeader"
 import {ModeToggle} from "@/components/ui/mode-toggle"
+import {NotificationBell} from "@/components/notifications/NotificationBell"
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -330,7 +331,10 @@ export function AppSidebar({
                             >
                                 <Logo size="sm" variant="color" />
                             </Link>
-                            <ModeToggle />
+                            <div className="flex items-center gap-1">
+                                <NotificationBell userId={user.id} />
+                                <ModeToggle />
+                            </div>
                         </div>
                     ) : (
                         // Utilisateurs normaux : switcher multi-structure
@@ -356,7 +360,7 @@ export function AppSidebar({
                         </div>
                         {/* Bouton thème/notifications — conservé à droite */}
                         <div className="ml-auto">
-                            <DashboardHeader/>
+                            <DashboardHeader userId={user.id}/>
                         </div>
                     </div>
                 )}

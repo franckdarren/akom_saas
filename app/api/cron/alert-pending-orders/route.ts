@@ -4,6 +4,7 @@ import {NextResponse} from 'next/server'
 import prisma from '@/lib/prisma'
 import {supabaseAdmin} from '@/lib/supabase/admin'
 import {sendPendingOrderAlertEmail} from '@/lib/email/cron-emails'
+import {notifyRestaurantAdmins} from '@/lib/notifications'
 
 /**
  * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -128,6 +129,12 @@ export async function GET(req: Request) {
                     totalEmailsSent++
                 })
             )
+
+            // ── 5. Notification in-app (best-effort) ─────────────────
+            void notifyRestaurantAdmins(order.restaurant.id, 'slow_order_alert', {
+                orderId: order.id,
+                orderNumber: orderDetails.orderNumber,
+            })
         }
 
         return NextResponse.json({

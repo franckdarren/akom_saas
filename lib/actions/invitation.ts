@@ -7,6 +7,7 @@ import prisma from '@/lib/prisma'
 import { randomBytes } from 'crypto'
 import { signUp, signIn } from './auth'
 import { requirePermissionForRestaurant, requireMembershipForRestaurant } from '@/lib/permissions/check'
+import { notify } from '@/lib/notifications'
 
 // ============================================================
 // TYPES
@@ -317,6 +318,14 @@ export async function acceptInvitationWithAuth(
             })
         }
 
+        // Notifier l'admin qui a invité — best-effort
+        void notify({
+            userId: invitation.invitedBy,
+            restaurantId: invitation.restaurantId,
+            type: 'new_invitation_accepted',
+            data: { userEmail: invitation.email },
+        })
+
         revalidatePath('/dashboard')
         revalidatePath('/', 'layout')
 
@@ -359,6 +368,7 @@ export async function acceptInvitation(token: string): Promise<ActionResult> {
             include: {
                 restaurant: {
                     select: {
+                        id: true,
                         name: true,
                     },
                 },
@@ -417,6 +427,14 @@ export async function acceptInvitation(token: string): Promise<ActionResult> {
         await prisma.invitation.update({
             where: { id: invitation.id },
             data: { status: 'accepted', acceptedAt: new Date() },
+        })
+
+        // Notifier l'admin qui a invité — best-effort
+        void notify({
+            userId: invitation.invitedBy,
+            restaurantId: invitation.restaurantId,
+            type: 'new_invitation_accepted',
+            data: { userEmail: invitation.email },
         })
 
         revalidatePath('/dashboard')

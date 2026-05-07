@@ -3,6 +3,7 @@
 import {NextRequest, NextResponse} from 'next/server'
 import prisma from '@/lib/prisma'
 import {logSystemAction} from '@/lib/actions/logs'
+import {notifyRestaurantAdmins} from '@/lib/notifications'
 
 /**
  * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -120,7 +121,24 @@ export async function GET(request: NextRequest) {
             })
         }
 
-        // ── 4. Logs système en parallèle ────────────────────────────────────
+        // ── 4. Notifications in-app pour ruptures de stock ──────────────────
+        // On groupe par restaurant pour éviter N notifs identiques
+        const outOfStockByRestaurant = new Map<string, typeof productsAvailableButOutOfStock>()
+        for (const p of productsAvailableButOutOfStock) {
+            if (!outOfStockByRestaurant.has(p.restaurantId)) {
+                outOfStockByRestaurant.set(p.restaurantId, [])
+            }
+            outOfStockByRestaurant.get(p.restaurantId)!.push(p)
+        }
+        for (const [restaurantId, products] of outOfStockByRestaurant.entries()) {
+            const first = products[0]
+            void notifyRestaurantAdmins(restaurantId, 'low_stock_alert', {
+                productName: products.length === 1 ? first.name : `${products.length} produits`,
+                quantity: first.stock?.quantity ?? 0,
+            })
+        }
+
+        // ── 5. Logs système en parallèle ────────────────────────────────────
         // On spread les deux tableaux dans un seul Promise.all pour tout
         // écrire en une seule vague, sans attendre que chaque log termine
         await Promise.all([

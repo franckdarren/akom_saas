@@ -3,6 +3,7 @@
 import {NextRequest, NextResponse} from 'next/server'
 import prisma from '@/lib/prisma'
 import {logSystemAction} from '@/lib/actions/logs'
+import {notifyRestaurantAdmins} from '@/lib/notifications'
 
 /**
  * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -90,6 +91,9 @@ export async function GET(request: NextRequest) {
         await Promise.all(
             restaurantsToSuspend.map((sub) => {
                 console.log(`🔒 Restaurant suspendu : ${sub.restaurant.name}`)
+
+                // Notifier les admins de la suspension — best-effort
+                void notifyRestaurantAdmins(sub.restaurantId, 'subscription_suspended')
 
                 return logSystemAction(
                     'restaurant_suspended_auto',

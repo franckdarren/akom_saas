@@ -1253,3 +1253,96 @@ model RestaurantSingpayConfig {
   @@index([enabled])
   @@map("restaurant_singpay_configs")
 }
+
+// ============================================================
+// Notifications
+// ============================================================
+
+enum NotificationType {
+  // Support
+  support_reply
+  support_ticket_resolved
+  // Vérification structure
+  verification_approved
+  verification_rejected
+  circuit_sheet_deadline
+  // Paiements
+  payment_received
+  payment_failed
+  subscription_paid
+  subscription_expiring
+  subscription_suspended
+  // Opérations
+  low_stock_alert
+  slow_order_alert
+  new_invitation_accepted
+  // Superadmin
+  new_support_ticket
+  new_verification_submitted
+  new_subscription_payment
+}
+
+enum NotificationChannel {
+  in_app
+  email
+}
+
+enum NotificationPriority {
+  low
+  normal
+  high
+  urgent
+}
+
+model Notification {
+  id           String               @id @default(uuid()) @db.Uuid
+  userId       String               @map("user_id") @db.Uuid
+  restaurantId String?              @map("restaurant_id") @db.Uuid
+  type         NotificationType
+  priority     NotificationPriority @default(normal)
+  title        String
+  body         String
+  actionUrl    String?              @map("action_url")
+  metadata     Json?
+  readAt       DateTime?            @map("read_at")
+  createdAt    DateTime             @default(now()) @map("created_at")
+
+  deliveries NotificationDelivery[]
+
+  @@index([userId, readAt, createdAt(sort: Desc)])
+  @@index([restaurantId])
+  @@index([type])
+  @@map("notifications")
+}
+
+model NotificationDelivery {
+  id             String              @id @default(uuid()) @db.Uuid
+  notificationId String              @map("notification_id") @db.Uuid
+  channel        NotificationChannel
+  status         String // pending | sent | failed
+  recipient      String
+  errorMessage   String?             @map("error_message")
+  sentAt         DateTime?           @map("sent_at")
+  createdAt      DateTime            @default(now()) @map("created_at")
+
+  notification Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+
+  @@index([notificationId])
+  @@index([status])
+  @@map("notification_deliveries")
+}
+
+model NotificationPreference {
+  id     String           @id @default(uuid()) @db.Uuid
+  userId String           @map("user_id") @db.Uuid
+  type   NotificationType
+  inApp  Boolean          @default(true) @map("in_app")
+  email  Boolean          @default(true)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, type])
+  @@index([userId])
+  @@map("notification_preferences")
+}
