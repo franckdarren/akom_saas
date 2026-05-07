@@ -3,10 +3,11 @@
 
 import {useState, useTransition, useEffect, useRef} from 'react'
 import {useRouter} from 'next/navigation'
-import {createAdditionalRestaurant} from '@/lib/actions/restaurant'
+import {createAdditionalRestaurant, getUserRestaurants} from '@/lib/actions/restaurant'
 import {ACTIVITY_TYPE_OPTIONS, type ActivityType} from '@/lib/config/activity-labels'
 import {useNavigationLoading} from '@/lib/hooks/use-navigation-loading'
 import {useRestaurant} from '@/lib/hooks/use-restaurant'
+import type {RestaurantWithRole} from '@/types/auth'
 import {
     Dialog,
     DialogContent,
@@ -34,7 +35,7 @@ type Step = 'type' | 'info' | 'success'
 export function AddRestaurantModal({open, onOpenChange}: AddRestaurantModalProps) {
     const router = useRouter()
     const {startLoading} = useNavigationLoading()
-    const {refreshRestaurants} = useRestaurant()
+    const {refreshRestaurants, setCurrentRestaurant} = useRestaurant()
 
     const [step, setStep]                 = useState<Step>('type')
     const [activityType, setActivityType] = useState<ActivityType>('restaurant')
@@ -42,6 +43,7 @@ export function AddRestaurantModal({open, onOpenChange}: AddRestaurantModalProps
     const [phone, setPhone]               = useState('')
     const [address, setAddress]           = useState('')
     const [createdName, setCreatedName]   = useState('')
+    const [createdId, setCreatedId]       = useState<string | null>(null)
     const [isPending, startTransition]    = useTransition()
 
     const isNavigatingRef = useRef(false)
@@ -53,6 +55,7 @@ export function AddRestaurantModal({open, onOpenChange}: AddRestaurantModalProps
         setPhone('')
         setAddress('')
         setCreatedName('')
+        setCreatedId(null)
     }
 
     useEffect(() => {
@@ -80,7 +83,7 @@ export function AddRestaurantModal({open, onOpenChange}: AddRestaurantModalProps
 
     startTransition(async () => {
         try {
-            await createAdditionalRestaurant({
+            const result = await createAdditionalRestaurant({
                 name:         name.trim(),
                 phone:        phone.trim() || undefined,
                 address:      address.trim() || undefined,
@@ -93,6 +96,7 @@ export function AddRestaurantModal({open, onOpenChange}: AddRestaurantModalProps
             })
 
             setCreatedName(name.trim())
+            setCreatedId(result.restaurant.id)
             setStep('success')
             await refreshRestaurants()
 
@@ -103,15 +107,29 @@ export function AddRestaurantModal({open, onOpenChange}: AddRestaurantModalProps
     })
 }
 
-    function handleGoToNewRestaurant() {
+    async function handleGoToNewRestaurant() {
+        if (!createdId) return
         isNavigatingRef.current = true
+
+        // Switch actif vers la nouvelle structure : on récupère le RestaurantWithRole
+        // complet pour mettre à jour state + cookie middleware AVANT la navigation.
+        try {
+            const list: RestaurantWithRole[] = await getUserRestaurants()
+            const target = list.find(r => r.id === createdId)
+            if (target) setCurrentRestaurant(target)
+            await refreshRestaurants()
+        } catch (err) {
+            console.error('Erreur switch restaurant:', err)
+        }
+
         onOpenChange(false)
         setTimeout(() => {
             isNavigatingRef.current = false
             resetForm()
             startLoading()
+            router.push('/dashboard')
             router.refresh()
-        }, 350)
+        }, 200)
     }
 
     function handleStayHere() {

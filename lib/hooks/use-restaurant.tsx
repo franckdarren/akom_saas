@@ -29,12 +29,17 @@ export function RestaurantProvider({children}: { children: ReactNode }) {
     const [superAdmin, setSuperAdmin]                    = useState(false)
 
     useEffect(() => {
-        loadRestaurants()
+        loadRestaurants({initial: true})
         checkSuperAdmin()
     }, [])
 
-    const loadRestaurants = useCallback(async () => {
-        setLoading(true)
+    const loadRestaurants = useCallback(async ({initial = false}: {initial?: boolean} = {}) => {
+        // ✅ On n'active le loading state que sur le premier chargement.
+        // Sur un refresh post-mutation (ex: création d'une nouvelle structure),
+        // déclencher loading démonte les composants consommateurs (RestaurantSwitcher,
+        // AddRestaurantModal…), ce qui ferait disparaître/réapparaître la modale
+        // pendant qu'elle affiche son étape de succès.
+        if (initial) setLoading(true)
         try {
             const data = await getUserRestaurants()
             setRestaurants(data)
@@ -60,9 +65,11 @@ export function RestaurantProvider({children}: { children: ReactNode }) {
         } catch (error) {
             console.error('Erreur chargement restaurants:', error)
         } finally {
-            setLoading(false)
+            if (initial) setLoading(false)
         }
     }, [])
+
+    const refreshRestaurants = useCallback(() => loadRestaurants({initial: false}), [loadRestaurants])
 
     async function checkSuperAdmin() {
         const result = await checkIsSuperAdmin()
@@ -92,7 +99,7 @@ export function RestaurantProvider({children}: { children: ReactNode }) {
             isAdmin: effectiveRole === 'admin' || effectiveRole === 'superadmin',
             isKitchen: effectiveRole === 'kitchen',
             isSuperAdmin: superAdmin,
-            refreshRestaurants: loadRestaurants,
+            refreshRestaurants,
             hasMultipleRestaurants: restaurants.length > 1,
             restaurantCount: restaurants.length,
         }}>
