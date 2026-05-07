@@ -9,7 +9,6 @@ import {AppSidebar} from "../components/app-sidebar"
 import {SidebarProvider, SidebarInset} from "@/components/ui/sidebar"
 import {RestaurantProvider} from "@/lib/hooks/use-restaurant"
 import prisma from "@/lib/prisma"
-import {FloatingSupportButton} from "@/components/support/FloatingSupportButton"
 import {IdleTimeoutProvider} from "@/providers/IdleTimeoutProvider"
 import type {SubscriptionPlan} from "@/lib/config/subscription"
 import type {ActivityType} from "@/lib/config/activity-labels"
@@ -173,7 +172,6 @@ export default async function DashboardLayout({
                         )}
                         {children}
                     </SidebarInset>
-                    <FloatingSupportButton/>
                 </SidebarProvider>
             </RestaurantProvider>
         </IdleTimeoutProvider>

@@ -168,6 +168,23 @@ export async function middleware(request: NextRequest) {
             })
         }
 
+        // Vérification que la structure est activée (isVerified)
+        try {
+            const {data: restaurant} = await supabase
+                .from('restaurants')
+                .select('is_verified')
+                .eq('id', restaurantId)
+                .maybeSingle()
+
+            if (!restaurant?.is_verified) {
+                const url = request.nextUrl.clone()
+                url.pathname = '/onboarding/verification'
+                return NextResponse.redirect(url)
+            }
+        } catch (err) {
+            console.error('❌ Middleware verification query error:', err)
+        }
+
         // Vérification abonnement
         try {
             const {data: subscription} = await supabase

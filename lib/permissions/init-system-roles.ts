@@ -126,29 +126,17 @@ export const SYSTEM_ROLES: SystemRoleDef[] = [
 export async function ensureSystemPermissions(
     prisma: PrismaClient
 ): Promise<void> {
-    for (const perm of SYSTEM_PERMISSIONS) {
-        await prisma.permission.upsert({
-            where: {
-                resource_action: {
-                    resource: perm.resource,
-                    action: perm.action,
-                },
-            },
-            update: {
-                name: perm.name,
-                description: perm.description,
-                category: perm.category,
-            },
-            create: {
-                resource: perm.resource,
-                action: perm.action,
-                name: perm.name,
-                description: perm.description,
-                category: perm.category,
-                isSystem: true,
-            },
-        })
-    }
+    await prisma.permission.createMany({
+        data: SYSTEM_PERMISSIONS.map(p => ({
+            resource: p.resource,
+            action: p.action,
+            name: p.name,
+            description: p.description,
+            category: p.category,
+            isSystem: true,
+        })),
+        skipDuplicates: true,
+    })
 }
 
 // ============================================================
@@ -169,53 +157,40 @@ export async function initSystemRolesForRestaurant(
 
     const allPermissions = await prisma.permission.findMany()
 
-    const roleIds: Record<string, string> = {}
-
-    for (const roleDef of SYSTEM_ROLES) {
-        const role = await prisma.role.upsert({
-            where: {
-                restaurantId_name: {
+    // Créer les 3 rôles en parallèle
+    const roleResults = await Promise.all(
+        SYSTEM_ROLES.map(roleDef =>
+            prisma.role.upsert({
+                where: { restaurantId_name: { restaurantId, name: roleDef.name } },
+                update: { slug: roleDef.slug, color: roleDef.color, isProtected: roleDef.isProtected },
+                create: {
                     restaurantId,
                     name: roleDef.name,
-                },
-            },
-            update: {
-                slug: roleDef.slug,
-                color: roleDef.color,
-                isProtected: roleDef.isProtected,
-            },
-            create: {
-                restaurantId,
-                name: roleDef.name,
-                slug: roleDef.slug,
-                description: roleDef.description,
-                color: roleDef.color,
-                isSystem: true,
-                isProtected: roleDef.isProtected,
-                isActive: true,
-            },
-        })
-
-        roleIds[roleDef.slug] = role.id
-
-        // Assigner les permissions
-        const rolePermissions = allPermissions.filter(roleDef.permissionFilter)
-        for (const permission of rolePermissions) {
-            await prisma.rolePermission.upsert({
-                where: {
-                    roleId_permissionId: {
-                        roleId: role.id,
-                        permissionId: permission.id,
-                    },
-                },
-                update: {},
-                create: {
-                    roleId: role.id,
-                    permissionId: permission.id,
+                    slug: roleDef.slug,
+                    description: roleDef.description,
+                    color: roleDef.color,
+                    isSystem: true,
+                    isProtected: roleDef.isProtected,
+                    isActive: true,
                 },
             })
-        }
-    }
+        )
+    )
+
+    // Assigner les permissions à chaque rôle en une seule requête par rôle, en parallèle
+    await Promise.all(
+        roleResults.map((role, i) => {
+            const rolePermissions = allPermissions.filter(SYSTEM_ROLES[i].permissionFilter)
+            return prisma.rolePermission.createMany({
+                data: rolePermissions.map(p => ({ roleId: role.id, permissionId: p.id })),
+                skipDuplicates: true,
+            })
+        })
+    )
+
+    const roleIds = Object.fromEntries(
+        roleResults.map((role, i) => [SYSTEM_ROLES[i].slug, role.id])
+    )
 
     return {
         adminRoleId: roleIds['admin'],

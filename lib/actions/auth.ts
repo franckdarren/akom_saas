@@ -22,6 +22,7 @@ type ActionResult = {
     success: boolean
     message: string
     error?: string
+    redirectUrl?: string
 }
 
 // ============================================================
@@ -31,33 +32,26 @@ type ActionResult = {
 // ============================================================
 
 async function getRedirectUrl(user: { id: string; email: string }): Promise<string> {
-    // 1. Vérifier si SuperAdmin
-    const isSuperAdmin = isSuperAdminEmail(user.email)
+    if (isSuperAdminEmail(user.email)) return '/superadmin'
 
-    if (isSuperAdmin) {
-        return '/superadmin'
-    }
-
-    // 2. Vérifier si l'utilisateur a un restaurant
     const restaurantUser = await prisma.restaurantUser.findFirst({
         where: {userId: user.id},
-        select: {customRole: {select: {slug: true}}, role: true},
+        select: {
+            customRole: {select: {slug: true}},
+            role: true,
+            restaurant: {select: {isVerified: true}},
+        },
     })
 
-    // Pas de restaurant → Onboarding
-    if (!restaurantUser) {
-        return '/onboarding'
-    }
+    if (!restaurantUser) return '/onboarding'
 
-    // 3. Rediriger selon le rôle (customRole prioritaire, fallback sur legacy)
+    if (!restaurantUser.restaurant.isVerified) return '/onboarding/verification'
+
     const roleSlug = restaurantUser.customRole?.slug ?? restaurantUser.role
     switch (roleSlug) {
-        case 'kitchen':
-            return '/dashboard/orders'
-        case 'cashier':
-            return '/dashboard/pos'
-        default:
-            return '/dashboard'
+        case 'kitchen': return '/dashboard/orders'
+        case 'cashier': return '/dashboard/pos'
+        default: return '/dashboard'
     }
 }
 
@@ -144,8 +138,7 @@ export async function signIn(data: LoginInput): Promise<ActionResult> {
         }
     }
 
-    // Calcule la redirection — le middleware ou le client l'utilisera
-    await getRedirectUrl({
+    const redirectUrl = await getRedirectUrl({
         id: authData.user.id,
         email: authData.user.email || '',
     })
@@ -153,6 +146,7 @@ export async function signIn(data: LoginInput): Promise<ActionResult> {
     return {
         success: true,
         message: 'Connexion réussie',
+        redirectUrl,
     }
 }
 

@@ -65,11 +65,11 @@ export function CreateRestaurantForm() {
         document.cookie = 'akom_selected_plan=;path=/;max-age=0'
 
         startLoading()
-        router.push('/dashboard')
+        router.push('/onboarding/verification')
     }
 
     return (
-        <AppCard variant="flat" className="w-full max-w-lg mx-auto">
+        <AppCard variant="flat" className="w-full">
             <CardHeader className="text-center">
                 <div className="text-4xl mb-2">{selectedActivity.emoji}</div>
                 <CardTitle className="text-xl">
@@ -94,7 +94,7 @@ export function CreateRestaurantForm() {
                     {/* ── Sélection du type d'activité ── */}
                     <div className="space-y-2">
                         <Label>Type d&apos;activité</Label>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
                             {ACTIVITY_TYPE_OPTIONS.map((option) => (
                                 <button
                                     key={option.value}

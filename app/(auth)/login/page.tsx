@@ -48,7 +48,7 @@ function LoginForm() {
 
         if (result.success) {
             toast.success('Connexion réussie')
-            router.push('/dashboard')
+            router.push(result.redirectUrl ?? '/dashboard')
             router.refresh()
             // Ne pas setLoading(false) : le bouton reste en état chargement
             // jusqu'à ce que le composant se démonte lors du chargement du dashboard
