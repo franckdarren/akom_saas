@@ -5,34 +5,19 @@ import {revalidatePath} from 'next/cache'
 import {createClient} from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
 import {requirePermissionForRestaurant} from '@/lib/permissions/check'
+import {getAllowedTransitions} from '@/lib/config/order-status'
 
 export type OrderStatus = 'awaiting_payment' | 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled'
-
-// Flux séquentiel — cuisine (qr_table, public_link, dashboard)
-const SEQUENTIAL: Record<OrderStatus, OrderStatus[]> = {
-    awaiting_payment: ['pending', 'cancelled'],
-    pending: ['preparing', 'cancelled'],
-    preparing: ['ready', 'cancelled'],
-    ready: ['delivered', 'cancelled'],
-    delivered: [],
-    cancelled: [],
-}
-
-// Flux libre — comptoir (counter)
-// Sauts d'étapes autorisés, jamais de retour en arrière
-const FREE: Record<OrderStatus, OrderStatus[]> = {
-    awaiting_payment: ['pending', 'cancelled'],
-    pending: ['preparing', 'ready', 'delivered', 'cancelled'],
-    preparing: ['ready', 'delivered', 'cancelled'],
-    ready: ['delivered', 'cancelled'],
-    delivered: [],
-    cancelled: [],
-}
 
 export async function updateOrderStatus(orderId: string, newStatus: OrderStatus) {
     const order = await prisma.order.findUnique({
         where: {id: orderId},
-        select: {status: true, restaurantId: true, source: true},
+        select: {
+            status: true,
+            restaurantId: true,
+            source: true,
+            restaurant: {select: {activityType: true}},
+        },
     })
     if (!order) return {error: 'Commande introuvable'}
 
@@ -46,7 +31,11 @@ export async function updateOrderStatus(orderId: string, newStatus: OrderStatus)
     const supabase = await createClient()
 
     const isCounter = order.source === 'counter'
-    const allowed = isCounter ? FREE[order.status] : SEQUENTIAL[order.status]
+    const allowed = getAllowedTransitions(
+        order.restaurant.activityType,
+        order.status,
+        isCounter ? 'free' : 'sequential'
+    )
 
     if (!allowed.includes(newStatus)) {
         return {error: `Transition invalide : ${order.status} → ${newStatus}`}

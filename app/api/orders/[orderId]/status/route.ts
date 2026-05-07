@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
+import { getAllowedTransitions } from '@/lib/config/order-status'
 
 type OrderStatus = 'awaiting_payment' | 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled'
 
@@ -63,8 +64,8 @@ export async function PATCH(
         // Récupérer la commande avec vérification des permissions
         // L'utilisateur doit être membre du restaurant de cette commande
         const order = await prisma.order.findFirst({
-            where: { 
-                id: orderId,  // ✅ Utiliser orderId
+            where: {
+                id: orderId,
                 restaurant: {
                     users: {
                         some: {
@@ -73,9 +74,11 @@ export async function PATCH(
                     }
                 }
             },
-            select: { 
-                status: true, 
-                restaurantId: true 
+            select: {
+                status: true,
+                restaurantId: true,
+                source: true,
+                restaurant: { select: { activityType: true } },
             },
         })
 
@@ -87,23 +90,16 @@ export async function PATCH(
             )
         }
 
-        // Validation des transitions de statut autorisées
-        // Certaines transitions ne sont pas logiques (ex: delivered → pending)
-        const transitions: Record<OrderStatus, OrderStatus[]> = {
-            awaiting_payment: ['pending', 'cancelled'],
-            pending: ['preparing', 'cancelled'],
-            preparing: ['ready', 'cancelled'],
-            ready: ['delivered', 'cancelled'],
-            delivered: [],  // Une commande délivrée ne peut plus changer
-            cancelled: [],  // Une commande annulée ne peut plus changer
-        }
-
+        // Validation des transitions de statut — adaptée au type d'activité
+        // Le mode free (comptoir) autorise les sauts ; sinon flux séquentiel.
         const currentStatus = order.status as OrderStatus
+        const mode = order.source === 'counter' ? 'free' : 'sequential'
+        const allowed = getAllowedTransitions(order.restaurant.activityType, currentStatus, mode)
 
-        if (!transitions[currentStatus].includes(newStatus)) {
+        if (!allowed.includes(newStatus)) {
             console.log('❌ [API] Transition invalide:', currentStatus, '→', newStatus)
             return NextResponse.json(
-                { 
+                {
                     error: 'Transition invalide',
                     message: `Impossible de passer de "${currentStatus}" à "${newStatus}"`
                 },

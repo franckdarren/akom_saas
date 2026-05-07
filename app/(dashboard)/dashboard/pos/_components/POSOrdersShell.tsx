@@ -29,6 +29,15 @@ import {markOrderPaid} from '../_actions/mark-order-paid'
 import {PaymentMethod} from '@prisma/client'
 import {cn} from '@/lib/utils'
 import {useActivityLabels} from '@/lib/hooks/use-activity-labels'
+import {useRestaurant} from '@/lib/hooks/use-restaurant'
+import {
+    getOrderStatusIcon,
+    getOrderStatusBadgeClass,
+    getNextStatus,
+    getAllowedTransitions,
+    getOrderFlow,
+} from '@/lib/config/order-status'
+import type {OrderStatusKey} from '@/lib/config/activity-labels'
 
 // ============================================================
 // TYPES
@@ -87,30 +96,10 @@ interface POSOrdersShellProps {
 // ============================================================
 // CONFIG STATUTS
 // ============================================================
-
-const STATUS_STYLE: Record<OrderStatus, {
-    icon: React.ElementType
-    badgeClass: string
-    nextStatus: OrderStatus | null
-}> = {
-    awaiting_payment: { icon: Clock, badgeClass: 'bg-purple-100 text-purple-700 border-purple-200', nextStatus: null },
-    pending:    { icon: Clock, badgeClass: 'bg-amber-100 text-amber-700 border-amber-200', nextStatus: 'preparing' },
-    preparing:  { icon: ChefHat, badgeClass: 'bg-blue-100 text-blue-700 border-blue-200', nextStatus: 'ready' },
-    ready:      { icon: CheckCircle2, badgeClass: 'bg-green-100 text-green-700 border-green-200', nextStatus: 'delivered' },
-    delivered:  { icon: Truck, badgeClass: 'bg-muted text-muted-foreground border-border', nextStatus: null },
-    cancelled:  { icon: XCircle, badgeClass: 'bg-red-100 text-red-700 border-red-200', nextStatus: null },
-}
-
-// Statuts accessibles depuis le menu libre (comptoir uniquement)
-// Chaque statut indique vers lesquels on peut sauter directement
-const FREE_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
-    awaiting_payment: ['pending', 'cancelled'],
-    pending: ['preparing', 'ready', 'delivered', 'cancelled'],
-    preparing: ['ready', 'delivered', 'cancelled'],
-    ready: ['delivered', 'cancelled'],
-    delivered: [],
-    cancelled: [],
-}
+// Les icônes, couleurs et transitions sont déduites du type d'activité
+// via lib/config/order-status.ts. Les icônes ci-dessous ne sont utilisées
+// que pour les StatCard (tableau de bord), où on garde les visuels resto
+// par défaut — les badges des commandes utilisent l'icône métier.
 
 const PAYMENT_METHODS: { value: PaymentMethod; label: string; icon: React.ElementType }[] = [
     {value: PaymentMethod.cash, label: 'Espèces', icon: Banknote},
@@ -158,7 +147,10 @@ function isFutureDate(dateStr: string): boolean {
 export function POSOrdersShell({orders: initialOrders, stats, selectedDate}: POSOrdersShellProps) {
     const router = useRouter()
     const labels = useActivityLabels()
+    const {currentRestaurant} = useRestaurant()
+    const activityType = currentRestaurant?.activityType
     const s = labels.orderStatuses
+    const flow = getOrderFlow(activityType)
     const [orders, setOrders] = useState<Order[]>(initialOrders)
     const [filter, setFilter] = useState<StatusFilter>('all')
     const [loadingId, setLoadingId] = useState<string | null>(null)
@@ -215,7 +207,7 @@ export function POSOrdersShell({orders: initialOrders, stats, selectedDate}: POS
                     : [...o.payments, {id: 'new', method, status: 'paid' as PaymentSt, amount: o.totalAmount}]
                 return {...o, payments: updatedPayments}
             }))
-            toast.success('Commande encaissée')
+            toast.success(`${labels.orderNameCapital} encaissée`)
         } catch {
             toast.error('Erreur encaissement')
         } finally {
@@ -291,16 +283,30 @@ export function POSOrdersShell({orders: initialOrders, stats, selectedDate}: POS
             <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2 sm:gap-3">
                 <StatCard label={labels.orderNameCapital + 's'} value={stats.total} icon={ShoppingBag}
                           className="col-span-2 sm:col-span-1"/>
-                <StatCard label={s.pending.filterLabel} value={stats.pending} icon={Clock} highlight={stats.pending > 0}
-                          highlightClass="border-amber-200 bg-amber-50"/>
-                <StatCard label={s.preparing.filterLabel} value={stats.preparing} icon={ChefHat} highlight={stats.preparing > 0}
-                          highlightClass="border-blue-200 bg-blue-50"/>
-                <StatCard label={s.ready.filterLabel} value={stats.ready} icon={CheckCircle2} highlight={stats.ready > 0}
-                          highlightClass="border-green-200 bg-green-50"/>
-                <StatCard label={s.delivered.filterLabel} value={stats.delivered} icon={Truck}/>
+                {flow.steps.includes('pending') && (
+                    <StatCard label={s.pending.filterLabel} value={stats.pending}
+                              icon={getOrderStatusIcon(activityType, 'pending')}
+                              highlight={stats.pending > 0}
+                              highlightClass="border-status-pending/30 bg-status-pending/10"/>
+                )}
+                {flow.steps.includes('preparing') && (
+                    <StatCard label={s.preparing.filterLabel} value={stats.preparing}
+                              icon={getOrderStatusIcon(activityType, 'preparing')}
+                              highlight={stats.preparing > 0}
+                              highlightClass="border-status-preparing/30 bg-status-preparing/10"/>
+                )}
+                {flow.steps.includes('ready') && (
+                    <StatCard label={s.ready.filterLabel} value={stats.ready}
+                              icon={getOrderStatusIcon(activityType, 'ready')}
+                              highlight={stats.ready > 0}
+                              highlightClass="border-status-ready/30 bg-status-ready/10"/>
+                )}
+                <StatCard label={s.delivered.filterLabel} value={stats.delivered}
+                          icon={getOrderStatusIcon(activityType, 'delivered')}/>
                 <StatCard label={s.cancelled.filterLabel} value={stats.cancelled} icon={XCircle}/>
                 <StatCard label="Non payés" value={stats.unpaid} icon={AlertCircle}
-                          highlight={stats.unpaid > 0} highlightClass="border-orange-200 bg-orange-50"
+                          highlight={stats.unpaid > 0}
+                          highlightClass="border-warning/30 bg-warning-subtle"
                 />
                 <StatCard
                     label="CA du jour"
@@ -310,14 +316,15 @@ export function POSOrdersShell({orders: initialOrders, stats, selectedDate}: POS
                 />
             </div>
 
-            {/* ── Filtres ── */}
+            {/* ── Filtres : dynamiques selon le flow de l'activité ── */}
             <div className="flex flex-wrap gap-2">
                 {([
-                    ['all', "Toutes", stats.total],
-                    ['pending', s.pending.filterLabel, stats.pending],
-                    ['preparing', s.preparing.filterLabel, stats.preparing],
-                    ['ready', s.ready.filterLabel, stats.ready],
-                    ['delivered', s.delivered.filterLabel, stats.delivered],
+                    ['all', 'Toutes', stats.total],
+                    ...flow.steps.map((step): [StatusFilter, string, number] => [
+                        step as StatusFilter,
+                        s[step].filterLabel,
+                        stats[step as keyof typeof stats] as number,
+                    ]),
                     ['cancelled', s.cancelled.filterLabel, stats.cancelled],
                     ['unpaid', 'Non payées', stats.unpaid],
                 ] as [StatusFilter, string, number][]).map(([value, label, count]) => (
@@ -331,7 +338,7 @@ export function POSOrdersShell({orders: initialOrders, stats, selectedDate}: POS
                                 ? 'bg-primary text-primary-foreground border-primary shadow-sm'
                                 : 'bg-background text-muted-foreground border-border hover:bg-muted hover:text-foreground',
                             value === 'unpaid' && count > 0 && filter !== value
-                            && 'border-orange-300 text-orange-600 hover:bg-orange-50'
+                            && 'border-warning/40 text-warning-foreground hover:bg-warning-subtle'
                         )}
                     >
                         {label}
@@ -353,8 +360,8 @@ export function POSOrdersShell({orders: initialOrders, stats, selectedDate}: POS
                     <Receipt className="h-10 w-10 opacity-25"/>
                     <p className="text-sm">
                         {filter === 'all'
-                            ? `Aucune commande le ${formatDateLabel(selectedDate).toLowerCase()}`
-                            : 'Aucune commande pour ce filtre'
+                            ? `Aucune ${labels.orderName} le ${formatDateLabel(selectedDate).toLowerCase()}`
+                            : `Aucune ${labels.orderName} pour ce filtre`
                         }
                     </p>
                 </div>
@@ -364,6 +371,7 @@ export function POSOrdersShell({orders: initialOrders, stats, selectedDate}: POS
                         <OrderCard
                             key={order.id}
                             order={order}
+                            activityType={activityType}
                             orderStatuses={s}
                             onStatusChange={handleStatusChange}
                             onRequestPay={() => setPayDialog(order)}
@@ -375,6 +383,7 @@ export function POSOrdersShell({orders: initialOrders, stats, selectedDate}: POS
 
             <PaymentDialog
                 order={payDialog}
+                orderLabel={labels.orderName}
                 onClose={() => setPayDialog(null)}
                 onConfirm={handleMarkPaid}
             />
@@ -387,16 +396,18 @@ export function POSOrdersShell({orders: initialOrders, stats, selectedDate}: POS
 // ============================================================
 
 function OrderCard({
-                       order, orderStatuses, onStatusChange, onRequestPay, isLoading,
+                       order, activityType, orderStatuses, onStatusChange, onRequestPay, isLoading,
                    }: {
     order: Order
+    activityType: string | null | undefined
     orderStatuses: import('@/lib/config/activity-labels').ActivityLabels['orderStatuses']
     onStatusChange: (id: string, status: OrderStatus) => void
     onRequestPay: () => void
     isLoading: boolean
 }) {
-    const style = STATUS_STYLE[order.status]
-    const StatusIcon = style.icon
+    const StatusIcon = getOrderStatusIcon(activityType, order.status as OrderStatusKey)
+    const badgeClass = getOrderStatusBadgeClass(order.status as OrderStatusKey)
+    const nextStatus = getNextStatus(activityType, order.status as OrderStatusKey)
     const statusLabel = orderStatuses[order.status].label
     const isPaid = order.payments.some(p => p.status === 'paid')
     const paidPayment = order.payments.find(p => p.status === 'paid')
@@ -405,7 +416,9 @@ function OrderCard({
     const isCounter = order.source === 'counter'
 
     // Transitions libres disponibles (saut direct) — uniquement pour les commandes comptoir
-    const freeTransitions = isCounter ? FREE_TRANSITIONS[order.status] : []
+    const freeTransitions = isCounter
+        ? getAllowedTransitions(activityType, order.status as OrderStatusKey, 'free')
+        : []
 
     const location = order.tableLabel
         || (order.table ? `Table ${order.table.number}` : null)
@@ -426,7 +439,7 @@ function OrderCard({
                         <span className="font-bold">
                             #{order.orderNumber ?? order.id.slice(-6).toUpperCase()}
                         </span>
-                        <Badge variant="outline" className={cn('text-xs border font-medium', style.badgeClass)}>
+                        <Badge variant="outline" className={cn('text-xs font-medium', badgeClass)}>
                             <StatusIcon className="h-3 w-3 mr-1"/>
                             {statusLabel}
                         </Badge>
@@ -434,8 +447,8 @@ function OrderCard({
                             <Badge variant="outline" className={cn(
                                 'text-xs font-medium',
                                 isPaid
-                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                    : 'bg-orange-50 text-orange-700 border-orange-200'
+                                    ? 'bg-success-subtle text-success-foreground border-success/30'
+                                    : 'bg-warning-subtle text-warning-foreground border-warning/30'
                             )}>
                                 {isPaid ? '✓ Payé' : '⏳ Non payé'}
                             </Badge>
@@ -500,7 +513,7 @@ function OrderCard({
                             size="sm" variant="outline"
                             onClick={onRequestPay}
                             disabled={isLoading}
-                            className="text-xs h-7 border-orange-300 text-orange-600 hover:bg-orange-50"
+                            className="text-xs h-7 border-warning/40 text-warning-foreground hover:bg-warning-subtle"
                         >
                             Encaisser
                         </Button>
@@ -542,12 +555,11 @@ function OrderCard({
                                     </DropdownMenuLabel>
                                     <DropdownMenuSeparator/>
                                     {freeTransitions.map(status => {
-                                        const stStyle = STATUS_STYLE[status]
-                                        const Icon = stStyle.icon
+                                        const Icon = getOrderStatusIcon(activityType, status)
                                         return (
                                             <DropdownMenuItem
                                                 key={status}
-                                                onClick={() => onStatusChange(order.id, status)}
+                                                onClick={() => onStatusChange(order.id, status as OrderStatus)}
                                                 className={cn(
                                                     'gap-2 cursor-pointer',
                                                     status === 'delivered' && 'font-medium text-primary',
@@ -565,17 +577,17 @@ function OrderCard({
                         ) : (
 
                             // ── Mode séquentiel : bouton linéaire (autres sources) ──
-                            style.nextStatus && (
+                            nextStatus && (
                                 <Button
                                     size="sm"
                                     variant={order.status === 'ready' ? 'default' : 'secondary'}
-                                    onClick={() => onStatusChange(order.id, style.nextStatus!)}
+                                    onClick={() => onStatusChange(order.id, nextStatus as OrderStatus)}
                                     disabled={isLoading}
                                     className="text-xs h-7"
                                 >
                                     {isLoading
                                         ? <RefreshCw className="h-3 w-3 animate-spin"/>
-                                        : (orderStatuses[style.nextStatus!] as { actionLabel: string }).actionLabel
+                                        : (orderStatuses[nextStatus] as { actionLabel?: string }).actionLabel ?? orderStatuses[nextStatus].label
                                     }
                                 </Button>
                             )
@@ -592,9 +604,10 @@ function OrderCard({
 // ============================================================
 
 function PaymentDialog({
-                           order, onClose, onConfirm,
+                           order, orderLabel, onClose, onConfirm,
                        }: {
     order: Order | null
+    orderLabel: string
     onClose: () => void
     onConfirm: (order: Order, method: PaymentMethod) => void
 }) {
@@ -602,11 +615,11 @@ function PaymentDialog({
         <Dialog open={!!order} onOpenChange={open => !open && onClose()}>
             <DialogContent className="sm:max-w-sm">
                 <DialogHeader>
-                    <DialogTitle>Encaisser la commande</DialogTitle>
+                    <DialogTitle>Encaisser la {orderLabel}</DialogTitle>
                     <DialogDescription>
                         {order && (
                             <>
-                                Commande #{order.orderNumber ?? order.id.slice(-6).toUpperCase()}
+                                #{order.orderNumber ?? order.id.slice(-6).toUpperCase()}
                                 {' · '}<strong>{order.totalAmount.toLocaleString('fr-FR')} FCFA</strong>
                             </>
                         )}

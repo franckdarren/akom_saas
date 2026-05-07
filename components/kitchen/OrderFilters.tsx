@@ -3,6 +3,8 @@
 
 import { Button } from '@/components/ui/button'
 import { useActivityLabels } from '@/lib/hooks/use-activity-labels'
+import { useRestaurant } from '@/lib/hooks/use-restaurant'
+import { getOrderFlow } from '@/lib/config/order-status'
 import type { OrderStatusFilter } from '@/lib/hooks/use-orders-realtime'
 
 interface OrderFiltersProps {
@@ -15,14 +17,18 @@ interface OrderFiltersProps {
 
 export function OrderFilters({ activeFilter, onFilterChange, counts }: OrderFiltersProps) {
     const labels = useActivityLabels()
+    const { currentRestaurant } = useRestaurant()
     const s = labels.orderStatuses
+    const { steps } = getOrderFlow(currentRestaurant?.activityType)
 
+    // Filtres dynamiques : on ne montre que les étapes du flow de l'activité,
+    // plus "Toutes" en tête et "Annulées" en fin.
     const filters: { value: OrderStatusFilter; label: string }[] = [
         { value: 'all', label: 'Toutes' },
-        { value: 'pending', label: s.pending.filterLabel },
-        { value: 'preparing', label: s.preparing.filterLabel },
-        { value: 'ready', label: s.ready.filterLabel },
-        { value: 'delivered', label: s.delivered.filterLabel },
+        ...steps.map((step) => ({
+            value: step as OrderStatusFilter,
+            label: s[step].filterLabel,
+        })),
         { value: 'cancelled', label: s.cancelled.filterLabel },
     ]
 
@@ -43,8 +49,8 @@ export function OrderFilters({ activeFilter, onFilterChange, counts }: OrderFilt
                         {filter.label}
                         {count > 0 && (
                             <span className={`px-2 py-0.5 rounded-full text-xs ${isActive
-                                ? 'bg-white/20 text-white'
-                                : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100'
+                                ? 'bg-primary-foreground/20 text-primary-foreground'
+                                : 'bg-muted text-foreground'
                                 }`}>
                                 {count}
                             </span>

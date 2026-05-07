@@ -6,8 +6,14 @@ import {AppCard, CardContent, CardHeader, CardTitle} from '@/components/ui/app-c
 import {Badge} from '@/components/ui/badge'
 import {Button} from '@/components/ui/button'
 import {formatDate, formatPrice} from '@/lib/utils/format'
-import {Clock, CheckCircle, XCircle, ChefHat, Package, Banknote, AlertCircle, type LucideIcon} from 'lucide-react'
+import {Clock, CheckCircle, Banknote, AlertCircle, type LucideIcon} from 'lucide-react'
 import {useActivityLabels} from '@/lib/hooks/use-activity-labels'
+import {useRestaurant} from '@/lib/hooks/use-restaurant'
+import {
+    getOrderStatusIcon,
+    getOrderStatusBadgeClass,
+    getNextStatus,
+} from '@/lib/config/order-status'
 import {toast} from 'sonner'
 import {
     AlertDialog,
@@ -57,16 +63,6 @@ interface OrderCardProps {
     order: Order
 }
 
-// Couleurs et icônes par statut (invariants, ne dépendent pas de l'activité)
-const STATUS_STYLE: Record<OrderStatus, { color: string; icon: LucideIcon; nextStatus: OrderStatus | null }> = {
-    awaiting_payment: { color: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200', icon: Clock, nextStatus: null },
-    pending:    { color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200', icon: Clock, nextStatus: 'preparing' },
-    preparing:  { color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200', icon: ChefHat, nextStatus: 'ready' },
-    ready:      { color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200', icon: CheckCircle, nextStatus: 'delivered' },
-    delivered:  { color: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200', icon: Package, nextStatus: null },
-    cancelled:  { color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200', icon: XCircle, nextStatus: null },
-}
-
 type PaymentBadgeInfo = {
     label: string
     className: string
@@ -78,29 +74,33 @@ function getPaymentBadge(payments: OrderPayment[], orderStatus: OrderStatus): Pa
     if (orderStatus === 'cancelled' || orderStatus === 'awaiting_payment') return null
 
     if (payments.some(p => p.status === 'paid')) {
-        return {label: 'Payé', className: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200', Icon: CheckCircle}
+        return {label: 'Payé', className: 'bg-success text-success-foreground', Icon: CheckCircle}
     }
 
     if (payments.some(p => p.status === 'pending' && p.method === 'cash')) {
-        return {label: 'Cash', className: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200', Icon: Banknote}
+        return {label: 'Cash', className: 'bg-info text-info-foreground', Icon: Banknote}
     }
 
     if (payments.some(p => p.status === 'pending')) {
-        return {label: 'Paiement en cours', className: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200', Icon: Clock}
+        return {label: 'Paiement en cours', className: 'bg-warning text-warning-foreground', Icon: Clock}
     }
 
     // Aucun paiement enregistré ou tous échoués
-    return {label: 'Impayé', className: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200', Icon: AlertCircle}
+    return {label: 'Impayé', className: 'bg-destructive text-destructive-foreground', Icon: AlertCircle}
 }
 
 export function OrderCard({order}: OrderCardProps) {
     const [isUpdating, setIsUpdating] = useState(false)
     const labels = useActivityLabels()
-    const style = STATUS_STYLE[order.status]
-    const Icon = style.icon
+    const {currentRestaurant} = useRestaurant()
+    const activityType = currentRestaurant?.activityType
+    const Icon = getOrderStatusIcon(activityType, order.status)
+    const badgeClass = getOrderStatusBadgeClass(order.status)
     const statusLabel = labels.orderStatuses[order.status].label
-    const nextStatus = style.nextStatus
-    const nextLabel = nextStatus ? (labels.orderStatuses[nextStatus] as { actionLabel: string }).actionLabel : null
+    const nextStatus = getNextStatus(activityType, order.status)
+    const nextLabel = nextStatus
+        ? (labels.orderStatuses[nextStatus] as { actionLabel?: string }).actionLabel ?? null
+        : null
     const paymentBadge = getPaymentBadge(order.payments ?? [], order.status)
 
     const router = useRouter()
@@ -151,29 +151,29 @@ export function OrderCard({order}: OrderCardProps) {
         if (!deleteTarget) return
 
         setLoading(deleteTarget.id)
-        const result = await handleStatusChange('cancelled')
+        await handleStatusChange('cancelled')
         setLoading(null)
         setDeleteTarget(null)
-        toast.success("La commande a été annulée avec succès.")
+        toast.success(`${labels.orderNameCapital} annulée avec succès.`)
     }
 
     return (
         <>
             <AppCard
-                className={order.status === 'pending' ? 'border-yellow-500 shadow-lg hover:border-primary/50 hover:shadow-md' : 'hover:border-primary/50 hover:shadow-md'}>
+                className={order.status === 'pending' ? 'border-status-pending shadow-lg hover:border-primary/50 hover:shadow-md' : 'hover:border-primary/50 hover:shadow-md'}>
                 <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
                         <CardTitle className="text-lg font-bold">
                             {order.orderNumber}
                         </CardTitle>
-                        <Badge className={style.color}>
+                        <Badge className={badgeClass}>
                             <Icon className="h-3 w-3 mr-1"/>
                             {statusLabel}
                         </Badge>
                     </div>
                     <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <span>Table {order.table?.number || 'N/A'}</span>
+                            <span>{labels.tableNameCapital} {order.table?.number || 'N/A'}</span>
                             <span>•</span>
                             <span>{formatDate(new Date(order.createdAt))}</span>
                         </div>
@@ -220,7 +220,7 @@ export function OrderCard({order}: OrderCardProps) {
 
                     {/* Actions */}
                     <div className="flex gap-2 pt-2">
-                        {nextStatus && (
+                        {nextStatus && nextLabel && (
                             <Button
                                 className="flex-1"
                                 onClick={() => handleStatusChange(nextStatus)}
@@ -255,7 +255,7 @@ export function OrderCard({order}: OrderCardProps) {
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>
-                            Annuler la commande {deleteTarget?.orderNumber} ?
+                            Annuler la {labels.orderName} {deleteTarget?.orderNumber} ?
                         </AlertDialogTitle>
                         <AlertDialogDescription>
                             Cette action est irréversible.

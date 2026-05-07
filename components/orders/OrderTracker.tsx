@@ -7,8 +7,13 @@ import { createClient } from '@/lib/supabase/client'
 import { AppCard, CardContent, CardHeader, CardTitle } from '@/components/ui/app-card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, Clock, CheckCircle, Package, UtensilsCrossed, XCircle, type LucideIcon } from 'lucide-react'
+import { ArrowLeft, Clock, type LucideIcon } from 'lucide-react'
 import { getLabels, type OrderStatusKey } from '@/lib/config/activity-labels'
+import {
+    getOrderFlow,
+    getOrderStatusIcon,
+    getOrderStatusBadgeClass,
+} from '@/lib/config/order-status'
 import { formatPrice } from '@/lib/utils/format'
 import { formatDistanceToNow } from 'date-fns'
 import { fr } from 'date-fns/locale'
@@ -42,16 +47,6 @@ interface OrderTrackerProps {
         number: number
     }
 }
-
-// Couleurs et icônes (invariants)
-const STATUS_STYLE: Record<string, { color: string; icon: LucideIcon }> = {
-    pending:    { color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200', icon: Clock },
-    preparing:  { color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200', icon: UtensilsCrossed },
-    ready:      { color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200', icon: CheckCircle },
-    delivered:  { color: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200', icon: Package },
-    cancelled:  { color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200', icon: XCircle },
-}
-
 
 export function OrderTracker({ order: initialOrder, restaurant, table }: OrderTrackerProps) {
     // État local pour stocker les données de la commande
@@ -149,11 +144,12 @@ export function OrderTracker({ order: initialOrder, restaurant, table }: OrderTr
     // Labels dynamiques selon le type d'activité
     const activityLabels = getLabels(restaurant.activityType)
     const orderStatuses = activityLabels.orderStatuses
+    const flow = getOrderFlow(restaurant.activityType)
 
     // Récupérer la configuration du statut actuel
-    const style = STATUS_STYLE[order.status] || STATUS_STYLE.pending
+    const badgeClass = getOrderStatusBadgeClass(order.status as OrderStatusKey)
     const statusLabels = orderStatuses[order.status as OrderStatusKey]
-    const StatusIcon = style.icon;
+    const StatusIcon = getOrderStatusIcon(restaurant.activityType, order.status as OrderStatusKey);
 
     // Calculer le temps écoulé depuis la création de la commande
     // Cette valeur change automatiquement grâce à React qui re-render
@@ -201,7 +197,7 @@ export function OrderTracker({ order: initialOrder, restaurant, table }: OrderTr
                 <Link href={menuUrl}>
                     <Button variant="ghost" size="sm">
                         <ArrowLeft className="h-4 w-4 mr-2" />
-                        Retour au menu
+                        Retour au {activityLabels.catalogName}
                     </Button>
                 </Link>
 
@@ -221,13 +217,13 @@ export function OrderTracker({ order: initialOrder, restaurant, table }: OrderTr
                         <div className="flex items-center justify-between gap-4">
                             <div className="flex-1 min-w-0">
                                 <CardTitle className="text-xl truncate">
-                                    Commande {order.order_number}
+                                    {activityLabels.orderNameCapital} {order.order_number}
                                 </CardTitle>
                                 <p className="text-sm text-muted-foreground mt-1 truncate">
-                                    {restaurant.name}{table ? ` • Table ${table.number}` : ''}
+                                    {restaurant.name}{table ? ` • ${activityLabels.tableNameCapital} ${table.number}` : ''}
                                 </p>
                             </div>
-                            <Badge className={`${style.color} shrink-0`}>
+                            <Badge className={`${badgeClass} shrink-0`}>
                                 <StatusIcon className="h-4 w-4 mr-1" />
                                 {statusLabels.label}
                             </Badge>
@@ -235,7 +231,7 @@ export function OrderTracker({ order: initialOrder, restaurant, table }: OrderTr
 
                         <div className="flex items-center gap-2 text-sm text-muted-foreground mt-5">
                             <Clock className="h-4 w-4 shrink-0" />
-                            <span>Commandé {timeAgo}</span>
+                            <span>Reçue {timeAgo}</span>
                         </div>
                     </div>
                 </CardHeader>
@@ -248,38 +244,32 @@ export function OrderTracker({ order: initialOrder, restaurant, table }: OrderTr
                         </p>
                     </div>
 
-                    {/* Timeline de progression */}
+                    {/* Timeline de progression — étapes du flow + cancelled si applicable */}
                     <div>
                         <h3 className="font-medium mb-5">Progression</h3>
                         <div className="space-y-3">
-                            {(['pending', 'preparing', 'ready', 'delivered', 'cancelled'] as const)
-                                .filter((key) => {
-                                    if (order.status === 'cancelled') {
-                                        return ['pending', 'cancelled'].includes(key)
-                                    }
-                                    return key !== 'cancelled'
-                                })
-                                .map((key) => {
-                                    const isActive = order.status === key
-                                    const statuses = ['pending', 'preparing', 'ready', 'delivered']
-                                    const currentIndex = statuses.indexOf(order.status)
-                                    const stepIndex = statuses.indexOf(key)
+                            {(order.status === 'cancelled'
+                                ? (['pending', 'cancelled'] as OrderStatusKey[])
+                                : (flow.steps as OrderStatusKey[])
+                            ).map((key) => {
+                                const isActive = order.status === key
+                                const currentIndex = flow.steps.indexOf(order.status as never)
+                                const stepIndex = flow.steps.indexOf(key as never)
 
-                                    const isCompleted = order.status === 'cancelled'
-                                        ? key === 'pending' || key === 'cancelled'
-                                        : stepIndex <= currentIndex
+                                const isCompleted = order.status === 'cancelled'
+                                    ? key === 'pending' || key === 'cancelled'
+                                    : stepIndex !== -1 && currentIndex !== -1 && stepIndex <= currentIndex
 
-                                    return (
-                                        <StatusStep
-                                            key={key}
-                                            label={orderStatuses[key].label}
-                                            icon={(STATUS_STYLE[key] || STATUS_STYLE.pending).icon}
-                                            completed={isCompleted}
-                                            active={isActive}
-                                        />
-                                    )
-                                })
-                            }
+                                return (
+                                    <StatusStep
+                                        key={key}
+                                        label={orderStatuses[key].label}
+                                        icon={getOrderStatusIcon(restaurant.activityType, key)}
+                                        completed={isCompleted}
+                                        active={isActive}
+                                    />
+                                )
+                            })}
                         </div>
                     </div>
 
@@ -318,32 +308,28 @@ export function OrderTracker({ order: initialOrder, restaurant, table }: OrderTr
                     {canCancel && (
                         <div className="pt-4 border-t">
                             <p className="text-sm text-muted-foreground mb-3">
-                                Vous pouvez annuler votre commande dans les 2 minutes
+                                Vous pouvez annuler votre {activityLabels.orderName} dans les 2 minutes
                                 suivant sa création.
                             </p>
                             <Button
                                 variant="destructive"
                                 className="w-full"
                                 onClick={async () => {
-                                    // TODO: Implémenter l'annulation
                                     try {
                                         const response = await fetch(
                                             `/api/orders/${order.id}/cancel`,
                                             { method: 'POST' }
                                         )
 
-                                        if (response.ok) {
-                                            // La mise à jour du statut sera automatique
-                                            // grâce au temps réel !
-                                        } else {
-                                            alert('Impossible d\'annuler la commande')
+                                        if (!response.ok) {
+                                            alert(`Impossible d'annuler la ${activityLabels.orderName}`)
                                         }
-                                    } catch (error) {
-                                        alert('Erreur lors de l\'annulation')
+                                    } catch {
+                                        alert(`Erreur lors de l'annulation`)
                                     }
                                 }}
                             >
-                                Annuler la commande
+                                Annuler la {activityLabels.orderName}
                             </Button>
                         </div>
                     )}
@@ -355,7 +341,7 @@ export function OrderTracker({ order: initialOrder, restaurant, table }: OrderTr
                 <div className="pt-6">
                     <Link href={menuUrl} className="block">
                         <Button variant="outline" className="w-full">
-                            Passer une nouvelle commande
+                            Passer une nouvelle {activityLabels.orderName}
                         </Button>
                     </Link>
                 </div>
