@@ -1278,6 +1278,7 @@ enum NotificationType {
   new_invitation_accepted
   // Superadmin
   new_support_ticket
+  support_client_reply
   new_verification_submitted
   new_subscription_payment
 }

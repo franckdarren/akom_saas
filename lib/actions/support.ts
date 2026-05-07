@@ -225,6 +225,7 @@ export async function sendTicketMessage(data: {
                 id: data.ticketId,
                 restaurantId,
             },
+            include: { restaurant: { select: { name: true } } },
         })
 
         if (!ticket) return {error: 'Ticket introuvable'}
@@ -244,6 +245,14 @@ export async function sendTicketMessage(data: {
                 data: {status: 'open'},
             })
         }
+
+        // Notifier les superadmins de la réponse du client — best-effort
+        void notifySuperAdmins('support_client_reply', {
+            ticketId: data.ticketId,
+            subject: ticket.subject,
+            restaurantName: ticket.restaurant.name,
+            preview: data.message,
+        })
 
         revalidatePath('/superadmin/support')
         return {success: true, message}

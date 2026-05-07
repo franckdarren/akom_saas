@@ -194,6 +194,20 @@ const renderers: Record<
         emailCtaLabel: 'Traiter le ticket',
     }),
 
+    support_client_reply: (data, ctx) => ({
+        title: 'Nouveau message client',
+        body: data.restaurantName && data.preview
+            ? `${data.restaurantName} : « ${truncate(String(data.preview), 100)} »`
+            : data.restaurantName
+              ? `${data.restaurantName} a répondu à un ticket.`
+              : 'Un client a répondu à un ticket de support.',
+        actionUrl: data.ticketId ? `/superadmin/support/${data.ticketId}` : '/superadmin/support',
+        priority: 'high',
+        emailSubject: `[Akôm Admin] Nouvelle réponse client${data.subject ? ` : ${data.subject}` : ''}`,
+        emailIntro: 'Un client a répondu à un ticket de support.',
+        emailCtaLabel: 'Voir la conversation',
+    }),
+
     new_verification_submitted: (data, ctx) => ({
         title: 'Documents à vérifier',
         body: data.restaurantName
