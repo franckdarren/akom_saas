@@ -6,7 +6,11 @@ import {SupportPanel} from '@/components/support/SupportPanel'
 import {PageHeader} from '@/components/ui/page-header'
 import {Button} from '@/components/ui/button'
 
-export function SupportPageClient() {
+interface Props {
+    initialTicketId?: string
+}
+
+export function SupportPageClient({ initialTicketId }: Props) {
     const [isInSubView, setIsInSubView] = useState(false)
     const backRef = useRef<(() => void) | null>(null)
 
@@ -32,6 +36,7 @@ export function SupportPageClient() {
                 showHeader={false}
                 onViewChange={(view) => setIsInSubView(view !== 'list')}
                 backRef={backRef}
+                initialTicketId={initialTicketId}
             />
         </div>
     )

@@ -52,9 +52,11 @@ interface SupportPanelProps {
     onViewChange?: (view: View) => void
     /** Ref pour déclencher le retour depuis un bouton externe */
     backRef?: React.MutableRefObject<(() => void) | null>
+    /** Ouvrir directement la conversation d'un ticket (depuis une notification) */
+    initialTicketId?: string
 }
 
-export function SupportPanel({showHeader = true, onClose, onViewChange, backRef}: SupportPanelProps) {
+export function SupportPanel({showHeader = true, onClose, onViewChange, backRef, initialTicketId}: SupportPanelProps) {
     const [view, setView] = useState<View>('list')
     const [tickets, setTickets] = useState<Ticket[]>([])
     const [selectedTicket, setSelectedTicket] = useState<string | null>(null)
@@ -86,6 +88,14 @@ export function SupportPanel({showHeader = true, onClose, onViewChange, backRef}
         description: '',
         priority: 'medium' as 'low' | 'medium' | 'high' | 'urgent',
     })
+
+    useEffect(() => {
+        if (!initialTicketId) return
+        setSelectedTicket(initialTicketId)
+        changeView('conversation')
+        loadTickets()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [initialTicketId])
 
     useEffect(() => {
         if (scrollRef.current) {

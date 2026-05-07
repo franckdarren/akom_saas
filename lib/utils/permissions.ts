@@ -2,17 +2,20 @@ import type {SystemRole} from '@/types/auth'
 
 
 /*************************************************************
- * Liste des emails SuperAdmin (TOI)
+ * Liste des emails SuperAdmin — lue depuis l'env var SUPER_ADMIN_EMAILS
+ * (même source que lib/auth/superadmin.ts pour rester cohérent)
  ************************************************************/
-export const SUPERADMIN_EMAILS = [
-    'franck@superadmin.com',
-]
+export const SUPERADMIN_EMAILS: string[] =
+    process.env.SUPER_ADMIN_EMAILS
+        ?.split(',')
+        .map((e) => e.trim().toLowerCase())
+        .filter(Boolean) ?? []
 
 /************************************************************
  * Vérifie si un email est SuperAdmin
  ************************************************************/
 export function isSuperAdminEmail(email: string): boolean {
-    return SUPERADMIN_EMAILS.includes(email.toLowerCase())
+    return SUPERADMIN_EMAILS.includes(email.trim().toLowerCase())
 }
 
 /*************************************************************

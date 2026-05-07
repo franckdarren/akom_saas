@@ -9,7 +9,13 @@ import {
 import {SupportPageClient} from './support-page-client'
 import {AppInsetHeader} from '@/components/layout/AppInsetHeader'
 
-export default function SupportPage() {
+export default async function SupportPage({
+    searchParams,
+}: {
+    searchParams: Promise<{ ticket?: string }>
+}) {
+    const { ticket } = await searchParams
+
     return (
         <>
             <AppInsetHeader>
@@ -27,7 +33,7 @@ export default function SupportPage() {
             </AppInsetHeader>
 
             <div className="layout-page">
-                <SupportPageClient/>
+                <SupportPageClient initialTicketId={ticket} />
             </div>
         </>
     )

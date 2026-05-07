@@ -187,7 +187,7 @@ const renderers: Record<
         body: data.subject && data.restaurantName
             ? `${data.restaurantName} : « ${truncate(String(data.subject), 100)} »`
             : 'Un nouveau ticket de support a été créé.',
-        actionUrl: data.ticketId ? `/superadmin/support?ticket=${data.ticketId}` : '/superadmin/support',
+        actionUrl: data.ticketId ? `/superadmin/support/${data.ticketId}` : '/superadmin/support',
         priority: 'high',
         emailSubject: '[Akôm Admin] Nouveau ticket support',
         emailIntro: 'Un nouveau ticket vient d’être ouvert.',

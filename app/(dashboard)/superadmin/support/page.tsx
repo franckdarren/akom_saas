@@ -1,6 +1,6 @@
 // app/(dashboard)/superadmin/support/page.tsx
+import { redirect } from 'next/navigation'
 import { getAllTickets, getSupportStats } from '@/lib/actions/support'
-import { formatDate } from '@/lib/utils/format'
 import SupportTicketsTable from '@/components/superadmin/support/SupportTicketsTable'
 import SupportStatsCards from '@/components/superadmin/support/SupportStatsCards'
 import {
@@ -11,12 +11,19 @@ import {
     BreadcrumbSeparator,
     BreadcrumbPage,
 } from '@/components/ui/breadcrumb'
-import { Suspense } from 'react'
 import { PageHeader } from '@/components/ui/page-header'
 import { AppInsetHeader } from '@/components/layout/AppInsetHeader'
 
+export default async function SupportPage({
+    searchParams,
+}: {
+    searchParams: Promise<{ ticket?: string }>
+}) {
+    const { ticket } = await searchParams
 
-export default async function SupportPage() {
+    // Compatibilité avec les anciennes notifications qui utilisent ?ticket=
+    if (ticket) redirect(`/superadmin/support/${ticket}`)
+
     const [tickets, stats] = await Promise.all([
         getAllTickets(),
         getSupportStats(),
@@ -24,7 +31,6 @@ export default async function SupportPage() {
 
     return (
         <>
-            {/* Header */}
             <AppInsetHeader>
                 <Breadcrumb>
                     <BreadcrumbList>
@@ -33,7 +39,7 @@ export default async function SupportPage() {
                         </BreadcrumbItem>
                         <BreadcrumbSeparator />
                         <BreadcrumbItem>
-                            <BreadcrumbPage>Gestion des Paiements</BreadcrumbPage>
+                            <BreadcrumbPage>Support client</BreadcrumbPage>
                         </BreadcrumbItem>
                     </BreadcrumbList>
                 </Breadcrumb>
@@ -48,7 +54,6 @@ export default async function SupportPage() {
                 <SupportStatsCards stats={stats} />
                 <SupportTicketsTable tickets={tickets} />
             </div>
-
         </>
     )
 }
