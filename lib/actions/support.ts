@@ -6,6 +6,7 @@ import {supabaseAdmin} from '@/lib/supabase/admin'
 import prisma from '@/lib/prisma'
 import {isSuperAdminEmail} from '@/lib/utils/permissions'
 import {notifyRestaurantAdmins, notifySuperAdmins} from '@/lib/notifications'
+import {getCurrentUserAndRestaurant} from '@/lib/auth/session'
 import type {TicketStatus, TicketPriority} from '@prisma/client'
 
 // ============================================================
@@ -37,17 +38,12 @@ export async function createSupportTicket(data: {
     priority?: TicketPriority
 }) {
     try {
-        const user = await getCurrentUser()
-        const restaurantUser = await prisma.restaurantUser.findFirst({
-            where: {userId: user.id},
-        })
-
-        if (!restaurantUser) return {error: 'Aucun restaurant trouvé'}
+        const { userId, restaurantId } = await getCurrentUserAndRestaurant()
 
         const ticket = await prisma.supportTicket.create({
             data: {
-                restaurantId: restaurantUser.restaurantId,
-                userId: user.id,
+                restaurantId,
+                userId,
                 subject: data.subject,
                 description: data.description,
                 priority: data.priority || 'medium',
@@ -136,15 +132,10 @@ export async function getSupportStats() {
 
 export async function getMyTickets() {
     try {
-        const user = await getCurrentUser()
-        const restaurantUser = await prisma.restaurantUser.findFirst({
-            where: {userId: user.id},
-        })
-
-        if (!restaurantUser) return {error: 'Aucun restaurant trouvé'}
+        const { restaurantId } = await getCurrentUserAndRestaurant()
 
         const tickets = await prisma.supportTicket.findMany({
-            where: {restaurantId: restaurantUser.restaurantId},
+            where: {restaurantId},
             include: {
                 _count: {select: {messages: true}},
             },
@@ -170,18 +161,18 @@ export async function getTicketMessages(ticketId: string) {
             return {success: true, messages}
         }
 
-        const restaurantUser = await prisma.restaurantUser.findFirst({
-            where: {userId: user.id},
-        })
-
-        if (!restaurantUser) {
+        let restaurantId: string
+        try {
+            const session = await getCurrentUserAndRestaurant()
+            restaurantId = session.restaurantId
+        } catch {
             return {success: false, error: 'Accès refusé', messages: []}
         }
 
         const ticket = await prisma.supportTicket.findFirst({
             where: {
                 id: ticketId,
-                restaurantId: restaurantUser.restaurantId,
+                restaurantId,
             },
         })
 
@@ -206,17 +197,12 @@ export async function sendTicketMessage(data: {
     message: string
 }) {
     try {
-        const user = await getCurrentUser()
-        const restaurantUser = await prisma.restaurantUser.findFirst({
-            where: {userId: user.id},
-        })
-
-        if (!restaurantUser) return {error: 'Accès refusé'}
+        const { userId, restaurantId } = await getCurrentUserAndRestaurant()
 
         const ticket = await prisma.supportTicket.findFirst({
             where: {
                 id: data.ticketId,
-                restaurantId: restaurantUser.restaurantId,
+                restaurantId,
             },
         })
 
@@ -225,7 +211,7 @@ export async function sendTicketMessage(data: {
         const message = await prisma.ticketMessage.create({
             data: {
                 ticketId: data.ticketId,
-                userId: user.id,
+                userId,
                 message: data.message,
                 isAdmin: false,
             },
