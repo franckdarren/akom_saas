@@ -19,7 +19,7 @@ npm run start      # Lancement du serveur de production
 
 Aucun framework de test n'est configure. Le repertoire `/app/test/` contient des pages de test manuelles.
 
-Apres toute modification du schema, executer `npx prisma generate` (s'execute aussi automatiquement via `postinstall`). Migrations : `npx prisma migrate dev --name <name>`.
+Apres toute modification du schema, executer `npx prisma generate` (s'execute aussi automatiquement via `postinstall`). Migrations : fournir uniquement le script SQL brut a executer manuellement dans Supabase — ne jamais lancer `npx prisma migrate dev`, `prisma db push` ou toute commande qui modifie directement la base de donnees.
 
 ## Architecture
 
