@@ -18,9 +18,8 @@ import {
     BreadcrumbPage,
 } from '@/components/ui/breadcrumb'
 import { Suspense } from 'react'
-import { Separator } from '@/components/ui/separator'
-import { SidebarTrigger } from '@/components/ui/sidebar'
 import { PageHeader } from '@/components/ui/page-header'
+import { AppInsetHeader } from '@/components/layout/AppInsetHeader'
 
 
 // Typage
@@ -40,23 +39,19 @@ export default async function StatsPage() {
     return (
         <>
             {/* Header */}
-            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-                <SidebarTrigger className="-ml-1" />
-                <Separator orientation="vertical" className="mr-2 h-4" />
-                <div className="flex justify-between w-full">
-                    <Breadcrumb>
-                        <BreadcrumbList>
-                            <BreadcrumbItem>
-                                <BreadcrumbLink href="/superadmin">Administration</BreadcrumbLink>
-                            </BreadcrumbItem>
-                            <BreadcrumbSeparator />
-                            <BreadcrumbItem>
-                                <BreadcrumbPage>Statistiques</BreadcrumbPage>
-                            </BreadcrumbItem>
-                        </BreadcrumbList>
-                    </Breadcrumb>
-                </div>
-            </header>
+            <AppInsetHeader>
+                <Breadcrumb>
+                    <BreadcrumbList>
+                        <BreadcrumbItem>
+                            <BreadcrumbLink href="/superadmin">Administration</BreadcrumbLink>
+                        </BreadcrumbItem>
+                        <BreadcrumbSeparator />
+                        <BreadcrumbItem>
+                            <BreadcrumbPage>Statistiques</BreadcrumbPage>
+                        </BreadcrumbItem>
+                    </BreadcrumbList>
+                </Breadcrumb>
+            </AppInsetHeader>
 
             <div className='layout-page'>
                 <PageHeader

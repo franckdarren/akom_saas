@@ -3,8 +3,6 @@ import {redirect} from 'next/navigation'
 import {getCurrentUserAndRestaurant} from '@/lib/auth/session'
 import {getTransactions} from '@/lib/actions/transaction'
 import {TransactionsShell} from './_components/TransactionsShell'
-import {SidebarTrigger} from '@/components/ui/sidebar'
-import {Separator} from '@/components/ui/separator'
 import {
     BreadcrumbItem,
     BreadcrumbLink,
@@ -12,6 +10,7 @@ import {
     BreadcrumbPage,
     BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
+import {AppInsetHeader} from '@/components/layout/AppInsetHeader'
 
 export const metadata = {title: 'Transactions — Akôm'}
 
@@ -33,9 +32,7 @@ export default async function TransactionsPage() {
 
     return (
         <>
-            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-                <SidebarTrigger className="-ml-1"/>
-                <Separator orientation="vertical" className="mr-2 h-4"/>
+            <AppInsetHeader>
                 <BreadcrumbList>
                     <BreadcrumbItem>
                         <BreadcrumbLink href="/dashboard">Opérations</BreadcrumbLink>
@@ -45,7 +42,7 @@ export default async function TransactionsPage() {
                         <BreadcrumbPage>Transactions</BreadcrumbPage>
                     </BreadcrumbItem>
                 </BreadcrumbList>
-            </header>
+            </AppInsetHeader>
 
             <div className="layout-page">
                 <TransactionsShell

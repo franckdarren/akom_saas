@@ -6,9 +6,8 @@ import {
     BreadcrumbPage,
     BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
-import { Separator } from '@/components/ui/separator'
-import { SidebarTrigger } from '@/components/ui/sidebar'
 import { redirect } from 'next/navigation'
+import { AppInsetHeader } from '@/components/layout/AppInsetHeader'
 import { createClient } from '@/lib/supabase/server'
 import { NotificationsPageClient } from './notifications-page-client'
 
@@ -19,9 +18,7 @@ export default async function NotificationsPage() {
 
     return (
         <>
-            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-                <SidebarTrigger className="-ml-1" />
-                <Separator orientation="vertical" className="mr-2 h-4" />
+            <AppInsetHeader>
                 <Breadcrumb>
                     <BreadcrumbList>
                         <BreadcrumbItem>
@@ -33,7 +30,7 @@ export default async function NotificationsPage() {
                         </BreadcrumbItem>
                     </BreadcrumbList>
                 </Breadcrumb>
-            </header>
+            </AppInsetHeader>
 
             <div className="layout-page">
                 <NotificationsPageClient userId={user.id} />

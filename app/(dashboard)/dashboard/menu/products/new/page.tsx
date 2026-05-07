@@ -10,9 +10,8 @@ import {
     BreadcrumbSeparator,
     BreadcrumbPage,
 } from '@/components/ui/breadcrumb'
-import {Separator} from '@/components/ui/separator'
-import {SidebarTrigger} from '@/components/ui/sidebar'
 import {ProductForm} from '../product-form'
+import {AppInsetHeader} from '@/components/layout/AppInsetHeader'
 import {getUserRole} from "@/lib/actions/auth"
 import {getLabels} from "@/lib/config/activity-labels" // ← NOUVEAU
 import {ArrowLeft} from 'lucide-react'
@@ -68,30 +67,26 @@ export default async function NewProductPage() {
 
     return (
         <>
-            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-                <SidebarTrigger className="-ml-1"/>
-                <Separator orientation="vertical" className="mr-2 h-4"/>
-                <div className="flex justify-between w-full">
-                    <Breadcrumb>
-                        <BreadcrumbList>
-                            <BreadcrumbItem>
-                                <BreadcrumbLink href="/dashboard">Tableau de bord</BreadcrumbLink>
-                            </BreadcrumbItem>
-                            <BreadcrumbSeparator/>
-                            <BreadcrumbItem>
-                                {/* ← Label dynamique */}
-                                <BreadcrumbLink href="/dashboard/menu/products">
-                                    {labels.productNameCapital}s
-                                </BreadcrumbLink>
-                            </BreadcrumbItem>
-                            <BreadcrumbSeparator/>
-                            <BreadcrumbItem>
-                                <BreadcrumbPage>Nouveau</BreadcrumbPage>
-                            </BreadcrumbItem>
-                        </BreadcrumbList>
-                    </Breadcrumb>
-                </div>
-            </header>
+            <AppInsetHeader>
+                <Breadcrumb>
+                    <BreadcrumbList>
+                        <BreadcrumbItem>
+                            <BreadcrumbLink href="/dashboard">Tableau de bord</BreadcrumbLink>
+                        </BreadcrumbItem>
+                        <BreadcrumbSeparator/>
+                        <BreadcrumbItem>
+                            {/* ← Label dynamique */}
+                            <BreadcrumbLink href="/dashboard/menu/products">
+                                {labels.productNameCapital}s
+                            </BreadcrumbLink>
+                        </BreadcrumbItem>
+                        <BreadcrumbSeparator/>
+                        <BreadcrumbItem>
+                            <BreadcrumbPage>Nouveau</BreadcrumbPage>
+                        </BreadcrumbItem>
+                    </BreadcrumbList>
+                </Breadcrumb>
+            </AppInsetHeader>
 
             <div className="layout-page max-w-2xl">
                 <Button asChild variant="ghost" size="sm" className="-ml-2.5 self-start">

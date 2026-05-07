@@ -1,12 +1,12 @@
 'use server'
 
 import {revalidatePath} from 'next/cache'
+import {cookies} from 'next/headers'
 import {createClient} from '@/lib/supabase/server'
 import {supabaseAdmin} from '@/lib/supabase/admin'
 import prisma from '@/lib/prisma'
 import {isSuperAdminEmail} from '@/lib/utils/permissions'
 import {notifyRestaurantAdmins, notifySuperAdmins} from '@/lib/notifications'
-import {getCurrentUserAndRestaurant} from '@/lib/auth/session'
 import type {TicketStatus, TicketPriority} from '@prisma/client'
 
 // ============================================================
@@ -18,6 +18,25 @@ async function getCurrentUser() {
     const {data: {user}} = await supabase.auth.getUser()
     if (!user) throw new Error('Non authentifié')
     return user
+}
+
+async function getAuthContext() {
+    const supabase = await createClient()
+    const {data: {user}} = await supabase.auth.getUser()
+    if (!user) throw new Error('Non authentifié')
+
+    const cookieStore = await cookies()
+    const restaurantId = cookieStore.get('akom_current_restaurant_id')?.value
+
+    if (!restaurantId) throw new Error('Aucun restaurant sélectionné')
+
+    const ru = await prisma.restaurantUser.findFirst({
+        where: {userId: user.id, restaurantId},
+        select: {restaurantId: true},
+    })
+    if (!ru) throw new Error('Accès refusé à ce restaurant')
+
+    return {userId: user.id, restaurantId}
 }
 
 export async function verifySuperAdmin() {
@@ -38,7 +57,7 @@ export async function createSupportTicket(data: {
     priority?: TicketPriority
 }) {
     try {
-        const { userId, restaurantId } = await getCurrentUserAndRestaurant()
+        const { userId, restaurantId } = await getAuthContext()
 
         const ticket = await prisma.supportTicket.create({
             data: {
@@ -62,7 +81,9 @@ export async function createSupportTicket(data: {
         revalidatePath('/dashboard/support')
         return {success: true, ticket}
     } catch (error) {
-        return {error: 'Erreur lors de la création du ticket'}
+        console.error('Erreur createSupportTicket:', error)
+        const msg = error instanceof Error ? error.message : null
+        return {error: msg ?? 'Erreur lors de la création du ticket'}
     }
 }
 
@@ -163,7 +184,7 @@ export async function getTicketMessages(ticketId: string) {
 
         let restaurantId: string
         try {
-            const session = await getCurrentUserAndRestaurant()
+            const session = await getAuthContext()
             restaurantId = session.restaurantId
         } catch {
             return {success: false, error: 'Accès refusé', messages: []}
@@ -197,7 +218,7 @@ export async function sendTicketMessage(data: {
     message: string
 }) {
     try {
-        const { userId, restaurantId } = await getCurrentUserAndRestaurant()
+        const { userId, restaurantId } = await getAuthContext()
 
         const ticket = await prisma.supportTicket.findFirst({
             where: {

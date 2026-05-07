@@ -19,9 +19,8 @@ import {
     BreadcrumbPage,
     BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
-import {Separator} from '@/components/ui/separator'
-import {SidebarTrigger} from '@/components/ui/sidebar'
 import {Badge} from '@/components/ui/badge'
+import {AppInsetHeader} from '@/components/layout/AppInsetHeader'
 import {getCurrentUserAndRestaurant} from '@/lib/auth/session'
 import {FeatureGuard} from '@/components/guards/FeatureGuard'
 import prisma from '@/lib/prisma'
@@ -84,23 +83,19 @@ export default async function WarehouseTransfersPage() {
             requiredFeature="warehouse_module"
             showError={true}
         >
-            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-                <SidebarTrigger className="-ml-1"/>
-                <Separator orientation="vertical" className="mr-2 h-4"/>
-                <div className="flex justify-between w-full">
-                    <div className='my-auto'>
-                        <BreadcrumbList>
-                            <BreadcrumbItem>
-                                <BreadcrumbLink href="/dashboard/warehouse">Magasin</BreadcrumbLink>
-                            </BreadcrumbItem>
-                            <BreadcrumbSeparator/>
-                            <BreadcrumbItem>
-                                <BreadcrumbPage>Historique des transferts</BreadcrumbPage>
-                            </BreadcrumbItem>
-                        </BreadcrumbList>
-                    </div>
+            <AppInsetHeader>
+                <div className='my-auto'>
+                    <BreadcrumbList>
+                        <BreadcrumbItem>
+                            <BreadcrumbLink href="/dashboard/warehouse">Magasin</BreadcrumbLink>
+                        </BreadcrumbItem>
+                        <BreadcrumbSeparator/>
+                        <BreadcrumbItem>
+                            <BreadcrumbPage>Historique des transferts</BreadcrumbPage>
+                        </BreadcrumbItem>
+                    </BreadcrumbList>
                 </div>
-            </header>
+            </AppInsetHeader>
 
             <div className="layout-page">
                 <PageHeader

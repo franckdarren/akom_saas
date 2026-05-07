@@ -4,8 +4,6 @@ import {getCurrentUserAndRestaurant} from '@/lib/auth/session'
 import prisma from '@/lib/prisma'
 import {CaisseShell} from './_components/CaisseShell'
 import {FeatureGuard} from '@/components/guards/FeatureGuard'
-import {SidebarTrigger} from "@/components/ui/sidebar"
-import {Separator} from "@/components/ui/separator"
 import {
     BreadcrumbItem,
     BreadcrumbLink,
@@ -13,6 +11,7 @@ import {
     BreadcrumbPage,
     BreadcrumbSeparator
 } from "@/components/ui/breadcrumb"
+import {AppInsetHeader} from "@/components/layout/AppInsetHeader"
 
 export const metadata = {title: 'Caisse — Akôm'}
 
@@ -84,23 +83,19 @@ export default async function CaissePage() {
             requiredFeature="caisse_module"
             showError={true}
         >
-            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-                <SidebarTrigger className="-ml-1"/>
-                <Separator orientation="vertical" className="mr-2 h-4"/>
-                <div className="flex justify-between w-full">
-                    <div className='my-auto'>
-                        <BreadcrumbList>
-                            <BreadcrumbItem>
-                                <BreadcrumbLink href="/dashboard">Opérations</BreadcrumbLink>
-                            </BreadcrumbItem>
-                            <BreadcrumbSeparator/>
-                            <BreadcrumbItem>
-                                <BreadcrumbPage>Caisse</BreadcrumbPage>
-                            </BreadcrumbItem>
-                        </BreadcrumbList>
-                    </div>
+            <AppInsetHeader>
+                <div className='my-auto'>
+                    <BreadcrumbList>
+                        <BreadcrumbItem>
+                            <BreadcrumbLink href="/dashboard">Opérations</BreadcrumbLink>
+                        </BreadcrumbItem>
+                        <BreadcrumbSeparator/>
+                        <BreadcrumbItem>
+                            <BreadcrumbPage>Caisse</BreadcrumbPage>
+                        </BreadcrumbItem>
+                    </BreadcrumbList>
                 </div>
-            </header>
+            </AppInsetHeader>
 
             <div className="layout-page">
                 <CaisseShell

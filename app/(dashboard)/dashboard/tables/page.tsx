@@ -11,9 +11,8 @@ import {
     BreadcrumbSeparator,
     BreadcrumbPage,
 } from "@/components/ui/breadcrumb"
-import {Separator} from "@/components/ui/separator"
-import {SidebarTrigger} from "@/components/ui/sidebar"
 import {Button} from "@/components/ui/button"
+import {AppInsetHeader} from "@/components/layout/AppInsetHeader"
 import {Badge} from "@/components/ui/badge"
 import {AppCard, CardContent} from "@/components/ui/app-card"
 import {Plus} from "lucide-react"
@@ -66,24 +65,20 @@ export default async function TablesPage() {
 
     return (
         <>
-            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-                <SidebarTrigger className="-ml-1"/>
-                <Separator orientation="vertical" className="mr-2 h-4"/>
-                <div className="flex w-full items-center justify-between">
-                    <Breadcrumb>
-                        <BreadcrumbList>
-                            <BreadcrumbItem>
-                                <BreadcrumbLink href="/dashboard">Opérations</BreadcrumbLink>
-                            </BreadcrumbItem>
-                            <BreadcrumbSeparator/>
-                            <BreadcrumbItem>
-                                {/* ← Label dynamique */}
-                                <BreadcrumbPage>{labels.tableNameCapital}s</BreadcrumbPage>
-                            </BreadcrumbItem>
-                        </BreadcrumbList>
-                    </Breadcrumb>
-                </div>
-            </header>
+            <AppInsetHeader>
+                <Breadcrumb>
+                    <BreadcrumbList>
+                        <BreadcrumbItem>
+                            <BreadcrumbLink href="/dashboard">Opérations</BreadcrumbLink>
+                        </BreadcrumbItem>
+                        <BreadcrumbSeparator/>
+                        <BreadcrumbItem>
+                            {/* ← Label dynamique */}
+                            <BreadcrumbPage>{labels.tableNameCapital}s</BreadcrumbPage>
+                        </BreadcrumbItem>
+                    </BreadcrumbList>
+                </Breadcrumb>
+            </AppInsetHeader>
 
             <div className="layout-page">
                 <PageHeader

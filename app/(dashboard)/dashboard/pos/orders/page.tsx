@@ -2,8 +2,7 @@
 import {getCurrentUserAndRestaurant} from '@/lib/auth/session'
 import {redirect} from 'next/navigation'
 import prisma from '@/lib/prisma'
-import {Separator} from '@/components/ui/separator'
-import {SidebarTrigger} from '@/components/ui/sidebar'
+import {AppInsetHeader} from '@/components/layout/AppInsetHeader'
 import {
     Breadcrumb, BreadcrumbItem, BreadcrumbLink,
     BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator,
@@ -90,9 +89,7 @@ export default async function POSOrdersPage({searchParams}: PageProps) {
 
     return (
         <>
-            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-background">
-                <SidebarTrigger className="-ml-1"/>
-                <Separator orientation="vertical" className="mr-2 h-4"/>
+            <AppInsetHeader className="bg-background">
                 <Breadcrumb>
                     <BreadcrumbList>
                         <BreadcrumbItem>
@@ -106,7 +103,7 @@ export default async function POSOrdersPage({searchParams}: PageProps) {
                         </BreadcrumbItem>
                     </BreadcrumbList>
                 </Breadcrumb>
-            </header>
+            </AppInsetHeader>
 
             <div className="layout-page sm:gap-6 sm:p-6 overflow-auto">
                 <POSOrdersShell

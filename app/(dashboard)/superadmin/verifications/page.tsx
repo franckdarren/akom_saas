@@ -8,9 +8,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { InfoIcon } from 'lucide-react'
 import { RestaurantVerificationCard } from '@/components/superadmin/restaurant-verification-card'
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb'
-import { SidebarTrigger } from '@/components/ui/sidebar'
-import { Separator } from '@/components/ui/separator'
 import { PageHeader } from '@/components/ui/page-header'
+import { AppInsetHeader } from '@/components/layout/AppInsetHeader'
 
 export default async function VerificationsPage() {
     const user = await getSuperadminUser()
@@ -45,23 +44,19 @@ export default async function VerificationsPage() {
     return (
         <>
             {/* En-tête */}
-            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-                <SidebarTrigger className="-ml-1" />
-                <Separator orientation="vertical" className="mr-2 h-4" />
-                <div className="flex justify-between w-full">
-                    <Breadcrumb>
-                        <BreadcrumbList>
-                            <BreadcrumbItem>
-                                <BreadcrumbLink href="/superadmin">Administration</BreadcrumbLink>
-                            </BreadcrumbItem>
-                            <BreadcrumbSeparator />
-                            <BreadcrumbItem>
-                                <BreadcrumbPage>Vérifications des restaurants</BreadcrumbPage>
-                            </BreadcrumbItem>
-                        </BreadcrumbList>
-                    </Breadcrumb>
-                </div>
-            </header>
+            <AppInsetHeader>
+                <Breadcrumb>
+                    <BreadcrumbList>
+                        <BreadcrumbItem>
+                            <BreadcrumbLink href="/superadmin">Administration</BreadcrumbLink>
+                        </BreadcrumbItem>
+                        <BreadcrumbSeparator />
+                        <BreadcrumbItem>
+                            <BreadcrumbPage>Vérifications des restaurants</BreadcrumbPage>
+                        </BreadcrumbItem>
+                    </BreadcrumbList>
+                </Breadcrumb>
+            </AppInsetHeader>
             <div className="layout-page">
                 <PageHeader
                     title="Vérifications des restaurants"

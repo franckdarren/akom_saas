@@ -6,9 +6,8 @@ import prisma from '@/lib/prisma'
 import { getUserRole } from '@/lib/actions/auth'
 import { getDashboardStats } from '@/lib/actions/stats'
 import { getLabels } from '@/lib/config/activity-labels'
-import { Separator } from '@/components/ui/separator'
-import { SidebarTrigger } from '@/components/ui/sidebar'
 import { PageHeader } from '@/components/ui/page-header'
+import { AppInsetHeader } from '@/components/layout/AppInsetHeader'
 import { KpiCard } from '@/components/stats/kpi-card'
 import { StockAlertsCard } from '@/components/stats/stock-alerts-card'
 import { RecentOrdersCard } from '@/components/stats/recent-orders-card'
@@ -52,13 +51,9 @@ export default async function DashboardPage({ searchParams }: PageProps) {
     if (role === 'kitchen') {
         return (
             <>
-                <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-                    <SidebarTrigger className="-ml-1" />
-                    <Separator orientation="vertical" className="mr-2 h-4" />
-                    <div className="flex justify-between w-full">
-                        <h1 className="text-sm font-medium my-auto">Interface Cuisine</h1>
-                    </div>
-                </header>
+                <AppInsetHeader>
+                    <h1 className="text-sm font-medium my-auto">Interface Cuisine</h1>
+                </AppInsetHeader>
                 <div className="layout-page">
                     <p className="text-muted-foreground">
                         Consultez l&apos;écran des {labels.orderNamePlural} pour gérer les préparations en temps réel.
@@ -86,16 +81,14 @@ export default async function DashboardPage({ searchParams }: PageProps) {
 
     return (
         <>
-            <header className="flex min-h-16 h-auto shrink-0 items-center gap-2 border-b px-4 py-2">
-                <SidebarTrigger className="-ml-1" />
-                <Separator orientation="vertical" className="mr-2 h-4" />
+            <AppInsetHeader className="min-h-16 h-auto py-2">
                 <div className="flex flex-col sm:flex-row sm:justify-between w-full gap-2 sm:gap-0 items-start sm:items-center">
                     {/* <h1 className="text-sm font-medium">Tableau de bord</h1> */}
                     <Suspense>
                         <DashboardPeriodSelector value={effectivePeriod} />
                     </Suspense>
                 </div>
-            </header>
+            </AppInsetHeader>
 
             <div className="flex flex-1 flex-col gap-4 sm:gap-6 p-3 sm:p-4 md:p-6 overflow-auto">
                 <PageHeader title="Tableau de bord" />

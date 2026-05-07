@@ -10,9 +10,8 @@ import {
     BreadcrumbPage,
 } from '@/components/ui/breadcrumb'
 import { Suspense } from 'react'
-import { Separator } from '@/components/ui/separator'
-import { SidebarTrigger } from '@/components/ui/sidebar'
 import { Button } from '@/components/ui/button'
+import { AppInsetHeader } from '@/components/layout/AppInsetHeader'
 import { ToggleRestaurantStatus } from '@/components/superadmin/ToggleRestaurantStatus'
 import { ArrowLeft, Building2, ShoppingCart, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
@@ -79,29 +78,14 @@ export default async function RestaurantDetailsPage({ params }: PageProps) {
     return (
         <>
             {/* Header */}
-            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-                <SidebarTrigger className="-ml-1" />
-                <Separator orientation="vertical" className="mr-2 h-4" />
+            <AppInsetHeader>
                 <Button variant="ghost" size="sm" asChild>
-                        <Link href="/superadmin/restaurants">
-                            <ArrowLeft className="h-4 w-4 mr-2" />
-                            Retour
-                        </Link>
-                    </Button>
-                {/* <div className="flex justify-between w-full">
-                    <Breadcrumb>
-                        <BreadcrumbList>
-                            <BreadcrumbItem>
-                                <BreadcrumbLink href="/superadmin">Administration</BreadcrumbLink>
-                            </BreadcrumbItem>
-                            <BreadcrumbSeparator />
-                            <BreadcrumbItem>
-                                <BreadcrumbPage>Gestion des Paiements</BreadcrumbPage>
-                            </BreadcrumbItem>
-                        </BreadcrumbList>
-                    </Breadcrumb>
-                </div> */}
-            </header>
+                    <Link href="/superadmin/restaurants">
+                        <ArrowLeft className="h-4 w-4 mr-2" />
+                        Retour
+                    </Link>
+                </Button>
+            </AppInsetHeader>
 
             <div className='layout-page'>
                 {/* <div>

@@ -7,9 +7,8 @@ import {ArrowLeft, Edit, Package} from "lucide-react"
 
 import {Button} from "@/components/ui/button"
 import {AppCard, CardContent, CardHeader, CardTitle} from "@/components/ui/app-card"
-import {Separator} from "@/components/ui/separator"
-import {SidebarTrigger} from "@/components/ui/sidebar"
 import {FeatureGuard} from '@/components/guards/FeatureGuard'
+import {AppInsetHeader} from '@/components/layout/AppInsetHeader'
 import {
     Breadcrumb,
     BreadcrumbItem,
@@ -148,23 +147,19 @@ export default async function WarehouseProductDetailPage({params}: PageProps) {
         >
             <>
                 {/* HEADER */}
-                <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-                    <SidebarTrigger className="-ml-1"/>
-                    <Separator orientation="vertical" className="mr-2 h-4"/>
-                    <div className="flex justify-between w-full">
-                        <Breadcrumb>
-                            <BreadcrumbList>
-                                <BreadcrumbItem>
-                                    <BreadcrumbLink href="/dashboard/warehouse">Magasin</BreadcrumbLink>
-                                </BreadcrumbItem>
-                                <BreadcrumbSeparator/>
-                                <BreadcrumbItem>
-                                    <BreadcrumbPage>Détails d&apos;un produit</BreadcrumbPage>
-                                </BreadcrumbItem>
-                            </BreadcrumbList>
-                        </Breadcrumb>
-                    </div>
-                </header>
+                <AppInsetHeader>
+                    <Breadcrumb>
+                        <BreadcrumbList>
+                            <BreadcrumbItem>
+                                <BreadcrumbLink href="/dashboard/warehouse">Magasin</BreadcrumbLink>
+                            </BreadcrumbItem>
+                            <BreadcrumbSeparator/>
+                            <BreadcrumbItem>
+                                <BreadcrumbPage>Détails d&apos;un produit</BreadcrumbPage>
+                            </BreadcrumbItem>
+                        </BreadcrumbList>
+                    </Breadcrumb>
+                </AppInsetHeader>
 
                 <div className="layout-page">
                     <div>

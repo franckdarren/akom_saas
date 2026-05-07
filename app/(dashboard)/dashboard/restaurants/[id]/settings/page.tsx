@@ -12,9 +12,8 @@ import {
     BreadcrumbPage,
     BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
-import {Separator} from '@/components/ui/separator'
-import {SidebarTrigger} from '@/components/ui/sidebar'
 import {CircuitSheetForm} from '@/components/restaurant/circuit-sheet-form'
+import {AppInsetHeader} from '@/components/layout/AppInsetHeader'
 import {Alert, AlertDescription} from '@/components/ui/alert'
 import {AlertTriangle} from 'lucide-react'
 import {getLabels} from '@/lib/config/activity-labels'
@@ -77,25 +76,21 @@ export default async function RestaurantSettingsPage({
 
     return (
         <>
-            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-                <SidebarTrigger className="-ml-1"/>
-                <Separator orientation="vertical" className="mr-2 h-4"/>
-                <div className="flex justify-between w-full">
-                    <div className="my-auto">
-                        <Breadcrumb>
-                            <BreadcrumbList>
-                                <BreadcrumbItem>
-                                    <BreadcrumbLink href="/dashboard">Configuration</BreadcrumbLink>
-                                </BreadcrumbItem>
-                                <BreadcrumbSeparator/>
-                                <BreadcrumbItem>
-                                    <BreadcrumbPage>{labels.settingsTitle}</BreadcrumbPage>
-                                </BreadcrumbItem>
-                            </BreadcrumbList>
-                        </Breadcrumb>
-                    </div>
+            <AppInsetHeader>
+                <div className="my-auto">
+                    <Breadcrumb>
+                        <BreadcrumbList>
+                            <BreadcrumbItem>
+                                <BreadcrumbLink href="/dashboard">Configuration</BreadcrumbLink>
+                            </BreadcrumbItem>
+                            <BreadcrumbSeparator/>
+                            <BreadcrumbItem>
+                                <BreadcrumbPage>{labels.settingsTitle}</BreadcrumbPage>
+                            </BreadcrumbItem>
+                        </BreadcrumbList>
+                    </Breadcrumb>
                 </div>
-            </header>
+            </AppInsetHeader>
 
             <div className="layout-page">
                 <PageHeader

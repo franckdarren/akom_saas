@@ -6,9 +6,8 @@ import {
     Breadcrumb, BreadcrumbItem, BreadcrumbLink,
     BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
-import {Separator} from '@/components/ui/separator'
-import {SidebarTrigger} from '@/components/ui/sidebar'
 import {VerificationDocumentsForm} from '@/components/restaurant/verification-documents-form'
+import {AppInsetHeader} from '@/components/layout/AppInsetHeader'
 
 interface PageProps {
     params: Promise<{ id: string }>
@@ -55,9 +54,7 @@ export default async function RestaurantVerifyPage({params}: PageProps) {
     return (
         <div className="flex flex-col min-h-screen">
             {/* Header */}
-            <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
-                <SidebarTrigger className="-ml-1"/>
-                <Separator orientation="vertical" className="mr-2 h-4"/>
+            <AppInsetHeader>
                 <Breadcrumb>
                     <BreadcrumbList>
                         <BreadcrumbItem>
@@ -75,7 +72,7 @@ export default async function RestaurantVerifyPage({params}: PageProps) {
                         </BreadcrumbItem>
                     </BreadcrumbList>
                 </Breadcrumb>
-            </header>
+            </AppInsetHeader>
 
             {/* Contenu */}
             <main className="flex-1 p-6 max-w-4xl mx-auto w-full space-y-6">

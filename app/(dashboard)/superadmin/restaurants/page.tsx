@@ -8,9 +8,8 @@ import {
     BreadcrumbSeparator,
     BreadcrumbPage,
 } from '@/components/ui/breadcrumb'
-import {Separator} from '@/components/ui/separator'
-import {SidebarTrigger} from '@/components/ui/sidebar'
 import {PageHeader} from '@/components/ui/page-header'
+import {AppInsetHeader} from '@/components/layout/AppInsetHeader'
 import {Badge} from '@/components/ui/badge'
 import {AppCard, CardContent} from '@/components/ui/app-card'
 import {formatPrice, calculateMonthlyPrice} from '@/lib/config/subscription'
@@ -70,23 +69,19 @@ export default async function RestaurantsPage() {
     return (
         <>
             {/* Header */}
-            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-                <SidebarTrigger className="-ml-1"/>
-                <Separator orientation="vertical" className="mr-2 h-4"/>
-                <div className="flex justify-between w-full">
-                    <Breadcrumb>
-                        <BreadcrumbList>
-                            <BreadcrumbItem>
-                                <BreadcrumbLink href="/superadmin">Administration</BreadcrumbLink>
-                            </BreadcrumbItem>
-                            <BreadcrumbSeparator/>
-                            <BreadcrumbItem>
-                                <BreadcrumbPage>Restaurants</BreadcrumbPage>
-                            </BreadcrumbItem>
-                        </BreadcrumbList>
-                    </Breadcrumb>
-                </div>
-            </header>
+            <AppInsetHeader>
+                <Breadcrumb>
+                    <BreadcrumbList>
+                        <BreadcrumbItem>
+                            <BreadcrumbLink href="/superadmin">Administration</BreadcrumbLink>
+                        </BreadcrumbItem>
+                        <BreadcrumbSeparator/>
+                        <BreadcrumbItem>
+                            <BreadcrumbPage>Restaurants</BreadcrumbPage>
+                        </BreadcrumbItem>
+                    </BreadcrumbList>
+                </Breadcrumb>
+            </AppInsetHeader>
 
             <div className="layout-page">
                 <PageHeader

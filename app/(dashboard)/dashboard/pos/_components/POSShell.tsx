@@ -6,7 +6,7 @@ import {Cart} from '../_components/Cart'
 import {ShoppingCart, ChevronUp, UtensilsCrossed} from 'lucide-react'
 import {Sheet, SheetContent, SheetTrigger} from '@/components/ui/sheet'
 import {Separator} from '@/components/ui/separator'
-import {SidebarTrigger} from '@/components/ui/sidebar'
+import {AppInsetHeader} from '@/components/layout/AppInsetHeader'
 import {
     Breadcrumb,
     BreadcrumbItem,
@@ -83,37 +83,33 @@ export function POSShell({categories, restaurantId}: POSShellProps) {
             {/* ══════════════════════════════════════════
                 HEADER — identique à toutes tes pages
             ══════════════════════════════════════════ */}
-            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-background">
-                <SidebarTrigger className="-ml-1"/>
-                <Separator orientation="vertical" className="mr-2 h-4"/>
-                <div className="flex w-full items-center justify-between">
-                    <Breadcrumb>
-                        <BreadcrumbList>
-                            <BreadcrumbItem>
-                                <BreadcrumbLink href="/dashboard">
-                                    Dashboard
-                                </BreadcrumbLink>
-                            </BreadcrumbItem>
-                            <BreadcrumbSeparator/>
-                            <BreadcrumbItem>
-                                <BreadcrumbPage>Nouvelle commande</BreadcrumbPage>
-                            </BreadcrumbItem>
-                        </BreadcrumbList>
-                    </Breadcrumb>
+            <AppInsetHeader className="bg-background">
+                <Breadcrumb>
+                    <BreadcrumbList>
+                        <BreadcrumbItem>
+                            <BreadcrumbLink href="/dashboard">
+                                Dashboard
+                            </BreadcrumbLink>
+                        </BreadcrumbItem>
+                        <BreadcrumbSeparator/>
+                        <BreadcrumbItem>
+                            <BreadcrumbPage>Nouvelle commande</BreadcrumbPage>
+                        </BreadcrumbItem>
+                    </BreadcrumbList>
+                </Breadcrumb>
 
-                    {/* Résumé panier visible sur desktop dans le header */}
-                    {itemCount > 0 && (
-                        <div className="hidden lg:flex items-center gap-2 text-sm text-muted-foreground">
-                            <ShoppingCart className="h-4 w-4"/>
-                            <span>{itemCount} article{itemCount > 1 ? 's' : ''}</span>
-                            <Separator orientation="vertical" className="h-4"/>
-                            <span className="font-semibold text-foreground">
-                                {total.toLocaleString('fr-FR')} FCFA
-                            </span>
-                        </div>
-                    )}
-                </div>
-            </header>
+                {/* Résumé panier visible sur desktop dans le header */}
+                {itemCount > 0 && (
+                    <div className="hidden lg:flex items-center gap-2 text-sm text-muted-foreground">
+                        <ShoppingCart className="h-4 w-4"/>
+                        <span>{itemCount} article{itemCount > 1 ? 's' : ''}</span>
+                        <Separator orientation="vertical" className="h-4"/>
+                        <span className="font-semibold text-foreground">
+                            {total.toLocaleString('fr-FR')} FCFA
+                        </span>
+                    </div>
+                )}
+            </AppInsetHeader>
 
             {/* ══════════════════════════════════════════
                 CORPS — catalogue + panier côte à côte

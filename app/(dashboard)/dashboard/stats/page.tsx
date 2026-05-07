@@ -20,8 +20,6 @@ import { getCustomerAnalytics } from '@/lib/actions/stats/customer-analytics'
 import { TIME_PERIODS, type TimePeriod, type CustomPeriod } from '@/types/stats'
 import { DollarSign, ShoppingCart, TrendingUp, Package } from 'lucide-react'
 import { formatPrice } from '@/lib/utils/format'
-import { Separator } from '@/components/ui/separator'
-import { SidebarTrigger } from '@/components/ui/sidebar'
 import {
     Breadcrumb,
     BreadcrumbItem,
@@ -31,6 +29,7 @@ import {
     BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
 import { PageHeader } from '@/components/ui/page-header'
+import { AppInsetHeader } from '@/components/layout/AppInsetHeader'
 import { DashboardPeriodSelector } from '@/components/stats/DashboardPeriodSelector'
 
 const VALID_PERIODS = new Set<string>([
@@ -81,23 +80,19 @@ export default async function StatsPage({ searchParams }: PageProps) {
 
     return (
         <>
-            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-                <SidebarTrigger className="-ml-1" />
-                <Separator orientation="vertical" className="mr-2 h-4" />
-                <div className="flex justify-between w-full">
-                    <div className="my-auto">
-                        <BreadcrumbList>
-                            <BreadcrumbItem>
-                                <BreadcrumbLink href="/dashboard">Analyse</BreadcrumbLink>
-                            </BreadcrumbItem>
-                            <BreadcrumbSeparator />
-                            <BreadcrumbItem>
-                                <BreadcrumbPage>Statistiques</BreadcrumbPage>
-                            </BreadcrumbItem>
-                        </BreadcrumbList>
-                    </div>
+            <AppInsetHeader>
+                <div className="my-auto">
+                    <BreadcrumbList>
+                        <BreadcrumbItem>
+                            <BreadcrumbLink href="/dashboard">Analyse</BreadcrumbLink>
+                        </BreadcrumbItem>
+                        <BreadcrumbSeparator />
+                        <BreadcrumbItem>
+                            <BreadcrumbPage>Statistiques</BreadcrumbPage>
+                        </BreadcrumbItem>
+                    </BreadcrumbList>
                 </div>
-            </header>
+            </AppInsetHeader>
 
             <div className="layout-page">
                 <PageHeader
