@@ -58,43 +58,72 @@ export function useNotifications(userId: string | undefined): UseNotificationsRe
     useEffect(() => {
         if (!userId) return
 
-        const channel = supabase
-            .channel(`notifications:${userId}`)
-            .on(
-                'postgres_changes',
-                {
-                    event: 'INSERT',
-                    schema: 'public',
-                    table: 'notifications',
-                    filter: `user_id=eq.${userId}`,
-                },
-                (payload) => {
-                    const row = payload.new as Record<string, unknown>
-                    if (!row?.id || seenIdsRef.current.has(row.id as string)) return
+        let channel: ReturnType<typeof supabase.channel> | null = null
+        let cancelled = false
 
-                    // Toast pour priorités élevées
-                    const priority = row.priority as string
-                    if (priority === 'high' || priority === 'urgent') {
-                        const actionUrl = (row.action_url as string | null) ?? null
-                        toast(row.title as string, {
-                            description: row.body as string,
-                            action: actionUrl
-                                ? {
-                                      label: 'Voir',
-                                      onClick: () => router.push(actionUrl),
-                                  }
-                                : undefined,
-                        })
+        const setup = async () => {
+            // Synchroniser l'auth du websocket Realtime avec la session courante.
+            // Sans ça, le canal peut rester en état "anonyme" et ne reçoit aucun
+            // événement filtré quand la table est en RLS ou en publication restreinte.
+            const { data: { session } } = await supabase.auth.getSession()
+            if (session?.access_token) {
+                await supabase.realtime.setAuth(session.access_token)
+            }
+            if (cancelled) return
+
+            channel = supabase
+                .channel(`notifications:${userId}`)
+                .on(
+                    'postgres_changes',
+                    {
+                        event: 'INSERT',
+                        schema: 'public',
+                        table: 'notifications',
+                        filter: `user_id=eq.${userId}`,
+                    },
+                    (payload) => {
+                        const row = payload.new as Record<string, unknown>
+                        if (!row?.id || seenIdsRef.current.has(row.id as string)) return
+
+                        // Toast pour priorités élevées
+                        const priority = row.priority as string
+                        if (priority === 'high' || priority === 'urgent') {
+                            const actionUrl = (row.action_url as string | null) ?? null
+                            toast(row.title as string, {
+                                description: row.body as string,
+                                action: actionUrl
+                                    ? {
+                                          label: 'Voir',
+                                          onClick: () => router.push(actionUrl),
+                                      }
+                                    : undefined,
+                            })
+                        }
+
+                        // Refetch pour avoir l'item formaté + recompter l'unread
+                        refresh()
                     }
+                )
+                .subscribe((status, err) => {
+                    if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+                        console.warn('[notifications] realtime status:', status, err)
+                    }
+                })
+        }
 
-                    // Refetch pour avoir l'item formaté + recompter l'unread
-                    refresh()
-                }
-            )
-            .subscribe()
+        setup()
+
+        // Re-synchroniser le token Realtime à chaque changement d'auth (refresh, login, logout)
+        const { data: authSub } = supabase.auth.onAuthStateChange((_event, session) => {
+            if (session?.access_token) {
+                supabase.realtime.setAuth(session.access_token)
+            }
+        })
 
         return () => {
-            supabase.removeChannel(channel)
+            cancelled = true
+            if (channel) supabase.removeChannel(channel)
+            authSub.subscription.unsubscribe()
         }
     }, [userId, refresh, router, supabase])
 
