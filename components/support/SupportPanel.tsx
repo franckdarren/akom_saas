@@ -15,6 +15,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select'
+import {toast} from 'sonner'
 import {cn} from '@/lib/utils'
 import {formatDate} from '@/lib/utils/format'
 import {
@@ -148,8 +149,9 @@ export function SupportPanel({showHeader = true, onClose, onViewChange, backRef,
         })
 
         if (result.error) {
-            alert(result.error)
+            toast.error(result.error)
         } else {
+            toast.success('Message envoyé')
             setNewMessage('')
             loadMessages(selectedTicket)
         }
@@ -164,8 +166,9 @@ export function SupportPanel({showHeader = true, onClose, onViewChange, backRef,
         const result = await createSupportTicket(newTicket)
 
         if (result.error) {
-            alert(result.error)
+            toast.error(result.error)
         } else {
+            toast.success('Ticket créé avec succès')
             setNewTicket({subject: '', description: '', priority: 'medium'})
             changeView('list')
             loadTickets()
