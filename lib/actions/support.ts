@@ -99,7 +99,7 @@ export async function getAllTickets(status?: TicketStatus) {
         orderBy: {createdAt: 'desc'},
     })
 
-    const priorityWeight = {urgent: 0, high: 1, medium: 2, low: 3}
+    const priorityWeight: Record<TicketPriority, number> = {urgent: 0, high: 1, medium: 2, low: 3}
     return tickets.sort(
         (a, b) => priorityWeight[a.priority] - priorityWeight[b.priority]
     )
@@ -153,7 +153,7 @@ export async function getSupportStats() {
 
 export async function getMyTickets() {
     try {
-        const { restaurantId } = await getCurrentUserAndRestaurant()
+        const { restaurantId } = await getAuthContext()
 
         const tickets = await prisma.supportTicket.findMany({
             where: {restaurantId},
