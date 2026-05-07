@@ -1,5 +1,6 @@
 // app/onboarding/verification/page.tsx
 import {redirect} from 'next/navigation'
+import {cookies} from 'next/headers'
 import {createClient} from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
 import {
@@ -27,14 +28,23 @@ export default async function VerificationPage() {
 
     if (!user) redirect('/login')
 
+    // Lire la structure active depuis le cookie pour gérer les utilisateurs
+    // multi-structures. Sans cela, findFirst renvoie n'importe quelle structure
+    // de l'utilisateur (souvent la plus ancienne, déjà vérifiée), ce qui
+    // provoque une boucle de redirection avec le middleware.
+    const cookieStore = await cookies()
+    const currentRestaurantId = cookieStore.get('akom_current_restaurant_id')?.value
+
     const restaurantUser = await prisma.restaurantUser.findFirst({
-        where: {userId: user.id},
+        where: {
+            userId: user.id,
+            ...(currentRestaurantId ? {restaurantId: currentRestaurantId} : {}),
+        },
         include: {
             restaurant: {
                 include: {
                     verificationDocuments: true,
                 },
-                // ← activityType inclus via include complet
             },
         },
     })

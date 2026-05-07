@@ -297,6 +297,11 @@ export async function createAdditionalRestaurant(data: CreateRestaurantInput) {
     // Sinon on hérite du plan principal
     const plan: SubscriptionPlan = data.plan ?? inheritedPlan
 
+    // Si l'utilisateur est déjà admin d'une structure vérifiée, la nouvelle
+    // hérite de la vérification : le gérant a déjà été validé par notre équipe,
+    // pas besoin de re-soumettre des documents pour chaque structure.
+    const inheritVerification = primaryRestaurantUser?.restaurant.isVerified === true
+
     const formattedName = formatRestaurantName(data.name)
     const slug = await generateUniqueSlug(formattedName)
 
@@ -310,6 +315,8 @@ export async function createAdditionalRestaurant(data: CreateRestaurantInput) {
                     address: data.address?.trim() || null,
                     activityType: data.activityType ?? 'restaurant',
                     isActive: true,
+                    isVerified: inheritVerification,
+                    verificationStatus: inheritVerification ? 'verified' : 'pending_documents',
                 },
             })
 
