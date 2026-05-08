@@ -2,11 +2,11 @@
 'use server'
 
 import prisma from '@/lib/prisma'
-import {getCurrentUserAndRestaurant} from '@/lib/auth/session'
+import {requireCashAccess} from '@/lib/auth/session'
 import {revalidatePath} from 'next/cache'
 
 export async function deleteCashSession(sessionId: string) {
-    const {userId, restaurantId} = await getCurrentUserAndRestaurant()
+    const {userId, restaurantId} = await requireCashAccess()
     if (!userId || !restaurantId) throw new Error('Non autorisé')
 
     const session = await prisma.cashSession.findFirst({

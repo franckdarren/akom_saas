@@ -2,7 +2,7 @@
 'use server'
 
 import prisma from '@/lib/prisma'
-import {getCurrentUserAndRestaurant} from '@/lib/auth/session'
+import {requireCashAccess} from '@/lib/auth/session'
 import {getSessionBalance} from './get-session-balance'
 import {revalidatePath} from 'next/cache'
 
@@ -13,7 +13,7 @@ interface CloseSessionInput {
 }
 
 export async function closeCashSession(input: CloseSessionInput) {
-    const {userId, restaurantId} = await getCurrentUserAndRestaurant()
+    const {userId, restaurantId} = await requireCashAccess()
     if (!userId || !restaurantId) throw new Error('Non autorisé')
 
     const balanceData = await getSessionBalance(input.sessionId, restaurantId)

@@ -2,7 +2,7 @@
 'use server'
 
 import prisma from '@/lib/prisma'
-import {getCurrentUserAndRestaurant} from '@/lib/auth/session'
+import {requireCashAccess} from '@/lib/auth/session'
 import {revalidatePath} from 'next/cache'
 import {PaymentMethod, RevenueType} from '@prisma/client'
 
@@ -18,7 +18,7 @@ interface AddRevenueInput {
 }
 
 export async function addManualRevenue(input: AddRevenueInput) {
-    const {userId, restaurantId} = await getCurrentUserAndRestaurant()
+    const {userId, restaurantId} = await requireCashAccess()
     if (!userId || !restaurantId) throw new Error('Non autorisé')
 
     const paymentMethod = input.paymentMethod as PaymentMethod

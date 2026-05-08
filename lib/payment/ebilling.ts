@@ -23,6 +23,15 @@ interface EBillingResponse {
     data?: Record<string, unknown>
 }
 
+interface EBillingBillStatus {
+    success: boolean
+    status?: string
+    amount?: number
+    externalReference?: string
+    error?: string
+    data?: Record<string, unknown>
+}
+
 /**
  * Classe EBillingService - Modifiée pour accepter une config optionnelle
  * 
@@ -150,6 +159,54 @@ export class EBillingService {
             }
         } catch (error) {
             console.error('Erreur eBilling sendUssdPush:', error)
+            return {
+                success: false,
+                error: error instanceof Error ? error.message : 'Erreur inconnue',
+            }
+        }
+    }
+
+    /**
+     * Récupère le statut authoritatif d'une facture auprès de l'API eBilling.
+     * Utilisé pour vérifier les callbacks webhook côté serveur :
+     * ne jamais faire confiance au body du webhook seul.
+     */
+    async getBill(billId: string): Promise<EBillingBillStatus> {
+        try {
+            const auth = Buffer.from(
+                `${this.config.username}:${this.config.sharedKey}`
+            ).toString('base64')
+
+            const response = await fetch(
+                `${this.config.baseUrl}/api/v1/merchant/e_bills/${billId}`,
+                {
+                    method: 'GET',
+                    headers: {
+                        Accept: 'application/json',
+                        Authorization: `Basic ${auth}`,
+                    },
+                }
+            )
+
+            if (!response.ok) {
+                return {
+                    success: false,
+                    error: `eBilling getBill ${response.status}`,
+                }
+            }
+
+            const data = await response.json()
+            const bill = data.e_bill ?? data
+
+            return {
+                success: true,
+                status: bill?.state ?? bill?.status,
+                amount: bill?.amount !== undefined ? Number(bill.amount) : undefined,
+                externalReference: bill?.external_reference,
+                data,
+            }
+        } catch (error) {
+            console.error('Erreur eBilling getBill:', error)
             return {
                 success: false,
                 error: error instanceof Error ? error.message : 'Erreur inconnue',

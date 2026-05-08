@@ -81,7 +81,9 @@ export function RestaurantProvider({children}: { children: ReactNode }) {
         if (typeof window !== 'undefined') {
             localStorage.setItem('akom_current_restaurant_id', restaurant.id)
             // ✅ Sync cookie pour le middleware (lecture server-side)
-            document.cookie = `akom_current_restaurant_id=${restaurant.id}; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Lax`
+            // Secure ajouté en HTTPS pour empêcher la fuite sur HTTP/MITM
+            const secureFlag = window.location.protocol === 'https:' ? '; Secure' : ''
+            document.cookie = `akom_current_restaurant_id=${restaurant.id}; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Lax${secureFlag}`
         }
     }
 

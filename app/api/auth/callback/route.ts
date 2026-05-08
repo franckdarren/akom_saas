@@ -18,8 +18,11 @@ export async function GET(request: NextRequest) {
 
         if (!error && data?.user) {
 
-            // ✅ Redirection directe si next fourni (ex: /reset-password)
-            if (next) {
+            // ✅ Redirection directe si next fourni (ex: /reset-password).
+            // SÉCURITÉ : on n'autorise QUE les chemins relatifs internes (commençant
+            // par '/' suivi d'un caractère alphanumérique). Bloque les patterns
+            // open-redirect type "@evil.com", "//evil.com", "https://...".
+            if (next && /^\/[A-Za-z0-9_\-/.?&=%]*$/.test(next)) {
                 return NextResponse.redirect(`${origin}${next}`)
             }
 

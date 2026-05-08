@@ -144,6 +144,7 @@ export async function createRestaurant(data: CreateRestaurantInput) {
             path: '/',
             sameSite: 'lax',
             httpOnly: false,
+            secure: process.env.NODE_ENV === 'production',
         })
 
         revalidatePath('/dashboard')

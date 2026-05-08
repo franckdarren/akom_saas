@@ -1,9 +1,10 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { createClient } from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
 import { capitalizeFirst, formatDescription } from '@/lib/utils/format-text'
+import { requirePermission } from '@/lib/permissions/check'
+import type { PermissionAction } from '@prisma/client'
 
 interface FamilyData {
   name: string
@@ -17,24 +18,14 @@ interface FamilyData {
 type PrismaTx = Parameters<Parameters<typeof prisma.$transaction>[0]>[0]
 
 // ============================================================
-// Récupérer le restaurant de l'utilisateur connecté
+// Récupérer le restaurant via permission check
+// SÉCURITÉ : remplace l'ancien getCurrentRestaurantId() qui faisait
+// uniquement auth+findFirst, ce qui permettait à un kitchen
+// d'opérer sur la structure menu.
 // ============================================================
-async function getCurrentRestaurantId() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) throw new Error('Non authentifié')
-
-  const restaurantUser = await prisma.restaurantUser.findFirst({
-    where: { userId: user.id },
-    select: { restaurantId: true },
-  })
-
-  if (!restaurantUser) throw new Error('Aucun restaurant trouvé')
-
-  return restaurantUser.restaurantId
+async function requireFamilyAccess(action: PermissionAction) {
+  const { restaurantId } = await requirePermission('categories', action)
+  return restaurantId
 }
 
 // ============================================================
@@ -42,7 +33,7 @@ async function getCurrentRestaurantId() {
 // ============================================================
 export async function createFamily(data: FamilyData) {
   try {
-    const restaurantId = await getCurrentRestaurantId()
+    const restaurantId = await requireFamilyAccess('create')
 
     // Vérifier que la catégorie existe et appartient au restaurant
     const category = await prisma.category.findUnique({
@@ -93,7 +84,7 @@ export async function createFamily(data: FamilyData) {
 // ============================================================
 export async function updateFamily(id: string, data: Partial<FamilyData>) {
   try {
-    const restaurantId = await getCurrentRestaurantId()
+    const restaurantId = await requireFamilyAccess('update')
 
     // Si categoryId est fourni, vérifier qu'elle existe
     if (data.categoryId) {
@@ -136,7 +127,7 @@ export async function updateFamily(id: string, data: Partial<FamilyData>) {
 // ============================================================
 export async function toggleFamilyStatus(id: string) {
   try {
-    const restaurantId = await getCurrentRestaurantId()
+    const restaurantId = await requireFamilyAccess('update')
 
     const family = await prisma.family.findUnique({
       where: { id, restaurantId },
@@ -163,7 +154,7 @@ export async function toggleFamilyStatus(id: string) {
 // ============================================================
 export async function deleteFamily(id: string) {
   try {
-    const restaurantId = await getCurrentRestaurantId()
+    const restaurantId = await requireFamilyAccess('delete')
 
     // Vérifier s'il y a des produits liés
     const productsCount = await prisma.product.count({
@@ -212,7 +203,7 @@ export async function deleteFamily(id: string) {
 // ============================================================
 export async function moveFamilyUp(familyId: string) {
   try {
-    const restaurantId = await getCurrentRestaurantId()
+    const restaurantId = await requireFamilyAccess('update')
 
     const family = await prisma.family.findUnique({
       where: { id: familyId, restaurantId },
@@ -258,7 +249,7 @@ export async function moveFamilyUp(familyId: string) {
 // ============================================================
 export async function moveFamilyDown(familyId: string) {
   try {
-    const restaurantId = await getCurrentRestaurantId()
+    const restaurantId = await requireFamilyAccess('update')
 
     const family = await prisma.family.findUnique({
       where: { id: familyId, restaurantId },
@@ -303,7 +294,7 @@ export async function moveFamilyDown(familyId: string) {
 // ============================================================
 export async function getFamiliesByCategory(categoryId: string) {
   try {
-    const restaurantId = await getCurrentRestaurantId()
+    const restaurantId = await requireFamilyAccess('read')
 
     const families = await prisma.family.findMany({
       where: {

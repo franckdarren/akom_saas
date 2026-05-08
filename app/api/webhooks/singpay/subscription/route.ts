@@ -3,6 +3,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { mapSingpayToPaymentStatus, isSubscriptionReference } from '@/lib/singpay/utils'
+import { singpayClient } from '@/lib/singpay/client'
+import { SINGPAY_CONFIG } from '@/lib/singpay/constants'
 import { activateSubscriptionAfterPayment } from '@/lib/actions/singpay-subscription'
 import type { SingpayCallbackData } from '@/lib/singpay/types'
 import type { SubscriptionPaymentStatus } from '@prisma/client'
@@ -49,21 +51,54 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, message: 'Already processed' })
     }
 
-    // 3. Validation du montant
-    const receivedAmount = parseInt(callbackData.transaction.amount, 10)
-    if (!isNaN(receivedAmount) && receivedAmount !== payment.amount) {
-      console.error('❌ Montant mismatch abonnement:', {
+    // 3. SÉCURITÉ CRITIQUE : ne JAMAIS faire confiance au body du callback seul.
+    // Re-interroger l'API SingPay (source autoritative) pour confirmer le statut.
+    // Sans cette étape, n'importe qui ayant initié un paiement d'abonnement
+    // peut forger ce callback et activer son abonnement gratuitement.
+    if (!payment.singpayTransactionId) {
+      console.error('❌ Pas de transactionId pour vérifier:', reference)
+      return NextResponse.json({ error: 'Cannot verify' }, { status: 503 })
+    }
+
+    let verified
+    try {
+      verified = await singpayClient.getTransactionStatus(
+        payment.singpayTransactionId,
+        SINGPAY_CONFIG.platformWalletId,
+      )
+    } catch (verifyError) {
+      console.error('❌ Vérification SingPay abonnement échouée:', verifyError)
+      return NextResponse.json({ error: 'Verification failed' }, { status: 503 })
+    }
+
+    if (!verified.status.success) {
+      console.error('❌ SingPay refuse la vérification abonnement:', verified.status.message)
+      return NextResponse.json({ error: 'Verification rejected' }, { status: 400 })
+    }
+
+    const verifiedTx = verified.transaction
+
+    // Cohérence : la référence retournée par SingPay doit correspondre.
+    if (verifiedTx.reference !== payment.singpayReference) {
+      console.error('❌ Référence SingPay abonnement mismatch:', {
+        expected: payment.singpayReference,
+        received: verifiedTx.reference,
+      })
+      return NextResponse.json({ error: 'Reference mismatch' }, { status: 400 })
+    }
+
+    // Validation du montant contre la réponse autoritative (pas contre le body).
+    const verifiedAmount = parseInt(verifiedTx.amount, 10)
+    if (!isNaN(verifiedAmount) && verifiedAmount !== payment.amount) {
+      console.error('❌ Montant mismatch abonnement (vérifié):', {
         expected: payment.amount,
-        received: receivedAmount,
+        verified: verifiedAmount,
       })
       return NextResponse.json({ error: 'Amount mismatch' }, { status: 400 })
     }
 
-    // 4. Mapper le statut
-    const orderStatus = mapSingpayToPaymentStatus(
-      callbackData.transaction.status,
-      callbackData.transaction.result,
-    )
+    // 4. Mapper le statut depuis la réponse autoritative SingPay
+    const orderStatus = mapSingpayToPaymentStatus(verifiedTx.status, verifiedTx.result)
 
     const newStatus: SubscriptionPaymentStatus =
       orderStatus === 'paid' ? 'confirmed'
@@ -80,11 +115,10 @@ export async function POST(request: NextRequest) {
         callbackAt: new Date(),
         ...(newStatus === 'confirmed' && {
           paidAt: new Date(),
-          transactionId:
-            callbackData.transaction.airtel_money_id ?? callbackData.transaction.id,
+          transactionId: verifiedTx.airtel_money_id ?? verifiedTx.id,
         }),
         ...(newStatus === 'failed' && {
-          errorMessage: callbackData.transaction.result ?? 'Paiement échoué',
+          errorMessage: verifiedTx.result ?? 'Paiement échoué',
         }),
       },
     })

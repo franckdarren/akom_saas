@@ -306,33 +306,11 @@ export async function submitCircuitSheet(
             },
         })
 
-        // Si le restaurant était suspendu pour fiche manquante, on le réactive
-        const restaurant = await prisma.restaurant.findUnique({
-            where: { id: restaurantId },
-            select: { verificationStatus: true },
-        })
-
-        if (restaurant?.verificationStatus === 'suspended') {
-            await prisma.restaurant.update({
-                where: { id: restaurantId },
-                data: {
-                    verificationStatus: 'verified',
-                    isActive: true,
-                },
-            })
-
-            // Historique réactivation
-            await prisma.restaurantVerificationHistory.create({
-                data: {
-                    restaurantId,
-                    eventType: 'reactivated',
-                    oldStatus: 'suspended',
-                    newStatus: 'verified',
-                    performedBy: user.id,
-                    comment: 'Restaurant réactivé après soumission de la fiche circuit',
-                },
-            })
-        }
+        // SÉCURITÉ : ne JAMAIS réactiver automatiquement un restaurant suspendu
+        // sur simple soumission de la fiche circuit. La validation manuelle par
+        // un superadmin via validateCircuitSheet (et reactivateSuspendedRestaurant
+        // si applicable) est obligatoire. Sans ça, un admin suspendu peut
+        // ré-activer son restaurant en uploadant n'importe quel fichier.
 
         // Historique soumission fiche
         await prisma.restaurantVerificationHistory.create({
@@ -340,7 +318,7 @@ export async function submitCircuitSheet(
                 restaurantId,
                 eventType: 'circuit_submitted',
                 performedBy: user.id,
-                comment: 'Fiche circuit soumise',
+                comment: 'Fiche circuit soumise — en attente de validation superadmin',
             },
         })
 

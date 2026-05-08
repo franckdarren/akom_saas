@@ -5,12 +5,13 @@ import prisma from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import type { Prisma } from '@prisma/client'
 import { deductOrderStock } from '@/lib/stock/deduct-order-stock'
+import { EBillingService, ebilling } from '@/lib/payment/ebilling'
 
 type SubscriptionPaymentWithSub = Prisma.SubscriptionPaymentGetPayload<{
     include: { subscription: { include: { restaurant: true } } }
 }>
 type OrderPaymentWithOrder = Prisma.PaymentGetPayload<{
-    include: { order: true }
+    include: { order: true; restaurant: true }
 }>
 interface EBillingPayload {
     reference?: string
@@ -71,6 +72,7 @@ export async function POST(request: NextRequest) {
             where: { id: reference },
             include: {
                 order: true,
+                restaurant: true,
             },
         })
 
@@ -93,18 +95,55 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * Gère la notification pour un paiement d'abonnement
+ * Gère la notification pour un paiement d'abonnement.
+ *
+ * SÉCURITÉ : on ne fait jamais confiance au body du webhook seul.
+ * On revérifie le statut auprès de l'API eBilling (source autoritative) et
+ * on valide le montant retourné. Sans cette étape, n'importe qui peut forger
+ * un POST sur ce webhook avec status=SUCCESSFUL pour activer un abonnement gratuit.
  */
 async function handleSubscriptionPaymentWebhook(
     payment: SubscriptionPaymentWithSub,
     payload: EBillingPayload
 ) {
     try {
-        // eBilling envoie le statut du paiement dans le payload
-        // Les statuts possibles sont généralement: 'SUCCESSFUL', 'FAILED', 'PENDING'
-        const paymentStatus = payload.status || payload.payment_status
+        // Le payment doit avoir été initié via eBilling (transactionId = bill_id eBilling).
+        // S'il n'a pas de transactionId, c'est un paiement manuel — on refuse le webhook.
+        if (!payment.transactionId) {
+            console.error('❌ Subscription payment sans bill_id eBilling:', payment.id)
+            return NextResponse.json({ error: 'Cannot verify' }, { status: 503 })
+        }
 
-        if (paymentStatus === 'SUCCESSFUL') {
+        // Re-interroger eBilling avec les credentials plateforme.
+        const verified = await ebilling.getBill(payment.transactionId)
+
+        if (!verified.success) {
+            console.error('❌ Vérification eBilling abonnement échouée:', verified.error)
+            return NextResponse.json({ error: 'Verification failed' }, { status: 503 })
+        }
+
+        // Cohérence : le bill récupéré doit pointer vers le même payment.
+        if (verified.externalReference && verified.externalReference !== payment.id) {
+            console.error('❌ external_reference eBilling mismatch:', {
+                expected: payment.id,
+                received: verified.externalReference,
+            })
+            return NextResponse.json({ error: 'Reference mismatch' }, { status: 400 })
+        }
+
+        // Validation du montant contre la réponse autoritative.
+        if (verified.amount !== undefined && verified.amount !== payment.amount) {
+            console.error('❌ Montant eBilling mismatch (vérifié):', {
+                expected: payment.amount,
+                verified: verified.amount,
+            })
+            return NextResponse.json({ error: 'Amount mismatch' }, { status: 400 })
+        }
+
+        // Statut authoritatif depuis eBilling (et non depuis le body).
+        const verifiedStatus = (verified.status || '').toString().toUpperCase()
+
+        if (['PAID', 'SUCCESSFUL', 'COMPLETED'].includes(verifiedStatus)) {
             // Marquer le paiement comme confirmé
             await prisma.subscriptionPayment.update({
                 where: { id: payment.id },
@@ -132,7 +171,7 @@ async function handleSubscriptionPaymentWebhook(
             revalidatePath('/dashboard/subscription')
 
             return NextResponse.json({ success: true })
-        } else if (paymentStatus === 'FAILED') {
+        } else if (['FAILED', 'CANCELLED', 'EXPIRED'].includes(verifiedStatus)) {
             await prisma.subscriptionPayment.update({
                 where: { id: payment.id },
                 data: {
@@ -158,13 +197,63 @@ async function handleSubscriptionPaymentWebhook(
 }
 
 /**
- * Gère la notification pour un paiement de commande
+ * Gère la notification pour un paiement de commande.
+ *
+ * SÉCURITÉ : on ne fait jamais confiance au body du webhook seul.
+ * On revérifie le statut auprès de l'API eBilling avec les credentials du
+ * restaurant et on valide le montant. Sans cette étape, n'importe qui ayant
+ * initié un paiement de commande peut forger ce callback pour valider sa
+ * commande sans paiement réel.
  */
 async function handleOrderPaymentWebhook(payment: OrderPaymentWithOrder, payload: EBillingPayload) {
     try {
-        const paymentStatus = payload.status || payload.payment_status
+        // Le payment doit avoir été initié via eBilling (transactionId = bill_id).
+        if (!payment.transactionId) {
+            console.error('❌ Order payment sans bill_id eBilling:', payment.id)
+            return NextResponse.json({ error: 'Cannot verify' }, { status: 503 })
+        }
 
-        if (paymentStatus === 'SUCCESSFUL') {
+        // Vérifier que le restaurant a des credentials eBilling.
+        if (!payment.restaurant.ebillingUsername || !payment.restaurant.ebillingSharedKey) {
+            console.error('❌ Restaurant sans config eBilling:', payment.restaurantId)
+            return NextResponse.json({ error: 'Cannot verify' }, { status: 503 })
+        }
+
+        // Re-interroger eBilling avec les credentials du restaurant.
+        const restaurantEBilling = new EBillingService({
+            username: payment.restaurant.ebillingUsername,
+            sharedKey: payment.restaurant.ebillingSharedKey,
+        })
+
+        const verified = await restaurantEBilling.getBill(payment.transactionId)
+
+        if (!verified.success) {
+            console.error('❌ Vérification eBilling commande échouée:', verified.error)
+            return NextResponse.json({ error: 'Verification failed' }, { status: 503 })
+        }
+
+        // Cohérence : le bill récupéré doit pointer vers le même payment.
+        if (verified.externalReference && verified.externalReference !== payment.id) {
+            console.error('❌ external_reference eBilling mismatch:', {
+                expected: payment.id,
+                received: verified.externalReference,
+            })
+            return NextResponse.json({ error: 'Reference mismatch' }, { status: 400 })
+        }
+
+        // Validation du montant contre la réponse autoritative.
+        if (verified.amount !== undefined && verified.amount !== payment.amount) {
+            console.error('❌ Montant eBilling commande mismatch (vérifié):', {
+                expected: payment.amount,
+                verified: verified.amount,
+            })
+            return NextResponse.json({ error: 'Amount mismatch' }, { status: 400 })
+        }
+
+        // Statut authoritatif depuis eBilling (et non depuis le body).
+        const verifiedStatus = (verified.status || '').toString().toUpperCase()
+
+        if (['PAID', 'SUCCESSFUL', 'COMPLETED'].includes(verifiedStatus)) {
             // Marquer le paiement comme réussi
             await prisma.payment.update({
                 where: { id: payment.id },
@@ -190,7 +279,7 @@ async function handleOrderPaymentWebhook(payment: OrderPaymentWithOrder, payload
             revalidatePath('/dashboard/orders')
 
             return NextResponse.json({ success: true })
-        } else if (paymentStatus === 'FAILED') {
+        } else if (['FAILED', 'CANCELLED', 'EXPIRED'].includes(verifiedStatus)) {
             await prisma.payment.update({
                 where: { id: payment.id },
                 data: {

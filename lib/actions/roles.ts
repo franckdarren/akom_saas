@@ -309,7 +309,14 @@ export async function assignRoleToUser(
     roleId: string
 ) {
     try {
-        await requirePermissionForRestaurant(restaurantId, 'users', 'update')
+        const {userId: currentUserId} = await requirePermissionForRestaurant(restaurantId, 'users', 'update')
+
+        // SÉCURITÉ : empêcher l'auto-promotion. Un user avec un rôle custom qui
+        // a la permission 'users.update' ne doit pas pouvoir s'attribuer le rôle
+        // admin lui-même.
+        if (currentUserId === userId) {
+            return {error: 'Vous ne pouvez pas modifier votre propre rôle'}
+        }
 
         const role = await prisma.role.findUnique({
             where: {id: roleId, restaurantId},
@@ -318,6 +325,19 @@ export async function assignRoleToUser(
 
         if (!role) {
             return {error: 'Rôle introuvable'}
+        }
+
+        // SÉCURITÉ : seul un admin peut assigner le rôle admin à autrui.
+        // Sans ce check, un user avec users.update + un complice peut élever
+        // l'autre puis se faire élever en retour.
+        if (role.slug === 'admin') {
+            const callerMember = await prisma.restaurantUser.findUnique({
+                where: {userId_restaurantId: {userId: currentUserId, restaurantId}},
+                select: {customRole: {select: {slug: true}}},
+            })
+            if (callerMember?.customRole?.slug !== 'admin') {
+                return {error: "Seul un admin peut assigner le rôle 'admin'"}
+            }
         }
 
         const restaurantUser = await prisma.restaurantUser.findUnique({

@@ -3,6 +3,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { mapSingpayToPaymentStatus } from '@/lib/singpay/utils'
+import { singpayClient } from '@/lib/singpay/client'
 import type { SingpayCallbackData } from '@/lib/singpay/types'
 import type { SingpayTransactionStatus, SingpayTransactionResult } from '@prisma/client'
 import { deductOrderStock } from '@/lib/stock/deduct-order-stock'
@@ -37,7 +38,10 @@ export async function POST(
     // 1. Trouver le Payment par singpayReference (unique)
     const payment = await prisma.payment.findUnique({
       where: { singpayReference: callbackData.transaction.reference },
-      include: { order: true },
+      include: {
+        order: true,
+        restaurant: { include: { singpayConfig: true } },
+      },
     })
 
     if (!payment) {
@@ -60,39 +64,75 @@ export async function POST(
       return NextResponse.json({ success: true, message: 'Already processed' })
     }
 
-    // 4. VALIDATION : vérifier le montant
-    const receivedAmount = parseInt(callbackData.transaction.amount, 10)
-    if (!isNaN(receivedAmount) && receivedAmount !== payment.amount) {
-      console.error('❌ Montant mismatch:', {
+    // 4. SÉCURITÉ CRITIQUE : ne JAMAIS faire confiance au body du callback seul.
+    // Re-interroger l'API SingPay (source autoritative) avant de marquer comme payé.
+    // Sans cette étape, n'importe qui peut forger un callback HTTP avec status=Terminate
+    // et result=Success pour valider une commande sans paiement réel.
+    const walletId = payment.restaurant.singpayConfig?.walletId
+    if (!walletId || !payment.singpayTransactionId) {
+      console.error('❌ Impossible de vérifier auprès de SingPay : config manquante', {
+        walletId: !!walletId,
+        transactionId: !!payment.singpayTransactionId,
+      })
+      return NextResponse.json({ error: 'Cannot verify' }, { status: 503 })
+    }
+
+    let verified
+    try {
+      verified = await singpayClient.getTransactionStatus(payment.singpayTransactionId, walletId)
+    } catch (verifyError) {
+      console.error('❌ Vérification SingPay échouée:', verifyError)
+      // Fail-closed : on ne traite pas le callback si on ne peut pas confirmer.
+      return NextResponse.json({ error: 'Verification failed' }, { status: 503 })
+    }
+
+    if (!verified.status.success) {
+      console.error('❌ SingPay refuse la vérification:', verified.status.message)
+      return NextResponse.json({ error: 'Verification rejected' }, { status: 400 })
+    }
+
+    // À partir d'ici on n'utilise QUE les données retournées par SingPay,
+    // jamais celles du body du webhook.
+    const verifiedTx = verified.transaction
+
+    // Cohérence : la référence retournée par SingPay doit correspondre à celle stockée.
+    if (verifiedTx.reference !== payment.singpayReference) {
+      console.error('❌ Référence SingPay mismatch:', {
+        expected: payment.singpayReference,
+        received: verifiedTx.reference,
+      })
+      return NextResponse.json({ error: 'Reference mismatch' }, { status: 400 })
+    }
+
+    // Validation du montant contre la réponse autoritative (pas contre le body).
+    const verifiedAmount = parseInt(verifiedTx.amount, 10)
+    if (!isNaN(verifiedAmount) && verifiedAmount !== payment.amount) {
+      console.error('❌ Montant mismatch (vérifié):', {
         expected: payment.amount,
-        received: receivedAmount,
+        verified: verifiedAmount,
       })
       return NextResponse.json({ error: 'Amount mismatch' }, { status: 400 })
     }
 
-    // 5. Stocker le callback brut et mapper le statut
-    const newStatus = mapSingpayToPaymentStatus(
-      callbackData.transaction.status,
-      callbackData.transaction.result,
-    )
+    // 5. Mapper le statut depuis la réponse autoritative SingPay
+    const newStatus = mapSingpayToPaymentStatus(verifiedTx.status, verifiedTx.result)
 
     await prisma.payment.update({
       where: { id: payment.id },
       data: {
-        singpayStatus: callbackData.transaction.status.toLowerCase() as SingpayTransactionStatus,
-        singpayResult: (callbackData.transaction.result?.toLowerCase() ?? 'pending') as SingpayTransactionResult,
+        singpayStatus: verifiedTx.status.toLowerCase() as SingpayTransactionStatus,
+        singpayResult: (verifiedTx.result?.toLowerCase() ?? 'pending') as SingpayTransactionResult,
         status: newStatus,
         callbackReceived: true,
         callbackData: JSON.parse(JSON.stringify(callbackData)),
         callbackAt: new Date(),
         ...(newStatus === 'paid' && {
           paidAt: new Date(),
-          transactionId:
-            callbackData.transaction.airtel_money_id ?? callbackData.transaction.id,
-          singpayAirtelId: callbackData.transaction.airtel_money_id,
+          transactionId: verifiedTx.airtel_money_id ?? verifiedTx.id,
+          singpayAirtelId: verifiedTx.airtel_money_id,
         }),
         ...(newStatus === 'failed' && {
-          errorMessage: callbackData.transaction.result ?? 'Paiement échoué',
+          errorMessage: verifiedTx.result ?? 'Paiement échoué',
         }),
       },
     })

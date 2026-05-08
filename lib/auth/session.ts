@@ -1,5 +1,32 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import prisma from '@/lib/prisma'
+
+/**
+ * Vérifie que l'utilisateur courant a le droit d'opérer sur la caisse
+ * (admin ou cashier uniquement). Les rôles kitchen/personnalisés sans
+ * accès caisse sont refusés.
+ *
+ * Pourquoi pas requirePermission('cash', ...) ? Le PermissionResource enum
+ * Prisma ne contient pas encore de ressource 'cash' — l'ajouter nécessiterait
+ * une migration. En attendant, on s'appuie sur le slug du rôle.
+ */
+export async function requireCashAccess() {
+    const { userId, restaurantId } = await getCurrentUserAndRestaurant()
+
+    const member = await prisma.restaurantUser.findUnique({
+        where: { userId_restaurantId: { userId, restaurantId } },
+        select: { role: true, customRole: { select: { slug: true } } },
+    })
+
+    const slug = member?.customRole?.slug ?? member?.role ?? null
+
+    if (slug !== 'admin' && slug !== 'cashier') {
+        throw new Error('Accès caisse refusé : rôle admin ou cashier requis')
+    }
+
+    return { userId, restaurantId }
+}
 
 /**
  * Récupère l'utilisateur connecté et son restaurant actif.

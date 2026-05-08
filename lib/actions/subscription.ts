@@ -4,6 +4,7 @@
 import prisma from '@/lib/prisma'
 import {revalidatePath} from 'next/cache'
 import {createClient} from '@/lib/supabase/server'
+import {isSuperAdminEmail} from '@/lib/utils/permissions'
 import type {SubscriptionPlan, BillingCycle} from '@/lib/config/subscription'
 import {
     SUBSCRIPTION_CONFIG,
@@ -411,6 +412,22 @@ export async function ensureSubscription(restaurantId: string) {
  */
 export async function validateManualPayment(paymentId: string) {
     try {
+        // ============================================================
+        // ÉTAPE 0 : SÉCURITÉ — réservé au superadmin
+        // ============================================================
+        // Sans cette vérification, n'importe quel user qui a soumis un
+        // paiement manuel pouvait appeler directement cette server action
+        // (RPC publique) avec son propre paymentId pour activer son
+        // abonnement gratuitement.
+        const supabase = await createClient()
+        const {data: {user}} = await supabase.auth.getUser()
+        if (!user || !user.email) {
+            return {success: false, error: 'Non authentifié'}
+        }
+        if (!isSuperAdminEmail(user.email)) {
+            return {success: false, error: 'Accès refusé : superadmin uniquement'}
+        }
+
         // ============================================================
         // ÉTAPE 1 : Récupérer le paiement
         // ============================================================

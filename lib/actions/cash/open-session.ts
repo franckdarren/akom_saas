@@ -2,7 +2,7 @@
 'use server'
 
 import prisma from '@/lib/prisma'
-import {getCurrentUserAndRestaurant} from '@/lib/auth/session'
+import {requireCashAccess} from '@/lib/auth/session'
 import {revalidatePath} from 'next/cache'
 
 interface OpenSessionInput {
@@ -12,7 +12,7 @@ interface OpenSessionInput {
 }
 
 export async function openCashSession(input: OpenSessionInput) {
-    const {userId, restaurantId} = await getCurrentUserAndRestaurant()
+    const {userId, restaurantId} = await requireCashAccess()
     if (!userId || !restaurantId) throw new Error('Non autorisé')
 
     const today = new Date().toISOString().split('T')[0]

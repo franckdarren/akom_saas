@@ -1,9 +1,19 @@
 'use server'
 
-import {getCurrentUserAndRestaurant} from '@/lib/auth/session'
+import {requirePermission} from '@/lib/permissions/check'
 import prisma from '@/lib/prisma'
 import {revalidatePath} from 'next/cache'
-import type {Prisma} from '@prisma/client'
+import type {Prisma, PermissionAction} from '@prisma/client'
+
+/**
+ * SÉCURITÉ : remplace l'ancien getCurrentUserAndRestaurant() qui ne vérifiait
+ * que l'appartenance au restaurant. Sans permission check, un employé kitchen
+ * pouvait manipuler le stock entrepôt, les transferts vers ops, et les coûts
+ * fournisseurs en appelant directement les server actions par RPC.
+ */
+async function requireWarehouseAccess(action: PermissionAction) {
+    return requirePermission('stocks', action)
+}
 
 // ============================================================
 // Action 1 : Créer un produit d'entrepôt
@@ -24,7 +34,7 @@ export async function createWarehouseProduct(data: {
     unitCost?: number
 }) {
     try {
-        const {restaurantId, userId} = await getCurrentUserAndRestaurant()
+        const {restaurantId, userId} = await requireWarehouseAccess('create')
 
         if (data.linkedProductId) {
             const linkedProduct = await prisma.product.findFirst({
@@ -104,7 +114,7 @@ export async function warehouseStockEntry(data: {
     notes?: string
 }) {
     try {
-        const {restaurantId, userId} = await getCurrentUserAndRestaurant()
+        const {restaurantId, userId} = await requireWarehouseAccess('update')
 
         if (data.quantity <= 0) {
             return {error: 'La quantité doit être positive'}
@@ -173,7 +183,7 @@ export async function transferWarehouseToOps(data: {
     notes?: string
 }) {
     try {
-        const {restaurantId, userId} = await getCurrentUserAndRestaurant()
+        const {restaurantId, userId} = await requireWarehouseAccess('update')
 
         if (data.warehouseQuantity <= 0) {
             return {error: 'La quantité doit être positive'}
@@ -330,7 +340,7 @@ export async function adjustWarehouseStock(data: {
     reason: string
 }) {
     try {
-        const {restaurantId, userId} = await getCurrentUserAndRestaurant()
+        const {restaurantId, userId} = await requireWarehouseAccess('update')
 
         if (data.newQuantity < 0) {
             return {error: 'La quantité ne peut pas être négative'}
@@ -390,7 +400,7 @@ export async function adjustWarehouseStock(data: {
 
 export async function getWarehouseStats() {
     try {
-        const {restaurantId} = await getCurrentUserAndRestaurant()
+        const {restaurantId} = await requireWarehouseAccess('read')
 
         const [totalProducts, lastInventory, aggregates] = await Promise.all([
             prisma.warehouseProduct.count({where: {restaurantId, isActive: true}}),
@@ -440,7 +450,7 @@ export async function getWarehouseProducts(filters?: {
     search?: string
 }) {
     try {
-        const {restaurantId} = await getCurrentUserAndRestaurant()
+        const {restaurantId} = await requireWarehouseAccess('read')
 
         const whereConditions: Prisma.WarehouseProductWhereInput = {
             restaurantId,
@@ -573,7 +583,7 @@ export async function getWarehouseProductById(
     productId: string
 ): Promise<{ success: true; data: WarehouseProductDetail } | { success: false; error: string }> {
     try {
-        const {restaurantId} = await getCurrentUserAndRestaurant()
+        const {restaurantId} = await requireWarehouseAccess('read')
 
         const product = await prisma.warehouseProduct.findFirst({
             where: {id: productId, restaurantId},
@@ -692,7 +702,7 @@ export async function getWarehouseProductById(
 
 export async function getAvailableProductsForLinking() {
     try {
-        const {restaurantId} = await getCurrentUserAndRestaurant()
+        const {restaurantId} = await requireWarehouseAccess('read')
 
         const products = await prisma.product.findMany({
             where: {restaurantId},
@@ -713,7 +723,7 @@ export async function getAvailableProductsForLinking() {
 
 export async function getWarehouseCategories() {
     try {
-        const {restaurantId} = await getCurrentUserAndRestaurant()
+        const {restaurantId} = await requireWarehouseAccess('read')
 
         const products = await prisma.warehouseProduct.findMany({
             where: {
@@ -757,7 +767,7 @@ export async function updateWarehouseProduct(data: {
     notes?: string
 }) {
     try {
-        const {restaurantId} = await getCurrentUserAndRestaurant()
+        const {restaurantId} = await requireWarehouseAccess('update')
 
         const existingProduct = await prisma.warehouseProduct.findUnique({
             where: {id: data.id},
