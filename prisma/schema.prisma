@@ -316,11 +316,27 @@ model Restaurant {
   manualRevenues          ManualRevenue[]
   expenses                Expense[]
   singpayConfig           RestaurantSingpayConfig?
+  modules                 RestaurantModule[]
 
   @@index([slug])
   @@index([isActive])
   @@index([verificationStatus])
   @@map("restaurants")
+}
+
+model RestaurantModule {
+  id           String   @id @default(uuid()) @db.Uuid
+  restaurantId String   @map("restaurant_id") @db.Uuid
+  moduleKey    String   @map("module_key")
+  isEnabled    Boolean  @default(true) @map("is_enabled")
+  enabledAt    DateTime @default(now()) @map("enabled_at")
+  enabledBy    String?  @map("enabled_by") @db.Uuid
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@unique([restaurantId, moduleKey])
+  @@index([restaurantId, isEnabled])
+  @@map("restaurant_modules")
 }
 
 model RestaurantUser {

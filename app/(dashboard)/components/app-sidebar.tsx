@@ -13,6 +13,8 @@ import {signOut} from "@/lib/actions/auth"
 import type {SubscriptionPlan, FeatureKey} from "@/lib/config/subscription"
 import {getLabels} from "@/lib/config/activity-labels"
 import type {ActivityType} from "@/lib/config/activity-labels"
+import {MODULE_CATALOG, type ModuleKey} from "@/lib/config/modules"
+import {ModulesQuickSheet} from "@/components/modules/ModulesQuickSheet"
 import {RestaurantSwitcher} from "@/components/dashboard/RestaurantSwitcher"
 import {Logo} from "@/components/ui/logo"
 
@@ -47,6 +49,7 @@ import {
     Lock,
     TrendingUp,
     ClipboardList,
+    LayoutGrid,
 } from "lucide-react"
 
 import {
@@ -94,8 +97,8 @@ interface AppSidebarProps {
     restaurantLogoUrl?: string
     currentPlan?: SubscriptionPlan
     onSignOut: () => void
-    // ← NOUVEAU : quota multi-structure résolu server-side
     canAddMoreRestaurants?: boolean
+    activeModules?: ModuleKey[]
 }
 
 interface MenuItem {
@@ -105,6 +108,7 @@ interface MenuItem {
     badge?: string
     disabled?: boolean
     requiredFeature?: FeatureKey
+    module?: ModuleKey // si défini, masqué si le module est désactivé
 }
 
 interface MenuGroup {
@@ -122,11 +126,13 @@ export function AppSidebar({
                                restaurantLogoUrl,
                                currentPlan,
                                canAddMoreRestaurants = false,
+                               activeModules = [],
                            }: AppSidebarProps) {
     const pathname = usePathname()
     const {currentRestaurant} = useRestaurant()
     const {loading, startLoading} = useNavigationLoading()
     const [isSigningOut, setIsSigningOut] = useState(false)
+    const [modulesSheetOpen, setModulesSheetOpen] = useState(false)
     const router = useRouter()
     const {isMobile, setOpenMobile} = useSidebar()
 
@@ -136,6 +142,13 @@ export function AppSidebar({
 
     const isPathActive = (itemHref: string, currentPath: string) =>
         itemHref === currentPath
+
+    // Un item est visible si son module est actif (ou s'il n'a pas de module = toujours visible)
+    const isModuleActive = (moduleKey?: ModuleKey): boolean => {
+        if (!moduleKey) return true
+        if (MODULE_CATALOG[moduleKey]?.isCore) return true
+        return activeModules.includes(moduleKey)
+    }
 
     async function handleSignOut() {
         if (isSigningOut) return
@@ -161,36 +174,38 @@ export function AppSidebar({
             {
                 title: labels.catalogNameCapital,
                 items: [
-                    {title: labels.categoryNameCapital + "s", href: "/dashboard/menu/categories", icon: Menu},
-                    {title: labels.productNameCapital + "s", href: "/dashboard/menu/products", icon: Utensils},
+                    {title: labels.categoryNameCapital + "s", href: "/dashboard/menu/categories", icon: Menu, module: 'catalog' as ModuleKey},
+                    {title: labels.productNameCapital + "s", href: "/dashboard/menu/products", icon: Utensils, module: 'catalog' as ModuleKey},
                 ],
             },
             {
                 title: "Opérations",
                 items: [
-                    {title: labels.tableNameCapital + "s", href: "/dashboard/tables", icon: Users},
-                    {title: labels.orderNameCapital + "s", href: "/dashboard/orders", icon: ShoppingCart},
+                    {title: labels.tableNameCapital + "s", href: "/dashboard/tables", icon: Users, module: 'tables' as ModuleKey},
+                    {title: labels.orderNameCapital + "s", href: "/dashboard/orders", icon: ShoppingCart, module: 'orders' as ModuleKey},
                     {
                         title: "Stocks",
                         href: "/dashboard/stocks",
                         icon: Package,
                         requiredFeature: 'stock_management',
+                        module: 'stocks' as ModuleKey,
                     },
-                    {title: "Transactions", href: "/dashboard/transactions", icon: ArrowRightLeft},
+                    {title: "Transactions", href: "/dashboard/transactions", icon: ArrowRightLeft, module: 'transactions' as ModuleKey},
                     {title: "Abonnements", href: "/dashboard/subscription", icon: CalendarSync},
                     {
                         title: "Caisse",
                         href: "/dashboard/caisse",
                         icon: Wallet,
                         requiredFeature: 'caisse_module',
+                        module: 'caisse' as ModuleKey,
                     },
                 ],
             },
             {
                 title: "Comptoir",
                 items: [
-                    {title: `Nouvelle ${labels.orderName}`, href: "/dashboard/pos", icon: ShoppingCart},
-                    {title: `${labels.orderNameCapital}s du jour`, href: "/dashboard/pos/orders", icon: ClipboardList},
+                    {title: `Nouvelle ${labels.orderName}`, href: "/dashboard/pos", icon: ShoppingCart, module: 'pos' as ModuleKey},
+                    {title: `${labels.orderNameCapital}s du jour`, href: "/dashboard/pos/orders", icon: ClipboardList, module: 'pos' as ModuleKey},
                 ],
             },
             {
@@ -201,24 +216,28 @@ export function AppSidebar({
                         href: "/dashboard/warehouse",
                         icon: Warehouse,
                         requiredFeature: 'warehouse_module',
+                        module: 'warehouse' as ModuleKey,
                     },
                     {
                         title: "Produits",
                         href: "/dashboard/warehouse/products/new",
                         icon: Package,
                         requiredFeature: 'warehouse_module',
+                        module: 'warehouse' as ModuleKey,
                     },
                     {
                         title: "Mouvements",
                         href: "/dashboard/warehouse/movements",
                         icon: Activity,
                         requiredFeature: 'warehouse_module',
+                        module: 'warehouse' as ModuleKey,
                     },
                     {
                         title: "Transferts",
                         href: "/dashboard/warehouse/transfers",
                         icon: ArrowRightLeft,
                         requiredFeature: 'warehouse_module',
+                        module: 'warehouse' as ModuleKey,
                     },
                 ],
             },
@@ -230,6 +249,7 @@ export function AppSidebar({
                         href: "/dashboard/stats",
                         icon: BarChart3,
                         requiredFeature: 'advanced_stats',
+                        module: 'stats' as ModuleKey,
                     },
                 ],
             },
@@ -242,6 +262,11 @@ export function AppSidebar({
                             ? `/dashboard/restaurants/${currentRestaurant.id}/settings`
                             : "#",
                         icon: Settings,
+                    },
+                    {
+                        title: "Modules",
+                        href: "/dashboard/settings/modules",
+                        icon: LayoutGrid,
                     },
                     {
                         title: "Utilisateurs",
@@ -354,12 +379,18 @@ export function AppSidebar({
 
                 {/* ── Menu ── */}
                 <SidebarContent>
-                    {menuItems.map((group, i) => (
+                    {menuItems.map((group, i) => {
+                        // Filtrer les items dont le module est désactivé
+                        const visibleItems = group.items.filter(item => isModuleActive(item.module))
+                        // Masquer le groupe entier s'il n'a plus d'items visibles
+                        if (visibleItems.length === 0) return null
+
+                        return (
                         <SidebarGroup key={i}>
                             <SidebarGroupLabel>{group.title}</SidebarGroupLabel>
                             <SidebarGroupContent>
                                 <SidebarMenu>
-                                    {group.items.map((item) => {
+                                    {visibleItems.map((item) => {
                                         const isActive = isPathActive(item.href, pathname)
                                         const isFeatureLocked = item.requiredFeature
                                             ? !hasFeature(item.requiredFeature)
@@ -450,8 +481,30 @@ export function AppSidebar({
                                 </SidebarMenu>
                             </SidebarGroupContent>
                         </SidebarGroup>
-                    ))}
+                        )
+                    })}
                 </SidebarContent>
+
+                {/* ── Bouton accès rapide modules (admin uniquement) ── */}
+                {role === 'admin' && (
+                    <>
+                        <div className="px-3 py-2 border-t">
+                            <button
+                                onClick={() => setModulesSheetOpen(true)}
+                                className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                            >
+                                <LayoutGrid className="h-3.5 w-3.5 shrink-0" />
+                                <span>Personnaliser le menu</span>
+                            </button>
+                        </div>
+                        <ModulesQuickSheet
+                            restaurantId={currentRestaurant?.id ?? ''}
+                            activeModules={activeModules}
+                            open={modulesSheetOpen}
+                            onOpenChange={setModulesSheetOpen}
+                        />
+                    </>
+                )}
 
                 {/* ── Footer : profil utilisateur ── */}
                 <SidebarFooter>

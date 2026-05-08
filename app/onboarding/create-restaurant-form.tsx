@@ -65,7 +65,7 @@ export function CreateRestaurantForm() {
         document.cookie = 'akom_selected_plan=;path=/;max-age=0'
 
         startLoading()
-        router.push('/onboarding/verification')
+        router.push('/onboarding/modules')
     }
 
     return (

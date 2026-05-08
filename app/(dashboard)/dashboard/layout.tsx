@@ -5,6 +5,8 @@ import {cookies} from "next/headers"
 import {signOut, getUserRole} from "@/lib/actions/auth"
 import {getRestaurantSubscription} from "@/lib/actions/subscription"
 import {getMultiRestaurantQuota} from "@/lib/actions/restaurant"
+import {getActiveModules, hydrateDefaultModules} from "@/lib/actions/modules"
+import {MODULE_CATALOG, type ModuleKey} from "@/lib/config/modules"
 import {AppSidebar} from "../components/app-sidebar"
 import {SidebarProvider, SidebarInset} from "@/components/ui/sidebar"
 import {RestaurantProvider} from "@/lib/hooks/use-restaurant"
@@ -38,6 +40,7 @@ export default async function DashboardLayout({
     let restaurantActivityType: ActivityType | undefined
     let currentPlan: SubscriptionPlan = 'starter'
     let canAddMoreRestaurants = false
+    let activeModules: ModuleKey[] = []
     // Statut de vérification de la structure active
     let verificationStatus: string | null = null
     let isFirstRestaurant = false
@@ -120,8 +123,28 @@ export default async function DashboardLayout({
         try {
             const {subscription} = await getRestaurantSubscription(restaurant.id)
             if (subscription?.plan) currentPlan = subscription.plan
-        } catch (error) {
-            console.error('Erreur récupération abonnement:', error)
+        } catch (err) {
+            console.error('Erreur récupération abonnement:', err)
+        }
+
+        // ── Modules actifs ────────────────────────────────────
+        // Isolé dans un try-catch : si la table n'existe pas encore
+        // (migration SQL non exécutée), le dashboard reste fonctionnel.
+        try {
+            const modules = await getActiveModules(restaurant.id)
+            if (modules === null) {
+                activeModules = await hydrateDefaultModules(
+                    restaurant.id,
+                    restaurant.activityType as ActivityType,
+                    user.id,
+                )
+            } else {
+                activeModules = modules
+            }
+        } catch (err) {
+            console.error('Modules : table manquante ou erreur Prisma — migration SQL à exécuter :', err)
+            // Fallback : tous les modules actifs → comportement identique à avant la feature
+            activeModules = Object.keys(MODULE_CATALOG) as ModuleKey[]
         }
 
         // ── Quota multi-structure ─────────────────────────────
@@ -160,6 +183,7 @@ export default async function DashboardLayout({
                         currentPlan={currentPlan}
                         onSignOut={handleSignOut}
                         canAddMoreRestaurants={canAddMoreRestaurants}
+                        activeModules={activeModules}
                     />
                     <SidebarInset>
                         {/* Bannière non bloquante pour les structures en attente */}
