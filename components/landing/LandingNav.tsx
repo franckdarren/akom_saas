@@ -1,32 +1,82 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
-import { IconArrowRight } from './LandingIcons'
 import { Logo } from '../ui/logo'
 
-export default function LandingNav() {
+const NAV_LINKS = [
+  { href: '#how', label: 'Comment ça marche' },
+  { href: '#features', label: 'Fonctionnalités' },
+  { href: '#demo', label: 'Démo' },
+  { href: '#pricing', label: 'Tarifs' },
+  { href: '#faq', label: 'FAQ' },
+]
+
+function MenuIcon() {
   return (
-    <nav className="lp-nav">
-      <div className="lp-container lp-nav-inner">
-        <Link href="#top" className="lp-brand">
-          <Logo size="md" variant="color" />
-        </Link>
-        <div className="lp-nav-links">
-          <a href="#how">Comment ça marche</a>
-          <a href="#features">Fonctionnalités</a>
-          <a href="#demo">Démo</a>
-          <a href="#pricing">Tarifs</a>
-          <a href="#faq">FAQ</a>
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="3" y1="6" x2="21" y2="6" />
+      <line x1="3" y1="12" x2="21" y2="12" />
+      <line x1="3" y1="18" x2="21" y2="18" />
+    </svg>
+  )
+}
+
+function XIcon() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18" />
+      <line x1="6" y1="6" x2="18" y2="18" />
+    </svg>
+  )
+}
+
+export default function LandingNav() {
+  const [menuOpen, setMenuOpen] = useState(false)
+
+  return (
+    <>
+      <header className="lp-nav">
+        <div className="lp-container lp-nav-inner">
+          <Link href="#top" className="lp-brand">
+            <Logo size="md" variant="color" />
+          </Link>
+          <nav className="lp-nav-links">
+            {NAV_LINKS.map(n => (
+              <a key={n.href} href={n.href}>{n.label}</a>
+            ))}
+          </nav>
+          <div className="lp-nav-actions">
+            <Link href="/login" className="lp-nav-login">Connexion</Link>
+            <Link href="/register" className="lp-btn lp-btn-primary">Essai gratuit</Link>
+          </div>
+          <button
+            className="lp-mobile-menu-btn"
+            onClick={() => setMenuOpen(o => !o)}
+            aria-label={menuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
+          >
+            {menuOpen ? <XIcon /> : <MenuIcon />}
+          </button>
         </div>
-        <div className="lp-nav-cta">
-          <Link href="/login" className="lp-btn lp-btn-ghost" style={{ padding: '8px 14px' }}>
-            Se connecter
-          </Link>
-          <Link href="#pricing" className="lp-btn lp-btn-primary">
-            Essayer <IconArrowRight />
-          </Link>
+      </header>
+      <div className={`lp-mobile-menu${menuOpen ? ' lp-open' : ''}`}>
+        <div className="lp-container">
+          {NAV_LINKS.map(n => (
+            <a
+              key={n.href}
+              href={n.href}
+              className="lp-mobile-link"
+              onClick={() => setMenuOpen(false)}
+            >
+              {n.label}
+            </a>
+          ))}
+          <div className="lp-mobile-actions">
+            <Link href="/login" className="lp-mobile-login">Connexion</Link>
+            <Link href="/register" className="lp-mobile-register">Essai gratuit</Link>
+          </div>
         </div>
       </div>
-    </nav>
+    </>
   )
 }

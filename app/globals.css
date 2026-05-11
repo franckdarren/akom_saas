@@ -615,8 +615,24 @@
 .lp-nav-links { display: none; gap: 28px; }
 .lp-nav-links a { color: var(--muted-foreground); font-size: 14px; transition: color 0.15s; text-decoration: none; }
 .lp-nav-links a:hover { color: var(--foreground); }
-.lp-nav-cta { display: flex; align-items: center; gap: 8px; }
-@media (min-width: 900px) { .lp-nav-links { display: flex; } }
+.lp-nav-actions { display: none; align-items: center; gap: 8px; }
+.lp-nav-login { font-size: 14px; font-weight: 500; color: var(--foreground); text-decoration: none; padding: 8px 14px; }
+.lp-nav-login:hover { color: var(--primary); }
+.lp-mobile-menu-btn { display: flex; align-items: center; justify-content: center; background: none; border: none; cursor: pointer; color: var(--foreground); padding: 4px; }
+@media (min-width: 900px) {
+  .lp-nav-links { display: flex; }
+  .lp-nav-actions { display: flex; }
+  .lp-mobile-menu-btn { display: none; }
+}
+
+/* Mobile menu */
+.lp-mobile-menu { background: var(--background); max-height: 0; overflow: hidden; transition: max-height 0.25s ease; }
+.lp-mobile-menu.lp-open { max-height: 480px; border-bottom: 1px solid var(--border); }
+.lp-mobile-link { display: block; font-size: 15px; color: var(--foreground); text-decoration: none; font-weight: 500; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.lp-mobile-actions { display: flex; gap: 8px; padding: 14px 0 16px; }
+.lp-mobile-login { flex: 1; text-align: center; padding: 11px; color: var(--foreground); text-decoration: none; font-weight: 500; font-size: 14px; border: 1px solid var(--border); border-radius: 8px; }
+.lp-mobile-register { flex: 1; text-align: center; padding: 11px; color: var(--primary-foreground); background: var(--primary); text-decoration: none; font-weight: 600; font-size: 14px; border-radius: 8px; }
+@media (min-width: 900px) { .lp-mobile-menu { display: none !important; } }
 
 /* Hero */
 .lp-hero { padding: 80px 0 64px; position: relative; overflow: hidden; }
