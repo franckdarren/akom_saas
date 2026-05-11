@@ -35,33 +35,31 @@ export default function LandingNav() {
   const [menuOpen, setMenuOpen] = useState(false)
 
   return (
-    <>
-      <header className="lp-nav">
-        <div className="lp-container lp-nav-inner">
-          <Link href="#top" className="lp-brand">
-            <Logo size="md" variant="color" />
-          </Link>
-          <nav className="lp-nav-links">
-            {NAV_LINKS.map(n => (
-              <a key={n.href} href={n.href}>{n.label}</a>
-            ))}
-          </nav>
-          <div className="lp-nav-actions">
-            <Link href="/login" className="lp-nav-login">Connexion</Link>
-            <Link href="/register" className="lp-btn lp-btn-primary">Essai gratuit</Link>
-          </div>
-          <div className="lp-mobile-right">
-            <Link href="/register" className="lp-btn lp-btn-primary">Essai gratuit</Link>
-            <button
-              className="lp-mobile-menu-btn"
-              onClick={() => setMenuOpen(o => !o)}
-              aria-label={menuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
-            >
-              {menuOpen ? <XIcon /> : <MenuIcon />}
-            </button>
-          </div>
+    <header className="lp-nav">
+      <div className="lp-container lp-nav-inner">
+        <Link href="#top" className="lp-brand">
+          <Logo size="md" variant="color" />
+        </Link>
+        <nav className="lp-nav-links">
+          {NAV_LINKS.map(n => (
+            <a key={n.href} href={n.href}>{n.label}</a>
+          ))}
+        </nav>
+        <div className="lp-nav-actions">
+          <Link href="/login" className="lp-nav-login">Connexion</Link>
+          <Link href="/register" className="lp-btn lp-btn-primary">Essai gratuit</Link>
         </div>
-      </header>
+        <div className="lp-mobile-right">
+          <Link href="/register" className="lp-btn lp-btn-primary">Essai gratuit</Link>
+          <button
+            className="lp-mobile-menu-btn"
+            onClick={() => setMenuOpen(o => !o)}
+            aria-label={menuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
+          >
+            {menuOpen ? <XIcon /> : <MenuIcon />}
+          </button>
+        </div>
+      </div>
       <div className={`lp-mobile-menu${menuOpen ? ' lp-open' : ''}`}>
         <div className="lp-container">
           {NAV_LINKS.map(n => (
@@ -79,6 +77,6 @@ export default function LandingNav() {
           </div>
         </div>
       </div>
-    </>
+    </header>
   )
 }

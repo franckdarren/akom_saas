@@ -627,7 +627,7 @@
 }
 
 /* Mobile menu */
-.lp-mobile-menu { background: var(--background); max-height: 0; overflow: hidden; transition: max-height 0.25s ease; }
+.lp-mobile-menu { position: absolute; top: 100%; left: 0; right: 0; z-index: 50; background: var(--background); max-height: 0; overflow: hidden; transition: max-height 0.25s ease; }
 .lp-mobile-menu.lp-open { max-height: 480px; border-bottom: 1px solid var(--border); }
 .lp-mobile-link { display: block; font-size: 15px; color: var(--foreground); text-decoration: none; font-weight: 500; padding: 12px 0; border-bottom: 1px solid var(--border); }
 .lp-mobile-actions { padding: 14px 0 16px; }
