@@ -16,7 +16,7 @@ export default function Home() {
       <LandingNav />
       <main>
         <LandingHero />
-        <LandingLogos />
+        {/* <LandingLogos /> */}
         <LandingHowItWorks />
         <LandingFeatures />
         <LandingDemo />
