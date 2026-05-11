@@ -50,13 +50,16 @@ export default function LandingNav() {
             <Link href="/login" className="lp-nav-login">Connexion</Link>
             <Link href="/register" className="lp-btn lp-btn-primary">Essai gratuit</Link>
           </div>
-          <button
-            className="lp-mobile-menu-btn"
-            onClick={() => setMenuOpen(o => !o)}
-            aria-label={menuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
-          >
-            {menuOpen ? <XIcon /> : <MenuIcon />}
-          </button>
+          <div className="lp-mobile-right">
+            <Link href="/register" className="lp-btn lp-btn-primary">Essai gratuit</Link>
+            <button
+              className="lp-mobile-menu-btn"
+              onClick={() => setMenuOpen(o => !o)}
+              aria-label={menuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
+            >
+              {menuOpen ? <XIcon /> : <MenuIcon />}
+            </button>
+          </div>
         </div>
       </header>
       <div className={`lp-mobile-menu${menuOpen ? ' lp-open' : ''}`}>
@@ -73,7 +76,6 @@ export default function LandingNav() {
           ))}
           <div className="lp-mobile-actions">
             <Link href="/login" className="lp-mobile-login">Connexion</Link>
-            <Link href="/register" className="lp-mobile-register">Essai gratuit</Link>
           </div>
         </div>
       </div>
