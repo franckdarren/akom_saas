@@ -39,17 +39,17 @@ export default function TermsPage() {
                     <h2 className="type-section-title mb-4">2. Mentions légales</h2>
                     <p>La Plateforme est éditée par :</p>
                     <ul>
-                        <li>Raison sociale : Akôm</li>
-                        <li>Siège social : [Votre adresse]</li>
+                        <li>Raison sociale : SANTEGAB</li>
+                        <li>Siège social : Alenakiri</li>
                         <li>Email : contact@akom.app</li>
-                        <li>Numéro de téléphone : [Votre numéro]</li>
-                        <li>Directeur de publication : [Nom du directeur]</li>
+                        <li>Numéro de téléphone : 076403535</li>
+                        <li>Directeur de publication : Franck KIKONDA N'ZE</li>
                     </ul>
-                    <p>Hébergement :</p>
+                    {/* <p>Hébergement :</p>
                     <ul>
                         <li>Nom : Supabase Inc.</li>
                         <li>Adresse : [Adresse de Supabase]</li>
-                    </ul>
+                    </ul> */}
                 </section>
 
                 <section className="mb-8">
@@ -71,16 +71,19 @@ export default function TermsPage() {
                         4. Description du service
                     </h2>
                     <p>
-                        Akôm est une plateforme SaaS (Software as a Service) de gestion de
-                        restaurants qui permet aux professionnels de la restauration de :
+                        Akôm est une plateforme SaaS (Software as a Service) de commerce et
+                        de gestion multi-activité qui permet à tout professionnel (restaurant,
+                        boutique, hôtel, salon de beauté, prestataire de services, transporteur,
+                        etc.) de :
                     </p>
                     <ul>
-                        <li>Gérer leur menu digital et leurs produits</li>
-                        <li>Recevoir et traiter les commandes clients via QR code</li>
+                        <li>Gérer leur catalogue digital (produits, services, options)</li>
+                        <li>Recevoir et traiter les commandes clients via QR code, lien public ou comptoir</li>
                         <li>Gérer les stocks et les approvisionnements</li>
-                        <li>Suivre les paiements et la trésorerie</li>
+                        <li>Suivre les paiements et la trésorerie (espèces, carte, Airtel Money, Moov Money)</li>
                         <li>Consulter des statistiques et rapports de vente</li>
-                        <li>Gérer les tables et l'organisation du service</li>
+                        <li>Gérer les espaces (tables, comptoirs, chambres, postes) et l'organisation du service</li>
+                        <li>Piloter plusieurs établissements depuis un seul compte</li>
                     </ul>
                 </section>
 
@@ -97,7 +100,7 @@ export default function TermsPage() {
                     <ul>
                         <li>Une adresse email valide</li>
                         <li>Un mot de passe sécurisé</li>
-                        <li>Les informations relatives à votre restaurant</li>
+                        <li>Les informations relatives à votre établissement (nom, type d'activité, adresse)</li>
                     </ul>
 
                     <h3 className="text-base font-semibold mb-3 mt-6">
@@ -131,7 +134,7 @@ export default function TermsPage() {
                     <ul>
                         <li>De manière légale et conforme aux présentes CGU</li>
                         <li>
-                            Pour la gestion de votre activité de restauration professionnelle
+                            Pour la gestion de votre activité commerciale professionnelle
                         </li>
                         <li>Dans le respect des droits de propriété intellectuelle</li>
                     </ul>
@@ -247,7 +250,7 @@ export default function TermsPage() {
                     </h3>
                     <p>
                         Vous conservez tous les droits sur le contenu que vous publiez sur
-                        la Plateforme (menus, produits, images). Vous nous accordez
+                        la Plateforme (catalogues, produits, services, images). Vous nous accordez
                         toutefois une licence pour héberger, stocker et afficher ce contenu
                         dans le cadre de la fourniture du service.
                     </p>
@@ -350,8 +353,8 @@ export default function TermsPage() {
                                 contact@akom.app
                             </a>
                         </li>
-                        <li>Adresse : [Votre adresse postale]</li>
-                        <li>Téléphone : [Votre numéro de téléphone]</li>
+                        {/* <li>Adresse : [Votre adresse postale]</li> */}
+                        {/* <li>Téléphone : [Votre numéro de téléphone]</li> */}
                     </ul>
                 </section>
             </div>

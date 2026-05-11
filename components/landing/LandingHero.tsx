@@ -15,10 +15,17 @@ export default function LandingHero() {
             <em>encaissez en mobile money</em>.
           </h1>
           <p className="lp-lead">
-            Akôm centralise vos catalogues, vos commandes par QR code et votre cuisine
-            sur une seule plateforme — pensée pour les restaurants, boutiques et hôtels
-            en Afrique.
+            Akôm centralise votre catalogue, la prise de commandes par QR code et votre
+            encaissement sur une seule plateforme — pensée pour tous les commerces en Afrique.
           </p>
+          <div className="lp-activity-pills">
+            <span className="lp-act-pill">🍽 Restauration</span>
+            <span className="lp-act-pill">🛍 Boutiques</span>
+            <span className="lp-act-pill">🏨 Hôtellerie</span>
+            <span className="lp-act-pill">💇 Beauté</span>
+            <span className="lp-act-pill">🚌 Transport</span>
+            <span className="lp-act-pill">⚙ Services</span>
+          </div>
           <div className="lp-hero-ctas">
             <a href="#pricing" className="lp-btn lp-btn-primary lp-btn-lg">
               Choisir un plan

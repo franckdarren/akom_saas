@@ -10,7 +10,7 @@ export default function LandingCTA() {
             Disponible dès aujourd&apos;hui
           </span>
           <h2>Lancez votre commerce digital cette semaine</h2>
-          <p>Sans matériel, sans formation longue, sans engagement. Choisissez votre plan et configurez votre premier menu en moins d&apos;une heure.</p>
+          <p>Sans matériel, sans formation longue, sans engagement. Choisissez votre plan et configurez votre premier catalogue en moins d&apos;une heure.</p>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center', marginTop: 12 }}>
             <a href="#pricing" className="lp-btn lp-btn-primary lp-btn-lg">
               Choisir un plan <IconArrowRight />

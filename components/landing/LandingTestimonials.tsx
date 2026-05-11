@@ -2,21 +2,21 @@ import { IconStar } from './LandingIcons'
 
 const testimonials = [
   {
-    quote: "On a divisé par trois le temps d'attente entre la commande et la cuisine. Mes serveurs se concentrent enfin sur le service, pas sur la prise de commande.",
+    quote: "On a divisé par trois le temps d'attente entre la commande et la préparation. Mon équipe se concentre enfin sur le service, pas sur la prise de commande.",
     name: 'Marielle Ndong',
-    role: 'Gérante · Le Mandara, Libreville',
+    role: 'Gérante · Restaurant Le Mandara, Libreville',
     initials: 'MN',
   },
   {
-    quote: "L'intégration Airtel et Moov Money a été immédiate. Mes clients paient depuis leur téléphone, je n'ai plus de problème de monnaie en fin de service.",
+    quote: "Mes clients parcourent le catalogue depuis leur téléphone et règlent en Airtel Money sans que j'aie besoin d'une caisse physique. Simple, rapide, et ça change tout pour une boutique comme la mienne.",
     name: 'Patrick Obame',
-    role: 'Propriétaire · Café Atlantique',
+    role: 'Propriétaire · Boutique Mode & Style, Port-Gentil',
     initials: 'PO',
   },
   {
-    quote: "Mise en place en une après-midi. Mon équipe a compris l'écran cuisine en cinq minutes. Le coût mensuel est honnête, à la portée d'un petit restaurant.",
+    quote: "On gère trois établissements depuis un seul tableau de bord. Les rapports quotidiens automatiques me font gagner plusieurs heures par semaine.",
     name: 'Sandrine Mboumba',
-    role: 'Cheffe · Saveurs du Komo',
+    role: 'Directrice · Hôtel Savana, Franceville',
     initials: 'SM',
   },
 ]
@@ -27,7 +27,7 @@ export default function LandingTestimonials() {
       <div className="lp-container">
         <div className="lp-s-head">
           <span className="lp-label-meta" style={{ color: 'var(--primary)' }}>Témoignages</span>
-          <h2>Ce que disent nos restaurateurs</h2>
+          <h2>Ce que disent nos clients</h2>
         </div>
         <div className="lp-testis">
           {testimonials.map((t, i) => (

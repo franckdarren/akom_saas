@@ -23,8 +23,8 @@ export default function PrivacyPolicyPage() {
                         données personnelles et nous nous engageons à respecter votre vie
                         privée. Cette politique de confidentialité explique comment nous
                         collectons, utilisons, stockons et protégeons vos informations
-                        lorsque vous utilisez notre plateforme SaaS de gestion de
-                        restaurants.
+                        lorsque vous utilisez notre plateforme SaaS de commerce et
+                        de gestion multi-activité.
                     </p>
                 </section>
 
@@ -56,7 +56,7 @@ export default function PrivacyPolicyPage() {
                         <li>Votre adresse email</li>
                         <li>Votre mot de passe (chiffré)</li>
                         <li>Votre nom et prénom (si fournis)</li>
-                        <li>Les informations de votre restaurant (nom, adresse, téléphone)</li>
+                        <li>Les informations de votre établissement (nom, type d'activité, adresse, téléphone)</li>
                     </ul>
 
                     <h3 className="text-base font-semibold mb-3 mt-6">
@@ -79,7 +79,7 @@ export default function PrivacyPolicyPage() {
                     <h3 className="text-base font-semibold mb-3 mt-6">
                         3.3 Données des commandes et transactions
                     </h3>
-                    <p>Dans le cadre de la gestion de votre restaurant, nous stockons :</p>
+                    <p>Dans le cadre de la gestion de votre établissement, nous stockons :</p>
                     <ul>
                         <li>Les commandes passées par vos clients</li>
                         <li>Les informations de paiement (uniquement les identifiants de transaction, pas les coordonnées bancaires)</li>
@@ -115,7 +115,7 @@ export default function PrivacyPolicyPage() {
                     <p>Nous utilisons vos données personnelles pour :</p>
                     <ul>
                         <li>Créer et gérer votre compte utilisateur</li>
-                        <li>Fournir nos services de gestion de restaurant</li>
+                        <li>Fournir nos services de gestion commerciale (catalogue, commandes, encaissement, stocks)</li>
                         <li>Traiter les commandes et les paiements</li>
                         <li>
                             Vous envoyer des notifications importantes concernant votre

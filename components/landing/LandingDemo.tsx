@@ -187,8 +187,8 @@ export default function LandingDemo() {
         <div className="lp-demo-grid">
           <div className="lp-demo-copy">
             <span className="lp-label-meta" style={{ color: 'var(--primary)' }}>Démo en direct</span>
-            <h2>Du QR code à la cuisine en quelques secondes</h2>
-            <p>Voici exactement ce que vivent vos clients et votre équipe — scannez, commandez, recevez. Sans serveur, sans erreur, sans attente.</p>
+            <h2>Du scan à la réception des commandes en quelques secondes</h2>
+            <p>Voici exactement ce que vivent vos clients et votre équipe — scannez, commandez, recevez. Sans erreur, sans délai, sans application à installer.</p>
 
             <div className="lp-demo-stages">
               <div className={`lp-demo-stage${stage === 0 ? ' active' : stage > 0 ? ' done' : ''}`}>
@@ -208,7 +208,7 @@ export default function LandingDemo() {
               <div className={`lp-demo-stage${stage >= 2 ? (orderStatus === 'ready' ? ' done' : ' active') : ''}`}>
                 <span className="lp-num">3</span>
                 <div>
-                  <div className="lp-stage-label">Réception en cuisine</div>
+                  <div className="lp-stage-label">Réception des commandes</div>
                   <div className="lp-stage-sub">Notification sonore, statut en direct</div>
                 </div>
               </div>

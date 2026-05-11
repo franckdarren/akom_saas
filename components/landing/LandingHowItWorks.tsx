@@ -10,13 +10,13 @@ const items = [
   {
     n: '02',
     title: 'Imprimez vos QR codes',
-    body: "Akôm génère un QR code unique par table ou par espace. Vos clients scannent, parcourent le menu et commandent depuis leur téléphone — sans application.",
+    body: "Akôm génère un QR code unique par espace (table, comptoir, chambre, poste). Vos clients scannent, parcourent votre catalogue et commandent depuis leur téléphone — sans application.",
     icon: <IconQr size={22} />,
   },
   {
     n: '03',
-    title: 'Cuisine et caisse synchronisées',
-    body: "Chaque commande arrive en temps réel dans l'écran cuisine, avec notification sonore. Le paiement Airtel/Moov est encaissé directement depuis l'application.",
+    title: 'Tableau de bord et caisse synchronisés',
+    body: "Chaque commande arrive en temps réel dans votre tableau de bord, avec notification sonore. Le paiement Airtel/Moov est encaissé directement depuis l'application.",
     icon: <IconChef size={22} />,
   },
 ]

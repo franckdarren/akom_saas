@@ -11,7 +11,7 @@ const plans = [
     features: [
       '1 profil administrateur',
       '3 comptes utilisateurs',
-      '10 tables maximum',
+      '10 espaces / QR codes',
       '5 catégories · 30 produits',
       'Menu digital + QR codes',
       'Gestion de stock simplifiée',
@@ -27,7 +27,7 @@ const plans = [
     features: [
       'Tout du plan Starter',
       '5 comptes utilisateurs',
-      '50 tables maximum',
+      '50 espaces / QR codes',
       '15 catégories illimitées',
       'Paiements Airtel & Moov Money',
       'Caisse intégrée',

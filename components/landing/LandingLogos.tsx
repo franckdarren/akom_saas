@@ -1,10 +1,10 @@
 const logos = [
-  { name: 'Le Madara', glyph: 'L' },
+  { name: 'Le Mandara', glyph: 'LM' },
   { name: 'Café Libreville', glyph: 'CL' },
-  { name: 'Saveurs du Komo', glyph: 'SK' },
-  { name: 'Bistrot 241', glyph: 'B2' },
   { name: 'Hôtel Atlantique', glyph: 'HA' },
   { name: 'Boutique N\'tum', glyph: 'BN' },
+  { name: 'Salon Élégance', glyph: 'SE' },
+  { name: 'TransGabon Express', glyph: 'TG' },
 ]
 
 export default function LandingLogos() {
