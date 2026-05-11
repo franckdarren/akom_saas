@@ -4,12 +4,14 @@ on:
   schedule:
     # Toutes les heures — Vérification des abonnements + suspension
     - cron: '0 * * * *'
-    # Toutes les 15 minutes — Surveillance des commandes
-    - cron: '*/15 * * * *'
+    # Toutes les 30 minutes — Surveillance des commandes
+    - cron: '*/30 * * * *'
     # Tous les jours à 2h (UTC) — Nettoyage + archivage + stocks
     - cron: '0 2 * * *'
     # Tous les jours à 7h (UTC) — Rappels abonnements + rapports quotidiens
     - cron: '0 7 * * *'
+    # Tous les jours à 12h (UTC) — Keep-alive DB Supabase (anti-pause)
+    - cron: '0 12 * * *'
 
   # Déclenchement manuel depuis l'onglet Actions de GitHub
   workflow_dispatch:
@@ -24,6 +26,7 @@ on:
           - orders
           - cleanup
           - reminders
+          - keepalive
 
 # ─────────────────────────────────────────────────────────────────────────────
 # IMPORTANT — Architecture des jobs
@@ -73,7 +76,7 @@ jobs:
     name: Surveillance des commandes
     runs-on: ubuntu-latest
     if: |
-      github.event.schedule == '*/15 * * * *' ||
+      github.event.schedule == '*/30 * * * *' ||
       (github.event_name == 'workflow_dispatch' &&
        (github.event.inputs.task == 'all' || github.event.inputs.task == 'orders'))
 
@@ -157,7 +160,27 @@ jobs:
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
 
   # ============================================================
-  # JOB 5 — Rapports hebdomadaires et mensuels (post-MVP)
+  # JOB 5 — Keep-alive DB Supabase (12h UTC)
+  # Empêche la mise en pause automatique de la base de données Supabase
+  # sur les plans inactifs (pause après 1 semaine sans activité)
+  # ============================================================
+  db-keepalive:
+    name: Keep-alive base de données
+    runs-on: ubuntu-latest
+    if: |
+      github.event.schedule == '0 12 * * *' ||
+      (github.event_name == 'workflow_dispatch' &&
+       (github.event.inputs.task == 'all' || github.event.inputs.task == 'keepalive'))
+
+    steps:
+      - name: Ping Supabase (anti-pause)
+        run: |
+          curl -f -X GET \
+            "${{ secrets.APP_URL }}/api/cron/ping-db" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+
+  # ============================================================
+  # JOB 6 — Rapports hebdomadaires et mensuels (post-MVP)
   #
   # ⚠️  Ces routes n'existent pas encore dans le codebase.
   #     Ce job est désactivé jusqu'à leur implémentation.
