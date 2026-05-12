@@ -47,25 +47,30 @@ export function CreateRestaurantForm() {
             ? planCookie as SubscriptionPlan
             : undefined
 
-        const result = await createRestaurant({
-            name,
-            phone: phone || undefined,
-            address: address || undefined,
-            activityType,
-            plan,
-        })
+        try {
+            const result = await createRestaurant({
+                name,
+                phone: phone || undefined,
+                address: address || undefined,
+                activityType,
+                plan,
+            })
 
-        if (result?.error) {
-            setError(result.error)
+            if (result?.error) {
+                setError(result.error)
+                setIsLoading(false)
+                return
+            }
+
+            // Nettoyer le cookie plan après usage
+            document.cookie = 'akom_selected_plan=;path=/;max-age=0'
+
+            startLoading()
+            router.push('/onboarding/modules')
+        } catch {
+            setError('Une erreur inattendue est survenue. Veuillez réessayer.')
             setIsLoading(false)
-            return
         }
-
-        // Nettoyer le cookie plan après usage
-        document.cookie = 'akom_selected_plan=;path=/;max-age=0'
-
-        startLoading()
-        router.push('/onboarding/modules')
     }
 
     return (
