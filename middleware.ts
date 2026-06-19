@@ -169,53 +169,73 @@ export async function middleware(request: NextRequest) {
             })
         }
 
-        // Vérification que la structure est activée (isVerified)
-        try {
-            const {data: restaurant} = await supabase
+        // Vérification (is_verified) et abonnement : requêtes indépendantes
+        // → exécutées en parallèle pour économiser un aller-retour réseau.
+        let restaurant: {is_verified: boolean} | null = null
+        let subscription:
+            | {id: string; status: string; trial_ends_at: string | null; current_period_end: string | null}
+            | null = null
+        let subscriptionQueryFailed = false
+
+        // allSettled : on traite chaque requête indépendamment pour préserver la
+        // sémantique historique — un échec de vérification (is_verified) n'est pas
+        // bloquant (juste loggé), un échec d'abonnement redirige vers "expired".
+        const [restaurantRes, subscriptionRes] = await Promise.allSettled([
+            supabase
                 .from('restaurants')
                 .select('is_verified')
                 .eq('id', restaurantId)
-                .maybeSingle()
-
-            if (!restaurant?.is_verified) {
-                const url = request.nextUrl.clone()
-                url.pathname = '/onboarding/verification'
-                return NextResponse.redirect(url)
-            }
-        } catch (err) {
-            console.error('❌ Middleware verification query error:', err)
-        }
-
-        // Vérification abonnement
-        try {
-            const {data: subscription} = await supabase
+                .maybeSingle(),
+            supabase
                 .from('subscriptions')
                 .select('id, status, trial_ends_at, current_period_end')
                 .eq('restaurant_id', restaurantId)
-                .maybeSingle()
+                .maybeSingle(),
+        ])
 
-            if (!subscription) {
-                const url = request.nextUrl.clone()
-                url.pathname = '/dashboard/subscription/expired'
-                return NextResponse.redirect(url)
-            }
+        if (restaurantRes.status === 'fulfilled') {
+            restaurant = restaurantRes.value.data
+        } else {
+            console.error('❌ Middleware verification query error:', restaurantRes.reason)
+        }
 
-            const now = new Date()
-            let isActive = false
+        if (subscriptionRes.status === 'fulfilled') {
+            subscription = subscriptionRes.value.data
+        } else {
+            console.error('❌ Middleware subscription query error:', subscriptionRes.reason)
+            subscriptionQueryFailed = true
+        }
 
-            if (subscription.status === 'trial' && subscription.trial_ends_at) {
-                isActive = new Date(subscription.trial_ends_at) > now
-            } else if (subscription.status === 'active' && subscription.current_period_end) {
-                isActive = new Date(subscription.current_period_end) > now
-            }
+        // Vérification que la structure est activée (isVerified)
+        if (restaurant && !restaurant.is_verified) {
+            const url = request.nextUrl.clone()
+            url.pathname = '/onboarding/verification'
+            return NextResponse.redirect(url)
+        }
 
-            if (!isActive) {
-                const url = request.nextUrl.clone()
-                url.pathname = '/dashboard/subscription/expired'
-                return NextResponse.redirect(url)
-            }
-        } catch (err) {
-            console.error('❌ Middleware subscription query error:', err)
+        // Vérification abonnement
+        if (subscriptionQueryFailed) {
+            const url = request.nextUrl.clone()
+            url.pathname = '/dashboard/subscription/expired'
+            return NextResponse.redirect(url)
+        }
+
+        if (!subscription) {
+            const url = request.nextUrl.clone()
+            url.pathname = '/dashboard/subscription/expired'
+            return NextResponse.redirect(url)
+        }
+
+        const now = new Date()
+        let isActive = false
+
+        if (subscription.status === 'trial' && subscription.trial_ends_at) {
+            isActive = new Date(subscription.trial_ends_at) > now
+        } else if (subscription.status === 'active' && subscription.current_period_end) {
+            isActive = new Date(subscription.current_period_end) > now
+        }
+
+        if (!isActive) {
             const url = request.nextUrl.clone()
             url.pathname = '/dashboard/subscription/expired'
             return NextResponse.redirect(url)
@@ -232,6 +252,9 @@ function superAdmins(email: string | null | undefined, list: string[]): boolean 
 
 export const config = {
     matcher: [
-        '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+        // Exclut : assets Next, fichiers statiques, ET les routes publiques qui
+        // n'ont jamais besoin du gate auth/abonnement (API webhooks/cron, menu
+        // public /r/, pages légales). Économise une invocation du middleware.
+        '/((?!api|r/|legal|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
     ],
 }

@@ -203,17 +203,35 @@ export async function GET(req: NextRequest) {
         // Vérifier que l'utilisateur appartient à cette structure
         const member = await prisma.restaurantUser.findFirst({
             where: {userId: user.id, restaurantId},
+            select: {id: true},
         })
 
         if (!member) {
             return NextResponse.json({error: 'Accès refusé'}, {status: 403})
         }
 
-        // Récupérer les commandes du jour (non archivées) avec les items et paiements
+        // Récupérer les commandes pertinentes pour le KDS/POS :
+        // toutes les commandes encore actives (peu importe la date) + l'historique
+        // du jour. Évite de charger jusqu'à 90 jours de commandes à chaque poll
+        // (toutes les 3 s). Cap de sécurité à 200 lignes. Utilise l'index
+        // [restaurantId, createdAt(desc)].
+        const todayStart = new Date(new Date().toISOString().slice(0, 10)) // UTC minuit
         const orders = await prisma.order.findMany({
-            where: {restaurantId, isArchived: false},
-            include: {orderItems: true, table: true, payments: {select: {id: true, status: true, method: true}}},
+            where: {
+                restaurantId,
+                isArchived: false,
+                OR: [
+                    {createdAt: {gte: todayStart}},
+                    {status: {notIn: ['delivered', 'cancelled']}},
+                ],
+            },
+            include: {
+                orderItems: {select: {id: true, productName: true, quantity: true, unitPrice: true}},
+                table: {select: {number: true}},
+                payments: {select: {id: true, status: true, method: true}},
+            },
             orderBy: {createdAt: 'desc'},
+            take: 200,
         })
 
         const formattedOrders = orders.map(o => ({

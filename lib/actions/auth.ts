@@ -3,6 +3,7 @@
 import {revalidatePath} from 'next/cache'
 import {redirect} from 'next/navigation'
 import {createClient} from '@/lib/supabase/server'
+import {getAuthUser} from '@/lib/supabase/auth'
 import prisma from '@/lib/prisma'
 import {isSuperAdminEmail} from '@/lib/utils/permissions'
 import {
@@ -325,8 +326,7 @@ export async function getUser() {
 // ============================================================
 
 export async function getUserRole(): Promise<'admin' | 'kitchen' | 'cashier' | 'superadmin'> {
-    const supabase = await createClient()
-    const {data: {user}} = await supabase.auth.getUser()
+    const user = await getAuthUser()
 
     if (!user) {
         throw new Error('Not authenticated')
@@ -356,8 +356,7 @@ export async function getUserRole(): Promise<'admin' | 'kitchen' | 'cashier' | '
 // ============================================================
 
 export async function isSuperAdmin(): Promise<boolean> {
-    const supabase = await createClient()
-    const {data: {user}} = await supabase.auth.getUser()
+    const user = await getAuthUser()
 
     if (!user) return false
 

@@ -3,7 +3,7 @@
 // Remplace le pattern getCurrentRestaurantId() + vérification manuelle
 // par une vérification auth + membership + permission en une seule passe.
 
-import {createClient} from '@/lib/supabase/server'
+import {getAuthUser} from '@/lib/supabase/auth'
 import prisma from '@/lib/prisma'
 import type {PermissionResource, PermissionAction} from '@prisma/client'
 
@@ -54,8 +54,7 @@ export async function requirePermission(
     resource: PermissionResource,
     action: PermissionAction
 ): Promise<PermissionResult> {
-    const supabase = await createClient()
-    const {data: {user}} = await supabase.auth.getUser()
+    const user = await getAuthUser()
     if (!user) throw new Error('Non authentifié')
 
     // SuperAdmin bypass
@@ -105,8 +104,7 @@ export async function requirePermissionForRestaurant(
     resource: PermissionResource,
     action: PermissionAction
 ): Promise<{userId: string}> {
-    const supabase = await createClient()
-    const {data: {user}} = await supabase.auth.getUser()
+    const user = await getAuthUser()
     if (!user) throw new Error('Non authentifié')
 
     // SuperAdmin bypass
@@ -147,8 +145,7 @@ export async function requirePermissionForRestaurant(
  * @throws Error si non authentifié ou pas de restaurant
  */
 export async function requireMembership(): Promise<PermissionResult> {
-    const supabase = await createClient()
-    const {data: {user}} = await supabase.auth.getUser()
+    const user = await getAuthUser()
     if (!user) throw new Error('Non authentifié')
 
     const restaurantUser = await prisma.restaurantUser.findFirst({
@@ -170,8 +167,7 @@ export async function requireMembership(): Promise<PermissionResult> {
 export async function requireMembershipForRestaurant(
     restaurantId: string
 ): Promise<{userId: string}> {
-    const supabase = await createClient()
-    const {data: {user}} = await supabase.auth.getUser()
+    const user = await getAuthUser()
     if (!user) throw new Error('Non authentifié')
 
     const restaurantUser = await prisma.restaurantUser.findUnique({

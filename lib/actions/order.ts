@@ -70,6 +70,7 @@ export async function getRestaurantOrders(restaurantId: string) {
             payments: {select: {method: true, status: true, amount: true}},
         },
         orderBy: {createdAt: 'desc'},
+        take: 100,
     })
 }
 

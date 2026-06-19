@@ -4,7 +4,6 @@ import "./globals.css";
 import {Toaster} from "@/components/ui/sonner"
 import {ThemeProvider} from "@/components/providers/theme-provider";
 import {CookieConsent} from '@/components/gdpr/CookieConsent'
-import 'flowbite';
 
 // import { GoogleAnalytics } from '@/components/analytics/AnalyticsScripts'
 

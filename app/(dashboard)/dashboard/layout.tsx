@@ -1,6 +1,6 @@
 // app/(dashboard)/dashboard/layout.tsx
 import {redirect} from "next/navigation"
-import {createClient} from "@/lib/supabase/server"
+import {getAuthUser} from "@/lib/supabase/auth"
 import {cookies} from "next/headers"
 import {signOut, getUserRole} from "@/lib/actions/auth"
 import {getRestaurantSubscription} from "@/lib/actions/subscription"
@@ -28,8 +28,7 @@ export default async function DashboardLayout({
     children: React.ReactNode
 }) {
     // ── Auth ──────────────────────────────────────────────────
-    const supabase = await createClient()
-    const {data: {user}} = await supabase.auth.getUser()
+    const user = await getAuthUser()
     if (!user) redirect("/login")
 
     const userRole = await getUserRole()
@@ -119,43 +118,57 @@ export default async function DashboardLayout({
             }
         }
 
-        // ── Plan ──────────────────────────────────────────────
-        try {
-            const {subscription} = await getRestaurantSubscription(restaurant.id)
-            if (subscription?.plan) currentPlan = subscription.plan
-        } catch (err) {
-            console.error('Erreur récupération abonnement:', err)
-        }
+        // ── Plan + modules + quota ────────────────────────────
+        // Ces trois lectures sont indépendantes → exécutées en parallèle.
+        // Chaque branche garde son propre try/catch pour rester tolérante
+        // (table manquante, abonnement absent, etc.).
+        const [planResult, modulesResult, quotaResult] = await Promise.all([
+            // ── Plan ──
+            (async () => {
+                try {
+                    const {subscription} = await getRestaurantSubscription(restaurant.id)
+                    return subscription?.plan ?? null
+                } catch (err) {
+                    console.error('Erreur récupération abonnement:', err)
+                    return null
+                }
+            })(),
+            // ── Modules actifs ──
+            // Isolé dans un try-catch : si la table n'existe pas encore
+            // (migration SQL non exécutée), le dashboard reste fonctionnel.
+            (async () => {
+                try {
+                    const modules = await getActiveModules(restaurant.id)
+                    if (modules === null) {
+                        return await hydrateDefaultModules(
+                            restaurant.id,
+                            restaurant.activityType as ActivityType,
+                            user.id,
+                        )
+                    }
+                    return modules
+                } catch (err) {
+                    console.error('Modules : table manquante ou erreur Prisma — migration SQL à exécuter :', err)
+                    // Fallback : tous les modules actifs → comportement identique à avant la feature
+                    return Object.keys(MODULE_CATALOG) as ModuleKey[]
+                }
+            })(),
+            // ── Quota multi-structure ──
+            (async () => {
+                if (userRole !== 'admin') return false
+                try {
+                    const quota = await getMultiRestaurantQuota()
+                    return quota.canAdd
+                } catch (err) {
+                    console.error('❌ Erreur getMultiRestaurantQuota:', err)
+                    return false
+                }
+            })(),
+        ])
 
-        // ── Modules actifs ────────────────────────────────────
-        // Isolé dans un try-catch : si la table n'existe pas encore
-        // (migration SQL non exécutée), le dashboard reste fonctionnel.
-        try {
-            const modules = await getActiveModules(restaurant.id)
-            if (modules === null) {
-                activeModules = await hydrateDefaultModules(
-                    restaurant.id,
-                    restaurant.activityType as ActivityType,
-                    user.id,
-                )
-            } else {
-                activeModules = modules
-            }
-        } catch (err) {
-            console.error('Modules : table manquante ou erreur Prisma — migration SQL à exécuter :', err)
-            // Fallback : tous les modules actifs → comportement identique à avant la feature
-            activeModules = Object.keys(MODULE_CATALOG) as ModuleKey[]
-        }
-
-        // ── Quota multi-structure ─────────────────────────────
-        if (userRole === 'admin') {
-            try {
-                const quota = await getMultiRestaurantQuota()
-                canAddMoreRestaurants = quota.canAdd
-            } catch (err) {
-                console.error('❌ Erreur getMultiRestaurantQuota:', err)
-            }
-        }
+        if (planResult) currentPlan = planResult
+        activeModules = modulesResult
+        canAddMoreRestaurants = quotaResult
     }
 
     async function handleSignOut() {
