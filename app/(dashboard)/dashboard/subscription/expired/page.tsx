@@ -77,7 +77,7 @@ export default async function SubscriptionExpiredPage() {
     const pendingPayments = subscription.payments?.filter((p) => p.status === 'pending') || []
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-background px-4">
+        <div className="flex flex-col flex-1 items-center justify-center px-4 py-8">
             <div className="max-w-2xl w-full space-y-6">
 
                 {/* Alerte abonnement expiré */}
