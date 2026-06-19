@@ -1,5 +1,6 @@
 // app/(dashboard)/dashboard/subscription/expired/page.tsx
 import {redirect} from 'next/navigation'
+import {cookies} from 'next/headers'
 import {createClient} from '@/lib/supabase/server'
 import {getRestaurantSubscription} from '@/lib/actions/subscription'
 import Link from 'next/link'
@@ -25,14 +26,35 @@ export default async function SubscriptionExpiredPage() {
 
     if (!user) redirect('/login')
 
-    // Récupérer le restaurant associé à l'utilisateur
-    const {data: restaurantUser} = await supabase
-        .from('restaurant_users')
-        .select('restaurant_id, restaurants(name)')
-        .eq('user_id', user.id)
-        .single()
+    // Résoudre le restaurant actif via cookie, puis fallback sur le premier
+    const cookieStore = await cookies()
+    const savedRestaurantId = cookieStore.get('akom_current_restaurant_id')?.value
 
-    if (!restaurantUser) redirect('/dashboard')
+    let restaurantUser = null
+
+    if (savedRestaurantId) {
+        const {data} = await supabase
+            .from('restaurant_users')
+            .select('restaurant_id, restaurants(name)')
+            .eq('user_id', user.id)
+            .eq('restaurant_id', savedRestaurantId)
+            .maybeSingle()
+        restaurantUser = data
+    }
+
+    if (!restaurantUser) {
+        const {data} = await supabase
+            .from('restaurant_users')
+            .select('restaurant_id, restaurants(name)')
+            .eq('user_id', user.id)
+            .order('created_at', {ascending: true})
+            .limit(1)
+            .maybeSingle()
+        restaurantUser = data
+    }
+
+    // Pas de redirect vers /dashboard ici — évite la boucle si l'abonnement est expiré
+    if (!restaurantUser) redirect('/onboarding')
 
     const restaurantId = restaurantUser.restaurant_id
     const restaurantName = ((restaurantUser.restaurants as unknown) as { name: string } | null)?.name || 'votre restaurant'
