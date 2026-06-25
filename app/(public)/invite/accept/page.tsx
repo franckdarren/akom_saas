@@ -79,17 +79,17 @@ async function AcceptInvitationContent({ token }: { token: string }) {
             accepted: {
                 title: 'Invitation déjà acceptée',
                 message: 'Cette invitation a déjà été utilisée.',
-                icon: <CheckCircle2 className="h-5 w-5 text-green-600" />,
+                icon: <CheckCircle2 className="h-5 w-5 text-success" />,
             },
             expired: {
                 title: 'Invitation expirée',
                 message: 'Cette invitation a expiré. Demandez une nouvelle invitation à votre administrateur.',
-                icon: <AlertCircle className="h-5 w-5 text-orange-600" />,
+                icon: <AlertCircle className="h-5 w-5 text-warning" />,
             },
             revoked: {
                 title: 'Invitation révoquée',
                 message: 'Cette invitation a été annulée par l\'administrateur.',
-                icon: <AlertCircle className="h-5 w-5 text-red-600" />,
+                icon: <AlertCircle className="h-5 w-5 text-destructive" />,
             },
         }
 
@@ -127,7 +127,7 @@ async function AcceptInvitationContent({ token }: { token: string }) {
             <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background via-background to-muted">
                 <AppCard className="w-full max-w-md">
                     <CardHeader>
-                        <div className="flex items-center gap-2 text-orange-600 mb-2">
+                        <div className="flex items-center gap-2 text-warning mb-2">
                             <AlertCircle className="h-5 w-5" />
                             <CardTitle>Invitation expirée</CardTitle>
                         </div>

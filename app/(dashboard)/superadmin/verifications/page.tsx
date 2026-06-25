@@ -93,7 +93,7 @@ export default async function VerificationsPage() {
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold text-blue-600">
+                            <div className="text-2xl font-bold text-info">
                                 {documentsSubmitted.length}
                             </div>
                         </CardContent>
@@ -106,7 +106,7 @@ export default async function VerificationsPage() {
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold text-orange-600">
+                            <div className="text-2xl font-bold text-warning">
                                 {pendingDocuments.length}
                             </div>
                         </CardContent>

@@ -61,9 +61,9 @@ export function FeatureGate({
     // Afficher le prompt de mise à niveau par défaut
     if (showUpgradePrompt) {
         return (
-            <div className="bg-zinc-50 dark:bg-zinc-900 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-lg p-8 text-center">
+            <div className="bg-muted/50 border-2 border-dashed border-border rounded-lg p-8 text-center">
                 <div className="flex justify-center mb-4">
-                    <div className="bg-zinc-100 dark:bg-zinc-800 p-3 rounded-full">
+                    <div className="bg-muted p-3 rounded-full">
                         <Lock className="h-6 w-6 text-muted-foreground"/>
                     </div>
                 </div>

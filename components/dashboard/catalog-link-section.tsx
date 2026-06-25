@@ -98,13 +98,13 @@ export function CatalogLinkSection({
     return (
         <>
             <AppCard
-                className="border-2 border-dashed border-orange-200 bg-orange-50/30 dark:border-orange-900/40 dark:bg-orange-950/10">
+                className="border-2 border-dashed border-primary/30 bg-primary-subtle/30">
                 <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <div
-                                className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-100 dark:bg-orange-900/40">
-                                <Globe className="h-4 w-4 text-orange-600 dark:text-orange-400"/>
+                                className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-subtle">
+                                <Globe className="h-4 w-4 text-primary"/>
                             </div>
                             <div>
                                 <CardTitle className="text-sm font-semibold">
@@ -117,7 +117,7 @@ export function CatalogLinkSection({
                         </div>
                         <Badge
                             variant="outline"
-                            className="border-green-200 bg-green-50 text-green-700 text-xs dark:border-green-800 dark:bg-green-950 dark:text-green-400"
+                            className="border-success bg-success-subtle text-success text-xs"
                         >
                             🟢 Actif
                         </Badge>
@@ -130,18 +130,18 @@ export function CatalogLinkSection({
                         <Input
                             value={catalogUrl}
                             readOnly
-                            className="font-mono text-xs bg-white dark:bg-neutral-900 border-orange-200 dark:border-orange-900/40"
+                            className="font-mono text-xs bg-background border-primary/30"
                         />
                         <Button
                             type="button"
                             variant="outline"
                             size="icon"
                             onClick={handleCopy}
-                            className="shrink-0 border-orange-200 hover:border-orange-400 hover:bg-orange-50"
+                            className="shrink-0 border-primary/30 hover:border-primary hover:bg-primary-subtle"
                             title="Copier le lien"
                         >
                             {copied ? (
-                                <Check className="h-4 w-4 text-green-500"/>
+                                <Check className="h-4 w-4 text-success"/>
                             ) : (
                                 <Copy className="h-4 w-4"/>
                             )}
@@ -154,7 +154,7 @@ export function CatalogLinkSection({
                             type="button"
                             variant="outline"
                             size="sm"
-                            className="gap-1.5 text-xs border-orange-200 hover:border-orange-400 hover:bg-orange-50"
+                            className="gap-1.5 text-xs border-primary/30 hover:border-primary hover:bg-primary-subtle"
                             onClick={() => setShowQR(true)}
                         >
                             <QrCode className="h-3.5 w-3.5"/>
@@ -165,7 +165,7 @@ export function CatalogLinkSection({
                             type="button"
                             variant="outline"
                             size="sm"
-                            className="gap-1.5 text-xs border-orange-200 hover:border-orange-400 hover:bg-orange-50"
+                            className="gap-1.5 text-xs border-primary/30 hover:border-primary hover:bg-primary-subtle"
                             onClick={handleShare}
                         >
                             <Share2 className="h-3.5 w-3.5"/>
@@ -176,7 +176,7 @@ export function CatalogLinkSection({
                             type="button"
                             variant="outline"
                             size="sm"
-                            className="gap-1.5 text-xs border-orange-200 hover:border-orange-400 hover:bg-orange-50"
+                            className="gap-1.5 text-xs border-primary/30 hover:border-primary hover:bg-primary-subtle"
                             asChild
                         >
                             <a href={catalogUrl} target="_blank" rel="noopener noreferrer">
@@ -187,10 +187,10 @@ export function CatalogLinkSection({
                     </div>
 
                     {/* Info */}
-                    <p className="text-[11px] text-muted-foreground leading-relaxed border-t border-orange-100 dark:border-orange-900/30 pt-3">
+                    <p className="text-2xs text-muted-foreground leading-relaxed border-t border-primary/20 pt-3">
                         Ce lien permet à vos clients de commander à emporter ou de réserver une table, sans scanner de
                         QR. Les commandes issues de ce lien sont identifiées comme{' '}
-                        <span className="font-semibold text-orange-600 dark:text-orange-400">
+                        <span className="font-semibold text-primary">
               Source : Catalogue public
             </span>{' '}
                         dans vos statistiques.
@@ -206,7 +206,7 @@ export function CatalogLinkSection({
                     </DialogHeader>
 
                     <div className="flex flex-col items-center gap-4 py-2">
-                        <div className="rounded-2xl border-2 border-orange-100 bg-white p-4 shadow-sm">
+                        <div className="rounded-2xl border-2 border-border bg-white p-4 shadow-sm">
                             <QRCodeSVG
                                 id="catalog-qr-svg"
                                 value={catalogUrl}
@@ -230,11 +230,11 @@ export function CatalogLinkSection({
                                 className="flex-1 gap-2"
                                 onClick={handleCopy}
                             >
-                                {copied ? <Check className="h-4 w-4 text-green-500"/> : <Copy className="h-4 w-4"/>}
+                                {copied ? <Check className="h-4 w-4 text-success"/> : <Copy className="h-4 w-4"/>}
                                 Copier le lien
                             </Button>
                             <Button
-                                className="flex-1 gap-2 bg-orange-600 hover:bg-orange-700"
+                                className="flex-1 gap-2 bg-primary hover:bg-primary-hover"
                                 onClick={handleDownloadQR}
                             >
                                 <Download className="h-4 w-4"/>

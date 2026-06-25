@@ -131,12 +131,12 @@ export default async function SubscriptionPage() {
 
                 <div className="space-y-4">
                     {isExpiringSoon && subscription.status === 'trial' && (
-                        <Alert className="border-orange-500 bg-orange-50">
-                            <AlertCircle className="h-4 w-4 text-orange-600"/>
-                            <AlertTitle className="text-orange-900">
+                        <Alert className="border-warning bg-warning-subtle">
+                            <AlertCircle className="h-4 w-4 text-warning"/>
+                            <AlertTitle className="text-warning">
                                 Période d&apos;essai bientôt terminée
                             </AlertTitle>
-                            <AlertDescription className="text-orange-800">
+                            <AlertDescription className="text-warning">
                                 Il vous reste {daysRemaining} jour{daysRemaining > 1 ? 's' : ''} d&apos;essai
                                 gratuit. Choisissez votre plan dès maintenant pour ne pas perdre l&apos;accès.
                             </AlertDescription>
@@ -144,12 +144,12 @@ export default async function SubscriptionPage() {
                     )}
 
                     {isNearUserLimit && (
-                        <Alert className="border-amber-500 bg-amber-50">
-                            <TrendingUp className="h-4 w-4 text-amber-600"/>
-                            <AlertTitle className="text-amber-900">
+                        <Alert className="border-warning bg-warning-subtle">
+                            <TrendingUp className="h-4 w-4 text-warning"/>
+                            <AlertTitle className="text-warning">
                                 Limite d&apos;utilisateurs bientôt atteinte
                             </AlertTitle>
-                            <AlertDescription className="text-amber-800">
+                            <AlertDescription className="text-warning">
                                 Vous utilisez {userCount} sur {maxUsers} utilisateurs autorisés
                                 ({Math.round(userUsagePercentage)}%).
                             </AlertDescription>
@@ -157,12 +157,12 @@ export default async function SubscriptionPage() {
                     )}
 
                     {pendingPayments.length > 0 && (
-                        <Alert className="border-blue-500 bg-blue-50">
-                            <Clock className="h-4 w-4 text-blue-600"/>
-                            <AlertTitle className="text-blue-900">
+                        <Alert className="border-info bg-info-subtle">
+                            <Clock className="h-4 w-4 text-info"/>
+                            <AlertTitle className="text-info">
                                 Paiement en cours de validation
                             </AlertTitle>
-                            <AlertDescription className="text-blue-800">
+                            <AlertDescription className="text-info">
                                 Vous avez {pendingPayments.length} paiement{pendingPayments.length > 1 ? 's' : ''} en
                                 attente.
                                 Notre équipe vérifie votre paiement (max 24h).
@@ -322,51 +322,51 @@ export default async function SubscriptionPage() {
                                 <div className="grid md:grid-cols-2 gap-3">
                                     {planConfig.features.kitchen_display && (
                                         <div className="flex items-center gap-2 text-sm">
-                                            <CheckCircle2 className="h-4 w-4 text-green-600"/>
+                                            <CheckCircle2 className="h-4 w-4 text-success"/>
                                             {/* ← Label dynamique */}
                                             <span>Interface {labels.orderName}s</span>
                                         </div>
                                     )}
                                     {planConfig.features.basic_stats && (
                                         <div className="flex items-center gap-2 text-sm">
-                                            <CheckCircle2 className="h-4 w-4 text-green-600"/>
+                                            <CheckCircle2 className="h-4 w-4 text-success"/>
                                             <span>Statistiques basiques</span>
                                         </div>
                                     )}
                                     {planConfig.features.advanced_stats && (
                                         <div className="flex items-center gap-2 text-sm">
-                                            <CheckCircle2 className="h-4 w-4 text-green-600"/>
+                                            <CheckCircle2 className="h-4 w-4 text-success"/>
                                             <span>Statistiques avancées</span>
                                         </div>
                                     )}
                                     {planConfig.features.stock_management && (
                                         <div className="flex items-center gap-2 text-sm">
-                                            <CheckCircle2 className="h-4 w-4 text-green-600"/>
+                                            <CheckCircle2 className="h-4 w-4 text-success"/>
                                             {/* ← Label dynamique */}
                                             <span>Gestion de stock — {labels.productNamePlural}</span>
                                         </div>
                                     )}
                                     {planConfig.features.caisse_module && (
                                         <div className="flex items-center gap-2 text-sm">
-                                            <CheckCircle2 className="h-4 w-4 text-green-600"/>
+                                            <CheckCircle2 className="h-4 w-4 text-success"/>
                                             <span>Module caisse</span>
                                         </div>
                                     )}
                                     {planConfig.features.warehouse_module && (
                                         <div className="flex items-center gap-2 text-sm">
-                                            <CheckCircle2 className="h-4 w-4 text-green-600"/>
+                                            <CheckCircle2 className="h-4 w-4 text-success"/>
                                             <span>Module entrepôt</span>
                                         </div>
                                     )}
                                     {planConfig.features.data_export && (
                                         <div className="flex items-center gap-2 text-sm">
-                                            <CheckCircle2 className="h-4 w-4 text-green-600"/>
+                                            <CheckCircle2 className="h-4 w-4 text-success"/>
                                             <span>Export de données</span>
                                         </div>
                                     )}
                                     {planConfig.features.mobile_payment && (
                                         <div className="flex items-center gap-2 text-sm">
-                                            <CheckCircle2 className="h-4 w-4 text-green-600"/>
+                                            <CheckCircle2 className="h-4 w-4 text-success"/>
                                             <span>Paiement Mobile Money</span>
                                         </div>
                                     )}
@@ -413,11 +413,11 @@ export default async function SubscriptionPage() {
                                         >
                                             <div className="flex items-center gap-4">
                                                 {payment.status === 'confirmed' &&
-                                                    <CheckCircle2 className="h-5 w-5 text-green-600"/>}
+                                                    <CheckCircle2 className="h-5 w-5 text-success"/>}
                                                 {payment.status === 'pending' &&
-                                                    <Clock className="h-5 w-5 text-orange-600"/>}
+                                                    <Clock className="h-5 w-5 text-warning"/>}
                                                 {payment.status === 'failed' &&
-                                                    <XCircle className="h-5 w-5 text-red-600"/>}
+                                                    <XCircle className="h-5 w-5 text-destructive"/>}
                                                 <div>
                                                     <p className="font-semibold">{formatPrice(payment.amount)}</p>
                                                     <p className="text-sm text-muted-foreground">

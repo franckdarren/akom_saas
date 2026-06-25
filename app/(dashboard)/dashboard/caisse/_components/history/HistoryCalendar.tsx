@@ -213,16 +213,16 @@ export function HistoryCalendar({
     function getDayClasses(session?: SessionSummary) {
         if (!session) return 'border-transparent'
         if (session.status === 'open')
-            return 'bg-slate-100 border-slate-300 text-slate-600 dark:bg-slate-800 dark:border-slate-600'
+            return 'bg-muted border-border text-muted-foreground'
         if (hasSignificantGap(session))
-            return 'bg-red-100 border-red-500 text-red-700 dark:bg-red-900/40 dark:border-red-500'
-        return 'bg-emerald-100 border-emerald-500 text-emerald-700 dark:bg-emerald-900/40 dark:border-emerald-500'
+            return 'bg-destructive-subtle border-destructive text-destructive'
+        return 'bg-success-subtle border-success text-success'
     }
 
     function getDotColor(session: SessionSummary) {
-        if (session.status === 'open') return 'bg-slate-400'
-        if (hasSignificantGap(session)) return 'bg-red-600'
-        return 'bg-emerald-600'
+        if (session.status === 'open') return 'bg-muted-foreground'
+        if (hasSignificantGap(session)) return 'bg-destructive'
+        return 'bg-success'
     }
 
     function getStatusBadge(session: SessionSummary) {
@@ -231,7 +231,7 @@ export function HistoryCalendar({
         if (hasSignificantGap(session))
             return <Badge variant="destructive" className="gap-1 text-xs"><AlertTriangle
                 className="h-3 w-3"/>Écart</Badge>
-        return <Badge className="gap-1 text-xs bg-emerald-600 hover:bg-emerald-600 text-white"><CheckCircle2
+        return <Badge className="gap-1 text-xs bg-success hover:bg-success text-success-foreground"><CheckCircle2
             className="h-3 w-3"/>OK</Badge>
     }
 
@@ -359,15 +359,15 @@ export function HistoryCalendar({
                             {/* Légende — avec exemples visuels pour que ce soit immédiatement clair */}
                             <div className="flex flex-wrap items-center gap-4 pt-3 border-t text-xs">
                 <span className="flex items-center gap-1.5">
-                  <span className="w-3 h-3 rounded-full bg-emerald-600"/>
+                  <span className="w-3 h-3 rounded-full bg-success"/>
                   <span className="text-muted-foreground">Clôturée sans écart</span>
                 </span>
                                 <span className="flex items-center gap-1.5">
-                  <span className="w-3 h-3 rounded-full bg-red-600"/>
+                  <span className="w-3 h-3 rounded-full bg-destructive"/>
                   <span className="text-muted-foreground">Écart &gt; 500 FCFA</span>
                 </span>
                                 <span className="flex items-center gap-1.5">
-                  <span className="w-3 h-3 rounded-full bg-slate-400"/>
+                  <span className="w-3 h-3 rounded-full bg-muted-foreground"/>
                   <span className="text-muted-foreground">Ouverte</span>
                 </span>
                             </div>
@@ -385,13 +385,13 @@ export function HistoryCalendar({
                                     </div>
                                     <div>
                                         <p className="text-xs text-muted-foreground mb-1">Avec écart</p>
-                                        <p className={cn('text-2xl font-bold', gapCount > 0 ? 'text-red-600' : 'text-muted-foreground')}>
+                                        <p className={cn('text-2xl font-bold', gapCount > 0 ? 'text-destructive' : 'text-muted-foreground')}>
                                             {gapCount}
                                         </p>
                                     </div>
                                     <div>
                                         <p className="text-xs text-muted-foreground mb-1">Clôturées</p>
-                                        <p className="text-2xl font-bold text-emerald-600">{closedCount}</p>
+                                        <p className="text-2xl font-bold text-success">{closedCount}</p>
                                     </div>
                                 </div>
                             </CardContent>
@@ -548,7 +548,7 @@ export function HistoryCalendar({
                                                     key={session.id}
                                                     className={cn(
                                                         'cursor-pointer transition-colors',
-                                                        hasGap && 'bg-red-50/50 hover:bg-red-50 dark:bg-red-950/20',
+                                                        hasGap && 'bg-destructive-subtle/50 hover:bg-destructive-subtle',
                                                         !hasGap && 'hover:bg-muted/40',
                                                     )}
                                                     onClick={() => !isLoading && loadSession(session.id)}
@@ -594,14 +594,14 @@ export function HistoryCalendar({
                                                             <div>
                                 <span className={cn(
                                     'text-sm font-semibold tabular-nums',
-                                    Math.abs(diff) === 0 ? 'text-emerald-600' :
-                                        Math.abs(diff) <= 500 ? 'text-amber-600' :
-                                            'text-red-600',
+                                    Math.abs(diff) === 0 ? 'text-success' :
+                                        Math.abs(diff) <= 500 ? 'text-warning' :
+                                            'text-destructive',
                                 )}>
                                   {diff > 0 ? '+' : ''}{formatAmount(diff)}
                                 </span>
                                                                 {hasGap && (
-                                                                    <p className="text-xs text-red-500 mt-0.5">⚠ À
+                                                                    <p className="text-xs text-destructive mt-0.5">⚠ À
                                                                         vérifier</p>
                                                                 )}
                                                             </div>

@@ -89,7 +89,7 @@ function LoginForm() {
                             <Label htmlFor="password" className="pb-1">Mot de passe</Label>
                             <Link
                                 href="/forgot-password"
-                                className="text-sm text-blue-600 hover:text-blue-500"
+                                className="text-sm text-primary hover:text-primary-hover"
                             >
                                 Mot de passe oublié ?
                             </Link>
@@ -131,7 +131,7 @@ function LoginForm() {
                     Pas encore de compte ?{' '}
                     <Link
                         href={selectedPlan && VALID_PLANS.includes(selectedPlan) ? `/register?plan=${selectedPlan}` : '/register'}
-                        className="text-blue-600 hover:text-blue-500 font-medium"
+                        className="text-primary hover:text-primary-hover font-medium"
                     >
                         Créer un compte
                     </Link>

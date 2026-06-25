@@ -170,7 +170,7 @@ export function CartDialog({
                                             onClick={() => removeItem(item.productId)}
                                             disabled={isSubmitting}
                                         >
-                                            <Trash2 className="h-4 w-4 text-red-500" />
+                                            <Trash2 className="h-4 w-4 text-destructive" />
                                         </Button>
                                     </div>
                                 </div>
@@ -187,7 +187,7 @@ export function CartDialog({
 
                         {/* Erreur */}
                         {error && (
-                            <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-lg text-sm">
+                            <div className="bg-destructive-subtle text-destructive p-3 rounded-lg text-sm">
                                 {error}
                             </div>
                         )}

@@ -276,7 +276,7 @@ export function OrderCard({order}: OrderCardProps) {
                         </AlertDialogCancel>
                         <AlertDialogAction
                             onClick={confirmCancel}
-                            className="bg-red-600 hover:bg-red-700"
+                            className="bg-destructive hover:bg-destructive/90"
                         >
                             Confirmer
                         </AlertDialogAction>

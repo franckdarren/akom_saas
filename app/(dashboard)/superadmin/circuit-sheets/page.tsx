@@ -100,7 +100,7 @@ export default async function CircuitSheetsPage() {
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold text-red-600">
+                            <div className="text-2xl font-bold text-destructive">
                                 {overdue.length}
                             </div>
                         </CardContent>
@@ -113,7 +113,7 @@ export default async function CircuitSheetsPage() {
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold text-orange-600">
+                            <div className="text-2xl font-bold text-warning">
                                 {urgent.length}
                             </div>
                         </CardContent>
@@ -126,7 +126,7 @@ export default async function CircuitSheetsPage() {
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold text-green-600">
+                            <div className="text-2xl font-bold text-success">
                                 {normal.length}
                             </div>
                         </CardContent>
@@ -137,7 +137,7 @@ export default async function CircuitSheetsPage() {
                 {overdue.length > 0 && (
                     <div className="space-y-4">
                         <div className="flex items-center gap-3">
-                            <AlertTriangle className="h-5 w-5 text-red-600" />
+                            <AlertTriangle className="h-5 w-5 text-destructive" />
                             <h2 className="text-xl font-semibold">Échéance dépassée</h2>
                             <Badge variant="destructive">{overdue.length}</Badge>
                         </div>

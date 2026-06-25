@@ -546,18 +546,18 @@ export function WarehouseProductForm({
                             {/* Aperçu visuel de la conversion en temps réel */}
                             {selectedProduct && (
                                 <div
-                                    className="rounded-lg border p-4 bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800">
-                                    <p className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-2">
+                                    className="rounded-lg border p-4 bg-info-subtle border-info">
+                                    <p className="text-sm font-medium text-info mb-2">
                                         Aperçu de la conversion
                                     </p>
-                                    <div className="flex items-center gap-2 text-sm text-blue-700 dark:text-blue-300">
+                                    <div className="flex items-center gap-2 text-sm text-info">
                                         <span>1 {formData.storageUnit}</span>
                                         <span>→</span>
                                         <span className="font-semibold">
                       {formData.conversionRatio} × {selectedProduct.name}
                     </span>
                                     </div>
-                                    <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">
+                                    <p className="text-xs text-info mt-2">
                                         Lors d'un transfert, un {formData.storageUnit} de votre entrepôt ajoutera
                                         automatiquement {formData.conversionRatio} unités dans votre stock opérationnel
                                     </p>
@@ -641,12 +641,12 @@ export function WarehouseProductForm({
                         {/* Calcul automatique de la valeur totale du stock initial */}
                         {formData.initialQuantity > 0 && formData.unitCost > 0 && (
                             <div
-                                className="rounded-lg border p-3 bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800">
-                                <p className="text-sm text-green-900 dark:text-green-100">
+                                className="rounded-lg border p-3 bg-success-subtle border-success">
+                                <p className="text-sm text-success">
                                     <strong>Valeur totale initiale :</strong>{' '}
                                     {(formData.initialQuantity * formData.unitCost).toLocaleString('fr-FR')} FCFA
                                 </p>
-                                <p className="text-xs text-green-700 dark:text-green-300 mt-1">
+                                <p className="text-xs text-success mt-1">
                                     Cette valeur sera enregistrée dans votre comptabilité
                                 </p>
                             </div>

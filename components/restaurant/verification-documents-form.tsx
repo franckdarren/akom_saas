@@ -212,9 +212,9 @@ export function VerificationDocumentsForm({
 
                 {/* Statut vérifié */}
                 {isVerified && (
-                    <Alert className="border-green-200 bg-green-50 dark:bg-green-950/20">
-                        <CheckCircle2 className="h-4 w-4 text-green-600"/>
-                        <AlertDescription className="text-green-800 dark:text-green-200">
+                    <Alert className="border-success bg-success-subtle">
+                        <CheckCircle2 className="h-4 w-4 text-success"/>
+                        <AlertDescription className="text-success">
                             Votre restaurant a été vérifié et approuvé ! Vous pouvez maintenant utiliser toutes les
                             fonctionnalités.
                         </AlertDescription>
@@ -235,10 +235,10 @@ export function VerificationDocumentsForm({
 
                 {/* Statut en attente de validation */}
                 {isSubmitted && (
-                    <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/20">
+                    <Alert className="border-info bg-info-subtle">
                         <div className="flex items-center gap-2">
-                            <Clock className="h-4 w-4 text-blue-600"/>
-                            <AlertDescription className="text-blue-800 dark:text-blue-200">
+                            <Clock className="h-4 w-4 text-info"/>
+                            <AlertDescription className="text-info">
                                 Vos documents ont été soumis et sont en cours de vérification par notre équipe.
                                 Nous vous contacterons sous 24 à 48h.
                             </AlertDescription>
@@ -254,7 +254,7 @@ export function VerificationDocumentsForm({
                             <div className="flex items-center gap-2">
                                 <User className="h-5 w-5 text-muted-foreground"/>
                                 <Label className="text-base">
-                                    Photo de profil <span className="text-red-500">*</span>
+                                    Photo de profil <span className="text-destructive">*</span>
                                 </Label>
                             </div>
 
@@ -303,7 +303,7 @@ export function VerificationDocumentsForm({
                             <div className="flex items-center gap-2">
                                 <FileText className="h-5 w-5 text-muted-foreground"/>
                                 <Label className="text-base">
-                                    Pièce d'identité <span className="text-red-500">*</span>
+                                    Pièce d'identité <span className="text-destructive">*</span>
                                 </Label>
                             </div>
 
@@ -336,7 +336,7 @@ export function VerificationDocumentsForm({
                             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                                 {identityDocumentUrl && (
                                     <div className="flex items-center gap-2 px-3 py-2 bg-muted rounded-lg">
-                                        <FileText className="h-4 w-4 text-green-600"/>
+                                        <FileText className="h-4 w-4 text-success"/>
                                         <span className="text-sm">Document uploadé</span>
                                     </div>
                                 )}

@@ -33,7 +33,7 @@ export default async function OnboardingModulesPage() {
     const defaults = getDefaultModulesForActivity(restaurant.activityType as ActivityType)
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-zinc-50 dark:bg-zinc-900 p-4">
+        <div className="min-h-screen flex items-center justify-center bg-muted p-4">
             <div className="w-full max-w-2xl">
                 <div className="text-center mb-8">
                     <div className="flex items-center justify-center mb-4">

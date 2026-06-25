@@ -43,8 +43,8 @@ export default function ForgotPasswordPage() {
                     </h2>
                 </div>
 
-                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 mb-6">
-                    <p className="text-sm text-green-800 dark:text-green-200">
+                <div className="bg-success-subtle border border-success rounded-lg p-4 mb-6">
+                    <p className="text-sm text-success">
                         Un email de réinitialisation a été envoyé à votre adresse.
                         Vérifiez votre boîte de réception et suivez les instructions.
                     </p>
@@ -86,8 +86,8 @@ export default function ForgotPasswordPage() {
 
                 {/* Error Message */}
                 {error && (
-                    <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
-                        <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
+                    <div className="bg-destructive-subtle border border-destructive rounded-lg p-3">
+                        <p className="text-sm text-destructive">{error}</p>
                     </div>
                 )}
 
@@ -106,7 +106,7 @@ export default function ForgotPasswordPage() {
             <div className="mt-6 text-center">
                 <Link
                     href="/login"
-                    className="text-sm text-blue-600 hover:text-blue-500"
+                    className="text-sm text-primary hover:text-primary-hover"
                 >
                     ← Retour à la connexion
                 </Link>

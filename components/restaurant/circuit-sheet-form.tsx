@@ -176,9 +176,9 @@ export function CircuitSheetForm({
 
                 {/* Statut validé */}
                 {isValidated && (
-                    <Alert className="border-green-200 bg-green-50 dark:bg-green-950/20">
-                        <CheckCircle2 className="h-4 w-4 text-green-600" />
-                        <AlertDescription className="text-green-800 dark:text-green-200">
+                    <Alert className="border-success bg-success-subtle">
+                        <CheckCircle2 className="h-4 w-4 text-success" />
+                        <AlertDescription className="text-success">
                             Votre fiche circuit a été validée par notre équipe. Merci !
                         </AlertDescription>
                     </Alert>
@@ -186,9 +186,9 @@ export function CircuitSheetForm({
 
                 {/* Statut soumis */}
                 {isSubmitted && !isValidated && (
-                    <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/20">
-                        <Clock className="h-4 w-4 text-blue-600" />
-                        <AlertDescription className="text-blue-800 dark:text-blue-200">
+                    <Alert className="border-info bg-info-subtle">
+                        <Clock className="h-4 w-4 text-info" />
+                        <AlertDescription className="text-info">
                             Votre fiche circuit est en cours de validation par notre équipe.
                         </AlertDescription>
                     </Alert>
@@ -233,9 +233,9 @@ export function CircuitSheetForm({
                         )}
 
                         {!isOverdue && daysRemaining <= 7 && (
-                            <Alert className="border-orange-200 bg-orange-50 dark:bg-orange-950/20">
-                                <AlertTriangle className="h-4 w-4 text-orange-600" />
-                                <AlertDescription className="text-orange-800 dark:text-orange-200">
+                            <Alert className="border-warning bg-warning-subtle">
+                                <AlertTriangle className="h-4 w-4 text-warning" />
+                                <AlertDescription className="text-warning">
                                     <strong>Rappel :</strong> Il ne vous reste que {daysRemaining} jour(s)
                                     pour soumettre votre fiche circuit.
                                 </AlertDescription>
@@ -271,9 +271,9 @@ export function CircuitSheetForm({
                             <div className="space-y-3">
                                 <div className="flex items-center gap-4">
                                     {circuitSheetUrl && (
-                                        <div className="flex items-center gap-2 px-3 py-2 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200">
-                                            <FileText className="h-4 w-4 text-green-600" />
-                                            <span className="text-sm text-green-800 dark:text-green-200">
+                                        <div className="flex items-center gap-2 px-3 py-2 bg-success-subtle rounded-lg border border-success">
+                                            <FileText className="h-4 w-4 text-success" />
+                                            <span className="text-sm text-success">
                                                 Document prêt à être soumis
                                             </span>
                                         </div>

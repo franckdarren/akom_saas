@@ -48,7 +48,7 @@ export function PeriodFilterNav({ value }: PeriodFilterNavProps) {
                         <DropdownMenuItem
                             key={key}
                             onClick={() => handleChange(key)}
-                            className={cn(value === key && 'bg-zinc-100 dark:bg-zinc-800')}
+                            className={cn(value === key && 'bg-muted')}
                         >
                             {label}
                         </DropdownMenuItem>

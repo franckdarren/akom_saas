@@ -21,7 +21,7 @@ export function CartButton({ itemCount, onClick }: CartButtonProps) {
             <Button
                 size="icon"
                 onClick={onClick}
-                className="rounded-full bg-white hover:bg-white shadow-lg text-black"
+                className="rounded-full bg-background hover:bg-background shadow-lg text-foreground"
             >
                 <ShoppingCart className="w-5 h-5" />
             </Button>
@@ -35,7 +35,7 @@ export function CartButton({ itemCount, onClick }: CartButtonProps) {
                         animate={{ scale: 1, opacity: 1 }}
                         exit={{ scale: 0, opacity: 0 }}
                         transition={{ type: 'spring', stiffness: 500, damping: 25 }}
-                        className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-medium shadow-md"
+                        className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs w-5 h-5 rounded-full flex items-center justify-center font-medium shadow-md"
                     >
                         {itemCount}
                     </motion.span>

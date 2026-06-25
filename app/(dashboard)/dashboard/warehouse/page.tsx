@@ -188,8 +188,8 @@ export default async function WarehousePage({
                     <AppCard variant="stat">
                         <Link href="/dashboard/warehouse/movements" className="block">
                             <div className="flex items-start gap-4">
-                                <div className="p-3 rounded-lg bg-blue-100 dark:bg-blue-900/20">
-                                    <TrendingDown className="h-6 w-6 text-blue-600 dark:text-blue-400"/>
+                                <div className="p-3 rounded-lg bg-info-subtle">
+                                    <TrendingDown className="h-6 w-6 text-info"/>
                                 </div>
                                 <div className="flex-1">
                                     <h3 className="font-semibold text-lg">Mouvements de stock</h3>
@@ -204,8 +204,8 @@ export default async function WarehousePage({
                     <AppCard variant="stat">
                         <Link href="/dashboard/warehouse/transfers" className="block">
                             <div className="flex items-start gap-4">
-                                <div className="p-3 rounded-lg bg-green-100 dark:bg-green-900/20">
-                                    <Package className="h-6 w-6 text-green-600 dark:text-green-400"/>
+                                <div className="p-3 rounded-lg bg-success-subtle">
+                                    <Package className="h-6 w-6 text-success"/>
                                 </div>
                                 <div className="flex-1">
                                     <h3 className="font-semibold text-lg">Transferts vers restaurant</h3>
@@ -229,8 +229,8 @@ function StatsCardsSkeleton() {
             {[...Array(4)].map((_, i) => (
                 <AppCard key={i} className="p-6">
                     <div className="animate-pulse space-y-3">
-                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"/>
-                        <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/2"/>
+                        <div className="h-4 bg-muted rounded w-3/4"/>
+                        <div className="h-8 bg-muted rounded w-1/2"/>
                     </div>
                 </AppCard>
             ))}
@@ -242,7 +242,7 @@ function TableSkeleton() {
     return (
         <div className="animate-pulse space-y-4">
             {[...Array(5)].map((_, i) => (
-                <div key={i} className="h-16 bg-gray-100 dark:bg-gray-800 rounded"/>
+                <div key={i} className="h-16 bg-muted rounded"/>
             ))}
         </div>
     )

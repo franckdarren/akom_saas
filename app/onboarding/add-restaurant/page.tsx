@@ -82,12 +82,12 @@ export default async function AddRestaurantPage() {
 
                 {/* Pas d'accès → upgrade */}
                 {!quota.canAdd && (
-                    <Alert className="border-amber-200 bg-amber-50 dark:bg-amber-950/20">
-                        <Crown className="h-4 w-4 text-amber-600"/>
-                        <AlertTitle className="text-amber-900 dark:text-amber-400">
+                    <Alert className="border-warning bg-warning-subtle">
+                        <Crown className="h-4 w-4 text-warning"/>
+                        <AlertTitle className="text-warning">
                             Limite atteinte
                         </AlertTitle>
-                        <AlertDescription className="text-amber-800 dark:text-amber-500">
+                        <AlertDescription className="text-warning">
                             Vous avez atteint la limite de votre plan actuel.
                             Passez au plan <strong>Premium</strong> pour gérer jusqu'à 10 structures.
                         </AlertDescription>

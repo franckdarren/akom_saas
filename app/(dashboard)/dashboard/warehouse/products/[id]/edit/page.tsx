@@ -120,11 +120,11 @@ export default async function EditWarehouseProductPage({
             />
 
             {/* Info box */}
-            <div className="rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/20 p-4">
+            <div className="rounded-lg border border-info bg-info-subtle p-4">
                 <div className="flex gap-3">
                     <div className="flex-shrink-0">
                         <svg
-                            className="h-5 w-5 text-blue-600 dark:text-blue-400"
+                            className="h-5 w-5 text-info"
                             xmlns="http://www.w3.org/2000/svg"
                             viewBox="0 0 20 20"
                             fill="currentColor"
@@ -137,10 +137,10 @@ export default async function EditWarehouseProductPage({
                         </svg>
                     </div>
                     <div className="flex-1">
-                        <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-100">
+                        <h3 className="text-sm font-semibold text-info">
                             À propos des modifications de stock
                         </h3>
-                        <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
+                        <p className="text-sm text-info mt-1">
                             Le stock et le coût unitaire ne peuvent pas être
                             modifiés directement ici. Utilisez les actions
                             "Entrée de stock" ou "Ajustement d'inventaire"

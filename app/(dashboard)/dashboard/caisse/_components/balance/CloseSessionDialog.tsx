@@ -129,7 +129,7 @@ export function CloseSessionDialog({
                                     <span
                                         className={cn(
                                             'text-sm font-semibold tabular-nums',
-                                            row.positive && 'text-emerald-600',
+                                            row.positive && 'text-success',
                                             row.negative && 'text-destructive'
                                         )}
                                     >

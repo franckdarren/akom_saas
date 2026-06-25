@@ -204,7 +204,7 @@ export function OrderTracker({ order: initialOrder, restaurant, table }: OrderTr
                 {/* Indicateur visuel de la connexion temps réel */}
                 {isConnected && (
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <div className="w-2 h-2 bg-green-500 rounded-full animate-radical-pulse" />
+                        <div className="w-2 h-2 bg-success rounded-full animate-radical-pulse" />
                         <span className=" sm:inline">Temps réel</span>
                     </div>
                 )}

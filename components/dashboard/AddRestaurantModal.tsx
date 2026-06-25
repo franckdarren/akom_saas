@@ -239,12 +239,12 @@ export function AddRestaurantModal({open, onOpenChange}: AddRestaurantModalProps
 
                                         <div className="space-y-0.5">
                                             <p className={cn(
-                                                'text-[11px] font-semibold leading-tight',
+                                                'text-xs font-semibold leading-tight',
                                                 isSelected ? 'text-primary' : 'text-foreground'
                                             )}>
                                                 {label}
                                             </p>
-                                            <p className="text-[10px] text-muted-foreground leading-tight">
+                                            <p className="text-2xs text-muted-foreground leading-tight">
                                                 {description}
                                             </p>
                                         </div>
@@ -373,10 +373,10 @@ export function AddRestaurantModal({open, onOpenChange}: AddRestaurantModalProps
                 {step === 'success' && (
                     <div className="p-8 flex flex-col items-center text-center gap-5">
                         <div className="relative">
-                            <div className="h-16 w-16 rounded-2xl bg-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/30">
-                                <CheckCircle2 className="h-8 w-8 text-white"/>
+                            <div className="h-16 w-16 rounded-2xl bg-success flex items-center justify-center shadow-lg shadow-success/30">
+                                <CheckCircle2 className="h-8 w-8 text-success-foreground"/>
                             </div>
-                            <div className="absolute -inset-1 rounded-2xl bg-emerald-400/20 animate-ping"/>
+                            <div className="absolute -inset-1 rounded-2xl bg-success/20 animate-ping"/>
                         </div>
 
                         <div className="space-y-1">
@@ -404,7 +404,7 @@ export function AddRestaurantModal({open, onOpenChange}: AddRestaurantModalProps
                         <div className="flex flex-col w-full gap-2">
                             <Button
                                 onClick={handleGoToNewRestaurant}
-                                className="w-full gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white"
+                                className="w-full gap-1.5 bg-success hover:bg-success/90 text-success-foreground"
                             >
                                 <Sparkles className="h-4 w-4"/>
                                 Accéder à {createdName}

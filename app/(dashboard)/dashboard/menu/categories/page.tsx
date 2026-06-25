@@ -140,7 +140,7 @@ export default async function CategoriesPage() {
                                 <div
                                     className={`h-full transition-all duration-500 ${
                                         categoriesQuota.isAtLimit ? "bg-destructive"
-                                            : categoriesQuota.isNearLimit ? "bg-amber-500"
+                                            : categoriesQuota.isNearLimit ? "bg-warning"
                                                 : "bg-primary"
                                     }`}
                                     style={{width: `${categoriesQuota.percentage}%`}}

@@ -41,9 +41,9 @@ function ActivityIcon({type, className}: {type?: ActivityType | string | null; c
 function PlanBadge({plan}: {plan?: string}) {
     if (!plan) return null
     const styles: Record<string, string> = {
-        premium:  'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400',
-        business: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
-        starter:  'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400',
+        premium:  'bg-warning-subtle text-warning',
+        business: 'bg-info-subtle text-info',
+        starter:  'bg-muted text-muted-foreground',
     }
     return (
         <span className={cn(

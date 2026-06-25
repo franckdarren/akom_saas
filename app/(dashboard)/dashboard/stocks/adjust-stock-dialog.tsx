@@ -125,19 +125,19 @@ export function AdjustStockDialog({
                             <SelectContent>
                                 <SelectItem value="manual_in">
                                     <div className="flex items-center gap-2">
-                                        <Plus className="h-4 w-4 text-green-500"/>
+                                        <Plus className="h-4 w-4 text-success"/>
                                         <span>Entrée (livraison, production)</span>
                                     </div>
                                 </SelectItem>
                                 <SelectItem value="manual_out">
                                     <div className="flex items-center gap-2">
-                                        <Minus className="h-4 w-4 text-red-500"/>
+                                        <Minus className="h-4 w-4 text-destructive"/>
                                         <span>Sortie (casse, perte)</span>
                                     </div>
                                 </SelectItem>
                                 <SelectItem value="adjustment">
                                     <div className="flex items-center gap-2">
-                                        <RefreshCw className="h-4 w-4 text-blue-500"/>
+                                        <RefreshCw className="h-4 w-4 text-info"/>
                                         <span>Ajustement (inventaire)</span>
                                     </div>
                                 </SelectItem>
@@ -148,7 +148,7 @@ export function AdjustStockDialog({
                     <div className="space-y-2">
                         <Label htmlFor="quantity">
                             {type === 'adjustment' ? 'Nouvelle quantité' : 'Quantité'}
-                            <span className="text-red-500"> *</span>
+                            <span className="text-destructive"> *</span>
                         </Label>
                         <Input
                             id="quantity"
@@ -183,7 +183,7 @@ export function AdjustStockDialog({
 
                     {error && (
                         <div
-                            className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-lg text-sm">
+                            className="bg-destructive-subtle text-destructive p-3 rounded-lg text-sm">
                             {error}
                         </div>
                     )}

@@ -59,7 +59,7 @@ export function QuotaGuard({
                                 isAtLimit
                                     ? "bg-destructive"
                                     : isNearLimit
-                                        ? "bg-amber-500"
+                                        ? "bg-warning"
                                         : "bg-primary"
                             )}
                             style={{width: `${percentage}%`}}

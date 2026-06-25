@@ -26,24 +26,24 @@ export function WarehouseStatsCards({ stats }: WarehouseStatsCardsProps) {
             title: 'Produits en stock',
             value: stats.totalProducts,
             icon: Package,
-            iconColor: 'text-blue-600 dark:text-blue-400',
-            bgColor: 'bg-blue-100 dark:bg-blue-900/20',
+            iconColor: 'text-info',
+            bgColor: 'bg-info-subtle',
             description: `${stats.totalProducts} références différentes`,
         },
         {
             title: 'Valeur totale',
             value: formatPrice(stats.totalValue),
             icon: DollarSign,
-            iconColor: 'text-green-600 dark:text-green-400',
-            bgColor: 'bg-green-100 dark:bg-green-900/20',
+            iconColor: 'text-success',
+            bgColor: 'bg-success-subtle',
             description: `Moyenne ${formatPrice(stats.averageStockValue)} par produit`,
         },
         {
             title: 'Alertes stock bas',
             value: stats.lowStockCount,
             icon: AlertTriangle,
-            iconColor: stats.lowStockCount > 0 ? 'text-orange-600 dark:text-orange-400' : 'text-gray-400',
-            bgColor: stats.lowStockCount > 0 ? 'bg-orange-100 dark:bg-orange-900/20' : 'bg-gray-100 dark:bg-gray-800',
+            iconColor: stats.lowStockCount > 0 ? 'text-warning' : 'text-muted-foreground',
+            bgColor: stats.lowStockCount > 0 ? 'bg-warning-subtle' : 'bg-muted',
             description: stats.lowStockCount > 0
                 ? `${stats.lowStockCount} ${stats.lowStockCount === 1 ? 'produit' : 'produits'} à réapprovisionner`
                 : 'Tous les produits ont un stock suffisant',
@@ -54,8 +54,8 @@ export function WarehouseStatsCards({ stats }: WarehouseStatsCardsProps) {
                 ? new Date(stats.lastInventoryDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
                 : 'Jamais',
             icon: Calendar,
-            iconColor: 'text-purple-600 dark:text-purple-400',
-            bgColor: 'bg-purple-100 dark:bg-purple-900/20',
+            iconColor: 'text-chart-5',
+            bgColor: 'bg-chart-5/10',
             description: stats.lastInventoryDate
                 ? `Fait il y a ${getDaysSince(stats.lastInventoryDate)} jours`
                 : 'Aucun inventaire enregistré',

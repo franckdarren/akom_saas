@@ -103,7 +103,7 @@ export function EditFamilyDialog({
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="space-y-2">
                         <Label htmlFor="name">
-                            Nom <span className="text-red-500">*</span>
+                            Nom <span className="text-destructive">*</span>
                         </Label>
                         <Input
                             id="name"
@@ -128,7 +128,7 @@ export function EditFamilyDialog({
                     </div>
 
                     {error && (
-                        <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-lg text-sm">
+                        <div className="bg-destructive-subtle text-destructive p-3 rounded-lg text-sm">
                             {error}
                         </div>
                     )}

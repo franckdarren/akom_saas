@@ -107,7 +107,7 @@ export default async function LogsPage() {
                             <CardTitle className="text-sm font-medium">
                                 Warnings
                             </CardTitle>
-                            <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                            <AlertTriangle className="h-4 w-4 text-warning" />
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">
@@ -121,7 +121,7 @@ export default async function LogsPage() {
                             <CardTitle className="text-sm font-medium">
                                 Erreurs
                             </CardTitle>
-                            <XCircle className="h-4 w-4 text-red-600" />
+                            <XCircle className="h-4 w-4 text-destructive" />
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">{stats.errors}</div>
@@ -133,7 +133,7 @@ export default async function LogsPage() {
                             <CardTitle className="text-sm font-medium">
                                 Critiques
                             </CardTitle>
-                            <AlertOctagon className="h-4 w-4 text-red-800" />
+                            <AlertOctagon className="h-4 w-4 text-destructive" />
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">

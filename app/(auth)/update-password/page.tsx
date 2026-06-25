@@ -66,8 +66,8 @@ export default function UpdatePasswordPage() {
                     </h2>
                 </div>
                 <div
-                    className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 mb-6">
-                    <p className="text-sm text-green-800 dark:text-green-200">
+                    className="bg-success-subtle border border-success rounded-lg p-4 mb-6">
+                    <p className="text-sm text-success">
                         Votre mot de passe a été mis à jour avec succès.
                         Redirection vers le tableau de bord...
                     </p>
@@ -171,8 +171,8 @@ export default function UpdatePasswordPage() {
                 {/* Error */}
                 {error && (
                     <div
-                        className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
-                        <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
+                        className="bg-destructive-subtle border border-destructive rounded-lg p-3">
+                        <p className="text-sm text-destructive">{error}</p>
                     </div>
                 )}
 
@@ -185,7 +185,7 @@ export default function UpdatePasswordPage() {
             <div className="mt-6 text-center">
                 <button
                     onClick={goToDashboard}
-                    className="text-sm text-blue-600 hover:text-blue-500"
+                    className="text-sm text-primary hover:text-primary-hover"
                 >
                     ← Retour au tableau de bord
                 </button>

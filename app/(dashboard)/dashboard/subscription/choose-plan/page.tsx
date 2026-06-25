@@ -145,15 +145,15 @@ export default async function ChoosePlanPage() {
                 {/* ========================================
             ALERTE INFORMATIVE SUR LA TARIFICATION
             ======================================== */}
-                <Alert className="max-w-3xl mx-auto border-blue-200 bg-blue-50">
-                    <Info className="h-4 w-4 text-blue-600"/>
-                    <AlertDescription className="text-sm text-blue-900">
+                <Alert className="max-w-3xl mx-auto border-info bg-info-subtle">
+                    <Info className="h-4 w-4 text-info"/>
+                    <AlertDescription className="text-sm text-info">
                         <strong>💡 Comment fonctionne notre tarification :</strong> Chaque plan
                         a un prix de base qui inclut uniquement l&apos;administrateur. Chaque
                         utilisateur supplémentaire (cuisinier, serveur, etc.) coûte un montant
                         additionnel par mois. Vous ne payez que pour ce que vous utilisez vraiment !
                         <br/>
-                        <span className="text-xs mt-1 block text-blue-700">
+                        <span className="text-xs mt-1 block text-info">
               Vous avez actuellement <strong>{userCount} utilisateur
                             {userCount > 1 ? 's' : ''}</strong> dans votre restaurant.
             </span>

@@ -36,11 +36,11 @@ export function KpiCard({ title, value, description, trend, icon, format = 'text
                 {trend && (
                     <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
                         {trend.isPositive ? (
-                            <ArrowUp className="h-3 w-3 text-green-500" />
+                            <ArrowUp className="h-3 w-3 text-success" />
                         ) : (
-                            <ArrowDown className="h-3 w-3 text-red-500" />
+                            <ArrowDown className="h-3 w-3 text-destructive" />
                         )}
-                        <span className={trend.isPositive ? 'text-green-500' : 'text-red-500'}>
+                        <span className={trend.isPositive ? 'text-success' : 'text-destructive'}>
                             {Math.abs(trend.value).toFixed(1)}%
                         </span>
                         <span>vs période précédente</span>

@@ -170,9 +170,9 @@ export function PaymentDialog({open, onClose, items, total, onSuccess}: Props) {
                                     />
                                     {change > 0 && (
                                         <div
-                                            className="flex justify-between items-center bg-green-50 dark:bg-green-950 rounded-lg p-2 text-sm mt-1">
+                                            className="flex justify-between items-center bg-success-subtle rounded-lg p-2 text-sm mt-1">
                                             <span className="text-muted-foreground">Monnaie à rendre</span>
-                                            <span className="font-bold text-green-600">
+                                            <span className="font-bold text-success">
                                                 {change.toLocaleString('fr-FR')} FCFA
                                             </span>
                                         </div>

@@ -45,7 +45,7 @@ export function PeriodFilter({ value, onChange }: PeriodFilterProps) {
                                 key={key}
                                 onClick={() => onChange(key as TimePeriod)}
                                 className={cn(
-                                    value === key && 'bg-zinc-100 dark:bg-zinc-800'
+                                    value === key && 'bg-muted'
                                 )}
                             >
                                 {label}

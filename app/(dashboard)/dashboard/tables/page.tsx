@@ -141,7 +141,7 @@ export default async function TablesPage() {
                                 <div
                                     className={`h-full transition-all duration-500 ${
                                         tablesQuota.isAtLimit ? "bg-destructive"
-                                            : tablesQuota.isNearLimit ? "bg-amber-500"
+                                            : tablesQuota.isNearLimit ? "bg-warning"
                                                 : "bg-primary"
                                     }`}
                                     style={{width: `${tablesQuota.percentage}%`}}

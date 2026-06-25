@@ -162,7 +162,7 @@ export function ProductForm({categories, families, product, labels}: ProductForm
                     <div className="space-y-4">
                         <div>
                             <Label className="text-base font-semibold">
-                                Type <span className="text-red-500">*</span>
+                                Type <span className="text-destructive">*</span>
                             </Label>
                             <p className="text-sm text-muted-foreground mt-1">
                                 Choisissez si c&apos;est un bien physique ou une prestation de service
@@ -237,7 +237,7 @@ export function ProductForm({categories, families, product, labels}: ProductForm
                             <Label htmlFor="name">
                                 {/* ← Label dynamique */}
                                 Nom du {productType === 'good' ? productLabel : 'service'}{' '}
-                                <span className="text-red-500">*</span>
+                                <span className="text-destructive">*</span>
                             </Label>
                             <Input
                                 id="name"
@@ -341,7 +341,7 @@ export function ProductForm({categories, families, product, labels}: ProductForm
                         {(productType === 'good' || includePrice) && (
                             <div className="space-y-2">
                                 <Label htmlFor="price">
-                                    Prix (FCFA) <span className="text-red-500">*</span>
+                                    Prix (FCFA) <span className="text-destructive">*</span>
                                 </Label>
                                 <Input
                                     id="price"
@@ -388,7 +388,7 @@ export function ProductForm({categories, families, product, labels}: ProductForm
 
                     {error && (
                         <div
-                            className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-lg text-sm">
+                            className="bg-destructive-subtle text-destructive p-3 rounded-lg text-sm">
                             {error}
                         </div>
                     )}

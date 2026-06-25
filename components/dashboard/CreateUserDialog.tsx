@@ -94,28 +94,28 @@ export function CreateUserDialog() {
             return {
                 score,
                 label: 'Faible',
-                color: 'bg-red-500',
+                color: 'bg-destructive',
                 feedback,
             }
         } else if (score === 3) {
             return {
                 score,
                 label: 'Moyen',
-                color: 'bg-orange-500',
+                color: 'bg-warning',
                 feedback,
             }
         } else if (score === 4) {
             return {
                 score,
                 label: 'Bon',
-                color: 'bg-yellow-500',
+                color: 'bg-info',
                 feedback,
             }
         } else {
             return {
                 score,
                 label: 'Très bon',
-                color: 'bg-green-500',
+                color: 'bg-success',
                 feedback: [],
             }
         }
@@ -236,7 +236,7 @@ export function CreateUserDialog() {
                             />
                             {/* Afficher l'erreur */}
                             {emailError && (
-                                <p className="text-xs text-red-600">{emailError}</p>
+                                <p className="text-xs text-destructive">{emailError}</p>
                             )}
                         </div>
 
@@ -274,7 +274,7 @@ export function CreateUserDialog() {
                             {password && (
                                 <div className="space-y-2">
                                     <div className="flex items-center gap-2">
-                                        <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                                        <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
                                             <div
                                                 className={`h-full transition-all ${passwordStrength.color}`}
                                                 style={{
@@ -339,15 +339,15 @@ export function CreateUserDialog() {
                                 <div className="flex items-center gap-2 text-sm">
                                     {passwordsMatch ? (
                                         <>
-                                            <CheckCircle2 className="h-4 w-4 text-green-600" />
-                                            <span className="text-green-600">
+                                            <CheckCircle2 className="h-4 w-4 text-success" />
+                                            <span className="text-success">
                                                 Les mots de passe correspondent
                                             </span>
                                         </>
                                     ) : (
                                         <>
-                                            <XCircle className="h-4 w-4 text-red-600" />
-                                            <span className="text-red-600">
+                                            <XCircle className="h-4 w-4 text-destructive" />
+                                            <span className="text-destructive">
                                                 Les mots de passe ne correspondent pas
                                             </span>
                                         </>

@@ -100,7 +100,7 @@ export function StockEntryModal({
             <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
-                        <TrendingUp className="h-5 w-5 text-blue-600"/>
+                        <TrendingUp className="h-5 w-5 text-info"/>
                         Entrée de stock
                     </DialogTitle>
                     <DialogDescription>
@@ -112,10 +112,10 @@ export function StockEntryModal({
                 <form onSubmit={handleSubmit} className="space-y-5 mt-4">
                     {/* Stock actuel */}
                     <div className={`rounded-lg border p-3 flex justify-between items-center ${
-                        isLowStock ? 'bg-red-50 border-red-200' : 'bg-muted/50'
+                        isLowStock ? 'bg-destructive-subtle border-destructive' : 'bg-muted/50'
                     }`}>
                         <span className="text-sm text-muted-foreground">Stock actuel</span>
-                        <span className={`font-semibold ${isLowStock ? 'text-red-600' : ''}`}>
+                        <span className={`font-semibold ${isLowStock ? 'text-destructive' : ''}`}>
                             {warehouseProduct.stock.quantity} {warehouseProduct.storageUnit}
                         </span>
                     </div>
@@ -199,7 +199,7 @@ export function StockEntryModal({
                     </div>
 
                     {/* Récapitulatif */}
-                    <div className="rounded-lg border p-4 bg-green-50 dark:bg-green-950/20 space-y-2">
+                    <div className="rounded-lg border p-4 bg-success-subtle space-y-2">
                         <h4 className="font-semibold text-sm">Après cette entrée</h4>
                         <div className="flex justify-between text-sm">
                             <span>Nouveau stock</span>

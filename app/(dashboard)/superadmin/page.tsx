@@ -206,7 +206,7 @@ export default async function SuperAdminDashboard() {
                     <span className="text-sm font-medium">
                       {formatNumber(day.orders)} commandes
                     </span>
-                                        <span className="text-sm font-bold text-green-600">
+                                        <span className="text-sm font-bold text-success">
                       {formatPrice(day.revenue)}
                     </span>
                                     </div>

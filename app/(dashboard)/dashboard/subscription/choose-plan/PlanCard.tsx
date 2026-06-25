@@ -279,7 +279,7 @@ export function PlanCard({
                         {/* Affichage des économies */}
                         {pricingDetails.discount > 0 && (
                             <div className="text-center">
-                                <p className="text-sm font-medium text-green-600">
+                                <p className="text-sm font-medium text-success">
                                     Économisez {formatPrice(pricingDetails.discount)} avec ce cycle
                                 </p>
                                 <p className="text-xs text-muted-foreground">

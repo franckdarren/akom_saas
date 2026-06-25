@@ -151,7 +151,7 @@ export default async function ProductsPage({
                                 <div
                                     className={`h-full transition-all duration-500 ${
                                         productsQuota.isAtLimit ? "bg-destructive"
-                                            : productsQuota.isNearLimit ? "bg-amber-500"
+                                            : productsQuota.isNearLimit ? "bg-warning"
                                                 : "bg-primary"
                                     }`}
                                     style={{width: `${productsQuota.percentage}%`}}

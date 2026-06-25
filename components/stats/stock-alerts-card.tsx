@@ -30,9 +30,9 @@ export function StockAlertsCard({ data }: StockAlertsCardProps) {
     }
 
     return (
-        <AppCard className="border-orange-200 dark:border-orange-900">
+        <AppCard className="border-warning">
             <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-orange-600 dark:text-orange-400">
+                <CardTitle className="flex items-center gap-2 text-warning">
                     <AlertTriangle className="h-5 w-5" />
                     Alertes stock
                 </CardTitle>
@@ -67,10 +67,10 @@ export function StockAlertsCard({ data }: StockAlertsCardProps) {
                                 <div className="text-right">
                                     <p
                                         className={`text-lg font-bold ${isOutOfStock
-                                            ? 'text-red-600 dark:text-red-400'
+                                            ? 'text-destructive'
                                             : isCritical
-                                                ? 'text-orange-600 dark:text-orange-400'
-                                                : 'text-yellow-600 dark:text-yellow-400'
+                                                ? 'text-warning'
+                                                : 'text-warning'
                                             }`}
                                     >
                                         {alert.currentQuantity}

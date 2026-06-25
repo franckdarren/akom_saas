@@ -29,7 +29,7 @@ export default async function OnboardingPage() {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-zinc-50 dark:bg-zinc-900 p-4">
+        <div className="min-h-screen flex items-center justify-center bg-muted p-4">
             <div className="w-full max-w-md lg:max-w-3xl">
                 <div className="text-center mb-8">
                     <div className="flex items-center justify-center  mb-4">

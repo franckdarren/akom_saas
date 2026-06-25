@@ -212,11 +212,11 @@ export function InviteUserDialog({
 
                     {/* Aperçu du rôle sélectionné */}
                     {selectedRole && selectedRole.description && (
-                        <div className="flex items-start gap-2 p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
-                            <Info className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
-                            <div className="text-sm text-blue-900 dark:text-blue-100">
+                        <div className="flex items-start gap-2 p-3 bg-info-subtle rounded-lg border border-info">
+                            <Info className="h-4 w-4 text-info mt-0.5 shrink-0" />
+                            <div className="text-sm text-info">
                                 <p className="font-medium mb-1">{selectedRole.name}</p>
-                                <p className="text-blue-700 dark:text-blue-300">
+                                <p className="text-info">
                                     {selectedRole.description}
                                 </p>
                             </div>

@@ -208,11 +208,11 @@ function RegisterForm() {
             </form>
 
             {/* Section explicative - NOUVEAU */}
-            <div className="mt-8 border-t border-zinc-200 dark:border-zinc-800 pt-6">
-                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 rounded-lg p-5 border border-blue-100 dark:border-blue-900/30">
+            <div className="mt-8 border-t border-border pt-6">
+                <div className="bg-info-subtle rounded-lg p-5 border border-info/30">
                     <div className="flex items-start gap-3 mb-3">
-                        <div className="flex-shrink-0 w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
-                            <Store className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                        <div className="flex-shrink-0 w-8 h-8 bg-info-subtle rounded-full flex items-center justify-center">
+                            <Store className="w-4 h-4 text-info" />
                         </div>
                         <div className="flex-1">
                             <h3 className="text-sm font-semibold text-foreground mb-1">
@@ -226,13 +226,13 @@ function RegisterForm() {
 
                     <div className="space-y-2.5 mt-4">
                         <div className="flex items-start gap-2.5">
-                            <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
+                            <CheckCircle2 className="w-4 h-4 text-success flex-shrink-0 mt-0.5" />
                             <p className="text-sm text-muted-foreground">
                                 <span className="font-medium text-foreground">Gestion complète</span> : menu, commandes, stocks et statistiques
                             </p>
                         </div>
                         <div className="flex items-start gap-2.5">
-                            <Users className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                            <Users className="w-4 h-4 text-info flex-shrink-0 mt-0.5" />
                             <p className="text-sm text-muted-foreground">
                                 <span className="font-medium text-foreground">Invitez votre équipe</span> : ajoutez des employés et gérez leurs rôles depuis le tableau de bord
                             </p>
@@ -247,7 +247,7 @@ function RegisterForm() {
                     Vous avez déjà un compte ?{' '}
                     <Link
                         href={selectedPlan && VALID_PLANS.includes(selectedPlan) ? `/login?plan=${selectedPlan}` : '/login'}
-                        className="text-blue-600 hover:text-blue-500 font-medium"
+                        className="text-primary hover:text-primary-hover font-medium"
                     >
                         Se connecter
                     </Link>

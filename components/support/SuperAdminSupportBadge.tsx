@@ -43,7 +43,7 @@ export function SuperAdminSupportBadge() {
     if (count === 0) return null
 
     return (
-        <Badge className="ml-auto bg-red-500 text-white">
+        <Badge className="ml-auto bg-destructive text-destructive-foreground">
             {count}
         </Badge>
     )

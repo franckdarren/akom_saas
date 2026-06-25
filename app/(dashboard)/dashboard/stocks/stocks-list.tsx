@@ -80,9 +80,9 @@ export function StocksList({stocks}: { stocks: Stock[] }) {
                                     <span
                                         className={`text-2xl font-bold ${
                                             isOutOfStock
-                                                ? 'text-red-500 animate-ping'
+                                                ? 'text-destructive animate-ping'
                                                 : isLowStock
-                                                    ? 'text-orange-500 animate-ping'
+                                                    ? 'text-warning animate-ping'
                                                     : ''
                                         }`}
                                     >
@@ -130,12 +130,12 @@ export function StocksList({stocks}: { stocks: Stock[] }) {
 
                                 {/* Message d'alerte */}
                                 {isLowStock && (
-                                    <p className="text-xs text-orange-500 animate-pulse">
+                                    <p className="text-xs text-warning animate-pulse">
                                         ⚠️ Stock faible - Réapprovisionnement recommandé
                                     </p>
                                 )}
                                 {isOutOfStock && (
-                                    <p className="text-xs text-red-500 animate-pulse">
+                                    <p className="text-xs text-destructive animate-pulse">
                                         🔴 Rupture de stock - Produit indisponible
                                     </p>
                                 )}

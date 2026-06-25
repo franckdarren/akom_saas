@@ -163,7 +163,7 @@ export default async function SubscriptionExpiredPage() {
                 {/* Note sécurité */}
                 <AppCard className="bg-info-subtle border-info">
                     <CardContent>
-                        <p className="text-sm text-blue-800">
+                        <p className="text-sm text-info">
                             <strong>💡 Vos données sont en sécurité</strong> : Toutes vos informations (menus, commandes,
                             statistiques) sont conservées. Dès que votre abonnement sera renouvelé, vous retrouverez
                             l'accès complet à votre compte.

@@ -93,8 +93,8 @@ export function WarehouseProductsTable({ products }: WarehouseProductsTableProps
                             <TableCell className="text-right">
                                 <div className="flex flex-col items-end gap-1">
                                     <div className="flex items-center gap-2">
-                                        {product.isLowStock && <AlertTriangle className="h-4 w-4 text-orange-500" />}
-                                        <span className={`font-semibold ${product.isLowStock ? 'text-orange-600 dark:text-orange-400' : ''}`}>
+                                        {product.isLowStock && <AlertTriangle className="h-4 w-4 text-warning" />}
+                                        <span className={`font-semibold ${product.isLowStock ? 'text-warning' : ''}`}>
                                             {product.stock.quantity.toString()}
                                         </span>
                                     </div>
@@ -117,7 +117,7 @@ export function WarehouseProductsTable({ products }: WarehouseProductsTableProps
                             {/* Produit lié */}
                             <TableCell className="hidden lg:table-cell">
                                 {product.linkedProduct ? (
-                                    <Link href={`/dashboard/menu/products/${product.linkedProduct.id}`} className="hover:underline text-green-600 dark:text-green-400">
+                                    <Link href={`/dashboard/menu/products/${product.linkedProduct.id}`} className="hover:underline text-success">
                                         {product.linkedProduct.name} ×{product.conversionRatio}
                                     </Link>
                                 ) : (
@@ -146,7 +146,7 @@ export function WarehouseProductsTable({ products }: WarehouseProductsTableProps
                                         </DropdownMenuItem>
                                         <DropdownMenuSeparator />
                                         <DropdownMenuItem>
-                                            <TrendingUp className="mr-2 h-4 w-4 text-blue-600" />
+                                            <TrendingUp className="mr-2 h-4 w-4 text-info" />
                                             Entrée stock
                                         </DropdownMenuItem>
                                     </DropdownMenuContent>

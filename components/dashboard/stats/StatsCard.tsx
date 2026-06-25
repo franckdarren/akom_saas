@@ -27,10 +27,10 @@ export function StatsCard({
     variant = 'default',
 }: StatsCardProps) {
     const variantStyles = {
-        default: 'text-blue-500 bg-blue-50 dark:bg-blue-950',
-        success: 'text-green-500 bg-green-50 dark:bg-green-950',
-        warning: 'text-amber-500 bg-amber-50 dark:bg-amber-950',
-        danger: 'text-red-500 bg-red-50 dark:bg-red-950',
+        default: 'text-info bg-info-subtle',
+        success: 'text-success bg-success-subtle',
+        warning: 'text-warning bg-warning-subtle',
+        danger: 'text-destructive bg-destructive-subtle',
     }
 
     return (
@@ -65,8 +65,8 @@ export function StatsCard({
                                     className={cn(
                                         'flex items-center gap-1',
                                         trend.isPositive
-                                            ? 'text-green-600 dark:text-green-500'
-                                            : 'text-red-600 dark:text-red-500'
+                                            ? 'text-success'
+                                            : 'text-destructive'
                                     )}
                                 >
                                     {trend.isPositive ? (

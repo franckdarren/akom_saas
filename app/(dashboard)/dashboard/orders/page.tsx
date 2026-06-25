@@ -76,11 +76,11 @@ export default function OrdersPage() {
                     title={`${labels.orderNameCapital}s`}
                     description={`Gérez les ${labels.orderNamePlural} en temps réel`}
                     action={pendingCount > 0 ? (
-                        <AppCard className="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800">
+                        <AppCard className="bg-destructive-subtle border-destructive">
                             <CardContent className="p-4">
                                 <div className="flex items-center gap-2">
-                                    <div className="h-3 w-3 bg-red-500 rounded-full animate-pulse"/>
-                                    <span className="font-semibold text-red-900 dark:text-red-100">
+                                    <div className="h-3 w-3 bg-destructive rounded-full animate-pulse"/>
+                                    <span className="font-semibold text-destructive">
                                         {pendingCount} nouvelle
                                         {pendingCount > 1 ? 's' : ''}{' '}
                                         {labels.orderName}

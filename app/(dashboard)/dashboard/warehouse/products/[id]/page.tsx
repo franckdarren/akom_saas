@@ -218,7 +218,7 @@ export default async function WarehouseProductDetailPage({params}: PageProps) {
                                 <CardTitle>Stock actuel</CardTitle>
                                 {isLowStock && (
                                     <span
-                                        className="inline-flex items-center rounded-md bg-orange-50 px-2 py-1 text-xs font-medium text-orange-700 ring-1 ring-inset ring-orange-600/20 dark:bg-orange-900/20 dark:text-orange-400 dark:ring-orange-600/30">
+                                        className="inline-flex items-center rounded-md bg-warning-subtle px-2 py-1 text-xs font-medium text-warning ring-1 ring-inset ring-warning/20">
                                     Stock bas
                                 </span>
                                 )}

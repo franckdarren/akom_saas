@@ -14,12 +14,12 @@ interface RecentOrdersCardProps {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-    awaiting_payment: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
-    pending: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
-    preparing: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-    ready: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-    delivered: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200',
-    cancelled: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+    awaiting_payment: 'bg-status-awaiting-payment-subtle text-status-awaiting-payment',
+    pending: 'bg-warning-subtle text-warning',
+    preparing: 'bg-info-subtle text-info',
+    ready: 'bg-success-subtle text-success',
+    delivered: 'bg-muted text-muted-foreground',
+    cancelled: 'bg-destructive-subtle text-destructive',
 }
 
 export function RecentOrdersCard({ data }: RecentOrdersCardProps) {

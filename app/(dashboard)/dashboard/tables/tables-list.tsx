@@ -104,7 +104,7 @@ export function TablesList({tables}: { tables: Table[] }) {
                         <CardContent className="layout-card-body flex-1">
                             {table._count.orders > 0 && (
                                 <div className="text-sm">
-        <span className="text-orange-500 font-medium">
+        <span className="text-warning font-medium">
           {table._count.orders} commande(s) en cours
         </span>
                                 </div>
@@ -178,7 +178,7 @@ export function TablesList({tables}: { tables: Table[] }) {
                         </AlertDialogCancel>
                         <AlertDialogAction
                             onClick={confirmDelete}
-                            className="bg-red-600 hover:bg-red-700"
+                            className="bg-destructive hover:bg-destructive/90"
                         >
                             Supprimer
                         </AlertDialogAction>

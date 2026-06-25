@@ -103,7 +103,7 @@ export function QRCodeDialog({
                     )}
 
                     {error && (
-                        <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-4 rounded-lg text-sm">
+                        <div className="bg-destructive-subtle text-destructive p-4 rounded-lg text-sm">
                             {error}
                         </div>
                     )}

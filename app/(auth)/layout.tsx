@@ -5,7 +5,7 @@ import {Logo} from '@/components/ui/logo'
 export default function AuthLayout({children}: { children: ReactNode }) {
     return (
         <div
-            className="min-h-screen flex items-center justify-center bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-900 dark:to-zinc-800 p-4">
+            className="min-h-screen flex items-center justify-center bg-gradient-to-br from-muted to-background p-4">
             <div className="w-full max-w-md">
                 {/* Logo */}
                 <div className="flex flex-col items-center gap-2 mb-4 sm:mb-8">

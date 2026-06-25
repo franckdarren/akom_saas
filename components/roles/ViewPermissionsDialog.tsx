@@ -64,7 +64,7 @@ export function ViewPermissionsDialog({
                                                 key={permission.id}
                                                 className="flex items-start gap-2 p-2 rounded-lg bg-muted/50"
                                             >
-                                                <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5 shrink-0" />
+                                                <CheckCircle2 className="h-4 w-4 text-success mt-0.5 shrink-0" />
                                                 <div className="flex-1 min-w-0">
                                                     <p className="text-sm font-medium">
                                                         {permission.name}

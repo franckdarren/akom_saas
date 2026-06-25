@@ -109,7 +109,7 @@ export function QuickCreateProductDialog({
                     {/* Nom du produit */}
                     <div className="space-y-2">
                         <Label htmlFor="name">
-                            Nom du produit <span className="text-red-500">*</span>
+                            Nom du produit <span className="text-destructive">*</span>
                         </Label>
                         <Input id="name" name="name" placeholder="Ex: Poulet Curry" required disabled={isLoading}/>
                     </div>
@@ -117,7 +117,7 @@ export function QuickCreateProductDialog({
                     {/* Prix */}
                     <div className="space-y-2">
                         <Label htmlFor="price">
-                            Prix (FCFA) <span className="text-red-500">*</span>
+                            Prix (FCFA) <span className="text-destructive">*</span>
                         </Label>
                         <Input
                             id="price"
@@ -184,7 +184,7 @@ export function QuickCreateProductDialog({
                     {/* Erreur */}
                     {error && (
                         <div
-                            className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-lg text-sm">
+                            className="bg-destructive-subtle text-destructive p-3 rounded-lg text-sm">
                             {error}
                         </div>
                     )}

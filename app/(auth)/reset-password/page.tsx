@@ -83,7 +83,7 @@ export default function ResetPasswordPage() {
         return (
             <div>
                 <h2 className="text-2xl font-bold mb-6">Mot de passe réinitialisé</h2>
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+                <div className="bg-success-subtle border border-success rounded-lg p-4 mb-6">
                     <p className="text-sm">
                         Votre mot de passe a été mis à jour avec succès.
                         Vous pouvez maintenant vous connecter.
@@ -151,8 +151,8 @@ export default function ResetPasswordPage() {
 
                 {error && (
                     <div
-                        className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
-                        <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
+                        className="bg-destructive-subtle border border-destructive rounded-lg p-3">
+                        <p className="text-sm text-destructive">{error}</p>
                     </div>
                 )}
 

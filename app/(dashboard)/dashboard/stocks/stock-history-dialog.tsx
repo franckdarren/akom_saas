@@ -69,13 +69,13 @@ export function StockHistoryDialog({
     const getMovementIcon = (type: string) => {
         switch (type) {
             case 'manual_in':
-                return <TrendingUp className="h-4 w-4 text-green-500" />
+                return <TrendingUp className="h-4 w-4 text-success" />
             case 'manual_out':
-                return <TrendingDown className="h-4 w-4 text-red-500" />
+                return <TrendingDown className="h-4 w-4 text-destructive" />
             case 'adjustment':
-                return <RefreshCw className="h-4 w-4 text-blue-500" />
+                return <RefreshCw className="h-4 w-4 text-info" />
             case 'order_out':
-                return <ShoppingCart className="h-4 w-4 text-orange-500" />
+                return <ShoppingCart className="h-4 w-4 text-warning" />
             default:
                 return null
         }
@@ -112,7 +112,7 @@ export function StockHistoryDialog({
                     )}
 
                     {error && (
-                        <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-4 rounded-lg text-sm">
+                        <div className="bg-destructive-subtle text-destructive p-4 rounded-lg text-sm">
                             {error}
                         </div>
                     )}
@@ -153,8 +153,8 @@ export function StockHistoryDialog({
                                         <span
                                             className={
                                                 movement.quantity > 0
-                                                    ? 'text-green-600'
-                                                    : 'text-red-600'
+                                                    ? 'text-success'
+                                                    : 'text-destructive'
                                             }
                                         >
                                             ({movement.quantity > 0 ? '+' : ''}

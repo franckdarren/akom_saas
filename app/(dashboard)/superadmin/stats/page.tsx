@@ -129,7 +129,7 @@ export default async function StatsPage() {
                                         <TableCell className="font-medium">{i + 1}</TableCell>
                                         <TableCell>{r.name}</TableCell>
                                         <TableCell className="text-right">{formatNumber(r.ordersCount)}</TableCell>
-                                        <TableCell className="text-right font-medium text-green-600">{formatPrice(r.revenue)}</TableCell>
+                                        <TableCell className="text-right font-medium text-success">{formatPrice(r.revenue)}</TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
@@ -159,7 +159,7 @@ export default async function StatsPage() {
                                         <TableCell className="font-medium">{i + 1}</TableCell>
                                         <TableCell>{p.productName}</TableCell>
                                         <TableCell className="text-right">{formatNumber(p.totalQuantity)}</TableCell>
-                                        <TableCell className="text-right font-medium text-green-600">{formatPrice(p.totalRevenue)}</TableCell>
+                                        <TableCell className="text-right font-medium text-success">{formatPrice(p.totalRevenue)}</TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>

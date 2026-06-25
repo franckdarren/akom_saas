@@ -64,7 +64,7 @@ export default async function PaymentsPage() {
 
                     <TabsContent value="pending" className="space-y-4 mt-6">
                         {pending.length === 0 ? (
-                            <div className="text-center py-12 text-gray-500">
+                            <div className="text-center py-12 text-muted-foreground">
                                 <p>Aucun paiement en attente</p>
                             </div>
                         ) : (
@@ -76,7 +76,7 @@ export default async function PaymentsPage() {
 
                     <TabsContent value="confirmed" className="space-y-4 mt-6">
                         {confirmed.length === 0 ? (
-                            <div className="text-center py-12 text-gray-500">
+                            <div className="text-center py-12 text-muted-foreground">
                                 <p>Aucun paiement confirmé</p>
                             </div>
                         ) : (
@@ -88,7 +88,7 @@ export default async function PaymentsPage() {
 
                     <TabsContent value="failed" className="space-y-4 mt-6">
                         {failed.length === 0 ? (
-                            <div className="text-center py-12 text-gray-500">
+                            <div className="text-center py-12 text-muted-foreground">
                                 <p>Aucun paiement échoué</p>
                             </div>
                         ) : (

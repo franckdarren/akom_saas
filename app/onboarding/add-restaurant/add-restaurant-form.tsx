@@ -80,7 +80,7 @@ export function AddRestaurantForm() {
                             <span className="text-xl leading-none mt-0.5 shrink-0">{emoji}</span>
                             <div>
                                 <p className="text-sm font-medium leading-tight">{label}</p>
-                                <p className="text-[11px] text-muted-foreground mt-0.5">{description}</p>
+                                <p className="text-2xs text-muted-foreground mt-0.5">{description}</p>
                             </div>
                         </button>
                     ))}

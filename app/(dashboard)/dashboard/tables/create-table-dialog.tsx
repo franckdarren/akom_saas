@@ -75,7 +75,7 @@ export function CreateTableDialog({children}: { children: React.ReactNode }) {
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="space-y-2">
                         <Label htmlFor="number">
-                            Numéro de table <span className="text-red-500">*</span>
+                            Numéro de table <span className="text-destructive">*</span>
                         </Label>
                         <Input
                             id="number"
@@ -95,7 +95,7 @@ export function CreateTableDialog({children}: { children: React.ReactNode }) {
 
                     {error && (
                         <div
-                            className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-lg text-sm">
+                            className="bg-destructive-subtle text-destructive p-3 rounded-lg text-sm">
                             {error}
                         </div>
                     )}

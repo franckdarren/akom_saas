@@ -120,10 +120,10 @@ export function TransferModal({
                     className="space-y-6 mt-4"
                 >
                     {/* Depuis le magasin */}
-                    <div className="rounded-lg border p-4 bg-blue-50 dark:bg-blue-950/20">
+                    <div className="rounded-lg border p-4 bg-info-subtle">
                         <div className="flex items-start gap-3">
-                            <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/40">
-                                <Package className="h-5 w-5 text-blue-600 dark:text-blue-400"/>
+                            <div className="p-2 rounded-lg bg-info-subtle">
+                                <Package className="h-5 w-5 text-info"/>
                             </div>
                             <div className="flex-1">
                                 <h3 className="font-semibold text-sm">
@@ -231,10 +231,10 @@ export function TransferModal({
                     </div>
 
                     {/* Vers le stock opérationnel */}
-                    <div className="rounded-lg border p-4 bg-green-50 dark:bg-green-950/20">
+                    <div className="rounded-lg border p-4 bg-success-subtle">
                         <div className="flex items-start gap-3">
-                            <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/40">
-                                <Package className="h-5 w-5 text-green-600 dark:text-green-400"/>
+                            <div className="p-2 rounded-lg bg-success-subtle">
+                                <Package className="h-5 w-5 text-success"/>
                             </div>
                             <div className="flex-1">
                                 <h3 className="font-semibold text-sm">
@@ -253,12 +253,12 @@ export function TransferModal({
                             </div>
                         </div>
 
-                        <div className="mt-4 p-3 bg-white dark:bg-gray-900 rounded-lg border">
+                        <div className="mt-4 p-3 bg-card rounded-lg border">
                             <div className="flex items-center justify-between">
                                 <span className="text-sm text-muted-foreground">
                                     Quantité ajoutée
                                 </span>
-                                <span className="text-lg font-bold text-green-600 dark:text-green-400">
+                                <span className="text-lg font-bold text-success">
                                     +{convertedQuantity} unités
                                 </span>
                             </div>

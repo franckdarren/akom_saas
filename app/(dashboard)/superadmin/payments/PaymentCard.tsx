@@ -100,7 +100,7 @@ export function PaymentCard({payment}: PaymentCardProps) {
                                 </Badge>
                             </div>
 
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-muted-foreground">
                                 ID: {payment.id.slice(0, 8)}...
                             </p>
 
@@ -125,12 +125,12 @@ export function PaymentCard({payment}: PaymentCardProps) {
 
                             {/* Notes */}
                             {payment.manualNotes && (
-                                <div className="bg-gray-50 rounded-lg p-3">
+                                <div className="bg-muted rounded-lg p-3">
                                     <div className="flex items-start gap-2">
-                                        <FileText className="h-4 w-4 text-gray-500 mt-0.5"/>
+                                        <FileText className="h-4 w-4 text-muted-foreground mt-0.5"/>
                                         <div>
                                             <p className="text-sm font-medium">Notes</p>
-                                            <p className="text-sm text-gray-600">
+                                            <p className="text-sm text-muted-foreground">
                                                 {payment.manualNotes}
                                             </p>
                                         </div>
@@ -172,7 +172,7 @@ export function PaymentCard({payment}: PaymentCardProps) {
                             {payment.status === 'pending' && (
                                 <Button
                                     size="sm"
-                                    className="bg-green-600 hover:bg-green-700"
+                                    className="bg-success hover:bg-success/90"
                                     onClick={() => setOpenConfirm(true)}
                                 >
                                     <CheckCircle2 className="mr-2 h-4 w-4"/>
@@ -205,7 +205,7 @@ export function PaymentCard({payment}: PaymentCardProps) {
                         <AlertDialogAction
                             onClick={handleValidate}
                             disabled={loading}
-                            className="bg-green-600 hover:bg-green-700"
+                            className="bg-success hover:bg-success/90"
                         >
                             {loading && (
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
@@ -231,9 +231,9 @@ function Info({
 }) {
     return (
         <div className="flex items-center gap-2 text-sm">
-            <div className="text-gray-500">{icon}</div>
+            <div className="text-muted-foreground">{icon}</div>
             <div>
-                <p className="text-gray-600">{label}</p>
+                <p className="text-muted-foreground">{label}</p>
                 <p className="font-semibold">{children}</p>
             </div>
         </div>

@@ -16,7 +16,7 @@ export function RestaurantSelector() {
 
     if (loading) {
         return (
-            <div className="w-64 h-10 bg-zinc-200 dark:bg-zinc-700 animate-pulse rounded-md" />
+            <div className="w-64 h-10 bg-muted animate-pulse rounded-md" />
         )
     }
 

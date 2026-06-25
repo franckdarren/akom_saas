@@ -35,8 +35,8 @@ export function CookiePreferencesButton({
 
     // Classes de base selon la variante
     const baseClasses = variant === 'primary'
-        ? 'bg-blue-600 text-white hover:bg-blue-700'
-        : 'text-gray-600 hover:text-gray-900 underline bg-transparent'
+        ? 'bg-primary text-primary-foreground hover:bg-primary-hover'
+        : 'text-muted-foreground hover:text-foreground underline bg-transparent'
 
     // Classes de taille
     const sizeClasses = {
@@ -77,7 +77,7 @@ export function CookiePreferencesLink({
     return (
         <button
             onClick={handleResetPreferences}
-            className={`text-sm text-gray-600 hover:text-gray-900 underline ${className}`}
+            className={`text-sm text-muted-foreground hover:text-foreground underline ${className}`}
         >
             Modifier mes préférences
         </button>

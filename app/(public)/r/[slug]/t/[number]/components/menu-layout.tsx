@@ -122,7 +122,7 @@ export function MenuLayout({
     // États de chargement et d'erreur
     if (isLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-zinc-900">
+            <div className="min-h-screen flex items-center justify-center bg-muted">
                 <div className="text-center">
                     <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mx-auto mb-4"/>
                     <p className="text-muted-foreground">Chargement du menu...</p>
@@ -133,9 +133,9 @@ export function MenuLayout({
 
     if (error || !menuData) {
         return (
-            <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50 dark:bg-zinc-900">
+            <div className="min-h-screen flex items-center justify-center p-4 bg-muted">
                 <div className="text-center">
-                    <p className="text-lg text-red-500 mb-4">
+                    <p className="text-lg text-destructive mb-4">
                         {error || 'Menu introuvable'}
                     </p>
                     <p className="text-sm text-muted-foreground">
@@ -147,7 +147,7 @@ export function MenuLayout({
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-zinc-900 pb-3">
+        <div className="min-h-screen bg-muted pb-3">
             {/* Header avec image */}
             <RestaurantHeader
                 restaurantName={menuData.restaurant.name}
@@ -255,7 +255,7 @@ export function MenuLayout({
             )}
 
             {/* Footer */}
-            <footer className="bg-white dark:bg-zinc-800 mt-10 border-t border-zinc-200 dark:border-zinc-700">
+            <footer className="bg-card mt-10 border-t border-border">
                 <div className="w-full max-w-screen-xl mx-auto py-4 md:py-8">
                     <div className="flex justify-center items-center gap-2 mb-3">
                         {menuData.restaurant.logoUrl && (

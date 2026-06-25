@@ -103,7 +103,7 @@ export function AlertThresholdEditor({
                         <div className="space-y-2">
                             <Label htmlFor="threshold">
                                 Nouveau seuil d'alerte (unités)
-                                <span className="text-red-500"> *</span>
+                                <span className="text-destructive"> *</span>
                             </Label>
                             <Input
                                 id="threshold"
@@ -126,8 +126,8 @@ export function AlertThresholdEditor({
                         {/* Aperçu du changement */}
                         {thresholdChanged && !isNaN(parseInt(threshold)) && (
                             <div
-                                className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md p-3">
-                                <p className="text-sm text-blue-800 dark:text-blue-200">
+                                className="bg-info-subtle border border-info rounded-md p-3">
+                                <p className="text-sm text-info">
                                     📊 Changement : {currentThreshold} → {parseInt(threshold)}
                                 </p>
                             </div>
@@ -136,7 +136,7 @@ export function AlertThresholdEditor({
                         {/* Message d'erreur */}
                         {error && (
                             <div
-                                className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-lg text-sm">
+                                className="bg-destructive-subtle text-destructive p-3 rounded-lg text-sm">
                                 {error}
                             </div>
                         )}

@@ -85,7 +85,7 @@ function MovementItem({
 
                     {/* Quantité */}
                     <div className="text-right">
-                        <p className={`font-bold text-lg ${isNegative ? 'text-red-600' : 'text-green-600'}`}>
+                        <p className={`font-bold text-lg ${isNegative ? 'text-destructive' : 'text-success'}`}>
                             {isNegative ? '' : '+'}{movement.quantity}
                         </p>
                         <p className="text-xs text-muted-foreground">
@@ -138,32 +138,32 @@ function getMovementConfig(type: string) {
     const configs = {
         entry: {
             icon: TrendingUp,
-            iconColor: 'text-blue-600 dark:text-blue-400',
-            bgColor: 'bg-blue-100 dark:bg-blue-900/20',
+            iconColor: 'text-info',
+            bgColor: 'bg-info-subtle',
             label: 'Entrée de stock',
         },
         exit: {
             icon: TrendingDown,
-            iconColor: 'text-orange-600 dark:text-orange-400',
-            bgColor: 'bg-orange-100 dark:bg-orange-900/20',
+            iconColor: 'text-warning',
+            bgColor: 'bg-warning-subtle',
             label: 'Sortie de stock',
         },
         transfer_to_ops: {
             icon: Package,
-            iconColor: 'text-green-600 dark:text-green-400',
-            bgColor: 'bg-green-100 dark:bg-green-900/20',
+            iconColor: 'text-success',
+            bgColor: 'bg-success-subtle',
             label: 'Transfert vers restaurant',
         },
         adjustment: {
             icon: Edit,
-            iconColor: 'text-purple-600 dark:text-purple-400',
-            bgColor: 'bg-purple-100 dark:bg-purple-900/20',
+            iconColor: 'text-chart-5',
+            bgColor: 'bg-chart-5/10',
             label: 'Ajustement d\'inventaire',
         },
         loss: {
             icon: AlertCircle,
-            iconColor: 'text-red-600 dark:text-red-400',
-            bgColor: 'bg-red-100 dark:bg-red-900/20',
+            iconColor: 'text-destructive',
+            bgColor: 'bg-destructive-subtle',
             label: 'Perte ou casse',
         },
     }

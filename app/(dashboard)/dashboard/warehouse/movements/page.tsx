@@ -166,7 +166,7 @@ export default async function WarehouseMovementsPage({searchParams}: PageProps) 
                             {movements.length > 1 ? 's' : ''}
                         </span>
                             {movements.length === 100 && (
-                                <span className="text-orange-600">
+                                <span className="text-warning">
                                 Limite de 100 résultats atteinte. Affinez vos filtres.
                             </span>
                             )}
@@ -189,8 +189,8 @@ function StatsCardsSkeleton() {
             {[...Array(4)].map((_, i) => (
                 <AppCard key={i} className="p-6">
                     <div className="animate-pulse space-y-3">
-                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"/>
-                        <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/2"/>
+                        <div className="h-4 bg-muted rounded w-3/4"/>
+                        <div className="h-8 bg-muted rounded w-1/2"/>
                     </div>
                 </AppCard>
             ))}
@@ -203,10 +203,10 @@ function TimelineSkeleton() {
         <div className="animate-pulse space-y-4">
             {[...Array(5)].map((_, i) => (
                 <div key={i} className="flex gap-4">
-                    <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700"/>
+                    <div className="w-10 h-10 rounded-full bg-muted"/>
                     <div className="flex-1 space-y-2">
-                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"/>
-                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"/>
+                        <div className="h-4 bg-muted rounded w-3/4"/>
+                        <div className="h-4 bg-muted rounded w-1/2"/>
                     </div>
                 </div>
             ))}

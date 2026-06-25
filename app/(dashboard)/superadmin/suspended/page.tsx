@@ -86,7 +86,7 @@ export default async function SuspendedRestaurantsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">
+            <div className="text-2xl font-bold text-destructive">
               {restaurants.length}
             </div>
           </CardContent>
