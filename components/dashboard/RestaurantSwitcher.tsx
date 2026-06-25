@@ -179,14 +179,19 @@ export function RestaurantSwitcher({canAddMore = false, variant = 'sidebar'}: Re
                                         )}
                                     >
                                         <div className={cn(
-                                            'flex h-8 w-8 items-center justify-center rounded-md shrink-0',
+                                            'flex h-8 w-8 items-center justify-center rounded-md shrink-0 border border-transparent',
                                             isActive
-                                                ? 'bg-primary text-primary-foreground'
-                                                : 'bg-muted text-muted-foreground border border-transparent group-data-highlighted:bg-background group-data-highlighted:border-border group-data-highlighted:text-foreground'
+                                                ? 'bg-primary'
+                                                : 'bg-muted group-focus:bg-background group-focus:border-border'
                                         )}>
                                             <ActivityIcon
                                                 type={restaurant.activityType}
-                                                className="h-4 w-4"
+                                                className={cn(
+                                                    'h-4 w-4',
+                                                    isActive
+                                                        ? 'text-primary-foreground'
+                                                        : 'text-muted-foreground group-focus:text-foreground'
+                                                )}
                                             />
                                         </div>
 

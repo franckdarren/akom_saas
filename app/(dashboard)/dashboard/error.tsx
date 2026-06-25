@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { AlertTriangle } from 'lucide-react'
+import { AlertTriangle, RotateCcw } from 'lucide-react'
 
 export default function DashboardError({
     error,
@@ -16,15 +16,21 @@ export default function DashboardError({
     }, [error])
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 p-6">
-            <AlertTriangle className="h-12 w-12 text-destructive" />
-            <div className="text-center space-y-2">
-                <h2 className="text-xl font-semibold">Une erreur est survenue</h2>
-                <p className="text-muted-foreground text-sm">
+        <div className="flex min-h-[60vh] flex-col items-center justify-center gap-6 p-6 text-center">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-destructive/10">
+                <AlertTriangle className="h-6 w-6 text-destructive" />
+            </div>
+            <div className="space-y-2">
+                <h2 className="type-section-title">Une erreur est survenue</h2>
+                <p className="type-body-muted">
                     Impossible de charger cette page. Veuillez réessayer.
                 </p>
+                {error.digest && (
+                    <p className="type-caption">Code : {error.digest}</p>
+                )}
             </div>
             <Button onClick={reset} variant="outline">
+                <RotateCcw className="h-4 w-4" />
                 Réessayer
             </Button>
         </div>
