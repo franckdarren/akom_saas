@@ -43,8 +43,9 @@ export function Logo({ size = 'md', variant = 'color', className }: LogoProps) {
       className={cn('shrink-0', className)}
     >
       <text
-        x="0"
+        x="60"
         y="23"
+        textAnchor="middle"
         fontFamily="system-ui, -apple-system, 'Segoe UI', sans-serif"
         fontWeight="900"
         fontSize="28"
