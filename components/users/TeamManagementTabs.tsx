@@ -25,19 +25,21 @@ export function TeamManagementTabs({ children }: TeamManagementTabsProps) {
     return (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
             {/* Navigation par onglets */}
-            <div className="flex items-center justify-between">
-                <TabsList>
-                    <TabsTrigger value="members" className="gap-2">
-                        <Users className="h-4 w-4" />
-                        Membres de l'équipe
-                    </TabsTrigger>
-                    <PermissionGuard resource="roles" action="read">
-                        <TabsTrigger value="roles" className="gap-2">
-                            <Shield className="h-4 w-4" />
-                            Rôles et permissions
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="-mx-1 overflow-x-auto px-1">
+                    <TabsList>
+                        <TabsTrigger value="members" className="gap-2">
+                            <Users className="h-4 w-4" />
+                            Membres de l'équipe
                         </TabsTrigger>
-                    </PermissionGuard>
-                </TabsList>
+                        <PermissionGuard resource="roles" action="read">
+                            <TabsTrigger value="roles" className="gap-2">
+                                <Shield className="h-4 w-4" />
+                                Rôles et permissions
+                            </TabsTrigger>
+                        </PermissionGuard>
+                    </TabsList>
+                </div>
 
                 {/* Actions contextuelles selon l'onglet actif */}
                 <div className="flex items-center gap-2">

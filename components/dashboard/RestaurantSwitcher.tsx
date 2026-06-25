@@ -174,7 +174,7 @@ export function RestaurantSwitcher({canAddMore = false, variant = 'sidebar'}: Re
                                     <DropdownMenuItem
                                         onSelect={() => handleSwitch(restaurant)}
                                         className={cn(
-                                            'flex items-center gap-3 rounded-md px-2 py-2.5 cursor-pointer focus:bg-accent',
+                                            'group flex items-center gap-3 rounded-md px-2 py-2.5 cursor-pointer focus:bg-accent',
                                             isActive && 'bg-accent'
                                         )}
                                     >
@@ -182,7 +182,7 @@ export function RestaurantSwitcher({canAddMore = false, variant = 'sidebar'}: Re
                                             'flex h-8 w-8 items-center justify-center rounded-md shrink-0',
                                             isActive
                                                 ? 'bg-primary text-primary-foreground'
-                                                : 'bg-muted text-muted-foreground'
+                                                : 'bg-muted text-muted-foreground border border-transparent group-data-highlighted:bg-background group-data-highlighted:border-border group-data-highlighted:text-foreground'
                                         )}>
                                             <ActivityIcon
                                                 type={restaurant.activityType}
