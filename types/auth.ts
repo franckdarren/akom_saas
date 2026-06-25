@@ -26,6 +26,8 @@ export interface RestaurantWithRole {
     subscription?: {
         plan: SubscriptionPlan
         status: SubscriptionStatus
+        trialEndsAt: Date
+        currentPeriodEnd: Date | null
     } | null
 }
 

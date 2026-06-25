@@ -184,6 +184,8 @@ export async function getUserRestaurants(): Promise<RestaurantWithRole[]> {
                         select: {
                             plan: true,
                             status: true,
+                            trialEndsAt: true,
+                            currentPeriodEnd: true,
                         },
                     },
                 },

@@ -38,6 +38,35 @@ function ActivityIcon({type, className}: {type?: ActivityType | string | null; c
     }
 }
 
+function subStatusInfo(sub: RestaurantWithRole['subscription']) {
+    if (!sub) return null
+
+    let endDate: Date | null = null
+    if (sub.status === 'trial') endDate = new Date(sub.trialEndsAt)
+    else if (sub.currentPeriodEnd) endDate = new Date(sub.currentPeriodEnd)
+
+    const days = endDate
+        ? Math.max(0, Math.ceil((endDate.getTime() - Date.now()) / 86_400_000))
+        : null
+
+    switch (sub.status) {
+        case 'trial':
+            return {
+                label: days !== null ? `Essai · ${days} j restants` : 'Essai',
+                className: days !== null && days <= 3 ? 'text-destructive' : 'text-warning',
+            }
+        case 'active':
+            return {
+                label: days !== null ? `Actif · ${days} j restants` : 'Actif',
+                className: days !== null && days <= 3 ? 'text-warning' : 'text-success',
+            }
+        case 'expired':   return {label: 'Abonnement expiré',  className: 'text-destructive'}
+        case 'suspended': return {label: 'Suspendu',           className: 'text-destructive'}
+        case 'cancelled': return {label: 'Annulé',             className: 'text-muted-foreground'}
+        default:          return null
+    }
+}
+
 function PlanBadge({plan}: {plan?: string}) {
     if (!plan) return null
     const styles: Record<string, string> = {
@@ -168,6 +197,7 @@ export function RestaurantSwitcher({canAddMore = false, variant = 'sidebar'}: Re
                         {restaurants.map((restaurant) => {
                             const isActive = restaurant.id === currentRestaurant.id
                             const sub = restaurant.subscription
+                            const subInfo = subStatusInfo(sub)
 
                             return (
                                 <div key={restaurant.id}>
@@ -210,6 +240,11 @@ export function RestaurantSwitcher({canAddMore = false, variant = 'sidebar'}: Re
                                                 {' · '}
                                                 {getRoleBadge(restaurant.role).label}
                                             </span>
+                                            {subInfo && (
+                                                <span className={cn('type-caption font-medium', subInfo.className)}>
+                                                    {subInfo.label}
+                                                </span>
+                                            )}
                                         </div>
 
                                         {isActive ? (
