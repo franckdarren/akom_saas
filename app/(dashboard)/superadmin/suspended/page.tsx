@@ -3,6 +3,7 @@ import { getSuperadminUser } from '@/lib/auth/superadmin'
 import { redirect } from 'next/navigation'
 import { getSuspendedRestaurants } from '@/lib/actions/superadmin/restaurant-verification'
 import { AppCard, CardContent, CardHeader, CardTitle } from '@/components/ui/app-card'
+import { EmptyState } from '@/components/ui/empty-state'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { InfoIcon, AlertTriangle } from 'lucide-react'
@@ -171,10 +172,8 @@ export default async function SuspendedRestaurantsPage() {
       {/* Message si aucun restaurant suspendu */}
       {restaurants.length === 0 && (
         <AppCard>
-          <CardContent className="layout-empty-state">
-            <p className="text-muted-foreground">
-              Aucun restaurant suspendu pour le moment. 🎉
-            </p>
+          <CardContent>
+            <EmptyState title="Aucun restaurant suspendu pour le moment 🎉"/>
           </CardContent>
         </AppCard>
       )}

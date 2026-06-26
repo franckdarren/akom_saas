@@ -84,9 +84,9 @@ export function CoverImageUploader({
 
     return (
         <div className="space-y-2">
-            <Label>Image de couverture du restaurant</Label>
+            <Label>Image de couverture</Label>
             <p className="text-sm text-muted-foreground">
-                Cette image s'affichera en haut du menu public (format paysage recommandé)
+                Cette image s'affichera en haut de votre page publique (format paysage recommandé)
             </p>
 
             {preview ? (

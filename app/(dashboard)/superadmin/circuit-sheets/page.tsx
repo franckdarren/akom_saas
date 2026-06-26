@@ -3,6 +3,7 @@ import { getSuperadminUser } from '@/lib/auth/superadmin'
 import { redirect } from 'next/navigation'
 import { getPendingCircuitSheets } from '@/lib/actions/superadmin/restaurant-verification'
 import { AppCard, CardContent, CardHeader, CardTitle } from '@/components/ui/app-card'
+import { EmptyState } from '@/components/ui/empty-state'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { InfoIcon, AlertTriangle } from 'lucide-react'
@@ -207,10 +208,8 @@ export default async function CircuitSheetsPage() {
                 {/* Message si aucune fiche */}
                 {circuitSheets.length === 0 && (
                     <AppCard>
-                        <CardContent className="layout-empty-state">
-                            <p className="text-muted-foreground">
-                                Aucune fiche circuit en attente de validation pour le moment.
-                            </p>
+                        <CardContent>
+                            <EmptyState title="Aucune fiche circuit en attente de validation pour le moment"/>
                         </CardContent>
                     </AppCard>
                 )}

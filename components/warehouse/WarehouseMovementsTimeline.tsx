@@ -2,6 +2,7 @@
 'use client'
 
 import { TrendingUp, TrendingDown, Package, Edit, AlertCircle } from 'lucide-react'
+import { EmptyState } from '@/components/ui/empty-state'
 import { WarehouseMovement } from '@/types/warehouse'
 
 interface WarehouseMovementsTimelineProps {
@@ -23,12 +24,10 @@ interface WarehouseMovementsTimelineProps {
 export function WarehouseMovementsTimeline({ movements }: WarehouseMovementsTimelineProps) {
     if (movements.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center py-8 text-center">
-                <Package className="h-12 w-12 text-muted-foreground mb-3" />
-                <p className="text-sm text-muted-foreground">
-                    Aucun mouvement de stock enregistré
-                </p>
-            </div>
+            <EmptyState
+                icon={Package}
+                title="Aucun mouvement de stock enregistré"
+            />
         )
     }
 

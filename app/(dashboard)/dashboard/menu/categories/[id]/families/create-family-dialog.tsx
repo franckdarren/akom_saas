@@ -19,6 +19,7 @@ import { Textarea } from '@/components/ui/textarea'
 
 import { createFamily } from '@/lib/actions/family'
 import { toast } from 'sonner'
+import { useActivityLabels } from '@/lib/hooks/use-activity-labels'
 
 interface CreateFamilyDialogProps {
     categoryId: string
@@ -40,8 +41,9 @@ interface CreateFamilyDialogProps {
 export function CreateFamilyDialog({ 
     categoryId, 
     categoryName,
-    children 
+    children
 }: CreateFamilyDialogProps) {
+    const labels = useActivityLabels()
     const router = useRouter()
     const [open, setOpen] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
@@ -91,8 +93,7 @@ export function CreateFamilyDialog({
                 <DialogHeader>
                     <DialogTitle>Créer une famille dans &quot;{categoryName}&quot;</DialogTitle>
                     <DialogDescription>
-                        Ajoutez une sous-catégorie pour mieux organiser vos produits.
-                        Par exemple : Vins rouges, Vins blancs, Bières...
+                        Ajoutez une sous-catégorie pour mieux organiser vos {labels.productNamePlural}.
                     </DialogDescription>
                 </DialogHeader>
 

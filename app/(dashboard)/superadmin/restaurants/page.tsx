@@ -12,6 +12,7 @@ import {PageHeader} from '@/components/ui/page-header'
 import {AppInsetHeader} from '@/components/layout/AppInsetHeader'
 import {Badge} from '@/components/ui/badge'
 import {AppCard, CardContent} from '@/components/ui/app-card'
+import {EmptyState} from '@/components/ui/empty-state'
 import {formatPrice, calculateMonthlyPrice} from '@/lib/config/subscription'
 import Link from 'next/link'
 import {ExternalLink, Users} from 'lucide-react'
@@ -295,8 +296,8 @@ export default async function RestaurantsPage() {
                     {/* Message si aucun restaurant */}
                     {restaurants.length === 0 && (
                         <AppCard>
-                            <CardContent className="layout-empty-state text-muted-foreground">
-                                Aucun restaurant inscrit pour le moment
+                            <CardContent>
+                                <EmptyState title="Aucun restaurant inscrit pour le moment"/>
                             </CardContent>
                         </AppCard>
                     )}

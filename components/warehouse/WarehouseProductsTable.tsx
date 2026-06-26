@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { EmptyState } from '@/components/ui/empty-state'
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
 import { formatPrice } from '@/lib/utils/format'
 import { WarehouseProductWithStock } from '@/types/warehouse'
@@ -25,16 +26,16 @@ interface WarehouseProductsTableProps {
 export function WarehouseProductsTable({ products }: WarehouseProductsTableProps) {
     if (products.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-                <Package className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold">Aucun produit trouvé</h3>
-                <p className="text-sm text-muted-foreground mt-1 max-w-sm">
-                    Commencez par ajouter des produits à votre magasin de stockage pour gérer vos volumes.
-                </p>
-                <Button asChild className="mt-4">
-                    <Link href="/dashboard/warehouse/products/new">Créer un produit</Link>
-                </Button>
-            </div>
+            <EmptyState
+                icon={Package}
+                title="Aucun produit trouvé"
+                description="Commencez par ajouter des produits à votre magasin de stockage pour gérer vos volumes."
+                action={
+                    <Button asChild className="mt-1">
+                        <Link href="/dashboard/warehouse/products/new">Créer un produit</Link>
+                    </Button>
+                }
+            />
         )
     }
 

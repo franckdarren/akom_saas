@@ -18,8 +18,16 @@ import {Input} from '@/components/ui/input'
 import {Label} from '@/components/ui/label'
 
 import {createTable} from '@/lib/actions/table'
+import {useActivityLabels} from '@/lib/hooks/use-activity-labels'
 
 export function CreateTableDialog({children}: { children: React.ReactNode }) {
+    const labels = useActivityLabels()
+    const indefiniteArticle = labels.tableGender === 'f' ? 'une' : 'un'
+    const newAdjective = labels.tableGender === 'f' ? 'une nouvelle' : 'un nouveau'
+    // Article défini avec élision pour les noms commençant par une voyelle (ex. "espace" → "de l'espace")
+    const definiteArticle = /^[aeiouéèêh]/i.test(labels.tableName)
+        ? "de l'"
+        : labels.tableGender === 'f' ? 'de la ' : 'du '
     const router = useRouter()
     const [open, setOpen] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
@@ -55,7 +63,7 @@ export function CreateTableDialog({children}: { children: React.ReactNode }) {
         } else {
             setIsLoading(false)
             setOpen(false)
-            toast.success("La table a été créée avec succès.")
+            toast.success("Création enregistrée avec succès.")
             router.refresh()
             ;(e.target as HTMLFormElement).reset()
         }
@@ -66,16 +74,16 @@ export function CreateTableDialog({children}: { children: React.ReactNode }) {
             <DialogTrigger asChild>{children}</DialogTrigger>
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>Créer une table</DialogTitle>
+                    <DialogTitle>Créer {indefiniteArticle} {labels.tableName}</DialogTitle>
                     <DialogDescription>
-                        Ajoutez une nouvelle table à votre restaurant
+                        Ajoutez {newAdjective} {labels.tableName} à votre {labels.structureName}
                     </DialogDescription>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="space-y-2">
                         <Label htmlFor="number">
-                            Numéro de table <span className="text-destructive">*</span>
+                            Numéro {definiteArticle}{labels.tableName} <span className="text-destructive">*</span>
                         </Label>
                         <Input
                             id="number"

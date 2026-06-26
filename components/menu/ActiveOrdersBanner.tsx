@@ -48,7 +48,8 @@ const STATUS_CLASSES: Record<OrderStatus, string> = {
  * Permet au client de voir rapidement s'il a déjà commandé et d'accéder au tracking.
  */
 export function ActiveOrdersBanner({ tableId, tableNumber, restaurantSlug, restaurantId, activityType }: ActiveOrdersBannerProps) {
-    const orderStatuses = getLabels(activityType).orderStatuses
+    const labels = getLabels(activityType)
+    const orderStatuses = labels.orderStatuses
     const router = useRouter()
     const [orders, setOrders] = useState<ActiveOrder[]>([])
     const [isInitialLoading, setIsInitialLoading] = useState(true)
@@ -120,8 +121,8 @@ export function ActiveOrdersBanner({ tableId, tableNumber, restaurantSlug, resta
                 <Alert variant="info">
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription>
-                        Vous avez {orders.length} commandes actives. Vous pouvez passer une nouvelle
-                        commande qui sera traitée séparément.
+                        Vous avez {orders.length} {labels.orderNamePlural} {labels.orderGender === 'f' ? 'actives' : 'actifs'}. Vous pouvez passer {labels.orderGender === 'f' ? 'une nouvelle' : 'un nouveau'}{' '}
+                        {labels.orderName} qui sera traité{labels.orderGender === 'f' ? 'e' : ''} séparément.
                     </AlertDescription>
                 </Alert>
             )}

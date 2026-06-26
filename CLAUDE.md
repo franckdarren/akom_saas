@@ -182,6 +182,25 @@ Le composant `AppCard` (`components/ui/app-card.tsx`) wrappe le `Card` shadcn/ui
 | Formulaire | `layout-form` |
 | Etat vide (liste vide) | `layout-empty-state` |
 
+## Design system — etats vides
+
+Le composant `EmptyState` (`components/ui/empty-state.tsx`) est l'unique façon d'afficher un message « aucune donnee » (liste vide, tableau vide, graphique sans donnees, ligne de table en `colSpan`). Il s'appuie sur `layout-empty-state` et les classes `type-*`.
+
+Props : `icon?` (Lucide), `title` (requis), `description?`, `action?` (bouton/lien), `className?`.
+
+```tsx
+<CardContent>
+  <EmptyState icon={Package} title="Aucun produit" description="Créez votre premier produit." />
+</CardContent>
+```
+
+**Interdits absolus :**
+- Recréer un état vide à la main (`<div className="layout-empty-state">…`, icône + `<h3>` + `<p>`, `<TableCell className="text-center text-muted-foreground">Aucun…`) — utiliser `<EmptyState>`
+- Mettre `layout-empty-state` directement sur `CardContent` — placer `<EmptyState>` à l'intérieur d'un `<CardContent>` nu
+- `text-sm text-muted-foreground` / `font-semibold text-lg` pour un état vide — le composant gère la typo
+
+## Design system — cards (rappel interdits)
+
 **Interdits absolus :**
 - `<Card>` direct — utiliser `<AppCard>` (importer depuis `@/components/ui/app-card`)
 - `<AppCard className="p-6">` — ne jamais mettre de padding sur AppCard, utiliser CardContent

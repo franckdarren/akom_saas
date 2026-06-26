@@ -1,9 +1,10 @@
 // app/(dashboard)/dashboard/transactions/_components/TransactionsTable.tsx
 'use client'
 
-import {ChevronLeft, ChevronRight} from 'lucide-react'
+import {ChevronLeft, ChevronRight, Receipt} from 'lucide-react'
 import {Button} from '@/components/ui/button'
 import {AppCard, CardContent, CardHeader, CardTitle} from '@/components/ui/app-card'
+import {EmptyState} from '@/components/ui/empty-state'
 import {cn} from '@/lib/utils'
 import {formatFCFA} from '@/types/cash'
 import {METHOD_LABELS, STATUS_BADGE_CLASSES, STATUS_LABELS, EXPENSE_CATEGORY_LABELS} from '@/lib/transactions/constants'
@@ -44,9 +45,12 @@ export function TransactionsTable({
     if (transactions.length === 0) {
         return (
             <AppCard>
-                <CardContent className="layout-empty-state">
-                    <p className="type-body-muted">Aucune transaction sur cette période.</p>
-                    <p className="type-caption">Ajustez les filtres pour voir plus de résultats.</p>
+                <CardContent>
+                    <EmptyState
+                        icon={Receipt}
+                        title="Aucune transaction sur cette période"
+                        description="Ajustez les filtres pour voir plus de résultats."
+                    />
                 </CardContent>
             </AppCard>
         )

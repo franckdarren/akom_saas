@@ -10,6 +10,7 @@ import { AppCard, CardContent, CardHeader, CardTitle } from '@/components/ui/app
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { EmptyState } from '@/components/ui/empty-state'
 import { cn } from '@/lib/utils'
 import { useNotifications } from '@/lib/hooks/use-notifications'
 import { NotificationDetailModal } from '@/components/notifications/NotificationDetailModal'
@@ -107,14 +108,12 @@ export function NotificationsPageClient({ userId }: Props) {
                                 Chargement...
                             </div>
                         ) : filtered.length === 0 ? (
-                            <div className="layout-empty-state">
-                                <Bell className="size-10 text-muted-foreground/50" />
-                                <p className="text-sm text-muted-foreground">
-                                    {tab === 'unread'
-                                        ? 'Aucune notification non lue.'
-                                        : 'Aucune notification pour le moment.'}
-                                </p>
-                            </div>
+                            <EmptyState
+                                icon={Bell}
+                                title={tab === 'unread'
+                                    ? 'Aucune notification non lue'
+                                    : 'Aucune notification pour le moment'}
+                            />
                         ) : (
                             <ul className="divide-y">
                                 {filtered.map((n) => (

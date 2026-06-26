@@ -70,7 +70,8 @@ export function ActiveCatalogOrdersBanner({ restaurantSlug, restaurantId, activi
 
     if (isInitialLoading || orders.length === 0) return null
 
-    const orderStatuses = getLabels(activityType).orderStatuses
+    const labels = getLabels(activityType)
+    const orderStatuses = labels.orderStatuses
     const getStatusLabel = (status: OrderStatus) => {
         return orderStatuses[status as OrderStatusKey].label
     }
@@ -130,7 +131,7 @@ export function ActiveCatalogOrdersBanner({ restaurantSlug, restaurantId, activi
                 <div className="flex items-start gap-2 p-3 bg-info-subtle border border-info rounded-lg text-info">
                     <AlertCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
                     <p className="text-sm">
-                        Vous avez {orders.length} commandes actives. Vous pouvez passer une nouvelle commande qui sera traitée séparément.
+                        Vous avez {orders.length} {labels.orderNamePlural} {labels.orderGender === 'f' ? 'actives' : 'actifs'}. Vous pouvez passer {labels.orderGender === 'f' ? 'une nouvelle' : 'un nouveau'} {labels.orderName} qui sera traité{labels.orderGender === 'f' ? 'e' : ''} séparément.
                     </p>
                 </div>
             )}

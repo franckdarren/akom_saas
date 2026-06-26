@@ -19,9 +19,12 @@ import { Textarea } from '@/components/ui/textarea'
 
 import { createCategory } from '@/lib/actions/category'
 import { toast } from "sonner"
+import { useActivityLabels } from '@/lib/hooks/use-activity-labels'
 
 
 export function CreateCategoryDialog({ children }: { children: React.ReactNode }) {
+    const labels = useActivityLabels()
+    const indefiniteArticle = labels.categoryGender === 'f' ? 'une' : 'un'
     const router = useRouter()
     const [open, setOpen] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
@@ -53,14 +56,14 @@ export function CreateCategoryDialog({ children }: { children: React.ReactNode }
         if (result.error) {
             setError(result.error)
             setIsLoading(false)
-            toast.error("Une erreur est survenue lors de la création de la catégorie.")
+            toast.error("Une erreur est survenue lors de la création.")
         } else {
             setOpen(false)
             router.refresh()
                 // Reset form
                 ; (e.target as HTMLFormElement).reset()
             setIsLoading(false)
-            toast.success("La catégorie a été créée avec succès.")
+            toast.success("Création enregistrée avec succès.")
 
         }
     }
@@ -70,9 +73,9 @@ export function CreateCategoryDialog({ children }: { children: React.ReactNode }
             <DialogTrigger asChild>{children}</DialogTrigger>
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>Créer une catégorie</DialogTitle>
+                    <DialogTitle>Créer {indefiniteArticle} {labels.categoryName}</DialogTitle>
                     <DialogDescription>
-                        Ajoutez une nouvelle catégorie à votre menu (Plats, Boissons, Desserts...)
+                        Ajoutez {indefiniteArticle} {labels.categoryName} à votre {labels.catalogName}.
                     </DialogDescription>
                 </DialogHeader>
 
@@ -84,7 +87,7 @@ export function CreateCategoryDialog({ children }: { children: React.ReactNode }
                         <Input
                             id="name"
                             name="name"
-                            placeholder="Ex: Plats principaux"
+                            placeholder={`Nom ${labels.categoryGender === 'f' ? 'de la' : 'du'} ${labels.categoryName}`}
                             required
                             disabled={isLoading}
                         />

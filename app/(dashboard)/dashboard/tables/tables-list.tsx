@@ -8,6 +8,7 @@ import {AppCard, CardContent, CardFooter, CardHeader, CardTitle} from '@/compone
 import {Button} from '@/components/ui/button'
 import {LoadingButton} from '@/components/ui/loading-button'
 import {Badge} from '@/components/ui/badge'
+import {EmptyState} from '@/components/ui/empty-state'
 import {Power, Trash2, QrCode} from 'lucide-react'
 import {toggleTableStatus, deleteTable} from '@/lib/actions/table'
 import {QRCodeDialog} from './qrcode-dialog'
@@ -75,12 +76,12 @@ export function TablesList({tables}: { tables: Table[] }) {
     if (tables.length === 0) {
         return (
             <AppCard>
-                <CardContent className="layout-empty-state">
-                    <p className="text-muted-foreground text-center">
-                        Aucune table pour le moment.
-                        <br/>
-                        Créez votre première table pour générer son QR code.
-                    </p>
+                <CardContent>
+                    <EmptyState
+                        icon={QrCode}
+                        title="Aucune table pour le moment"
+                        description="Créez votre première table pour générer son QR code."
+                    />
                 </CardContent>
             </AppCard>
         )

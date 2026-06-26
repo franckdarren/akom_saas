@@ -92,12 +92,12 @@ export default async function NewProductPage() {
                 <Button asChild variant="ghost" size="sm" className="-ml-2.5 self-start">
                     <Link href="/dashboard/menu/products">
                         <ArrowLeft className="h-4 w-4 mr-1"/>
-                        Retour aux {labels.productNameCapital}s
+                        Retour aux {labels.productNamePlural}
                     </Link>
                 </Button>
                 <PageHeader
-                    title={`Nouveau ${labels.productName}`}
-                    description={`Ajoutez un ${labels.productName} à votre ${labels.catalogName}`}
+                    title={labels.newProductLabel}
+                    description={`Complétez les informations pour l'ajouter à votre ${labels.catalogName}`}
                 />
 
                 <ProductForm

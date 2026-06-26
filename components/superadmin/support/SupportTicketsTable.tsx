@@ -9,6 +9,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table'
+import { EmptyState } from '@/components/ui/empty-state'
 import {Button} from '@/components/ui/button'
 import {MessageSquare} from 'lucide-react'
 import Link from 'next/link'
@@ -67,11 +68,8 @@ export default function SupportTicketsTable({
             <TableBody>
                 {tickets.length === 0 ? (
                     <TableRow>
-                        <TableCell
-                            colSpan={7}
-                            className="text-center text-muted-foreground"
-                        >
-                            Aucun ticket
+                        <TableCell colSpan={7}>
+                            <EmptyState title="Aucun ticket"/>
                         </TableCell>
                     </TableRow>
                 ) : (

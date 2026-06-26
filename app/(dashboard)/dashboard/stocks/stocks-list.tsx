@@ -5,7 +5,8 @@ import {useState} from 'react'
 import {AppCard, CardContent, CardHeader, CardTitle} from '@/components/ui/app-card'
 import {Badge} from '@/components/ui/badge'
 import {Button} from '@/components/ui/button'
-import {History} from 'lucide-react'
+import {EmptyState} from '@/components/ui/empty-state'
+import {History, Package} from 'lucide-react'
 import {AdjustStockDialog} from './adjust-stock-dialog'
 import {StockHistoryDialog} from './stock-history-dialog'
 import {AlertThresholdEditor} from './alert-threshold-editor' // ← AJOUTÉ
@@ -30,12 +31,12 @@ export function StocksList({stocks}: { stocks: Stock[] }) {
     if (stocks.length === 0) {
         return (
             <AppCard>
-                <CardContent className="layout-empty-state">
-                    <p className="text-muted-foreground text-center">
-                        Aucun produit pour le moment.
-                        <br/>
-                        Créez des produits pour gérer leur stock.
-                    </p>
+                <CardContent>
+                    <EmptyState
+                        icon={Package}
+                        title="Aucun produit pour le moment"
+                        description="Créez des produits pour gérer leur stock."
+                    />
                 </CardContent>
             </AppCard>
         )

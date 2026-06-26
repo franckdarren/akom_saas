@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { EmptyState } from '@/components/ui/empty-state'
 import { ToggleRestaurantStatus } from '@/components/superadmin/ToggleRestaurantStatus'
 import { ArrowLeft, Building2, ShoppingCart, Smartphone, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
@@ -131,11 +132,8 @@ export default function RestaurantDetailsClient({ restaurant }: Props) {
                         <TableBody>
                             {restaurant.users.length === 0 ? (
                                 <TableRow>
-                                    <TableCell
-                                        colSpan={3}
-                                        className="text-center text-muted-foreground"
-                                    >
-                                        Aucun utilisateur
+                                    <TableCell colSpan={3}>
+                                        <EmptyState title="Aucun utilisateur"/>
                                     </TableCell>
                                 </TableRow>
                             ) : (

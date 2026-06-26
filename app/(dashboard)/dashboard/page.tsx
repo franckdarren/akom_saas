@@ -104,7 +104,7 @@ export default async function DashboardPage({ searchParams }: PageProps) {
                         icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
                     />
                     <KpiCard
-                        title={`${labels.orderNameCapital}s totales`}
+                        title={`Total ${labels.orderNamePluralCapital}`}
                         value={stats.orders.total}
                         format="number"
                         description={`${stats.revenue.ordersCount} livrées`}
@@ -117,7 +117,7 @@ export default async function DashboardPage({ searchParams }: PageProps) {
                         icon={<TrendingUp className="h-4 w-4 text-muted-foreground" />}
                     />
                     <KpiCard
-                        title={`${labels.orderNameCapital}s actives`}
+                        title={`${labels.orderNamePluralCapital} en cours`}
                         value={stats.orders.pending + stats.orders.preparing + stats.orders.ready}
                         format="number"
                         description={`${stats.orders.pending} en attente`}

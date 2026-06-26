@@ -117,8 +117,8 @@ export function <Entite>List({ items }: { items: Item[] }) {
   if (items.length === 0) {
     return (
       <AppCard>
-        <CardContent className="layout-empty-state">
-          <p className="type-body-muted text-center">Aucun élément pour le moment</p>
+        <CardContent>
+          <EmptyState title="Aucun élément pour le moment" />
         </CardContent>
       </AppCard>
     )
@@ -173,7 +173,7 @@ export function <Entite>List({ items }: { items: Item[] }) {
 | Formulaire | `layout-form` |
 | Groupe champ | `layout-field` |
 | Inline icon+texte | `layout-inline` |
-| État vide | `layout-empty-state` |
+| État vide | `<EmptyState>` (`@/components/ui/empty-state`) |
 
 **AppCard variants :** `default` | `flat` | `stat` | `pricing`
 
@@ -182,7 +182,7 @@ export function <Entite>List({ items }: { items: Item[] }) {
 - [ ] `'use client'` si hooks React, callbacks, ou state
 - [ ] Importer `AppCard` depuis `@/components/ui/app-card` (jamais `Card` direct)
 - [ ] Utiliser classes `type-*` et `layout-*` — jamais `text-gray-*` ou `text-[Xpx]`
-- [ ] État vide avec `layout-empty-state` sur `CardContent`
+- [ ] État vide avec `<EmptyState>` dans un `CardContent` nu
 - [ ] Erreurs avec `text-destructive` (jamais `text-red-600`)
 - [ ] `LoadingButton` pour les boutons de soumission
 - [ ] Reset du state dans `handleOpenChange(false)`

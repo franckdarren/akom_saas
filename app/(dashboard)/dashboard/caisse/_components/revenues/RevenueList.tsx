@@ -1,5 +1,6 @@
 // app/dashboard/caisse/_components/revenues/RevenueList.tsx
 import {Badge} from '@/components/ui/badge'
+import {EmptyState} from '@/components/ui/empty-state'
 import {cn} from '@/lib/utils'
 import type {SessionWithRelations} from '../../_types'
 
@@ -14,9 +15,7 @@ const METHOD_LABELS: Record<string, string> = {
 export function RevenueList({revenues}: { revenues: Revenue[] }) {
     if (revenues.length === 0) {
         return (
-            <p className="text-center text-sm text-muted-foreground py-8">
-                Aucune recette enregistrée pour l'instant.
-            </p>
+            <EmptyState title="Aucune recette enregistrée pour l'instant"/>
         )
     }
 

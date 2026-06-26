@@ -6,6 +6,7 @@ import {Cart} from '../_components/Cart'
 import {ShoppingCart, ChevronUp, UtensilsCrossed} from 'lucide-react'
 import {Sheet, SheetContent, SheetTrigger} from '@/components/ui/sheet'
 import {Separator} from '@/components/ui/separator'
+import {EmptyState} from '@/components/ui/empty-state'
 import {AppInsetHeader} from '@/components/layout/AppInsetHeader'
 import {
     Breadcrumb,
@@ -152,9 +153,17 @@ export function POSShell({categories, restaurantId}: POSShellProps) {
                     {/* Grille produits — prend tout l'espace restant */}
                     <div className="flex-1 overflow-y-auto bg-muted/20">
                         {categories.length === 0 ? (
-                            <EmptyState message="Aucune catégorie de produit configurée."/>
+                            <EmptyState
+                                icon={UtensilsCrossed}
+                                title="Aucune catégorie de produit configurée."
+                                className="h-full"
+                            />
                         ) : activeProducts.length === 0 ? (
-                            <EmptyState message="Aucun produit disponible dans cette catégorie."/>
+                            <EmptyState
+                                icon={UtensilsCrossed}
+                                title="Aucun produit disponible dans cette catégorie."
+                                className="h-full"
+                            />
                         ) : (
                             <ProductGrid products={activeProducts} onAdd={addToCart}/>
                         )}
@@ -270,11 +279,3 @@ export function POSShell({categories, restaurantId}: POSShellProps) {
 }
 
 // ── État vide ───────────────────────────────────────────────
-function EmptyState({message}: { message: string }) {
-    return (
-        <div className="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground py-24">
-            <UtensilsCrossed className="h-10 w-10 opacity-25"/>
-            <p className="text-sm">{message}</p>
-        </div>
-    )
-}

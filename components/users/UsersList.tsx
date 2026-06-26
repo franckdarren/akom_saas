@@ -38,6 +38,7 @@ import {
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { Badge } from '@/components/ui/badge'
+import { EmptyState } from '@/components/ui/empty-state'
 import { UserRoleSelector } from './UserRoleSelector'
 import { PermissionGuard } from '@/components/permissions/PermissionGuard'
 import { removeTeamMember } from '@/lib/actions/user'
@@ -134,12 +135,12 @@ export function UsersList() {
     if (users.length === 0) {
         return (
             <AppCard>
-                <CardContent className="layout-empty-state">
-                    <Shield className="h-12 w-12 text-muted-foreground mb-4" />
-                    <h3 className="font-semibold text-lg mb-2">Aucun membre</h3>
-                    <p className="text-sm text-muted-foreground text-center max-w-md">
-                        Commencez par inviter des membres à rejoindre votre équipe
-                    </p>
+                <CardContent>
+                    <EmptyState
+                        icon={Shield}
+                        title="Aucun membre"
+                        description="Commencez par inviter des membres à rejoindre votre équipe"
+                    />
                 </CardContent>
             </AppCard>
         )

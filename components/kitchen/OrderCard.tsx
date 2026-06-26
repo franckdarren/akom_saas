@@ -255,7 +255,7 @@ export function OrderCard({order}: OrderCardProps) {
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>
-                            Annuler la {labels.orderName} {deleteTarget?.orderNumber} ?
+                            Annuler {labels.orderGender === 'f' ? 'la' : 'le'} {labels.orderName} {deleteTarget?.orderNumber} ?
                         </AlertDialogTitle>
                         <AlertDialogDescription>
                             Cette action est irréversible.

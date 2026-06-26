@@ -17,6 +17,7 @@ import { CreateFamilyDialog } from './create-family-dialog'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import {PageHeader} from '@/components/ui/page-header'
+import {getLabels} from '@/lib/config/activity-labels'
 
 /**
  * Page de gestion des familles pour une catégorie spécifique
@@ -53,11 +54,18 @@ export default async function CategoryFamiliesPage({
     // Récupération du restaurant de l'utilisateur
     const restaurantUser = await prisma.restaurantUser.findFirst({
         where: { userId: user.id },
+        include: {
+            restaurant: {
+                select: { activityType: true },
+            },
+        },
     })
 
     if (!restaurantUser) {
         redirect('/onboarding')
     }
+
+    const labels = getLabels(restaurantUser.restaurant.activityType)
 
     // ✅ ÉTAPE 1 : Vérifier que la catégorie existe et appartient au restaurant
     // C'est une sécurité importante : on ne veut pas qu'un utilisateur puisse
@@ -112,7 +120,7 @@ export default async function CategoryFamiliesPage({
                         <BreadcrumbSeparator />
                         <BreadcrumbItem>
                             <BreadcrumbLink href="/dashboard/menu/categories">
-                                Catégories
+                                {labels.categoryNamePluralCapital}
                             </BreadcrumbLink>
                         </BreadcrumbItem>
                         <BreadcrumbSeparator />
@@ -128,12 +136,12 @@ export default async function CategoryFamiliesPage({
                 <Button asChild variant="ghost" size="sm" className="-ml-2.5 self-start">
                     <Link href="/dashboard/menu/categories">
                         <ArrowLeft className="h-4 w-4 mr-1"/>
-                        Retour aux catégories
+                        Retour aux {labels.categoryNamePlural}
                     </Link>
                 </Button>
                 <PageHeader
                     title={`Familles de ${category.name}`}
-                    description={category.description || 'Organisez vos produits en familles pour faciliter la navigation dans votre menu'}
+                    description={category.description || `Organisez vos ${labels.productNamePlural} en familles pour faciliter la navigation dans votre ${labels.catalogName}`}
                     action={
                         <CreateFamilyDialog
                             categoryId={categoryId}
@@ -167,9 +175,8 @@ export default async function CategoryFamiliesPage({
                             Aucune famille pour le moment
                         </h3>
                         <p className="mt-2 text-sm text-muted-foreground max-w-md">
-                            Les familles permettent de mieux organiser vos produits au sein d&apos;une catégorie.
-                            Par exemple, dans &quot;{category.name}&quot;, vous pourriez créer des familles comme 
-                            &quot;Grillades&quot;, &quot;Pâtes&quot;, ou &quot;Ragoûts&quot;.
+                            Les familles permettent de mieux organiser vos {labels.productNamePlural} au sein d&apos;{labels.categoryGender === 'f' ? 'une' : 'un'} {labels.categoryName}.
+                            Par exemple, dans &quot;{category.name}&quot;, vous pourriez créer plusieurs familles pour regrouper vos {labels.productNamePlural}.
                         </p>
                         <div className="mt-6">
                             <CreateFamilyDialog 
@@ -191,7 +198,7 @@ export default async function CategoryFamiliesPage({
                         <h3 className="text-sm font-medium mb-2">💡 À savoir</h3>
                         <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
                             <li>
-                                Les familles sont optionnelles : vos produits peuvent exister sans être liés à une famille
+                                Les familles sont optionnelles : vos {labels.productNamePlural} peuvent exister sans être liés à une famille
                             </li>
                             <li>
                                 Vous pouvez réorganiser l&apos;ordre des familles avec les boutons ↑ et ↓

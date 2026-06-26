@@ -10,6 +10,7 @@ import {
 import {toast} from 'sonner'
 import {AppCard, CardContent, CardHeader, CardTitle} from '@/components/ui/app-card'
 import {Button} from '@/components/ui/button'
+import {EmptyState} from '@/components/ui/empty-state'
 import {Badge} from '@/components/ui/badge'
 import {Input} from '@/components/ui/input'
 import {
@@ -519,22 +520,24 @@ export function HistoryCalendar({
                                 <TableBody>
                                     {filteredSessions.length === 0 ? (
                                         <TableRow>
-                                            <TableCell colSpan={6} className="text-center text-muted-foreground py-16">
-                                                <div className="flex flex-col items-center gap-2">
-                                                    <Filter className="h-8 w-8 text-muted-foreground/40"/>
-                                                    <p>Aucune session ne correspond aux filtres.</p>
-                                                    <Button
-                                                        variant="link"
-                                                        size="sm"
-                                                        onClick={() => {
-                                                            setSearch('');
-                                                            setFilterStatus('all');
-                                                            setFilterGap('all')
-                                                        }}
-                                                    >
-                                                        Réinitialiser les filtres
-                                                    </Button>
-                                                </div>
+                                            <TableCell colSpan={6}>
+                                                <EmptyState
+                                                    icon={Filter}
+                                                    title="Aucune session ne correspond aux filtres"
+                                                    action={
+                                                        <Button
+                                                            variant="link"
+                                                            size="sm"
+                                                            onClick={() => {
+                                                                setSearch('');
+                                                                setFilterStatus('all');
+                                                                setFilterGap('all')
+                                                            }}
+                                                        >
+                                                            Réinitialiser les filtres
+                                                        </Button>
+                                                    }
+                                                />
                                             </TableCell>
                                         </TableRow>
                                     ) : (

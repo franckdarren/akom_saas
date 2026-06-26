@@ -6,6 +6,7 @@ import { useRestaurant } from '@/lib/hooks/use-restaurant'
 import { getRestaurantRoles } from '@/lib/actions/roles'
 import { RoleCard } from './RoleCard'
 import { AppCard, CardContent } from '@/components/ui/app-card'
+import { EmptyState } from '@/components/ui/empty-state'
 import { ShieldAlert } from 'lucide-react'
 
 export interface RoleItem {
@@ -85,12 +86,12 @@ export function RolesList() {
     if (roles.length === 0) {
         return (
             <AppCard>
-                <CardContent className="layout-empty-state">
-                    <ShieldAlert className="h-12 w-12 text-muted-foreground mb-4" />
-                    <h3 className="font-semibold text-lg mb-2">Aucun rôle trouvé</h3>
-                    <p className="text-sm text-muted-foreground text-center max-w-md">
-                        Commencez par créer un rôle personnalisé pour votre équipe
-                    </p>
+                <CardContent>
+                    <EmptyState
+                        icon={ShieldAlert}
+                        title="Aucun rôle trouvé"
+                        description="Commencez par créer un rôle personnalisé pour votre équipe"
+                    />
                 </CardContent>
             </AppCard>
         )

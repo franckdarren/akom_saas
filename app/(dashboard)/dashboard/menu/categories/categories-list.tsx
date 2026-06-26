@@ -10,6 +10,7 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/app-card'
+import {EmptyState} from '@/components/ui/empty-state'
 import {Button} from '@/components/ui/button'
 import {Badge} from '@/components/ui/badge'
 import {
@@ -43,6 +44,7 @@ import {
 } from '@/lib/actions/category'
 import {EditCategoryDialog} from './edit-category-dialog'
 import {toast} from 'sonner'
+import {useActivityLabels} from '@/lib/hooks/use-activity-labels'
 
 // ============================================================
 // TYPES
@@ -69,6 +71,7 @@ interface CategoriesListProps {
 // ============================================================
 
 export function CategoriesList({categories}: CategoriesListProps) {
+    const labels = useActivityLabels()
     const [isDeleting, setIsDeleting] = useState<string | null>(null)
     const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null)
 
@@ -119,13 +122,12 @@ export function CategoriesList({categories}: CategoriesListProps) {
     if (categories.length === 0) {
         return (
             <AppCard>
-                <CardContent className="layout-empty-state">
-                    <Package className="h-12 w-12 text-muted-foreground mb-4"/>
-                    <p className="text-muted-foreground text-center">
-                        Aucune catégorie pour le moment.
-                        <br/>
-                        Créez votre première catégorie pour organiser votre menu.
-                    </p>
+                <CardContent>
+                    <EmptyState
+                        icon={Package}
+                        title={`Vous n'avez pas encore de ${labels.categoryName}`}
+                        description={`Créez vos ${labels.categoryNamePlural} pour organiser votre ${labels.catalogName}.`}
+                    />
                 </CardContent>
             </AppCard>
         )

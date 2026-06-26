@@ -281,7 +281,7 @@ export function POSOrdersShell({orders: initialOrders, stats, selectedDate}: POS
 
             {/* ── Cartes statistiques ── */}
             <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2 sm:gap-3">
-                <StatCard label={labels.orderNameCapital + 's'} value={stats.total} icon={ShoppingBag}
+                <StatCard label={labels.orderNamePluralCapital} value={stats.total} icon={ShoppingBag}
                           className="col-span-2 sm:col-span-1"/>
                 {flow.steps.includes('pending') && (
                     <StatCard label={s.pending.filterLabel} value={stats.pending}
@@ -360,8 +360,8 @@ export function POSOrdersShell({orders: initialOrders, stats, selectedDate}: POS
                     <Receipt className="h-10 w-10 opacity-25"/>
                     <p className="text-sm">
                         {filter === 'all'
-                            ? `Aucune ${labels.orderName} le ${formatDateLabel(selectedDate).toLowerCase()}`
-                            : `Aucune ${labels.orderName} pour ce filtre`
+                            ? `Aucun${labels.orderGender === 'f' ? 'e' : ''} ${labels.orderName} le ${formatDateLabel(selectedDate).toLowerCase()}`
+                            : `Aucun${labels.orderGender === 'f' ? 'e' : ''} ${labels.orderName} pour ce filtre`
                         }
                     </p>
                 </div>

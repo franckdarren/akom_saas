@@ -4,6 +4,7 @@ import Image from 'next/image'
 import {Package, ArrowRight, ArrowLeftRight} from 'lucide-react'
 
 import {AppCard, CardContent, CardHeader, CardTitle} from '@/components/ui/app-card'
+import {EmptyState} from '@/components/ui/empty-state'
 import {
     Table,
     TableBody,
@@ -106,18 +107,12 @@ export default async function WarehouseTransfersPage() {
 
                 {totalTransfers === 0 ? (
                     <div className="flex flex-1 items-center justify-center">
-                        <div className="flex flex-col items-center gap-4 text-center max-w-sm">
-                            <div className="rounded-full bg-muted p-6">
-                                <ArrowLeftRight className="h-10 w-10 text-muted-foreground"/>
-                            </div>
-                            <div>
-                                <h2 className="text-lg font-semibold">Aucun transfert effectué</h2>
-                                <p className="text-muted-foreground text-sm mt-1">
-                                    Les transferts du magasin vers le stock opérationnel apparaîtront ici.
-                                </p>
-                            </div>
-                            <BackToWarehouseButton/>
-                        </div>
+                        <EmptyState
+                            icon={ArrowLeftRight}
+                            title="Aucun transfert effectué"
+                            description="Les transferts du magasin vers le stock opérationnel apparaîtront ici."
+                            action={<BackToWarehouseButton/>}
+                        />
                     </div>
                 ) : (
                     <>

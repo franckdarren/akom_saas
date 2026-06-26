@@ -13,6 +13,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Loader2, Printer, Download } from 'lucide-react'
 import { getTableQRCodeUrl } from '@/lib/actions/table'
+import { useActivityLabels } from '@/lib/hooks/use-activity-labels'
 
 type Table = {
     id: string
@@ -28,6 +29,7 @@ export function QRCodeDialog({
     open: boolean
     onOpenChange: (open: boolean) => void
 }) {
+    const labels = useActivityLabels()
     const [url, setUrl] = useState<string | null>(null)
     const [isLoading, setIsLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
@@ -89,9 +91,9 @@ export function QRCodeDialog({
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-md">
                 <DialogHeader>
-                    <DialogTitle>QR Code - Table {table.number}</DialogTitle>
+                    <DialogTitle>QR Code - {labels.tableNameCapital} {table.number}</DialogTitle>
                     <DialogDescription>
-                        Scannez ce code pour accéder au menu
+                        Scannez ce code pour accéder au {labels.catalogName}
                     </DialogDescription>
                 </DialogHeader>
 

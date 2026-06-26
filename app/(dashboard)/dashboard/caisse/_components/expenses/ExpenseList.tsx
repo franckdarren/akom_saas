@@ -1,5 +1,6 @@
 // app/dashboard/caisse/_components/expenses/ExpenseList.tsx
 import {Badge} from '@/components/ui/badge'
+import {EmptyState} from '@/components/ui/empty-state'
 import {cn} from '@/lib/utils'
 import type {SessionWithRelations} from '../../_types'
 
@@ -25,9 +26,7 @@ const METHOD_LABELS: Record<string, string> = {
 export function ExpenseList({expenses}: { expenses: Expense[] }) {
     if (expenses.length === 0) {
         return (
-            <p className="text-center text-sm text-muted-foreground py-8">
-                Aucune dépense enregistrée pour l'instant.
-            </p>
+            <EmptyState title="Aucune dépense enregistrée pour l'instant"/>
         )
     }
 

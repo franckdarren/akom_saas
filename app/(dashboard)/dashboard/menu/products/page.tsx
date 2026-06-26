@@ -116,7 +116,7 @@ export default async function ProductsPage({
                             <Link href="/dashboard/menu/products/new">
                                 <Button>
                                     <Plus className="mr-2 h-4 w-4"/>
-                                    Nouveau {labels.productName}
+                                    {labels.newProductLabel}
                                 </Button>
                             </Link>
                         </QuotaGuard>

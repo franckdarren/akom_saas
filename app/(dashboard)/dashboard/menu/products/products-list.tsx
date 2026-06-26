@@ -6,6 +6,7 @@ import {AppCard, CardContent} from '@/components/ui/app-card'
 import {Button} from '@/components/ui/button'
 import {LoadingButton} from '@/components/ui/loading-button'
 import {Badge} from '@/components/ui/badge'
+import {EmptyState} from '@/components/ui/empty-state'
 import {
     AlertDialog, AlertDialogAction, AlertDialogCancel,
     AlertDialogContent, AlertDialogDescription,
@@ -19,6 +20,7 @@ import {toast} from 'sonner'
 import {getPriceDisplay, getAvailabilityStatus, PRODUCT_TYPE_LABELS} from '@/types/product'
 import {cn} from '@/lib/utils'
 import type {ProductType} from '@/types/product'
+import {useActivityLabels} from '@/lib/hooks/use-activity-labels'
 
 type Product = {
     id: string
@@ -36,6 +38,7 @@ type Product = {
 }
 
 export function ProductsList({products}: { products: Product[] }) {
+    const labels = useActivityLabels()
     const router = useRouter()
     const [loading, setLoading] = useState<string | null>(null)
     const [isLoading, setIsLoading] = useState(false)
@@ -45,7 +48,7 @@ export function ProductsList({products}: { products: Product[] }) {
         setLoading(id)
         const result = await toggleProductAvailability(id)
         if (result?.error) toast.error(result.error)
-        else toast.success('Produit mis à jour.')
+        else toast.success('Disponibilité mise à jour.')
         setLoading(null)
         router.refresh()
     }
@@ -61,7 +64,7 @@ export function ProductsList({products}: { products: Product[] }) {
             toast.error(result.error);
             return
         }
-        toast.success('Produit supprimé.')
+        toast.success('Suppression effectuée.')
         router.refresh()
         setDeleteTarget(null)
     }
@@ -70,11 +73,12 @@ export function ProductsList({products}: { products: Product[] }) {
     if (products.length === 0) {
         return (
             <AppCard>
-                <CardContent className="layout-empty-state">
-                    <p className="text-muted-foreground text-center">
-                        Aucun produit pour le moment.<br/>
-                        Créez votre premier produit pour compléter votre menu.
-                    </p>
+                <CardContent>
+                    <EmptyState
+                        icon={Package}
+                        title={`Votre ${labels.catalogName} est vide pour le moment`}
+                        description={`Créez vos ${labels.productNamePlural} pour le compléter.`}
+                    />
                 </CardContent>
             </AppCard>
         )

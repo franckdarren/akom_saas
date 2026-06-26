@@ -324,7 +324,7 @@ export default async function SubscriptionPage() {
                                         <div className="flex items-center gap-2 text-sm">
                                             <CheckCircle2 className="h-4 w-4 text-success"/>
                                             {/* ← Label dynamique */}
-                                            <span>Interface {labels.orderName}s</span>
+                                            <span>Interface {labels.orderNamePlural}</span>
                                         </div>
                                     )}
                                     {planConfig.features.basic_stats && (

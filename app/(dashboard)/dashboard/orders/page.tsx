@@ -16,6 +16,8 @@ import {
     BreadcrumbPage,
 } from '@/components/ui/breadcrumb'
 import {AppCard, CardContent} from '@/components/ui/app-card'
+import {EmptyState} from '@/components/ui/empty-state'
+import {ClipboardList} from 'lucide-react'
 import {AppInsetHeader} from '@/components/layout/AppInsetHeader'
 import {useRestaurant} from '@/lib/hooks/use-restaurant'
 import {getLabels} from '@/lib/config/activity-labels' // ← NOUVEAU
@@ -65,7 +67,7 @@ export default function OrdersPage() {
                         <BreadcrumbSeparator/>
                         <BreadcrumbItem>
                             {/* ← Label dynamique */}
-                            <BreadcrumbPage>{labels.orderNameCapital}s</BreadcrumbPage>
+                            <BreadcrumbPage>{labels.orderNamePluralCapital}</BreadcrumbPage>
                         </BreadcrumbItem>
                     </BreadcrumbList>
                 </Breadcrumb>
@@ -73,7 +75,7 @@ export default function OrdersPage() {
 
             <div className="layout-page">
                 <PageHeader
-                    title={`${labels.orderNameCapital}s`}
+                    title={labels.orderNamePluralCapital}
                     description={`Gérez les ${labels.orderNamePlural} en temps réel`}
                     action={pendingCount > 0 ? (
                         <AppCard className="bg-destructive-subtle border-destructive">
@@ -81,10 +83,11 @@ export default function OrdersPage() {
                                 <div className="flex items-center gap-2">
                                     <div className="h-3 w-3 bg-destructive rounded-full animate-pulse"/>
                                     <span className="font-semibold text-destructive">
-                                        {pendingCount} nouvelle
-                                        {pendingCount > 1 ? 's' : ''}{' '}
-                                        {labels.orderName}
-                                        {pendingCount > 1 ? 's' : ''}
+                                        {pendingCount}{' '}
+                                        {pendingCount > 1
+                                            ? (labels.orderGender === 'f' ? 'nouvelles' : 'nouveaux')
+                                            : (labels.orderGender === 'f' ? 'nouvelle' : 'nouveau')}{' '}
+                                        {pendingCount > 1 ? labels.orderNamePlural : labels.orderName}
                                     </span>
                                 </div>
                             </CardContent>
@@ -106,13 +109,14 @@ export default function OrdersPage() {
                     </div>
                 ) : orders.length === 0 ? (
                     <AppCard>
-                        <CardContent className="layout-empty-state">
-                            <p className="text-muted-foreground text-center">
-                                {statusFilter === 'all'
-                                    ? `Aucune ${labels.orderName} pour le moment`
-                                    : `Aucune ${labels.orderName} — ${labels.orderStatuses[statusFilter as keyof typeof labels.orderStatuses].label.toLowerCase()}`
+                        <CardContent>
+                            <EmptyState
+                                icon={ClipboardList}
+                                title={statusFilter === 'all'
+                                    ? `Aucun${labels.orderGender === 'f' ? 'e' : ''} ${labels.orderName} pour le moment`
+                                    : `Aucun${labels.orderGender === 'f' ? 'e' : ''} ${labels.orderName} — ${labels.orderStatuses[statusFilter as keyof typeof labels.orderStatuses].label.toLowerCase()}`
                                 }
-                            </p>
+                            />
                         </CardContent>
                     </AppCard>
                 ) : (

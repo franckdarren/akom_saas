@@ -322,14 +322,14 @@ export function OrderTracker({ order: initialOrder, restaurant, table }: OrderTr
                                         )
 
                                         if (!response.ok) {
-                                            alert(`Impossible d'annuler la ${activityLabels.orderName}`)
+                                            alert(`Impossible d'annuler ${activityLabels.orderGender === 'f' ? 'la' : 'le'} ${activityLabels.orderName}`)
                                         }
                                     } catch {
                                         alert(`Erreur lors de l'annulation`)
                                     }
                                 }}
                             >
-                                Annuler la {activityLabels.orderName}
+                                Annuler {activityLabels.orderGender === 'f' ? 'la' : 'le'} {activityLabels.orderName}
                             </Button>
                         </div>
                     )}
@@ -341,7 +341,7 @@ export function OrderTracker({ order: initialOrder, restaurant, table }: OrderTr
                 <div className="pt-6">
                     <Link href={menuUrl} className="block">
                         <Button variant="outline" className="w-full">
-                            Passer une nouvelle {activityLabels.orderName}
+                            Passer {activityLabels.orderGender === 'f' ? 'une nouvelle' : 'un nouveau'} {activityLabels.orderName}
                         </Button>
                     </Link>
                 </div>

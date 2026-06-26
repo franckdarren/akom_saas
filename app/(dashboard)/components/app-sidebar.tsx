@@ -174,7 +174,7 @@ export function AppSidebar({
             {
                 title: labels.catalogNameCapital,
                 items: [
-                    {title: labels.categoryNameCapital + "s", href: "/dashboard/menu/categories", icon: Menu, module: 'catalog' as ModuleKey},
+                    {title: labels.categoryNamePluralCapital, href: "/dashboard/menu/categories", icon: Menu, module: 'catalog' as ModuleKey},
                     {title: labels.productNameCapital + "s", href: "/dashboard/menu/products", icon: Utensils, module: 'catalog' as ModuleKey},
                 ],
             },
@@ -182,7 +182,7 @@ export function AppSidebar({
                 title: "Opérations",
                 items: [
                     {title: labels.tableNameCapital + "s", href: "/dashboard/tables", icon: Users, module: 'tables' as ModuleKey},
-                    {title: labels.orderNameCapital + "s", href: "/dashboard/orders", icon: ShoppingCart, module: 'orders' as ModuleKey},
+                    {title: labels.orderNamePluralCapital, href: "/dashboard/orders", icon: ShoppingCart, module: 'orders' as ModuleKey},
                     {
                         title: "Stocks",
                         href: "/dashboard/stocks",
@@ -204,8 +204,8 @@ export function AppSidebar({
             {
                 title: "Comptoir",
                 items: [
-                    {title: `Nouvelle ${labels.orderName}`, href: "/dashboard/pos", icon: ShoppingCart, module: 'pos' as ModuleKey},
-                    {title: `${labels.orderNameCapital}s du jour`, href: "/dashboard/pos/orders", icon: ClipboardList, module: 'pos' as ModuleKey},
+                    {title: `${labels.orderGender === 'f' ? 'Nouvelle' : 'Nouveau'} ${labels.orderName}`, href: "/dashboard/pos", icon: ShoppingCart, module: 'pos' as ModuleKey},
+                    {title: `${labels.orderNamePluralCapital} du jour`, href: "/dashboard/pos/orders", icon: ClipboardList, module: 'pos' as ModuleKey},
                 ],
             },
             {
@@ -283,7 +283,7 @@ export function AppSidebar({
             {
                 title: "Cuisine",
                 items: [
-                    {title: labels.orderNameCapital + "s", href: "/dashboard/orders", icon: ChefHat, badge: "New"},
+                    {title: labels.orderNamePluralCapital, href: "/dashboard/orders", icon: ChefHat, badge: "New"},
                     {title: "Support", href: "/dashboard/support", icon: MessageSquare},
                 ],
             },
@@ -293,8 +293,8 @@ export function AppSidebar({
             {
                 title: "Comptoir",
                 items: [
-                    {title: `Nouvelle ${labels.orderName}`, href: "/dashboard/pos", icon: ShoppingCart},
-                    {title: `${labels.orderNameCapital}s du jour`, href: "/dashboard/pos/orders", icon: ClipboardList},
+                    {title: `${labels.orderGender === 'f' ? 'Nouvelle' : 'Nouveau'} ${labels.orderName}`, href: "/dashboard/pos", icon: ShoppingCart},
+                    {title: `${labels.orderNamePluralCapital} du jour`, href: "/dashboard/pos/orders", icon: ClipboardList},
                     {title: "Support", href: "/dashboard/support", icon: MessageSquare},
                 ],
             },

@@ -16,6 +16,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table'
+import { EmptyState } from '@/components/ui/empty-state'
 import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
 import {
@@ -77,11 +78,8 @@ export default async function UsersManagementPage() {
                             <TableBody>
                                 {users.length === 0 ? (
                                     <TableRow>
-                                        <TableCell
-                                            colSpan={4}
-                                            className="text-center text-muted-foreground"
-                                        >
-                                            Aucun utilisateur
+                                        <TableCell colSpan={4}>
+                                            <EmptyState title="Aucun utilisateur"/>
                                         </TableCell>
                                     </TableRow>
                                 ) : (

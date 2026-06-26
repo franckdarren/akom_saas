@@ -117,11 +117,11 @@ export default async function EditProductPage({
                 <Button asChild variant="ghost" size="sm" className="-ml-2.5 self-start">
                     <Link href="/dashboard/menu/products">
                         <ArrowLeft className="h-4 w-4 mr-1"/>
-                        Retour aux {labels.productNameCapital}s
+                        Retour aux {labels.productNamePlural}
                     </Link>
                 </Button>
                 <PageHeader
-                    title={`Modifier le ${labels.productName}`}
+                    title={labels.editProductLabel}
                     description={product.name}
                 />
 

@@ -15,6 +15,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table'
+import { EmptyState } from '@/components/ui/empty-state'
 import { Badge, badgeVariants } from '@/components/ui/badge'
 import type { VariantProps } from 'class-variance-authority'
 import {
@@ -165,11 +166,8 @@ export default async function LogsPage() {
                             <TableBody>
                                 {logs.length === 0 ? (
                                     <TableRow>
-                                        <TableCell
-                                            colSpan={5}
-                                            className="text-center text-muted-foreground"
-                                        >
-                                            Aucun log
+                                        <TableCell colSpan={5}>
+                                            <EmptyState title="Aucun log"/>
                                         </TableCell>
                                     </TableRow>
                                 ) : (
