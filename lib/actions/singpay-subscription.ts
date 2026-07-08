@@ -332,6 +332,11 @@ export async function activateSubscriptionAfterPayment(paymentId: string) {
     },
   })
 
+  await prisma.restaurant.update({
+    where: { id: payment.subscription.restaurantId },
+    data: { isActive: true },
+  })
+
   revalidatePath('/dashboard/subscription')
 }
 

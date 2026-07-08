@@ -478,6 +478,11 @@ export async function validateManualPayment(paymentId: string) {
             },
         })
 
+        await prisma.restaurant.update({
+            where: {id: payment.subscription.restaurantId},
+            data: {isActive: true},
+        })
+
         // ============================================================
         // ÉTAPE 4 : Revalidation du cache
         // ============================================================

@@ -164,6 +164,11 @@ async function handleSubscriptionPaymentWebhook(
                 },
             })
 
+            await prisma.restaurant.update({
+                where: { id: payment.subscription.restaurantId },
+                data: { isActive: true },
+            })
+
             console.log(
                 `✅ Abonnement activé pour ${payment.subscription.restaurant.name}`
             )
