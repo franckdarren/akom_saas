@@ -12,6 +12,14 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'images.unsplash.com',
       },
+      {
+        protocol: 'https',
+        hostname: '**.openfoodfacts.org',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.openfoodfacts.net',
+      },
     ],
   },
 };
