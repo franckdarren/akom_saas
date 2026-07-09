@@ -43,6 +43,30 @@ export async function PATCH(
                 data: { quantity: newQty },
             })
 
+            // Comptage mobile = mini-session d'inventaire à une ligne, pour apparaître
+            // dans l'historique unifié /dashboard/inventory aux côtés des sessions web.
+            const session = await tx.inventorySession.create({
+                data: {
+                    restaurantId: ctx.restaurantId,
+                    scope: 'operational',
+                    status: 'completed',
+                    label: 'Inventaire mobile',
+                    createdBy: ctx.userId,
+                    completedBy: ctx.userId,
+                    completedAt: new Date(),
+                    lines: {
+                        create: {
+                            restaurantId: ctx.restaurantId,
+                            productId,
+                            expectedQty: previousQty,
+                            countedQty: newQty,
+                            countedBy: ctx.userId,
+                            countedAt: new Date(),
+                        },
+                    },
+                },
+            })
+
             await tx.stockMovement.create({
                 data: {
                     restaurantId: ctx.restaurantId,
@@ -52,7 +76,7 @@ export async function PATCH(
                     quantity: newQty - previousQty,
                     previousQty,
                     newQty,
-                    reason: note ?? 'Inventaire mobile',
+                    reason: note ?? `Inventaire mobile #${session.id.slice(0, 8)}`,
                 },
             })
 

@@ -49,6 +49,7 @@ import {
     Lock,
     TrendingUp,
     ClipboardList,
+    ClipboardCheck,
     LayoutGrid,
 } from "lucide-react"
 
@@ -187,6 +188,13 @@ export function AppSidebar({
                         title: "Stocks",
                         href: "/dashboard/stocks",
                         icon: Package,
+                        requiredFeature: 'stock_management',
+                        module: 'stocks' as ModuleKey,
+                    },
+                    {
+                        title: "Inventaire",
+                        href: "/dashboard/inventory",
+                        icon: ClipboardCheck,
                         requiredFeature: 'stock_management',
                         module: 'stocks' as ModuleKey,
                     },

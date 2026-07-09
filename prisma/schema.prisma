@@ -66,6 +66,22 @@ enum StockMovementType {
   @@map("stock_movement_type")
 }
 
+enum InventoryScope {
+  operational // périmètre Stock (Product)
+  warehouse // périmètre WarehouseStock
+
+  @@map("inventory_scope")
+}
+
+enum InventoryStatus {
+  draft
+  in_progress
+  completed
+  cancelled
+
+  @@map("inventory_status")
+}
+
 enum TicketStatus {
   open
   in_progress
@@ -317,6 +333,8 @@ model Restaurant {
   expenses                Expense[]
   singpayConfig           RestaurantSingpayConfig?
   modules                 RestaurantModule[]
+  inventorySessions       InventorySession[]
+  inventoryLines          InventoryLine[]
 
   @@index([slug])
   @@index([isActive])
@@ -462,6 +480,7 @@ model Product {
   transfersFromWarehouse WarehouseToOpsTransfer[] @relation("TransferToProduct")
   manualRevenues         ManualRevenue[]
   expenses               Expense[]
+  inventoryLines         InventoryLine[]
 
   @@index([restaurantId, categoryId])
   @@index([restaurantId, isAvailable])
@@ -487,6 +506,57 @@ model Stock {
   @@unique([restaurantId, productId])
   @@index([productId])
   @@map("stocks")
+}
+
+// ============================================================
+// Sessions d'inventaire (comptage physique périodique)
+// ============================================================
+model InventorySession {
+  id           String          @id @default(uuid()) @db.Uuid
+  restaurantId String          @map("restaurant_id") @db.Uuid
+  scope        InventoryScope
+  status       InventoryStatus @default(draft)
+  label        String? // ex: "Inventaire mensuel juillet"
+  createdBy    String          @map("created_by") @db.Uuid
+  completedBy  String?         @map("completed_by") @db.Uuid
+  completedAt  DateTime?       @map("completed_at")
+  createdAt    DateTime        @default(now()) @map("created_at")
+  updatedAt    DateTime        @updatedAt @map("updated_at")
+
+  // Relations
+  restaurant Restaurant      @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  lines      InventoryLine[]
+
+  @@index([restaurantId, status])
+  @@index([restaurantId, createdAt(sort: Desc)])
+  @@map("inventory_sessions")
+}
+
+model InventoryLine {
+  id                 String   @id @default(uuid()) @db.Uuid
+  sessionId          String   @map("session_id") @db.Uuid
+  restaurantId       String   @map("restaurant_id") @db.Uuid
+  productId          String?  @map("product_id") @db.Uuid
+  warehouseProductId String?  @map("warehouse_product_id") @db.Uuid
+
+  expectedQty Decimal  @map("expected_qty") @db.Decimal(10, 2) // snapshot au lancement de la session
+  countedQty  Decimal? @map("counted_qty") @db.Decimal(10, 2)
+  unitCost    Decimal? @map("unit_cost") @db.Decimal(10, 2) // snapshot, warehouse uniquement
+  notes       String?
+
+  countedBy String?   @map("counted_by") @db.Uuid
+  countedAt DateTime? @map("counted_at")
+
+  // Relations
+  session          InventorySession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  restaurant        Restaurant        @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  product           Product?          @relation(fields: [productId], references: [id], onDelete: SetNull)
+  warehouseProduct  WarehouseProduct? @relation(fields: [warehouseProductId], references: [id], onDelete: SetNull)
+
+  @@index([sessionId])
+  @@index([restaurantId, productId])
+  @@index([restaurantId, warehouseProductId])
+  @@map("inventory_lines")
 }
 
 model Order {
@@ -1018,6 +1088,7 @@ model WarehouseProduct {
   stock         WarehouseStock[]
   movements     WarehouseMovement[]
   transfers     WarehouseToOpsTransfer[]
+  inventoryLines InventoryLine[]
 
   @@index([restaurantId])
   @@index([linkedProductId])

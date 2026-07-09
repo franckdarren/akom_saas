@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { validateMobileRequest } from '@/lib/mobile-auth'
 import prisma from '@/lib/prisma'
+import { PaymentMethod, PaymentStatus, PaymentTiming } from '@prisma/client'
 
 interface CartItem {
     productId: string
@@ -13,6 +14,12 @@ interface CreateMobileOrderBody {
     totalAmount: number
     paymentMethod: 'cash' | 'airtel_money' | 'moov_money'
     customerName?: string
+}
+
+const PAYMENT_METHOD_MAP: Record<CreateMobileOrderBody['paymentMethod'], PaymentMethod> = {
+    cash: PaymentMethod.cash,
+    airtel_money: PaymentMethod.airtel_money,
+    moov_money: PaymentMethod.moov_money,
 }
 
 // ============================================================
@@ -33,8 +40,8 @@ export async function POST(req: NextRequest) {
         if (typeof totalAmount !== 'number' || totalAmount <= 0) {
             return NextResponse.json({ error: 'totalAmount invalide' }, { status: 400 })
         }
-        if (!paymentMethod) {
-            return NextResponse.json({ error: 'paymentMethod est obligatoire' }, { status: 400 })
+        if (!paymentMethod || !(paymentMethod in PAYMENT_METHOD_MAP)) {
+            return NextResponse.json({ error: 'paymentMethod invalide' }, { status: 400 })
         }
 
         // Vérifier que tous les produits existent et appartiennent au restaurant
@@ -93,6 +100,18 @@ export async function POST(req: NextRequest) {
                     },
                 },
                 select: { id: true, orderNumber: true, totalAmount: true, status: true },
+            })
+
+            // Paiement encaissé immédiatement (vente comptoir mobile)
+            await tx.payment.create({
+                data: {
+                    orderId: newOrder.id,
+                    restaurantId: ctx.restaurantId,
+                    amount: Math.floor(totalAmount),
+                    method: PAYMENT_METHOD_MAP[paymentMethod],
+                    status: PaymentStatus.paid,
+                    timing: PaymentTiming.after_meal,
+                },
             })
 
             // Déduire le stock pour chaque produit géré en stock
