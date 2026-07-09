@@ -112,66 +112,64 @@ export function InventoryCountTable({sessionId, status, lines}: InventoryCountTa
 
     return (
         <div className="layout-card-body">
-            <div className="rounded-md border">
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Produit</TableHead>
-                            <TableHead className="text-right">Qté théorique</TableHead>
-                            <TableHead className="text-right">Qté comptée</TableHead>
-                            <TableHead className="text-right">Écart</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {lines.map((line) => {
-                            const gap = getGap(line.id, line.expectedQty)
-                            return (
-                                <TableRow key={line.id}>
-                                    <TableCell>
-                                        <div className="flex flex-col">
-                                            <span className="font-medium">{line.name}</span>
-                                            {line.unit && (
-                                                <span className="text-xs text-muted-foreground">{line.unit}</span>
-                                            )}
-                                        </div>
-                                    </TableCell>
-                                    <TableCell className="text-right">{formatNumber(line.expectedQty)}</TableCell>
-                                    <TableCell className="text-right">
-                                        {isEditable ? (
-                                            <Input
-                                                type="text"
-                                                inputMode="decimal"
-                                                className="ml-auto w-28 text-right"
-                                                value={counts[line.id]}
-                                                onChange={(e) =>
-                                                    setCounts((prev) => ({...prev, [line.id]: e.target.value}))
-                                                }
-                                                placeholder="—"
-                                            />
-                                        ) : (
-                                            formatNumber(line.countedQty ?? 0)
+            <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead>Produit</TableHead>
+                        <TableHead className="text-right">Qté théorique</TableHead>
+                        <TableHead className="text-right">Qté comptée</TableHead>
+                        <TableHead className="text-right">Écart</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {lines.map((line) => {
+                        const gap = getGap(line.id, line.expectedQty)
+                        return (
+                            <TableRow key={line.id}>
+                                <TableCell>
+                                    <div className="flex flex-col">
+                                        <span className="font-medium">{line.name}</span>
+                                        {line.unit && (
+                                            <span className="text-xs text-muted-foreground">{line.unit}</span>
                                         )}
-                                    </TableCell>
-                                    <TableCell
-                                        className={
-                                            'text-right font-medium ' +
-                                            (gap === null
+                                    </div>
+                                </TableCell>
+                                <TableCell className="text-right">{formatNumber(line.expectedQty)}</TableCell>
+                                <TableCell className="text-right">
+                                    {isEditable ? (
+                                        <Input
+                                            type="text"
+                                            inputMode="decimal"
+                                            className="ml-auto w-28 text-right"
+                                            value={counts[line.id]}
+                                            onChange={(e) =>
+                                                setCounts((prev) => ({...prev, [line.id]: e.target.value}))
+                                            }
+                                            placeholder="—"
+                                        />
+                                    ) : (
+                                        formatNumber(line.countedQty ?? 0)
+                                    )}
+                                </TableCell>
+                                <TableCell
+                                    className={
+                                        'text-right font-medium ' +
+                                        (gap === null
+                                            ? 'text-muted-foreground'
+                                            : gap === 0
                                                 ? 'text-muted-foreground'
-                                                : gap === 0
-                                                    ? 'text-muted-foreground'
-                                                    : gap > 0
-                                                        ? 'text-success'
-                                                        : 'text-destructive')
-                                        }
-                                    >
-                                        {gap === null ? '—' : (gap > 0 ? '+' : '') + formatNumber(gap)}
-                                    </TableCell>
-                                </TableRow>
-                            )
-                        })}
-                    </TableBody>
-                </Table>
-            </div>
+                                                : gap > 0
+                                                    ? 'text-success'
+                                                    : 'text-destructive')
+                                    }
+                                >
+                                    {gap === null ? '—' : (gap > 0 ? '+' : '') + formatNumber(gap)}
+                                </TableCell>
+                            </TableRow>
+                        )
+                    })}
+                </TableBody>
+            </Table>
 
             {error && (
                 <div className="bg-destructive-subtle text-destructive p-3 rounded-lg text-sm">{error}</div>

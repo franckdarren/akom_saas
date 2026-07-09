@@ -166,57 +166,55 @@ export default async function InventoryReportPage({
                                 description="Le stock théorique correspondait au comptage physique."
                             />
                         ) : (
-                            <div className="rounded-md border">
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>Produit</TableHead>
-                                            <TableHead className="text-right">Qté théorique</TableHead>
-                                            <TableHead className="text-right">Qté comptée</TableHead>
-                                            <TableHead className="text-right">Écart</TableHead>
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Produit</TableHead>
+                                        <TableHead className="text-right">Qté théorique</TableHead>
+                                        <TableHead className="text-right">Qté comptée</TableHead>
+                                        <TableHead className="text-right">Écart</TableHead>
+                                        {isWarehouse && (
+                                            <TableHead className="text-right">Valorisation</TableHead>
+                                        )}
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {gapLines.map((line, index) => (
+                                        <TableRow key={index}>
+                                            <TableCell>
+                                                <div className="flex flex-col">
+                                                    <span className="font-medium">{line.name}</span>
+                                                    {line.unit && (
+                                                        <span className="text-xs text-muted-foreground">{line.unit}</span>
+                                                    )}
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="text-right">{formatNumber(line.expected)}</TableCell>
+                                            <TableCell className="text-right">{formatNumber(line.counted)}</TableCell>
+                                            <TableCell
+                                                className={
+                                                    'text-right font-medium ' +
+                                                    (line.gap > 0 ? 'text-success' : 'text-destructive')
+                                                }
+                                            >
+                                                {(line.gap > 0 ? '+' : '') + formatNumber(line.gap)}
+                                            </TableCell>
                                             {isWarehouse && (
-                                                <TableHead className="text-right">Valorisation</TableHead>
-                                            )}
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {gapLines.map((line, index) => (
-                                            <TableRow key={index}>
-                                                <TableCell>
-                                                    <div className="flex flex-col">
-                                                        <span className="font-medium">{line.name}</span>
-                                                        {line.unit && (
-                                                            <span className="text-xs text-muted-foreground">{line.unit}</span>
-                                                        )}
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell className="text-right">{formatNumber(line.expected)}</TableCell>
-                                                <TableCell className="text-right">{formatNumber(line.counted)}</TableCell>
                                                 <TableCell
                                                     className={
-                                                        'text-right font-medium ' +
-                                                        (line.gap > 0 ? 'text-success' : 'text-destructive')
+                                                        'text-right ' +
+                                                        (line.gapValue !== null && line.gapValue < 0
+                                                            ? 'text-destructive'
+                                                            : 'text-success')
                                                     }
                                                 >
-                                                    {(line.gap > 0 ? '+' : '') + formatNumber(line.gap)}
+                                                    {line.gapValue !== null ? formatPrice(line.gapValue) : '—'}
                                                 </TableCell>
-                                                {isWarehouse && (
-                                                    <TableCell
-                                                        className={
-                                                            'text-right ' +
-                                                            (line.gapValue !== null && line.gapValue < 0
-                                                                ? 'text-destructive'
-                                                                : 'text-success')
-                                                        }
-                                                    >
-                                                        {line.gapValue !== null ? formatPrice(line.gapValue) : '—'}
-                                                    </TableCell>
-                                                )}
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            </div>
+                                            )}
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
                         )}
                     </CardContent>
                 </AppCard>

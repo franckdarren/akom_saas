@@ -128,60 +128,58 @@ export default async function InventoryPage({
                                 description="Lancez un premier comptage pour suivre les écarts de stock."
                             />
                         ) : (
-                            <div className="rounded-md border">
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>Date</TableHead>
-                                            <TableHead>Périmètre</TableHead>
-                                            <TableHead>Statut</TableHead>
-                                            <TableHead className="text-right">Produits</TableHead>
-                                            <TableHead className="text-right">Écart total</TableHead>
-                                            <TableHead className="text-right">Valorisation</TableHead>
-                                            <TableHead></TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {sessions.map((session) => {
-                                            const status = STATUS_LABELS[session.status]
-                                            return (
-                                                <TableRow key={session.id}>
-                                                    <TableCell>
-                                                        <div className="flex flex-col">
-                                                            <span>{formatDate(session.createdAt)}</span>
-                                                            {session.label && (
-                                                                <span className="text-xs text-muted-foreground">{session.label}</span>
-                                                            )}
-                                                        </div>
-                                                    </TableCell>
-                                                    <TableCell>{SCOPE_LABELS[session.scope]}</TableCell>
-                                                    <TableCell>
-                                                        <Badge variant={status.variant}>{status.label}</Badge>
-                                                    </TableCell>
-                                                    <TableCell className="text-right">
-                                                        {session.countedCount}/{session.linesCount}
-                                                    </TableCell>
-                                                    <TableCell className="text-right">
-                                                        {session.status === 'completed' ? formatNumber(session.totalGapQty) : '—'}
-                                                    </TableCell>
-                                                    <TableCell className="text-right">
-                                                        {session.status === 'completed' && session.scope === 'warehouse'
-                                                            ? formatPrice(session.totalGapValue)
-                                                            : '—'}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <Button variant="outline" size="sm" asChild>
-                                                            <Link href={`/dashboard/inventory/${session.id}`}>
-                                                                {session.status === 'completed' ? 'Voir' : 'Continuer'}
-                                                            </Link>
-                                                        </Button>
-                                                    </TableCell>
-                                                </TableRow>
-                                            )
-                                        })}
-                                    </TableBody>
-                                </Table>
-                            </div>
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Date</TableHead>
+                                        <TableHead>Périmètre</TableHead>
+                                        <TableHead>Statut</TableHead>
+                                        <TableHead className="text-right">Produits</TableHead>
+                                        <TableHead className="text-right">Écart total</TableHead>
+                                        <TableHead className="text-right">Valorisation</TableHead>
+                                        <TableHead></TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {sessions.map((session) => {
+                                        const status = STATUS_LABELS[session.status]
+                                        return (
+                                            <TableRow key={session.id}>
+                                                <TableCell>
+                                                    <div className="flex flex-col">
+                                                        <span>{formatDate(session.createdAt)}</span>
+                                                        {session.label && (
+                                                            <span className="text-xs text-muted-foreground">{session.label}</span>
+                                                        )}
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell>{SCOPE_LABELS[session.scope]}</TableCell>
+                                                <TableCell>
+                                                    <Badge variant={status.variant}>{status.label}</Badge>
+                                                </TableCell>
+                                                <TableCell className="text-right">
+                                                    {session.countedCount}/{session.linesCount}
+                                                </TableCell>
+                                                <TableCell className="text-right">
+                                                    {session.status === 'completed' ? formatNumber(session.totalGapQty) : '—'}
+                                                </TableCell>
+                                                <TableCell className="text-right">
+                                                    {session.status === 'completed' && session.scope === 'warehouse'
+                                                        ? formatPrice(session.totalGapValue)
+                                                        : '—'}
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Button variant="outline" size="sm" asChild>
+                                                        <Link href={`/dashboard/inventory/${session.id}`}>
+                                                            {session.status === 'completed' ? 'Voir' : 'Continuer'}
+                                                        </Link>
+                                                    </Button>
+                                                </TableCell>
+                                            </TableRow>
+                                        )
+                                    })}
+                                </TableBody>
+                            </Table>
                         )}
                     </CardContent>
                 </AppCard>
