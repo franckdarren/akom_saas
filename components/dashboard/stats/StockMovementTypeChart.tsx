@@ -59,10 +59,14 @@ export function StockMovementTypeChart({ data }: StockMovementTypeChartProps) {
                                 ))}
                             </Pie>
                             <Tooltip
-                                formatter={(value: number | undefined, name: string | undefined) => [
-                                    `${value ?? 0} mouvement${(value ?? 0) > 1 ? 's' : ''}`,
-                                    STOCK_MOVEMENT_TYPE_LABELS[name ?? ''] ?? name,
-                                ]}
+                                formatter={(value, name) => {
+                                    const count = typeof value === 'number' ? value : 0
+                                    const label = String(name)
+                                    return [
+                                        `${count} mouvement${count > 1 ? 's' : ''}`,
+                                        STOCK_MOVEMENT_TYPE_LABELS[label] ?? label,
+                                    ]
+                                }}
                             />
                             <Legend
                                 formatter={(value) =>

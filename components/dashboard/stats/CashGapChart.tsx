@@ -70,9 +70,9 @@ export function CashGapChart({ data }: CashGapChartProps) {
                                 width={44}
                             />
                             <Tooltip
-                                formatter={(value: number | undefined) => [
-                                    value != null ? formatPrice(value) : '—',
-                                    (value ?? 0) >= 0 ? 'Surplus' : 'Déficit',
+                                formatter={(value) => [
+                                    typeof value === 'number' ? formatPrice(value) : '—',
+                                    typeof value === 'number' && value >= 0 ? 'Surplus' : 'Déficit',
                                 ]}
                                 labelFormatter={(label) => `Session du ${formatDate(label as string)}`}
                             />

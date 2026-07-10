@@ -63,10 +63,10 @@ export function StockRotationChart({ data }: StockRotationChartProps) {
                                 width={110}
                             />
                             <Tooltip
-                                formatter={(value: number | undefined) => [
-                                    `${value ?? 0} unité${(value ?? 0) > 1 ? 's' : ''}`,
-                                    'Sorties',
-                                ]}
+                                formatter={(value) => {
+                                    const qty = typeof value === 'number' ? value : 0
+                                    return [`${qty} unité${qty > 1 ? 's' : ''}`, 'Sorties']
+                                }}
                                 labelFormatter={(label) => label}
                             />
                             <Bar
