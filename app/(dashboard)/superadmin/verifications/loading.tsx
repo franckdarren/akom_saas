@@ -1,4 +1,5 @@
 import { Skeleton } from '@/components/ui/skeleton'
+import { AppCard, CardContent } from '@/components/ui/app-card'
 
 export default function SuperadminVerificationsLoading() {
     return (
@@ -27,10 +28,12 @@ export default function SuperadminVerificationsLoading() {
                 {/* 3 stat cards */}
                 <div className="grid gap-4 md:grid-cols-3">
                     {Array.from({ length: 3 }).map((_, i) => (
-                        <div key={i} className="rounded-xl border bg-card p-6 space-y-3">
-                            <Skeleton className="h-4 w-32" />
-                            <Skeleton className="h-7 w-12" />
-                        </div>
+                        <AppCard key={i}>
+                            <CardContent className="layout-card-body">
+                                <Skeleton className="h-4 w-32" />
+                                <Skeleton className="h-7 w-12" />
+                            </CardContent>
+                        </AppCard>
                     ))}
                 </div>
 
@@ -41,23 +44,25 @@ export default function SuperadminVerificationsLoading() {
                 </div>
                 <div className="grid gap-4 md:grid-cols-2">
                     {Array.from({ length: 4 }).map((_, i) => (
-                        <div key={i} className="rounded-xl border bg-card p-6 space-y-4">
-                            <div className="flex items-start justify-between">
-                                <div className="space-y-1.5">
-                                    <Skeleton className="h-5 w-40" />
-                                    <Skeleton className="h-3 w-28" />
+                        <AppCard key={i}>
+                            <CardContent className="layout-card-body">
+                                <div className="flex items-start justify-between">
+                                    <div className="space-y-1.5">
+                                        <Skeleton className="h-5 w-40" />
+                                        <Skeleton className="h-3 w-28" />
+                                    </div>
+                                    <Skeleton className="h-5 w-28 rounded-full" />
                                 </div>
-                                <Skeleton className="h-5 w-28 rounded-full" />
-                            </div>
-                            <div className="flex gap-3">
-                                <Skeleton className="h-20 w-20 rounded-lg" />
-                                <Skeleton className="h-20 w-20 rounded-lg" />
-                            </div>
-                            <div className="flex gap-2">
-                                <Skeleton className="h-9 w-24 rounded-md" />
-                                <Skeleton className="h-9 w-24 rounded-md" />
-                            </div>
-                        </div>
+                                <div className="space-y-3">
+                                    <Skeleton className="h-16 w-full rounded-xl" />
+                                    <Skeleton className="h-16 w-full rounded-xl" />
+                                </div>
+                                <div className="flex gap-2">
+                                    <Skeleton className="h-9 w-24 rounded-md" />
+                                    <Skeleton className="h-9 w-24 rounded-md" />
+                                </div>
+                            </CardContent>
+                        </AppCard>
                     ))}
                 </div>
             </div>

@@ -1,4 +1,5 @@
 import { Skeleton } from '@/components/ui/skeleton'
+import { AppCard, CardContent } from '@/components/ui/app-card'
 
 export default function WarehouseProductDetailLoading() {
     return (
@@ -39,25 +40,29 @@ export default function WarehouseProductDetailLoading() {
                 </div>
 
                 {/* Card stock */}
-                <div className="rounded-xl border bg-card p-6 space-y-3">
-                    <Skeleton className="h-5 w-32" />
-                    <Skeleton className="h-9 w-20" />
-                    <Skeleton className="h-3 w-32" />
-                </div>
+                <AppCard>
+                    <CardContent className="layout-card-body">
+                        <Skeleton className="h-5 w-32" />
+                        <Skeleton className="h-9 w-20" />
+                        <Skeleton className="h-3 w-32" />
+                    </CardContent>
+                </AppCard>
 
                 {/* Card historique */}
-                <div className="rounded-xl border bg-card p-6 space-y-4">
-                    <Skeleton className="h-5 w-48" />
-                    {Array.from({ length: 5 }).map((_, i) => (
-                        <div key={i} className="flex gap-4">
-                            <Skeleton className="h-10 w-10 rounded-full shrink-0" />
-                            <div className="flex-1 space-y-2">
-                                <Skeleton className="h-4 w-3/4" />
-                                <Skeleton className="h-4 w-1/2" />
+                <AppCard>
+                    <CardContent className="layout-card-body">
+                        <Skeleton className="h-5 w-48" />
+                        {Array.from({ length: 5 }).map((_, i) => (
+                            <div key={i} className="flex gap-4">
+                                <Skeleton className="h-10 w-10 rounded-full shrink-0" />
+                                <div className="flex-1 space-y-2">
+                                    <Skeleton className="h-4 w-3/4" />
+                                    <Skeleton className="h-4 w-1/2" />
+                                </div>
                             </div>
-                        </div>
-                    ))}
-                </div>
+                        ))}
+                    </CardContent>
+                </AppCard>
             </div>
         </>
     )

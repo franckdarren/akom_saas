@@ -1,4 +1,5 @@
 import { Skeleton } from '@/components/ui/skeleton'
+import { AppCard, CardContent, CardHeader } from '@/components/ui/app-card'
 
 export default function RestaurantVerifyLoading() {
     return (
@@ -24,15 +25,29 @@ export default function RestaurantVerifyLoading() {
                 </div>
 
                 {/* Formulaire de vérification : upload de documents */}
-                <div className="rounded-xl border bg-card p-6 space-y-6 max-w-2xl">
-                    {Array.from({ length: 2 }).map((_, i) => (
-                        <div key={i} className="space-y-2">
-                            <Skeleton className="h-4 w-40" />
-                            <Skeleton className="h-40 w-full rounded-lg" />
+                <AppCard className="max-w-2xl">
+                    <CardHeader>
+                        <div className="flex items-center justify-between">
+                            <div className="space-y-1.5">
+                                <Skeleton className="h-5 w-56" />
+                                <Skeleton className="h-3 w-72 max-w-full" />
+                            </div>
+                            <Skeleton className="h-6 w-28 rounded-full shrink-0" />
                         </div>
-                    ))}
-                    <Skeleton className="h-10 w-44 rounded-md" />
-                </div>
+                    </CardHeader>
+                    <CardContent className="layout-form">
+                        {Array.from({ length: 2 }).map((_, i) => (
+                            <div key={i} className="space-y-2">
+                                <Skeleton className="h-4 w-40" />
+                                <Skeleton className="h-40 w-full rounded-lg" />
+                            </div>
+                        ))}
+                        <Skeleton className="h-16 w-full rounded-lg" />
+                        <div className="flex justify-end">
+                            <Skeleton className="h-10 w-44 rounded-md" />
+                        </div>
+                    </CardContent>
+                </AppCard>
             </div>
         </div>
     )

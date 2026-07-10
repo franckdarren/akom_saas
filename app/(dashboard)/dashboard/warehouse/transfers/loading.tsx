@@ -1,4 +1,5 @@
 import { Skeleton } from '@/components/ui/skeleton'
+import { AppCard, CardContent } from '@/components/ui/app-card'
 
 export default function WarehouseTransfersLoading() {
     return (
@@ -27,39 +28,44 @@ export default function WarehouseTransfersLoading() {
                 {/* Stats cards */}
                 <div className="grid gap-4 md:grid-cols-2">
                     {Array.from({ length: 2 }).map((_, i) => (
-                        <div key={i} className="rounded-xl border bg-card p-6 space-y-3">
-                            <Skeleton className="h-4 w-40" />
-                            <Skeleton className="h-8 w-16" />
-                        </div>
+                        <AppCard key={i}>
+                            <CardContent className="layout-card-body">
+                                <Skeleton className="h-4 w-40" />
+                                <Skeleton className="h-8 w-16" />
+                            </CardContent>
+                        </AppCard>
                     ))}
                 </div>
 
                 {/* Table transferts */}
-                <div className="rounded-xl border bg-card overflow-hidden">
-                    <div className="border-b bg-muted/40 px-4 py-3 flex items-center gap-4">
-                        <Skeleton className="h-4 w-32" />
-                        <Skeleton className="h-4 w-32 ml-8" />
-                        <Skeleton className="h-4 w-20 ml-auto" />
-                        <Skeleton className="h-4 w-20" />
-                    </div>
-                    <div className="divide-y">
-                        {Array.from({ length: 8 }).map((_, i) => (
-                            <div key={i} className="px-4 py-3 flex items-center gap-4">
-                                <div className="flex items-center gap-3 flex-1">
-                                    <Skeleton className="h-8 w-8 rounded shrink-0" />
-                                    <Skeleton className="h-4 w-32" />
+                <AppCard>
+                    <CardContent className="p-0">
+                        <div className="border-b bg-muted/40 px-4 py-3 flex items-center gap-4">
+                            <Skeleton className="h-4 w-32" />
+                            <Skeleton className="h-4 w-4" />
+                            <Skeleton className="h-4 w-32" />
+                            <Skeleton className="h-4 w-20 ml-auto" />
+                            <Skeleton className="h-4 w-20" />
+                        </div>
+                        <div className="divide-y">
+                            {Array.from({ length: 8 }).map((_, i) => (
+                                <div key={i} className="px-4 py-3 flex items-center gap-4">
+                                    <div className="flex items-center gap-3 flex-1">
+                                        <Skeleton className="h-8 w-8 rounded shrink-0" />
+                                        <Skeleton className="h-4 w-32" />
+                                    </div>
+                                    <Skeleton className="h-4 w-4 rounded shrink-0" />
+                                    <div className="flex items-center gap-3 flex-1">
+                                        <Skeleton className="h-8 w-8 rounded shrink-0" />
+                                        <Skeleton className="h-4 w-32" />
+                                    </div>
+                                    <Skeleton className="h-5 w-24 rounded-full shrink-0 ml-auto" />
+                                    <Skeleton className="h-4 w-24 shrink-0" />
                                 </div>
-                                <Skeleton className="h-4 w-4 rounded shrink-0" />
-                                <div className="flex items-center gap-3 flex-1">
-                                    <Skeleton className="h-8 w-8 rounded shrink-0" />
-                                    <Skeleton className="h-4 w-32" />
-                                </div>
-                                <Skeleton className="h-5 w-24 rounded-full shrink-0 ml-auto" />
-                                <Skeleton className="h-4 w-24 shrink-0" />
-                            </div>
-                        ))}
-                    </div>
-                </div>
+                            ))}
+                        </div>
+                    </CardContent>
+                </AppCard>
             </div>
         </>
     )

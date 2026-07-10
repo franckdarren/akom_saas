@@ -1,4 +1,13 @@
 import { Skeleton } from '@/components/ui/skeleton'
+import { AppCard, CardContent } from '@/components/ui/app-card'
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table'
 
 export default function SuperadminSupportLoading() {
     return (
@@ -24,32 +33,56 @@ export default function SuperadminSupportLoading() {
                 {/* Stats cards */}
                 <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
                     {Array.from({ length: 4 }).map((_, i) => (
-                        <div key={i} className="rounded-xl border bg-card p-6 space-y-3">
-                            <Skeleton className="h-4 w-24" />
-                            <Skeleton className="h-7 w-16" />
-                        </div>
+                        <AppCard key={i}>
+                            <CardContent className="layout-card-body">
+                                <Skeleton className="h-4 w-24" />
+                                <Skeleton className="h-7 w-16" />
+                            </CardContent>
+                        </AppCard>
                     ))}
                 </div>
 
                 {/* Table tickets */}
-                <div className="rounded-xl border bg-card overflow-hidden">
-                    <div className="border-b bg-muted/40 px-4 py-3 flex items-center gap-4">
-                        <Skeleton className="h-4 w-32" />
-                        <Skeleton className="h-4 w-24" />
-                        <Skeleton className="h-4 w-20 ml-auto" />
-                        <Skeleton className="h-4 w-24" />
-                    </div>
-                    <div className="divide-y">
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Sujet</TableHead>
+                            <TableHead className="hidden sm:table-cell">Restaurant</TableHead>
+                            <TableHead className="hidden sm:table-cell">Priorité</TableHead>
+                            <TableHead>Statut</TableHead>
+                            <TableHead className="hidden lg:table-cell">Messages</TableHead>
+                            <TableHead className="hidden lg:table-cell">Créé le</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
                         {Array.from({ length: 8 }).map((_, i) => (
-                            <div key={i} className="px-4 py-3 flex items-center gap-4">
-                                <Skeleton className="h-4 w-40 shrink-0" />
-                                <Skeleton className="h-4 flex-1" />
-                                <Skeleton className="h-5 w-20 rounded-full shrink-0" />
-                                <Skeleton className="h-4 w-24 shrink-0" />
-                            </div>
+                            <TableRow key={i}>
+                                <TableCell>
+                                    <Skeleton className="h-4 w-40" />
+                                </TableCell>
+                                <TableCell className="hidden sm:table-cell">
+                                    <Skeleton className="h-4 w-32" />
+                                </TableCell>
+                                <TableCell className="hidden sm:table-cell">
+                                    <Skeleton className="h-5 w-16 rounded-full" />
+                                </TableCell>
+                                <TableCell>
+                                    <Skeleton className="h-5 w-20 rounded-full" />
+                                </TableCell>
+                                <TableCell className="hidden lg:table-cell">
+                                    <Skeleton className="h-4 w-10" />
+                                </TableCell>
+                                <TableCell className="hidden lg:table-cell">
+                                    <Skeleton className="h-4 w-24" />
+                                </TableCell>
+                                <TableCell className="text-right">
+                                    <Skeleton className="h-8 w-20 rounded-md ml-auto" />
+                                </TableCell>
+                            </TableRow>
                         ))}
-                    </div>
-                </div>
+                    </TableBody>
+                </Table>
             </div>
         </>
     )

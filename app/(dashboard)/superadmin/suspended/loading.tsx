@@ -1,4 +1,5 @@
 import { Skeleton } from '@/components/ui/skeleton'
+import { AppCard, CardContent } from '@/components/ui/app-card'
 
 export default function SuperadminSuspendedLoading() {
     return (
@@ -27,10 +28,12 @@ export default function SuperadminSuspendedLoading() {
                 {/* 3 stat cards */}
                 <div className="grid gap-4 md:grid-cols-3">
                     {Array.from({ length: 3 }).map((_, i) => (
-                        <div key={i} className="rounded-xl border bg-card p-6 space-y-3">
-                            <Skeleton className="h-4 w-32" />
-                            <Skeleton className="h-7 w-12" />
-                        </div>
+                        <AppCard key={i}>
+                            <CardContent className="layout-card-body">
+                                <Skeleton className="h-4 w-32" />
+                                <Skeleton className="h-7 w-12" />
+                            </CardContent>
+                        </AppCard>
                     ))}
                 </div>
 
@@ -41,17 +44,19 @@ export default function SuperadminSuspendedLoading() {
                 </div>
                 <div className="grid gap-4 md:grid-cols-2">
                     {Array.from({ length: 4 }).map((_, i) => (
-                        <div key={i} className="rounded-xl border bg-card p-6 space-y-4">
-                            <div className="flex items-start justify-between">
-                                <div className="space-y-1.5">
-                                    <Skeleton className="h-5 w-40" />
-                                    <Skeleton className="h-3 w-28" />
+                        <AppCard key={i}>
+                            <CardContent className="layout-card-body">
+                                <div className="flex items-start justify-between">
+                                    <div className="space-y-1.5">
+                                        <Skeleton className="h-5 w-40" />
+                                        <Skeleton className="h-3 w-28" />
+                                    </div>
+                                    <Skeleton className="h-5 w-24 rounded-full" />
                                 </div>
-                                <Skeleton className="h-5 w-24 rounded-full" />
-                            </div>
-                            <Skeleton className="h-12 w-full rounded-lg" />
-                            <Skeleton className="h-9 w-32 rounded-md" />
-                        </div>
+                                <Skeleton className="h-12 w-full rounded-lg" />
+                                <Skeleton className="h-9 w-32 rounded-md" />
+                            </CardContent>
+                        </AppCard>
                     ))}
                 </div>
             </div>

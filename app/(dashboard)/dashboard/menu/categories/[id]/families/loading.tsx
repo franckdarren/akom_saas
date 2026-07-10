@@ -1,4 +1,5 @@
 import { Skeleton } from '@/components/ui/skeleton'
+import { AppCard, CardContent, CardHeader } from '@/components/ui/app-card'
 
 export default function CategoryFamiliesLoading() {
     return (
@@ -29,23 +30,46 @@ export default function CategoryFamiliesLoading() {
                     <Skeleton className="h-10 w-44 rounded-md" />
                 </div>
 
-                {/* Liste des familles */}
-                <div className="space-y-3">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                        <div key={i} className="flex items-center gap-4 rounded-xl border bg-card p-4">
-                            <Skeleton className="h-8 w-8 rounded shrink-0" />
-                            <div className="flex-1 space-y-1.5">
-                                <Skeleton className="h-4 w-40" />
-                                <Skeleton className="h-3 w-24" />
-                            </div>
-                            <Skeleton className="h-6 w-20 rounded-full shrink-0" />
-                            <div className="flex items-center gap-2 shrink-0">
-                                <Skeleton className="h-8 w-8 rounded" />
-                                <Skeleton className="h-8 w-8 rounded" />
-                            </div>
-                        </div>
+                {/* Grille des familles */}
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {Array.from({ length: 6 }).map((_, i) => (
+                        <AppCard key={i}>
+                            <CardHeader>
+                                <div className="flex items-start justify-between">
+                                    <div className="flex-1 space-y-1.5">
+                                        <div className="flex items-center gap-2">
+                                            <Skeleton className="h-5 w-32" />
+                                            <Skeleton className="h-5 w-14 rounded-full" />
+                                        </div>
+                                        <Skeleton className="h-3.5 w-full max-w-[180px]" />
+                                    </div>
+                                    <Skeleton className="h-8 w-8 rounded shrink-0" />
+                                </div>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="flex items-center justify-between">
+                                    <Skeleton className="h-4 w-20" />
+                                    <div className="flex gap-1">
+                                        <Skeleton className="h-8 w-8 rounded" />
+                                        <Skeleton className="h-8 w-8 rounded" />
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </AppCard>
                     ))}
                 </div>
+
+                {/* Encart "À savoir" */}
+                <AppCard variant="flat">
+                    <CardContent className="layout-card-body">
+                        <Skeleton className="h-4 w-28" />
+                        <div className="space-y-1.5">
+                            <Skeleton className="h-3.5 w-full max-w-md" />
+                            <Skeleton className="h-3.5 w-full max-w-sm" />
+                            <Skeleton className="h-3.5 w-full max-w-lg" />
+                        </div>
+                    </CardContent>
+                </AppCard>
             </div>
         </>
     )

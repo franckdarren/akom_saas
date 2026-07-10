@@ -1,4 +1,5 @@
 import { Skeleton } from '@/components/ui/skeleton'
+import { AppCard, CardContent } from '@/components/ui/app-card'
 
 export default function ProductsLoading() {
     return (
@@ -27,13 +28,27 @@ export default function ProductsLoading() {
                     <Skeleton className="h-9 w-40 rounded-lg shrink-0" />
                 </div>
 
+                {/* Quota */}
+                <AppCard>
+                    <CardContent className="layout-card-body">
+                        <div className="flex items-center justify-between">
+                            <div className="space-y-1.5">
+                                <Skeleton className="h-4 w-48" />
+                                <Skeleton className="h-3.5 w-40" />
+                            </div>
+                            <Skeleton className="h-5 w-12 rounded-full" />
+                        </div>
+                        <Skeleton className="h-2 w-full rounded-full" />
+                    </CardContent>
+                </AppCard>
+
                 {/* Grid de cards produits avec image */}
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {Array.from({ length: 8 }).map((_, i) => (
-                        <div key={i} className="rounded-xl border bg-card overflow-hidden">
+                        <AppCard key={i} className="overflow-hidden">
                             {/* Image placeholder */}
                             <Skeleton className="h-40 w-full rounded-none" />
-                            <div className="p-4 space-y-3">
+                            <CardContent className="p-4 space-y-4">
                                 <div className="flex items-start justify-between gap-2">
                                     <Skeleton className="h-4 w-28" />
                                     <Skeleton className="h-5 w-16 rounded-full shrink-0" />
@@ -45,9 +60,10 @@ export default function ProductsLoading() {
                                 <div className="flex gap-2">
                                     <Skeleton className="h-8 flex-1 rounded" />
                                     <Skeleton className="h-8 w-8 rounded shrink-0" />
+                                    <Skeleton className="h-8 w-8 rounded shrink-0" />
                                 </div>
-                            </div>
-                        </div>
+                            </CardContent>
+                        </AppCard>
                     ))}
                 </div>
             </div>

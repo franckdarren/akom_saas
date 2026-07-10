@@ -1,4 +1,5 @@
 import { Skeleton } from '@/components/ui/skeleton'
+import { AppCard, CardContent } from '@/components/ui/app-card'
 
 export default function WarehouseLoading() {
     return (
@@ -27,37 +28,43 @@ export default function WarehouseLoading() {
                 {/* Stats cards */}
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                     {Array.from({ length: 4 }).map((_, i) => (
-                        <div key={i} className="rounded-xl border bg-card p-6 space-y-3">
-                            <Skeleton className="h-4 w-3/4" />
-                            <Skeleton className="h-8 w-1/2" />
-                        </div>
+                        <AppCard key={i}>
+                            <CardContent className="layout-card-body">
+                                <Skeleton className="h-4 w-3/4" />
+                                <Skeleton className="h-8 w-1/2" />
+                            </CardContent>
+                        </AppCard>
                     ))}
                 </div>
 
                 {/* Filtres + table */}
-                <div className="rounded-xl border bg-card p-6 space-y-4">
-                    <div className="flex flex-wrap gap-2">
-                        {Array.from({ length: 4 }).map((_, i) => (
-                            <Skeleton key={i} className="h-9 w-32 rounded-md" />
-                        ))}
-                    </div>
-                    <div className="space-y-3">
-                        {Array.from({ length: 5 }).map((_, i) => (
-                            <Skeleton key={i} className="h-16 w-full rounded-lg" />
-                        ))}
-                    </div>
-                </div>
+                <AppCard>
+                    <CardContent className="layout-card-body">
+                        <div className="flex flex-wrap gap-2">
+                            {Array.from({ length: 4 }).map((_, i) => (
+                                <Skeleton key={i} className="h-9 w-32 rounded-md" />
+                            ))}
+                        </div>
+                        <div className="space-y-3">
+                            {Array.from({ length: 5 }).map((_, i) => (
+                                <Skeleton key={i} className="h-16 w-full rounded-lg" />
+                            ))}
+                        </div>
+                    </CardContent>
+                </AppCard>
 
                 {/* Cards liens mouvements / transferts */}
                 <div className="grid gap-4 md:grid-cols-2">
                     {Array.from({ length: 2 }).map((_, i) => (
-                        <div key={i} className="rounded-xl border bg-card p-6 flex items-start gap-4">
-                            <Skeleton className="h-12 w-12 rounded-lg shrink-0" />
-                            <div className="flex-1 space-y-2">
-                                <Skeleton className="h-5 w-44" />
-                                <Skeleton className="h-3 w-full" />
-                            </div>
-                        </div>
+                        <AppCard key={i}>
+                            <CardContent className="flex items-start gap-4">
+                                <Skeleton className="h-12 w-12 rounded-lg shrink-0" />
+                                <div className="flex-1 space-y-2">
+                                    <Skeleton className="h-5 w-44" />
+                                    <Skeleton className="h-3 w-full" />
+                                </div>
+                            </CardContent>
+                        </AppCard>
                     ))}
                 </div>
             </div>

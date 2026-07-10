@@ -1,4 +1,5 @@
 import { Skeleton } from '@/components/ui/skeleton'
+import { AppCard, CardContent } from '@/components/ui/app-card'
 
 export default function SuperadminUsersLoading() {
     return (
@@ -25,30 +26,32 @@ export default function SuperadminUsersLoading() {
                 </div>
 
                 {/* Card avec table */}
-                <div className="rounded-xl border bg-card p-6 space-y-4">
-                    <div className="space-y-1.5">
-                        <Skeleton className="h-5 w-36" />
-                        <Skeleton className="h-3 w-56" />
-                    </div>
-                    {/* Header table */}
-                    <div className="flex items-center gap-4 border-b pb-2">
-                        <Skeleton className="h-4 w-24" />
-                        <Skeleton className="h-4 w-32" />
-                        <Skeleton className="h-4 w-16" />
-                        <Skeleton className="h-4 w-24 ml-auto" />
-                    </div>
-                    {/* Lignes */}
-                    <div className="divide-y">
-                        {Array.from({ length: 8 }).map((_, i) => (
-                            <div key={i} className="flex items-center gap-4 py-3">
-                                <Skeleton className="h-4 w-24" />
-                                <Skeleton className="h-4 w-32" />
-                                <Skeleton className="h-5 w-16 rounded-full" />
-                                <Skeleton className="h-4 w-24 ml-auto" />
-                            </div>
-                        ))}
-                    </div>
-                </div>
+                <AppCard>
+                    <CardContent className="layout-card-body">
+                        <div className="space-y-1.5">
+                            <Skeleton className="h-5 w-36" />
+                            <Skeleton className="h-3 w-56" />
+                        </div>
+                        {/* Header table */}
+                        <div className="flex items-center gap-4 border-b pb-2">
+                            <Skeleton className="h-4 w-24" />
+                            <Skeleton className="h-4 w-32" />
+                            <Skeleton className="h-4 w-16" />
+                            <Skeleton className="h-4 w-24 ml-auto" />
+                        </div>
+                        {/* Lignes */}
+                        <div className="divide-y">
+                            {Array.from({ length: 8 }).map((_, i) => (
+                                <div key={i} className="flex items-center gap-4 py-3">
+                                    <Skeleton className="h-4 w-24" />
+                                    <Skeleton className="h-4 w-32" />
+                                    <Skeleton className="h-5 w-16 rounded-full" />
+                                    <Skeleton className="h-4 w-24 ml-auto" />
+                                </div>
+                            ))}
+                        </div>
+                    </CardContent>
+                </AppCard>
             </div>
         </>
     )

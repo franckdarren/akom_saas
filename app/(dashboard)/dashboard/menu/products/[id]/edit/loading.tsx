@@ -1,4 +1,5 @@
 import { Skeleton } from '@/components/ui/skeleton'
+import { AppCard, CardContent } from '@/components/ui/app-card'
 
 export default function EditProductLoading() {
     return (
@@ -27,24 +28,50 @@ export default function EditProductLoading() {
                 </div>
 
                 {/* Formulaire produit */}
-                <div className="rounded-xl border bg-card p-6 space-y-6">
-                    {/* Image */}
-                    <div className="space-y-2">
-                        <Skeleton className="h-4 w-24" />
-                        <Skeleton className="h-40 w-40 rounded-lg" />
-                    </div>
-                    {/* Champs */}
-                    {Array.from({ length: 5 }).map((_, i) => (
-                        <div key={i} className="space-y-2">
-                            <Skeleton className="h-4 w-32" />
-                            <Skeleton className="h-10 w-full rounded-md" />
+                <AppCard>
+                    <CardContent className="layout-form">
+                        {/* Sélecteur de type */}
+                        <div className="space-y-4">
+                            <div className="space-y-1.5">
+                                <Skeleton className="h-4 w-16" />
+                                <Skeleton className="h-3.5 w-72 max-w-full" />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                {Array.from({ length: 2 }).map((_, i) => (
+                                    <div
+                                        key={i}
+                                        className="flex flex-col items-center gap-3 p-6 rounded-lg border-2"
+                                    >
+                                        <Skeleton className="h-8 w-8 rounded" />
+                                        <div className="flex flex-col items-center gap-1.5">
+                                            <Skeleton className="h-4 w-16" />
+                                            <Skeleton className="h-3 w-28" />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
-                    ))}
-                    <div className="flex gap-3 pt-2">
-                        <Skeleton className="h-10 w-32 rounded-md" />
-                        <Skeleton className="h-10 w-24 rounded-md" />
-                    </div>
-                </div>
+
+                        {/* Champs */}
+                        {Array.from({ length: 5 }).map((_, i) => (
+                            <div key={i} className="space-y-2">
+                                <Skeleton className="h-4 w-32" />
+                                <Skeleton className="h-10 w-full rounded-md" />
+                            </div>
+                        ))}
+
+                        {/* Image */}
+                        <div className="space-y-2">
+                            <Skeleton className="h-4 w-24" />
+                            <Skeleton className="h-40 w-40 rounded-lg" />
+                        </div>
+
+                        <div className="flex gap-3 pt-2">
+                            <Skeleton className="h-10 w-32 rounded-md" />
+                            <Skeleton className="h-10 w-24 rounded-md" />
+                        </div>
+                    </CardContent>
+                </AppCard>
             </div>
         </>
     )

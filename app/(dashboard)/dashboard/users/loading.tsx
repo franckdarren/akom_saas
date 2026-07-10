@@ -1,4 +1,5 @@
 import { Skeleton } from '@/components/ui/skeleton'
+import { AppCard, CardContent } from '@/components/ui/app-card'
 
 export default function UsersLoading() {
     return (
@@ -23,32 +24,36 @@ export default function UsersLoading() {
 
                 {/* Onglets */}
                 <div className="flex gap-1 border-b">
-                    {Array.from({ length: 3 }).map((_, i) => (
+                    {Array.from({ length: 2 }).map((_, i) => (
                         <Skeleton key={i} className="h-9 w-28 rounded-b-none rounded-t" />
                     ))}
                 </div>
 
                 {/* Table membres */}
-                <div className="rounded-xl border bg-card overflow-hidden">
-                    <div className="flex items-center gap-4 px-6 py-3 border-b bg-muted/50">
-                        <Skeleton className="h-4 w-32" />
-                        <Skeleton className="h-4 w-28 ml-auto" />
-                        <Skeleton className="h-4 w-20" />
-                    </div>
-                    <div className="divide-y">
-                        {Array.from({ length: 5 }).map((_, i) => (
-                            <div key={i} className="flex items-center gap-4 px-6 py-4">
-                                <Skeleton className="h-9 w-9 rounded-full shrink-0" />
-                                <div className="flex-1 space-y-1.5">
-                                    <Skeleton className="h-4 w-40" />
-                                    <Skeleton className="h-3 w-52" />
+                <AppCard>
+                    <CardContent className="p-0">
+                        <div className="flex items-center gap-4 px-6 py-3 border-b bg-muted/50">
+                            <Skeleton className="h-4 w-32" />
+                            <Skeleton className="h-4 w-16" />
+                            <Skeleton className="h-4 w-28 ml-auto" />
+                            <Skeleton className="h-4 w-20" />
+                        </div>
+                        <div className="divide-y">
+                            {Array.from({ length: 5 }).map((_, i) => (
+                                <div key={i} className="flex items-center gap-4 px-6 py-4">
+                                    <Skeleton className="h-9 w-9 rounded-full shrink-0" />
+                                    <div className="flex-1 space-y-1.5">
+                                        <Skeleton className="h-4 w-40" />
+                                        <Skeleton className="h-3 w-52" />
+                                    </div>
+                                    <Skeleton className="h-6 w-20 rounded-full shrink-0" />
+                                    <Skeleton className="h-4 w-24 shrink-0" />
+                                    <Skeleton className="h-8 w-8 rounded shrink-0" />
                                 </div>
-                                <Skeleton className="h-6 w-20 rounded-full" />
-                                <Skeleton className="h-8 w-8 rounded shrink-0" />
-                            </div>
-                        ))}
-                    </div>
-                </div>
+                            ))}
+                        </div>
+                    </CardContent>
+                </AppCard>
             </div>
         </>
     )
