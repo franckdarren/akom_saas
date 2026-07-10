@@ -55,8 +55,8 @@ export function CashBalanceChart({ data }: CashBalanceChartProps) {
                                 width={40}
                             />
                             <Tooltip
-                                formatter={(value: number | undefined, name: string | undefined) => [
-                                    value != null ? formatPrice(value) : '—',
+                                formatter={(value, name) => [
+                                    typeof value === 'number' ? formatPrice(value) : '—',
                                     name === 'openingBalance' ? 'Solde ouverture' : 'Solde fermeture',
                                 ]}
                                 labelFormatter={(label) => `Session du ${formatDate(label as string)}`}
