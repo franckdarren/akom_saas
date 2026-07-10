@@ -1,8 +1,9 @@
 // app/r/[slug]/t/[number]/components/menu-layout.tsx
 'use client'
 
-import {useEffect, useState, useMemo} from 'react'
-import {Loader2, MapPin, Phone} from 'lucide-react'
+import {useState, useMemo} from 'react'
+import {MapPin, Phone} from 'lucide-react'
+import Image from 'next/image'
 import {useCart} from '../cart-context'
 import {CartDialog} from '../cart-dialog'
 import {RestaurantHeader} from './restaurant-header'
@@ -12,33 +13,7 @@ import {ProductCard} from '../product-card'
 import {FixedBottomBar} from './fixed-bottom-bar'
 import {ActiveOrdersBanner} from '@/components/menu/ActiveOrdersBanner'
 import {ActiveCatalogOrdersBanner} from '@/components/menu/ActiveCatalogOrdersBanner'
-
-interface Product {
-    id: string
-    name: string
-    description: string | null
-    price: number
-    imageUrl: string | null
-    stock: { quantity: number } | null
-}
-
-interface Category {
-    id: string
-    name: string
-    products: Product[]
-}
-
-interface MenuData {
-    restaurant: {
-        id: string
-        name: string
-        address: string | null
-        phone: string | null
-        coverImageUrl: string | null
-        logoUrl: string | null
-    }
-    categories: Category[]
-}
+import type {PublicMenuData} from '@/lib/data/public-menu'
 
 interface MenuLayoutProps {
     restaurantId: string
@@ -46,6 +21,7 @@ interface MenuLayoutProps {
     tableId: string
     tableNumber: number
     onCartOpen?: () => void
+    initialMenuData: PublicMenuData
 }
 
 export function MenuLayout({
@@ -54,10 +30,11 @@ export function MenuLayout({
                                tableId,
                                tableNumber,
                                onCartOpen,
+                               initialMenuData,
                            }: MenuLayoutProps) {
-    const [menuData, setMenuData] = useState<MenuData | null>(null)
-    const [isLoading, setIsLoading] = useState(true)
-    const [error, setError] = useState<string | null>(null)
+    // Le menu est chargé côté serveur (voir page.tsx des routes /r/[slug]) et passé en props :
+    // plus de fetch client au montage, plus d'écran de chargement systématique.
+    const menuData = initialMenuData
     const [showCartDialog, setShowCartDialog] = useState(false)
 
     // États de recherche et filtres
@@ -69,30 +46,8 @@ export function MenuLayout({
     // Détection automatique : si pas de tableId, on est en mode catalogue
     const isPublicCatalog = !tableId || tableId === null
 
-    // Charger le menu
-    useEffect(() => {
-        async function loadMenu() {
-            try {
-                const response = await fetch(`/api/menu/${restaurantSlug}`)
-                if (!response.ok) throw new Error('Erreur chargement menu')
-
-                const data = await response.json()
-                setMenuData(data)
-            } catch (err) {
-                setError('Impossible de charger le menu')
-                console.error(err)
-            } finally {
-                setIsLoading(false)
-            }
-        }
-
-        loadMenu()
-    }, [restaurantSlug])
-
     // Filtrer les catégories et produits
     const filteredCategories = useMemo(() => {
-        if (!menuData) return []
-
         let categories = menuData.categories
 
         // Filtrer par catégorie sélectionnée
@@ -118,33 +73,6 @@ export function MenuLayout({
 
         return categories
     }, [menuData, selectedCategory, searchQuery])
-
-    // États de chargement et d'erreur
-    if (isLoading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-muted">
-                <div className="text-center">
-                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mx-auto mb-4"/>
-                    <p className="text-muted-foreground">Chargement du menu...</p>
-                </div>
-            </div>
-        )
-    }
-
-    if (error || !menuData) {
-        return (
-            <div className="min-h-screen flex items-center justify-center p-4 bg-muted">
-                <div className="text-center">
-                    <p className="text-lg text-destructive mb-4">
-                        {error || 'Menu introuvable'}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                        Veuillez scanner à nouveau le QR code de votre table
-                    </p>
-                </div>
-            </div>
-        )
-    }
 
     return (
         <div className="min-h-screen bg-muted pb-3">
@@ -259,9 +187,11 @@ export function MenuLayout({
                 <div className="w-full max-w-screen-xl mx-auto py-4 md:py-8">
                     <div className="flex justify-center items-center gap-2 mb-3">
                         {menuData.restaurant.logoUrl && (
-                            <img
+                            <Image
                                 src={menuData.restaurant.logoUrl}
-                                className="h-5"
+                                width={20}
+                                height={20}
+                                className="h-5 w-auto"
                                 alt="Logo"
                             />
                         )}

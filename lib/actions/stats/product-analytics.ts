@@ -43,9 +43,11 @@ export async function getProductAnalytics(
     const restaurantId = await getCurrentRestaurantId()
     const { startDate, endDate, previousStartDate, previousEndDate } = getPeriodRange(period, customPeriod)
 
-    const [stocks, movementsGrouped, rotationRaw, alertsRaw, previousMovementsCount] = await Promise.all([
+    const [stocks, movementsGrouped, rotationRaw, previousMovementsCount] = await Promise.all([
 
         // ——— Valorisation : tous les stocks avec leur produit + prix ———
+        // Sert aussi de base aux alertes de stock (filtrées en mémoire ci-dessous)
+        // pour éviter un second aller-retour DB sur la même table.
         prisma.stock.findMany({
             where: { restaurantId },
             select: {
@@ -58,6 +60,7 @@ export async function getProductAnalytics(
                         price: true,
                         hasStock: true,
                         isAvailable: true,
+                        category: { select: { name: true } },
                     },
                 },
             },
@@ -83,26 +86,6 @@ export async function getProductAnalytics(
                 type: { in: ['order_out', 'sale_manual', 'manual_in', 'purchase'] },
             },
             _sum: { quantity: true },
-        }),
-
-        // ——— Alertes de stock (ruptures / stock bas) ———
-        prisma.stock.findMany({
-            where: {
-                restaurantId,
-                quantity: { lte: prisma.stock.fields.alertThreshold },
-            },
-            select: {
-                quantity: true,
-                alertThreshold: true,
-                product: {
-                    select: {
-                        id: true,
-                        name: true,
-                        category: { select: { name: true } },
-                    },
-                },
-            },
-            orderBy: { quantity: 'asc' },
         }),
 
         // ——— Count mouvements période précédente (N-1) ———
@@ -205,14 +188,17 @@ export async function getProductAnalytics(
         .sort((a, b) => b.outQty - a.outQty)
         .slice(0, 10)
 
-    // ——— Alertes ———
-    const alerts: StockAlert[] = alertsRaw.map((s) => ({
-        productId: s.product.id,
-        productName: s.product.name,
-        currentQuantity: s.quantity,
-        alertThreshold: s.alertThreshold,
-        categoryName: s.product.category?.name ?? null,
-    }))
+    // ——— Alertes (dérivées de `stocks`, déjà chargé pour la valorisation) ———
+    const alerts: StockAlert[] = stocks
+        .filter((s) => s.quantity <= s.alertThreshold)
+        .sort((a, b) => a.quantity - b.quantity)
+        .map((s) => ({
+            productId: s.product.id,
+            productName: s.product.name,
+            currentQuantity: s.quantity,
+            alertThreshold: s.alertThreshold,
+            categoryName: s.product.category?.name ?? null,
+        }))
 
     return {
         valuation,

@@ -61,6 +61,7 @@ export function useOrdersRealtime() {
     const [allOrders, setAllOrders] = useState<Order[]>([])
     const [loading, setLoading] = useState(true)
     const [statusFilter, setStatusFilter] = useState<OrderStatus | 'all'>('all')
+    const [isRealtimeConnected, setIsRealtimeConnected] = useState(false)
 
     const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -120,6 +121,8 @@ export function useOrdersRealtime() {
     useEffect(() => {
         if (!currentRestaurant?.id) return
 
+        setIsRealtimeConnected(false)
+
         const channel = supabase
             .channel(`orders:${currentRestaurant.id}`)
             .on(
@@ -137,6 +140,7 @@ export function useOrdersRealtime() {
             )
             .subscribe((status) => {
                 console.log('🔌 Subscription status:', status)
+                setIsRealtimeConnected(status === 'SUBSCRIBED')
             })
 
         return () => {
@@ -145,8 +149,10 @@ export function useOrdersRealtime() {
     }, [currentRestaurant?.id, fetchOrders, supabase])
 
     /**
-     * POLLING INTELLIGENT
-     * Refetch toutes les 3 secondes s'il y a des commandes actives
+     * POLLING DE SECOURS
+     * Le Realtime Supabase est la source de rafraîchissement principale ; ce polling
+     * ne sert que de filet de sécurité si le canal n'est pas (ou plus) SUBSCRIBED,
+     * pour éviter de doubler la charge serveur (websocket + HTTP) en fonctionnement normal.
      */
     useEffect(() => {
         // Vérifier s'il y a des commandes actives (pas delivered, cancelled, ni awaiting_payment)
@@ -154,14 +160,12 @@ export function useOrdersRealtime() {
             (order) => !['delivered', 'cancelled', 'awaiting_payment'].includes(order.status)
         )
 
-        // Si commandes actives → polling
-        if (hasActiveOrders) {
-            console.log('🔄 Polling activé (commandes actives)')
+        if (hasActiveOrders && !isRealtimeConnected) {
+            console.log('🔄 Polling de secours activé (realtime indisponible)')
             pollingIntervalRef.current = setInterval(() => {
                 fetchOrders()
-            }, 3000) // Refetch toutes les 3 secondes
+            }, 15000)
         } else {
-            console.log('⏸️ Polling désactivé (aucune commande active)')
             if (pollingIntervalRef.current) {
                 clearInterval(pollingIntervalRef.current)
                 pollingIntervalRef.current = null
@@ -174,7 +178,7 @@ export function useOrdersRealtime() {
                 clearInterval(pollingIntervalRef.current)
             }
         }
-    }, [allOrders, fetchOrders])
+    }, [allOrders, fetchOrders, isRealtimeConnected])
 
     /**
      * Filtrage

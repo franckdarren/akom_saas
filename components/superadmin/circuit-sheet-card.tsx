@@ -2,6 +2,7 @@
 
 import {useState} from 'react'
 import {useRouter} from 'next/navigation'
+import Image from 'next/image'
 import {AppCard, CardContent, CardHeader, CardTitle} from '@/components/ui/app-card'
 import {Button} from '@/components/ui/button'
 import {LoadingButton} from '@/components/ui/loading-button'
@@ -195,11 +196,14 @@ export function CircuitSheetCard({circuitSheet}: CircuitSheetCardProps) {
                                             title="Fiche circuit PDF"
                                         />
                                     ) : (
-                                        <img
-                                            src={circuitSheet.circuitSheetUrl}
-                                            className="w-full rounded-lg border object-contain"
-                                            alt="Fiche circuit"
-                                        />
+                                        <div className="relative w-full h-[300px] sm:h-[450px] md:h-[600px]">
+                                            <Image
+                                                src={circuitSheet.circuitSheetUrl}
+                                                fill
+                                                className="rounded-lg border object-contain"
+                                                alt="Fiche circuit"
+                                            />
+                                        </div>
                                     )}
 
                                     <Button

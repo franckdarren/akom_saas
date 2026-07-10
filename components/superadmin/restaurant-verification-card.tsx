@@ -2,6 +2,7 @@
 
 import {useState} from 'react'
 import {useRouter} from 'next/navigation'
+import Image from 'next/image'
 import {AppCard, CardContent, CardHeader, CardTitle} from '@/components/ui/app-card'
 import {Button} from '@/components/ui/button'
 import {LoadingButton} from '@/components/ui/loading-button'
@@ -191,11 +192,14 @@ export function RestaurantVerificationCard({
                                         <DialogTitle>Photo de profil</DialogTitle>
                                     </DialogHeader>
 
-                                    <img
-                                        src={docs.profilePhotoUrl}
-                                        alt="Photo de profil"
-                                        className="w-full rounded-lg border object-contain max-h-[70vh]"
-                                    />
+                                    <div className="relative w-full h-[70vh]">
+                                        <Image
+                                            src={docs.profilePhotoUrl}
+                                            alt="Photo de profil"
+                                            fill
+                                            className="rounded-lg border object-contain"
+                                        />
+                                    </div>
 
                                     <Button
                                         variant="secondary"
@@ -261,11 +265,14 @@ export function RestaurantVerificationCard({
                                             className="w-full h-[70vh] rounded-lg border"
                                         />
                                     ) : (
-                                        <img
-                                            src={docs.identityDocumentUrl}
-                                            alt="Pièce d'identité"
-                                            className="w-full rounded-lg border object-contain max-h-[70vh]"
-                                        />
+                                        <div className="relative w-full h-[70vh]">
+                                            <Image
+                                                src={docs.identityDocumentUrl}
+                                                alt="Pièce d'identité"
+                                                fill
+                                                className="rounded-lg border object-contain"
+                                            />
+                                        </div>
                                     )}
 
                                     <Button

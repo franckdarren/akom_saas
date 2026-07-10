@@ -1,11 +1,12 @@
 // lib/actions/categories.ts
 'use server'
 
-import {revalidatePath} from 'next/cache'
+import {revalidatePath, updateTag} from 'next/cache'
 import prisma from '@/lib/prisma'
 import {capitalizeFirst, formatDescription} from '@/lib/utils/format-text'
 import {checkQuota} from '@/lib/services/subscription-checker'
 import {requirePermission} from '@/lib/permissions/check'
+import {menuCacheTag} from '@/lib/data/public-menu'
 
 interface CategoryData {
     name: string
@@ -77,6 +78,7 @@ export async function createCategory(data: CategoryData) {
         })
 
         revalidatePath('/dashboard/menu/categories')
+        updateTag(menuCacheTag(restaurantId))
 
         return {
             success: true,
@@ -115,6 +117,7 @@ export async function updateCategory(id: string, data: CategoryData) {
         })
 
         revalidatePath('/dashboard/menu/categories')
+        updateTag(menuCacheTag(restaurantId))
 
         return {
             success: true,
@@ -161,6 +164,7 @@ export async function toggleCategoryStatus(id: string) {
         })
 
         revalidatePath('/dashboard/menu/categories')
+        updateTag(menuCacheTag(restaurantId))
 
         return {
             success: true,
@@ -244,6 +248,7 @@ export async function deleteCategory(id: string) {
         })
 
         revalidatePath('/dashboard/menu/categories')
+        updateTag(menuCacheTag(restaurantId))
 
         return {
             success: true,
@@ -302,6 +307,7 @@ export async function reorderCategories(categoryIds: string[]) {
         })
 
         revalidatePath('/dashboard/menu/categories')
+        updateTag(menuCacheTag(restaurantId))
 
         return {
             success: true,
@@ -374,6 +380,7 @@ export async function moveCategoryUp(categoryId: string) {
         })
 
         revalidatePath('/dashboard/menu/categories')
+        updateTag(menuCacheTag(restaurantId))
 
         return {
             success: true,
@@ -439,6 +446,7 @@ export async function moveCategoryDown(categoryId: string) {
         })
 
         revalidatePath('/dashboard/menu/categories')
+        updateTag(menuCacheTag(restaurantId))
 
         return {
             success: true,

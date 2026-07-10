@@ -598,6 +598,7 @@ model Order {
   @@index([restaurantId, status])
   @@index([restaurantId, createdAt(sort: Desc)])
   @@index([isArchived, status])
+  @@index([restaurantId, tableId])
   @@map("orders")
 }
 

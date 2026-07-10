@@ -70,6 +70,10 @@ export default async function CaissePage() {
             where: {restaurantId, isAvailable: true},
             include: {stock: true},
             orderBy: {name: 'asc'},
+            // Garde-fou : la recherche produit du POS est côté client, donc pas de
+            // pagination possible sans revoir l'UX de recherche ; ce plafond évite
+            // de charger un catalogue sans limite sur les gros comptes.
+            take: 500,
         }),
     ])
 

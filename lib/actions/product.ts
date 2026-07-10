@@ -1,11 +1,12 @@
 // lib/actions/product.ts
 'use server'
 
-import {revalidatePath} from 'next/cache'
+import {revalidatePath, updateTag} from 'next/cache'
 import prisma from '@/lib/prisma'
 import {capitalizeFirst, formatDescription} from '@/lib/utils/format-text'
 import {checkQuota} from '@/lib/services/subscription-checker'
 import {requirePermission} from '@/lib/permissions/check'
+import {menuCacheTag} from '@/lib/data/public-menu'
 import type {ProductType} from '@/types/product'
 
 interface ProductData {
@@ -146,6 +147,7 @@ export async function createProduct(data: ProductData) {
         })
 
         revalidatePath('/dashboard/menu/products')
+        updateTag(menuCacheTag(restaurantId))
 
         return {
             success: true,
@@ -295,6 +297,7 @@ export async function updateProduct(id: string, data: ProductData) {
         })
 
         revalidatePath('/dashboard/menu/products')
+        updateTag(menuCacheTag(restaurantId))
 
         return {
             success: true,
@@ -378,6 +381,7 @@ export async function toggleProductAvailability(id: string) {
         })
 
         revalidatePath('/dashboard/menu/products')
+        updateTag(menuCacheTag(restaurantId))
 
         return {
             success: true,
@@ -411,6 +415,7 @@ export async function deleteProduct(id: string) {
         })
 
         revalidatePath('/dashboard/menu/products')
+        updateTag(menuCacheTag(restaurantId))
 
         return {
             success: true,

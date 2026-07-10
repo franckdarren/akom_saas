@@ -108,24 +108,33 @@ export async function createPOSOrder(payload: POSOrderPayload) {
 
         // 4. Décrément stock — pay_now uniquement
         // pay_later : le trigger SQL s'en charge au premier changement de statut
+        //
+        // Décrément atomique en une seule requête (au lieu d'un SELECT + UPDATE) :
+        // évite la relecture redondante de `stock.quantity` déjà chargée dans
+        // productMap, et supprime au passage la race condition entre deux ventes
+        // concurrentes du même produit (le `FOR UPDATE` verrouille la ligne le
+        // temps du calcul du delta).
         if (isPayNow) {
             for (const item of payload.items) {
                 const p = productMap.get(item.productId)!
                 if (!p.hasStock) continue
 
-                const currentStock = await tx.stock.findUnique({
-                    where: {restaurantId_productId: {restaurantId, productId: item.productId}},
-                    select: {quantity: true},
-                })
-                if (!currentStock) continue
+                const [stockResult] = await tx.$queryRaw<
+                    {new_quantity: number; previous_quantity: number}[]
+                >`
+                    WITH old_stock AS (
+                        SELECT quantity FROM stocks
+                        WHERE restaurant_id = ${restaurantId}::uuid AND product_id = ${item.productId}::uuid
+                        FOR UPDATE
+                    )
+                    UPDATE stocks
+                    SET quantity = GREATEST((SELECT quantity FROM old_stock) - ${item.quantity}, 0)
+                    WHERE restaurant_id = ${restaurantId}::uuid AND product_id = ${item.productId}::uuid
+                    RETURNING quantity AS new_quantity, (SELECT quantity FROM old_stock) AS previous_quantity
+                `
+                if (!stockResult) continue
 
-                const previousQty = currentStock.quantity
-                const newQty = Math.max(0, previousQty - item.quantity)
-
-                await tx.stock.update({
-                    where: {restaurantId_productId: {restaurantId, productId: item.productId}},
-                    data: {quantity: newQty},
-                })
+                const {previous_quantity: previousQty, new_quantity: newQty} = stockResult
 
                 if (newQty <= 0) {
                     await tx.product.update({

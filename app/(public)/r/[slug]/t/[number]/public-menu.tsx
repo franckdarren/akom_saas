@@ -3,7 +3,7 @@
 
 import { CartProvider } from './cart-context'
 import { MenuLayout } from './components/menu-layout'
-import { ActiveOrdersBanner } from '@/components/menu/ActiveOrdersBanner'
+import type { PublicMenuData } from '@/lib/data/public-menu'
 
 interface PublicMenuProps {
     restaurantId: string
@@ -11,6 +11,7 @@ interface PublicMenuProps {
     restaurantSlug: string
     tableId: string
     tableNumber: number
+    initialMenuData: PublicMenuData
 }
 
 export function PublicMenu({
@@ -18,6 +19,7 @@ export function PublicMenu({
     restaurantSlug,
     tableId,
     tableNumber,
+    initialMenuData,
 }: PublicMenuProps) {
     return (
         <CartProvider>
@@ -26,6 +28,7 @@ export function PublicMenu({
                 restaurantSlug={restaurantSlug}
                 tableId={tableId}
                 tableNumber={tableNumber}
+                initialMenuData={initialMenuData}
             />
         </CartProvider>
     )

@@ -22,11 +22,14 @@ import {QuotaGuard} from "@/components/subscription/QuotaGuard"
 import {getQuotaStatus} from "@/lib/services/subscription-checker"
 import {getLabels} from "@/lib/config/activity-labels" // ← NOUVEAU
 import {PageHeader} from "@/components/ui/page-header"
+import {PaginationControls} from "@/components/ui/pagination-controls"
+
+const PAGE_SIZE = 50
 
 export default async function ProductsPage({
     searchParams,
 }: {
-    searchParams: Promise<{q?: string}>
+    searchParams: Promise<{q?: string; page?: string}>
 }) {
     const supabase = await createClient()
     const {data: {user}} = await supabase.auth.getUser()
@@ -51,27 +54,35 @@ export default async function ProductsPage({
     // ← Calcul des labels
     const labels = getLabels(restaurantUser.restaurant.activityType)
 
-    const {q} = await searchParams
-    const productsQuota = await getQuotaStatus(restaurantId, "max_products")
+    const {q, page: pageParam} = await searchParams
+    const page = Math.max(1, Number(pageParam) || 1)
+    const productsWhere = {
+        restaurantId,
+        ...(q ? {name: {contains: q, mode: 'insensitive' as const}} : {}),
+    }
 
-    const products = await prisma.product.findMany({
-        where: {
-            restaurantId,
-            ...(q ? {name: {contains: q, mode: 'insensitive'}} : {}),
-        },
-        include: {
-            category: {select: {name: true}},
-            family: {select: {name: true}},
-            stock: {select: {quantity: true}},
-        },
-        orderBy: {createdAt: "desc"},
-        take: 100,
-    })
+    // Indépendants → en parallèle
+    const [productsQuota, products, totalProducts, categories] = await Promise.all([
+        getQuotaStatus(restaurantId, "max_products"),
+        prisma.product.findMany({
+            where: productsWhere,
+            include: {
+                category: {select: {name: true}},
+                family: {select: {name: true}},
+                stock: {select: {quantity: true}},
+            },
+            orderBy: {createdAt: "desc"},
+            skip: (page - 1) * PAGE_SIZE,
+            take: PAGE_SIZE,
+        }),
+        prisma.product.count({where: productsWhere}),
+        prisma.category.findMany({
+            where: {restaurantId, isActive: true},
+            orderBy: {position: "asc"},
+        }),
+    ])
 
-    const categories = await prisma.category.findMany({
-        where: {restaurantId, isActive: true},
-        orderBy: {position: "asc"},
-    })
+    const totalPages = Math.max(1, Math.ceil(totalProducts / PAGE_SIZE))
 
     return (
         <>
@@ -172,6 +183,13 @@ export default async function ProductsPage({
                 )}
 
                 <ProductsList products={products}/>
+
+                <PaginationControls
+                    page={page}
+                    totalPages={totalPages}
+                    basePath="/dashboard/menu/products"
+                    searchParams={{q}}
+                />
             </div>
         </>
     )

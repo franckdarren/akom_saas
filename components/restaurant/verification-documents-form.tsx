@@ -3,6 +3,7 @@
 
 import {useState} from 'react'
 import {useRouter} from 'next/navigation'
+import Image from 'next/image'
 import {AppCard, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/app-card'
 import {Button} from '@/components/ui/button'
 import {LoadingButton} from '@/components/ui/loading-button'
@@ -265,10 +266,11 @@ export function VerificationDocumentsForm({
                             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                                 {profilePhotoUrl && (
                                     <div className="relative h-20 w-20 sm:h-24 sm:w-24 rounded-lg overflow-hidden border shrink-0">
-                                        <img
+                                        <Image
                                             src={profilePhotoUrl}
                                             alt="Aperçu"
-                                            className="h-full w-full object-contain"
+                                            fill
+                                            className="object-contain"
                                         />
                                     </div>
                                 )}

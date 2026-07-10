@@ -2,6 +2,7 @@
 import {cache} from 'react'
 import {notFound} from 'next/navigation'
 import prisma from '@/lib/prisma'
+import {getPublicMenuData} from '@/lib/data/public-menu'
 import {PublicCatalogMenu} from './public-catalog-menu'
 
 // cache() déduplique la requête : generateMetadata et le composant page
@@ -34,9 +35,12 @@ export default async function PublicCatalogPage({
     params: Promise<{ slug: string }>
 }) {
     const {slug} = await params
-    const restaurant = await getRestaurantBySlug(slug)
+    const [restaurant, menuData] = await Promise.all([
+        getRestaurantBySlug(slug),
+        getPublicMenuData(slug),
+    ])
 
-    if (!restaurant) {
+    if (!restaurant || !menuData) {
         notFound()
     }
 
@@ -50,6 +54,7 @@ export default async function PublicCatalogPage({
             coverImageUrl={restaurant.coverImageUrl}
             logoUrl={restaurant.logoUrl}
             singpayEnabled={restaurant.singpayConfig?.enabled ?? false}
+            initialMenuData={menuData}
         />
     )
 }

@@ -15,11 +15,14 @@ import {AppInsetHeader} from '@/components/layout/AppInsetHeader'
 import {getUserRole} from "@/lib/actions/auth"
 import {getLabels} from "@/lib/config/activity-labels" // ← NOUVEAU
 import {PageHeader} from "@/components/ui/page-header"
+import {PaginationControls} from "@/components/ui/pagination-controls"
+
+const PAGE_SIZE = 50
 
 export default async function StocksPage({
     searchParams,
 }: {
-    searchParams: Promise<{q?: string}>
+    searchParams: Promise<{q?: string; page?: string}>
 }) {
     const supabase = await createClient()
     const {data: {user}} = await supabase.auth.getUser()
@@ -39,31 +42,40 @@ export default async function StocksPage({
 
     if (!restaurantUser) redirect('/onboarding')
 
-    const {q} = await searchParams
+    const {q, page: pageParam} = await searchParams
+    const page = Math.max(1, Number(pageParam) || 1)
     const labels = getLabels(restaurantUser.restaurant.activityType)
 
-    const stocks = await prisma.stock.findMany({
-        where: {
-            restaurantId: restaurantUser.restaurantId,
-            ...(q ? {product: {name: {contains: q, mode: 'insensitive'}}} : {}),
-        },
-        include: {
-            product: {
-                select: {
-                    id: true,
-                    name: true,
-                    isAvailable: true,
-                    category: {
-                        select: {name: true},
+    const stocksWhere = {
+        restaurantId: restaurantUser.restaurantId,
+        ...(q ? {product: {name: {contains: q, mode: 'insensitive' as const}}} : {}),
+    }
+
+    const [stocks, totalStocks] = await Promise.all([
+        prisma.stock.findMany({
+            where: stocksWhere,
+            include: {
+                product: {
+                    select: {
+                        id: true,
+                        name: true,
+                        isAvailable: true,
+                        category: {
+                            select: {name: true},
+                        },
                     },
                 },
             },
-        },
-        orderBy: {
-            product: {name: 'asc'},
-        },
-        take: 100,
-    })
+            orderBy: {
+                product: {name: 'asc'},
+            },
+            skip: (page - 1) * PAGE_SIZE,
+            take: PAGE_SIZE,
+        }),
+        prisma.stock.count({where: stocksWhere}),
+    ])
+
+    const totalPages = Math.max(1, Math.ceil(totalStocks / PAGE_SIZE))
 
     return (
         <>
@@ -89,6 +101,13 @@ export default async function StocksPage({
                 />
 
                 <StocksList stocks={stocks}/>
+
+                <PaginationControls
+                    page={page}
+                    totalPages={totalPages}
+                    basePath="/dashboard/stocks"
+                    searchParams={{q}}
+                />
             </div>
         </>
     )

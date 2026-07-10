@@ -5,6 +5,7 @@ import {useState} from 'react'
 import {MenuLayout} from './t/[number]/components/menu-layout'
 import {CartProvider} from './t/[number]/cart-context'
 import {CatalogCartDialog} from './catalog-cart-dialog'
+import type {PublicMenuData} from '@/lib/data/public-menu'
 
 /**
  * Menu catalogue public
@@ -25,6 +26,7 @@ interface PublicCatalogMenuProps {
     coverImageUrl: string | null
     logoUrl: string | null
     singpayEnabled: boolean
+    initialMenuData: PublicMenuData
 }
 
 export function PublicCatalogMenu(props: PublicCatalogMenuProps) {
@@ -43,6 +45,7 @@ export function PublicCatalogMenu(props: PublicCatalogMenuProps) {
                 tableId="" // Pas de table dans le contexte catalogue
                 tableNumber={0} // Pas de numéro de table
                 onCartOpen={() => setShowCart(true)}
+                initialMenuData={props.initialMenuData}
             />
 
             {/*

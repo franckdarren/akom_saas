@@ -50,24 +50,26 @@ export async function initiateOrderPayment(
             params.operator
         )
 
-        // Mettre à jour le montant total de la commande
-        await prisma.order.update({
-            where: {id: order.id},
-            data: {totalAmount: totalToPay},
-        })
-
-        // Créer la transaction
-        const payment = await prisma.payment.create({
-            data: {
-                restaurantId: order.restaurantId,
-                orderId: order.id,
-                amount: totalToPay,
-                method: params.operator === 'card' ? 'card' : 'mobile_money',
-                status: 'pending',
-                timing: 'before_meal',
-                phoneNumber: params.payerPhone,
-            },
-        })
+        // Mettre à jour le montant total de la commande et créer la transaction
+        // ensemble : sans ça, une interruption entre les deux laisse un totalAmount
+        // incluant les frais sans Payment pour l'expliquer (stats de revenu faussées).
+        const [, payment] = await prisma.$transaction([
+            prisma.order.update({
+                where: {id: order.id},
+                data: {totalAmount: totalToPay},
+            }),
+            prisma.payment.create({
+                data: {
+                    restaurantId: order.restaurantId,
+                    orderId: order.id,
+                    amount: totalToPay,
+                    method: params.operator === 'card' ? 'card' : 'mobile_money',
+                    status: 'pending',
+                    timing: 'before_meal',
+                    phoneNumber: params.payerPhone,
+                },
+            }),
+        ])
 
         // Créer une instance EBillingService pour ce restaurant
         const restaurantEBilling = new EBillingService({

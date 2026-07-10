@@ -3,6 +3,7 @@
 import {revalidatePath} from 'next/cache'
 import prisma from '@/lib/prisma'
 import {requirePermission} from '@/lib/permissions/check'
+import {Prisma} from '@prisma/client'
 import type {InventoryScope} from '@prisma/client'
 
 // ============================================================
@@ -147,59 +148,86 @@ export async function completeInventorySession(sessionId: string) {
 
         const reason = `Inventaire #${session.id.slice(0, 8)}`
 
+        // Écarts à appliquer, pré-calculés hors transaction pour minimiser le temps
+        // passé à tenir les verrous (voir audit perf : ex-boucle N+1 sur des centaines
+        // de lignes, remplacée par des updates en masse + createMany).
+        const operationalChanges = session.lines
+            .filter((l) => l.countedQty !== null && l.productId)
+            .map((l) => ({
+                productId: l.productId as string,
+                counted: Number(l.countedQty),
+                expected: Number(l.expectedQty),
+            }))
+            .filter((c) => c.counted - c.expected !== 0)
+
+        const warehouseChanges = session.lines
+            .filter((l) => l.countedQty !== null && l.warehouseProductId)
+            .map((l) => ({
+                warehouseProductId: l.warehouseProductId as string,
+                counted: Number(l.countedQty),
+                expected: Number(l.expectedQty),
+            }))
+            .filter((c) => c.counted - c.expected !== 0)
+
         await prisma.$transaction(async (tx) => {
-            for (const line of session.lines) {
-                if (line.countedQty === null) continue
+            if (session.scope === 'operational' && operationalChanges.length > 0) {
+                const stockValues = Prisma.join(
+                    operationalChanges.map((c) => Prisma.sql`(${c.productId}::uuid, ${c.counted}::int)`)
+                )
+                await tx.$executeRaw`
+                    UPDATE stocks AS s
+                    SET quantity = v.quantity
+                    FROM (VALUES ${stockValues}) AS v(product_id, quantity)
+                    WHERE s.restaurant_id = ${restaurantId}::uuid AND s.product_id = v.product_id
+                `
 
-                const counted = Number(line.countedQty)
-                const expected = Number(line.expectedQty)
-                const gap = counted - expected
-                if (gap === 0) continue
+                const availabilityValues = Prisma.join(
+                    operationalChanges.map((c) => Prisma.sql`(${c.productId}::uuid, ${c.counted > 0})`)
+                )
+                await tx.$executeRaw`
+                    UPDATE products AS p
+                    SET is_available = v.is_available
+                    FROM (VALUES ${availabilityValues}) AS v(product_id, is_available)
+                    WHERE p.restaurant_id = ${restaurantId}::uuid AND p.id = v.product_id
+                `
 
-                if (session.scope === 'operational' && line.productId) {
-                    await tx.stock.update({
-                        where: {restaurantId_productId: {restaurantId, productId: line.productId}},
-                        data: {quantity: counted},
-                    })
-                    await tx.stockMovement.create({
-                        data: {
-                            restaurantId,
-                            productId: line.productId,
-                            userId,
-                            type: 'adjustment',
-                            quantity: gap,
-                            previousQty: expected,
-                            newQty: counted,
-                            reason,
-                        },
-                    })
-                    await tx.product.update({
-                        where: {id: line.productId},
-                        data: {isAvailable: counted > 0},
-                    })
-                } else if (session.scope === 'warehouse' && line.warehouseProductId) {
-                    await tx.warehouseStock.update({
-                        where: {
-                            restaurantId_warehouseProductId: {
-                                restaurantId,
-                                warehouseProductId: line.warehouseProductId,
-                            },
-                        },
-                        data: {quantity: counted, lastInventoryDate: new Date()},
-                    })
-                    await tx.warehouseMovement.create({
-                        data: {
-                            restaurantId,
-                            warehouseProductId: line.warehouseProductId,
-                            movementType: 'adjustment',
-                            quantity: gap,
-                            previousQty: expected,
-                            newQty: counted,
-                            reason,
-                            performedBy: userId,
-                        },
-                    })
-                }
+                await tx.stockMovement.createMany({
+                    data: operationalChanges.map((c) => ({
+                        restaurantId,
+                        productId: c.productId,
+                        userId,
+                        type: 'adjustment',
+                        quantity: c.counted - c.expected,
+                        previousQty: c.expected,
+                        newQty: c.counted,
+                        reason,
+                    })),
+                })
+            } else if (session.scope === 'warehouse' && warehouseChanges.length > 0) {
+                const stockValues = Prisma.join(
+                    warehouseChanges.map(
+                        (c) => Prisma.sql`(${c.warehouseProductId}::uuid, ${c.counted}::decimal)`
+                    )
+                )
+                await tx.$executeRaw`
+                    UPDATE warehouse_stock AS s
+                    SET quantity = v.quantity, last_inventory_date = now()
+                    FROM (VALUES ${stockValues}) AS v(warehouse_product_id, quantity)
+                    WHERE s.restaurant_id = ${restaurantId}::uuid AND s.warehouse_product_id = v.warehouse_product_id
+                `
+
+                await tx.warehouseMovement.createMany({
+                    data: warehouseChanges.map((c) => ({
+                        restaurantId,
+                        warehouseProductId: c.warehouseProductId,
+                        movementType: 'adjustment',
+                        quantity: c.counted - c.expected,
+                        previousQty: c.expected,
+                        newQty: c.counted,
+                        reason,
+                        performedBy: userId,
+                    })),
+                })
             }
 
             await tx.inventorySession.update({

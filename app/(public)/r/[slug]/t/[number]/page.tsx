@@ -1,6 +1,7 @@
 // app/r/[slug]/t/[number]/page.tsx
 import { notFound } from 'next/navigation'
 import prisma from '@/lib/prisma'
+import { getPublicMenuData } from '@/lib/data/public-menu'
 import { PublicMenu } from './public-menu'
 
 export default async function PublicMenuPage({
@@ -9,37 +10,33 @@ export default async function PublicMenuPage({
     params: Promise<{ slug: string; number: string }>
 }) {
     const { slug, number } = await params
-
-    // Récupérer le restaurant
-    const restaurant = await prisma.restaurant.findUnique({
-        where: { slug, isActive: true },
-    })
-
-    if (!restaurant) {
-        notFound()
-    }
-
-    // Récupérer la table
     const tableNumber = parseInt(number)
-    const table = await prisma.table.findFirst({
-        where: {
-            restaurantId: restaurant.id,
-            number: tableNumber,
-            isActive: true,
-        },
-    })
 
-    if (!table) {
+    // Le menu (restaurant + catégories + produits) et la table sont indépendants : en parallèle.
+    const [menuData, table] = await Promise.all([
+        getPublicMenuData(slug),
+        prisma.table.findFirst({
+            where: {
+                restaurant: { slug, isActive: true },
+                number: tableNumber,
+                isActive: true,
+            },
+            select: { id: true },
+        }),
+    ])
+
+    if (!menuData || !table) {
         notFound()
     }
 
     return (
         <PublicMenu
-            restaurantId={restaurant.id}
-            restaurantName={restaurant.name}
+            restaurantId={menuData.restaurant.id}
+            restaurantName={menuData.restaurant.name}
             restaurantSlug={slug}
             tableId={table.id}
             tableNumber={tableNumber}
+            initialMenuData={menuData}
         />
     )
 }

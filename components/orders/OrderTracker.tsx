@@ -165,9 +165,11 @@ export function OrderTracker({ order: initialOrder, restaurant, table }: OrderTr
     const canCancel = order.status === 'pending' &&
         (Date.now() - createdAt.getTime()) < 2 * 60 * 1000
 
-    // Pooling de secours toutes les 10 secondes
-    // Juste au cas où le temps réel ne fonctionnerait pas
+    // Polling de secours : uniquement si le canal Realtime n'est pas connecté,
+    // pour ne pas doubler la charge serveur en fonctionnement normal
     useEffect(() => {
+        if (isConnected) return
+
         // Vérifier le statut toutes les 10 secondes
         const interval = setInterval(async () => {
             try {
@@ -188,7 +190,7 @@ export function OrderTracker({ order: initialOrder, restaurant, table }: OrderTr
         }, 10000) // Toutes les 10 secondes
 
         return () => clearInterval(interval)
-    }, [order.id, order.status])
+    }, [order.id, order.status, isConnected])
 
     return (
         <div className="container max-w-2xl mx-auto py-4 px-2 space-y-6">
