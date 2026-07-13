@@ -70,7 +70,7 @@ export function SuspendedRestaurantCard({restaurant, suspensionReason}: Suspende
         )
 
         if (result.success) {
-            toast.success(`Restaurant ${restaurant.name} réactivé avec succès`)
+            toast.success(`${restaurant.name} réactivée avec succès`)
             router.refresh()
             setShowReactivateDialog(false)
             setShowConfirmDialog(false)
@@ -146,7 +146,7 @@ export function SuspendedRestaurantCard({restaurant, suspensionReason}: Suspende
                         <p className="text-xs text-muted-foreground">
                             {restaurant.circuitSheet.isSubmitted
                                 ? 'Soumise - En attente de validation dans l\'onglet "Fiches circuit"'
-                                : 'Non soumise - Le restaurant doit la soumettre pour être réactivé'}
+                                : 'Non soumise - La structure doit la soumettre pour être réactivée'}
                         </p>
                     </div>
                 )}
@@ -175,7 +175,7 @@ export function SuspendedRestaurantCard({restaurant, suspensionReason}: Suspende
                                 <DialogHeader>
                                     <DialogTitle>Réactiver {restaurant.name}</DialogTitle>
                                     <DialogDescription>
-                                        Cette réactivation manuelle lèvera la suspension et rendra le restaurant actif.
+                                        Cette réactivation manuelle lèvera la suspension et rendra la structure active.
                                         Utilisez cette option uniquement si nécessaire.
                                     </DialogDescription>
                                 </DialogHeader>
@@ -235,7 +235,7 @@ export function SuspendedRestaurantCard({restaurant, suspensionReason}: Suspende
                                     Vous êtes sur le point de réactiver {restaurant.name}.
                                     {suspensionReason === 'circuit_sheet' && (
                                         <span className="block mt-2 text-warning font-medium">
-                      ⚠️ Attention : ce restaurant n'a pas soumis sa fiche circuit. Assurez-vous d'une raison valable.
+                      ⚠️ Attention : cette structure n'a pas soumis sa fiche circuit. Assurez-vous d'une raison valable.
                     </span>
                                     )}
                                 </AlertDialogDescription>

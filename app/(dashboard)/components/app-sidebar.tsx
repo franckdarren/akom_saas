@@ -313,7 +313,7 @@ export function AppSidebar({
                 title: "Administration",
                 items: [
                     {title: "Vue d'ensemble", href: "/superadmin", icon: Crown},
-                    {title: "Restaurants", href: "/superadmin/restaurants", icon: Building2},
+                    {title: "Structures", href: "/superadmin/restaurants", icon: Building2},
                     {title: "Utilisateurs", href: "/superadmin/users", icon: Users},
                     {title: "Statistiques", href: "/superadmin/stats", icon: BarChart3},
                     {title: "Support", href: "/superadmin/support", icon: MessageSquare},

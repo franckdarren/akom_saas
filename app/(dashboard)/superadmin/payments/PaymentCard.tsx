@@ -61,7 +61,7 @@ export function PaymentCard({payment}: PaymentCardProps) {
 
         if (result.success) {
             toast.success('Paiement validé avec succès', {
-                description: "L'abonnement du restaurant a été activé",
+                description: "L'abonnement de la structure a été activé",
             })
             router.refresh()
             setOpenConfirm(false)
@@ -192,7 +192,7 @@ export function PaymentCard({payment}: PaymentCardProps) {
                             Confirmer la validation du paiement
                         </AlertDialogTitle>
                         <AlertDialogDescription>
-                            Cette action activera l’abonnement du restaurant{' '}
+                            Cette action activera l’abonnement de{' '}
                             <strong>{payment.restaurant.name}</strong>.
                             Cette opération est irréversible.
                         </AlertDialogDescription>

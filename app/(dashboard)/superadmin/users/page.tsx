@@ -70,7 +70,7 @@ export default async function UsersManagementPage() {
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>User ID</TableHead>
-                                    <TableHead>Restaurant</TableHead>
+                                    <TableHead>Structure</TableHead>
                                     <TableHead>Rôle</TableHead>
                                     <TableHead>Ajouté le</TableHead>
                                 </TableRow>

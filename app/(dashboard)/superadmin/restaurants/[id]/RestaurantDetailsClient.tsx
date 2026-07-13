@@ -3,6 +3,7 @@
 import { RestaurantDetailsType } from './page'
 import { formatDate, formatNumber, formatPrice } from '@/lib/utils/format'
 import { getRoleBadge } from '@/lib/utils/permissions'
+import { getLabels } from '@/lib/config/activity-labels'
 import { SystemRole } from '@/types/auth'
 import {
     AppCard,
@@ -39,14 +40,22 @@ interface Props {
 // ----------------------------
 
 export default function RestaurantDetailsClient({ restaurant }: Props) {
+    const labels = getLabels(restaurant.activityType)
+
     return (
         <div className="space-y-6">
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                    
+
                     <div>
-                        <h1 className="type-page-title">{restaurant.name}</h1>
+                        <div className="flex items-center gap-2">
+                            <h1 className="type-page-title">{restaurant.name}</h1>
+                            <Badge variant="secondary">
+                                <span className="mr-1">{labels.emoji}</span>
+                                {labels.structureNameCapital}
+                            </Badge>
+                        </div>
                         <p className="type-description">
                             {restaurant.slug}
                         </p>
@@ -98,13 +107,13 @@ export default function RestaurantDetailsClient({ restaurant }: Props) {
                 />
 
                 <StatCard
-                    title="Produits"
+                    title={capitalize(labels.productNamePlural)}
                     value={formatNumber(restaurant._count.products)}
                     icon={<Building2 className="h-4 w-4 text-muted-foreground" />}
                 />
 
                 <StatCard
-                    title="Tables"
+                    title={capitalize(labels.tableNamePlural)}
                     value={formatNumber(restaurant._count.tables)}
                     icon={<Building2 className="h-4 w-4 text-muted-foreground" />}
                 />
@@ -115,7 +124,7 @@ export default function RestaurantDetailsClient({ restaurant }: Props) {
                 <CardHeader>
                     <CardTitle>Utilisateurs</CardTitle>
                     <CardDescription>
-                        Liste des membres de ce restaurant
+                        Liste des membres de {restaurant.name}
                     </CardDescription>
                 </CardHeader>
 
@@ -206,6 +215,10 @@ export default function RestaurantDetailsClient({ restaurant }: Props) {
 // ----------------------------
 // UI Helpers
 // ----------------------------
+
+function capitalize(text: string): string {
+    return text.charAt(0).toUpperCase() + text.slice(1)
+}
 
 function Info({
     label,

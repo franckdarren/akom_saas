@@ -86,7 +86,7 @@ export default async function StatsPage() {
 
                     <AppCard variant="stat">
                         <CardHeader className="flex flex-row items-center justify-between pb-2">
-                            <CardTitle className="text-sm font-medium">Restaurants Actifs</CardTitle>
+                            <CardTitle className="text-sm font-medium">Structures Actives</CardTitle>
                             <Package className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
@@ -107,10 +107,10 @@ export default async function StatsPage() {
                     </CardContent>
                 </AppCard>
 
-                {/* Top Restaurants */}
+                {/* Top Structures */}
                 <AppCard>
                     <CardHeader>
-                        <CardTitle>Top 10 Restaurants</CardTitle>
+                        <CardTitle>Top 10 Structures</CardTitle>
                         <CardDescription>Classement par nombre de commandes</CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -118,7 +118,7 @@ export default async function StatsPage() {
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>#</TableHead>
-                                    <TableHead>Restaurant</TableHead>
+                                    <TableHead>Structure</TableHead>
                                     <TableHead className="text-right">Commandes</TableHead>
                                     <TableHead className="text-right">Revenu</TableHead>
                                 </TableRow>
@@ -141,7 +141,7 @@ export default async function StatsPage() {
                 <AppCard>
                     <CardHeader>
                         <CardTitle>Top 10 Produits</CardTitle>
-                        <CardDescription>Produits les plus vendus (tous restaurants)</CardDescription>
+                        <CardDescription>Produits les plus vendus (toutes structures)</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <Table>

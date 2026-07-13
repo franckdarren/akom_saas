@@ -29,6 +29,7 @@ export type RestaurantDetailsType = {
     phone?: string | null
     address?: string | null
     isActive: boolean
+    activityType: string
     createdAt: string
     singpayConfig: {
         enabled: boolean

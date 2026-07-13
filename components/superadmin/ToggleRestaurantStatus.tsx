@@ -43,8 +43,8 @@ export function ToggleRestaurantStatus({
 
             toast.success(
                 isActive
-                    ? 'Restaurant désactivé avec succès'
-                    : 'Restaurant activé avec succès'
+                    ? 'Structure désactivée avec succès'
+                    : 'Structure activée avec succès'
             )
 
             router.refresh()
@@ -70,12 +70,12 @@ export function ToggleRestaurantStatus({
             <AlertDialogContent>
                 <AlertDialogHeader>
                     <AlertDialogTitle>
-                        {isActive ? 'Désactiver' : 'Activer'} ce restaurant ?
+                        {isActive ? 'Désactiver' : 'Activer'} cette structure ?
                     </AlertDialogTitle>
                     <AlertDialogDescription>
                         {isActive
-                            ? 'Le restaurant ne sera plus accessible aux utilisateurs. Vous pourrez le réactiver plus tard.'
-                            : 'Le restaurant sera à nouveau accessible aux utilisateurs.'}
+                            ? 'La structure ne sera plus accessible aux utilisateurs. Vous pourrez la réactiver plus tard.'
+                            : 'La structure sera à nouveau accessible aux utilisateurs.'}
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>

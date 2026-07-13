@@ -27,7 +27,7 @@ export default async function SuspendedRestaurantsPage() {
     return (
       <div className="text-center py-12">
         <p className="text-muted-foreground">
-          Erreur lors du chargement des restaurants suspendus
+          Erreur lors du chargement des structures suspendues
         </p>
       </div>
     )
@@ -57,22 +57,22 @@ export default async function SuspendedRestaurantsPage() {
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>Restaurants suspendus</BreadcrumbPage>
+              <BreadcrumbPage>Structures suspendues</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
       </AppInsetHeader>
       <div className="layout-page">
         <PageHeader
-            title="Restaurants suspendus"
-            description="Gérez les restaurants dont le compte a été suspendu"
+            title="Structures suspendues"
+            description="Gérez les structures dont le compte a été suspendu"
         />
 
       {/* Alert d'information */}
       <Alert variant="destructive">
         <AlertTriangle className="h-4 w-4" />
         <AlertDescription>
-          Les restaurants suspendus ne peuvent plus accéder à leur compte et leur menu n'est
+          Les structures suspendues ne peuvent plus accéder à leur compte et leur catalogue n'est
           pas accessible aux clients. La suspension peut être levée après validation des documents
           ou manuellement si nécessaire.
         </AlertDescription>
@@ -131,8 +131,8 @@ export default async function SuspendedRestaurantsPage() {
           <Alert>
             <InfoIcon className="h-4 w-4" />
             <AlertDescription>
-              Ces restaurants Business/Premium ont été suspendus automatiquement car ils n'ont
-              pas soumis leur fiche circuit dans les 3 mois. Dès qu'ils la soumettent et que vous
+              Ces structures sous offre Business/Premium ont été suspendues automatiquement car elles n'ont
+              pas soumis leur fiche circuit dans les 3 mois. Dès qu'elles la soumettent et que vous
               la validez, leur compte sera automatiquement réactivé.
             </AlertDescription>
           </Alert>
@@ -169,11 +169,11 @@ export default async function SuspendedRestaurantsPage() {
         </div>
       )}
 
-      {/* Message si aucun restaurant suspendu */}
+      {/* Message si aucune structure suspendue */}
       {restaurants.length === 0 && (
         <AppCard>
           <CardContent>
-            <EmptyState title="Aucun restaurant suspendu pour le moment 🎉"/>
+            <EmptyState title="Aucune structure suspendue pour le moment 🎉"/>
           </CardContent>
         </AppCard>
       )}

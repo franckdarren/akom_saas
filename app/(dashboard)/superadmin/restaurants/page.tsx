@@ -14,8 +14,13 @@ import {Badge} from '@/components/ui/badge'
 import {AppCard, CardContent} from '@/components/ui/app-card'
 import {EmptyState} from '@/components/ui/empty-state'
 import {formatPrice, calculateMonthlyPrice} from '@/lib/config/subscription'
+import {getLabels} from '@/lib/config/activity-labels'
 import Link from 'next/link'
 import {ExternalLink, Users} from 'lucide-react'
+
+function capitalize(text: string): string {
+    return text.charAt(0).toUpperCase() + text.slice(1)
+}
 
 /**
  * Page Superadmin : Liste de tous les restaurants
@@ -78,7 +83,7 @@ export default async function RestaurantsPage() {
                         </BreadcrumbItem>
                         <BreadcrumbSeparator/>
                         <BreadcrumbItem>
-                            <BreadcrumbPage>Restaurants</BreadcrumbPage>
+                            <BreadcrumbPage>Structures</BreadcrumbPage>
                         </BreadcrumbItem>
                     </BreadcrumbList>
                 </Breadcrumb>
@@ -86,8 +91,8 @@ export default async function RestaurantsPage() {
 
             <div className="layout-page">
                 <PageHeader
-                    title="Tous les Restaurants"
-                    description={`${restaurants.length} restaurant${restaurants.length > 1 ? 's' : ''} inscrit${restaurants.length > 1 ? 's' : ''}`}
+                    title="Toutes les Structures"
+                    description={`${restaurants.length} structure${restaurants.length > 1 ? 's' : ''} inscrite${restaurants.length > 1 ? 's' : ''}`}
                 />
 
                 {/* Liste des restaurants */}
@@ -95,6 +100,7 @@ export default async function RestaurantsPage() {
                     {restaurants.map((restaurant) => {
                         const sub = restaurant.subscription
                         const now = new Date()
+                        const labels = getLabels(restaurant.activityType)
 
                         // ============================================================
                         // Calcul du statut de l'abonnement et des jours restants
@@ -172,30 +178,36 @@ export default async function RestaurantsPage() {
                                                         {sub.plan}
                                                     </Badge>
                                                 )}
+
+                                                {/* Badge du type d'activité */}
+                                                <Badge variant="secondary">
+                                                    <span className="mr-1">{labels.emoji}</span>
+                                                    {labels.structureNameCapital}
+                                                </Badge>
                                             </div>
 
                                             {/* Statistiques du restaurant */}
                                             <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-4 text-sm">
 
-                                                {/* Nombre de tables */}
+                                                {/* Nombre de points de service */}
                                                 <div>
-                                                    <p className="text-muted-foreground">Tables</p>
+                                                    <p className="text-muted-foreground">{capitalize(labels.tableNamePlural)}</p>
                                                     <p className="font-medium text-lg">
                                                         {restaurant._count.tables}
                                                     </p>
                                                 </div>
 
-                                                {/* Nombre de produits */}
+                                                {/* Nombre de produits/articles/prestations */}
                                                 <div>
-                                                    <p className="text-muted-foreground">Produits</p>
+                                                    <p className="text-muted-foreground">{capitalize(labels.productNamePlural)}</p>
                                                     <p className="font-medium text-lg">
                                                         {restaurant._count.products}
                                                     </p>
                                                 </div>
 
-                                                {/* Nombre de commandes */}
+                                                {/* Nombre de commandes/réservations */}
                                                 <div>
-                                                    <p className="text-muted-foreground">Commandes</p>
+                                                    <p className="text-muted-foreground">{labels.orderNamePluralCapital}</p>
                                                     <p className="font-medium text-lg">
                                                         {restaurant._count.orders}
                                                     </p>
@@ -273,7 +285,7 @@ export default async function RestaurantsPage() {
                                             {/* Message si pas d'abonnement */}
                                             {!sub && (
                                                 <div className="mt-4 text-sm text-muted-foreground">
-                                                    Ce restaurant n'a pas encore d'abonnement actif
+                                                    Cette structure n'a pas encore d'abonnement actif
                                                 </div>
                                             )}
                                         </div>
@@ -281,7 +293,7 @@ export default async function RestaurantsPage() {
                                         {/* Lien vers la page de détail */}
                                         <Link
                                             href={`/superadmin/restaurants/${restaurant.id}`}
-                                            aria-label={`Voir la fiche du restaurant ${restaurant.name}`}
+                                            aria-label={`Voir la fiche de la structure ${restaurant.name}`}
                                             className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
                                         >
                                             Voir détails
@@ -293,11 +305,11 @@ export default async function RestaurantsPage() {
                         )
                     })}
 
-                    {/* Message si aucun restaurant */}
+                    {/* Message si aucune structure */}
                     {restaurants.length === 0 && (
                         <AppCard>
                             <CardContent>
-                                <EmptyState title="Aucun restaurant inscrit pour le moment"/>
+                                <EmptyState title="Aucune structure inscrite pour le moment"/>
                             </CardContent>
                         </AppCard>
                     )}

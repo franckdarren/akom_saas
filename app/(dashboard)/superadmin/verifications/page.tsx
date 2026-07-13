@@ -26,7 +26,7 @@ export default async function VerificationsPage() {
         return (
             <div className="text-center py-12">
                 <p className="text-muted-foreground">
-                    Erreur lors du chargement des restaurants
+                    Erreur lors du chargement des structures
                 </p>
             </div>
         )
@@ -53,22 +53,22 @@ export default async function VerificationsPage() {
                         </BreadcrumbItem>
                         <BreadcrumbSeparator />
                         <BreadcrumbItem>
-                            <BreadcrumbPage>Vérifications des restaurants</BreadcrumbPage>
+                            <BreadcrumbPage>Vérifications des structures</BreadcrumbPage>
                         </BreadcrumbItem>
                     </BreadcrumbList>
                 </Breadcrumb>
             </AppInsetHeader>
             <div className="layout-page">
                 <PageHeader
-                    title="Vérifications des restaurants"
-                    description="Validez ou rejetez les documents d'identité soumis par les restaurants"
+                    title="Vérifications des structures"
+                    description="Validez ou rejetez les documents d'identité soumis par les structures"
                 />
 
                 {/* Alert d'information */}
                 <Alert>
                     <InfoIcon className="h-4 w-4" />
                     <AlertDescription>
-                        Les restaurants ne peuvent pas être activés tant que leurs documents ne sont pas vérifiés.
+                        Les structures ne peuvent pas être activées tant que leurs documents ne sont pas vérifiés.
                         Vérifiez que la photo de profil et la pièce d'identité correspondent bien à la même personne
                         et que les documents sont valides. En cas de doute, rejetez avec une explication claire.
                     </AlertDescription>
@@ -142,7 +142,7 @@ export default async function VerificationsPage() {
                         </div>
 
                         <div className="text-sm text-muted-foreground mb-4">
-                            Ces restaurants n'ont pas encore uploadé leurs documents. Ils ne nécessitent
+                            Ces structures n'ont pas encore uploadé leurs documents. Elles ne nécessitent
                             aucune action de votre part pour le moment.
                         </div>
 
@@ -164,7 +164,7 @@ export default async function VerificationsPage() {
                                     </CardHeader>
                                     <CardContent>
                                         <p className="text-sm text-muted-foreground">
-                                            Le restaurant n'a pas encore soumis ses documents de vérification.
+                                            Cette structure n'a pas encore soumis ses documents de vérification.
                                         </p>
                                     </CardContent>
                                 </AppCard>
@@ -173,11 +173,11 @@ export default async function VerificationsPage() {
                     </div>
                 )}
 
-                {/* Message si aucun restaurant */}
+                {/* Message si aucune structure */}
                 {restaurants.length === 0 && (
                     <AppCard>
                         <CardContent>
-                            <EmptyState title="Aucun restaurant en attente de vérification pour le moment"/>
+                            <EmptyState title="Aucune structure en attente de vérification pour le moment"/>
                         </CardContent>
                     </AppCard>
                 )}

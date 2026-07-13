@@ -84,7 +84,7 @@ export function RestaurantVerificationCard({
         const result = await approveRestaurantVerification(restaurant.id)
 
         if (result.success) {
-            toast.success(`Restaurant approuvé`)
+            toast.success(`Structure approuvée`)
             router.refresh()
         } else {
             toast.error(result.error || "Erreur lors de l'approbation")
@@ -110,7 +110,7 @@ export function RestaurantVerificationCard({
         )
 
         if (result.success) {
-            toast.success(`Restaurant rejeté`)
+            toast.success(`Structure rejetée`)
             router.refresh()
             setShowRejectDialog(false)
             setRejectionReason('')
@@ -317,7 +317,7 @@ export function RestaurantVerificationCard({
                                         Confirmer l'approbation ?
                                     </AlertDialogTitle>
                                     <AlertDialogDescription>
-                                        Le restaurant sera activé et visible.
+                                        La structure sera activée et visible.
                                     </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>

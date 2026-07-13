@@ -41,6 +41,7 @@ import {
 } from 'lucide-react'
 
 import {formatNumber, formatPrice} from '@/lib/utils/format'
+import {getLabels} from '@/lib/config/activity-labels'
 import Link from 'next/link'
 import {
     Breadcrumb,
@@ -88,9 +89,9 @@ export default async function SuperAdminDashboard() {
                 {/* ================= KPI GLOBAL ================= */}
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                     <StatCard
-                        title="Restaurants"
+                        title="Structures"
                         value={stats.totalRestaurants}
-                        subtitle={`${stats.activeRestaurants} actifs`}
+                        subtitle={`${stats.activeRestaurants} actives`}
                         icon={<Building2/>}
                     />
 
@@ -157,7 +158,7 @@ export default async function SuperAdminDashboard() {
                     />
 
                     <StatCard
-                        title="Restaurants vérifiés"
+                        title="Structures vérifiées"
                         value={stats.verifiedRestaurants}
                         icon={<CheckCircle/>}
                     />
@@ -169,7 +170,7 @@ export default async function SuperAdminDashboard() {
                     />
 
                     <StatCard
-                        title="Restaurants suspendus"
+                        title="Structures suspendues"
                         value={stats.suspendedRestaurants}
                         icon={<AlertCircle/>}
                     />
@@ -216,17 +217,18 @@ export default async function SuperAdminDashboard() {
                     </CardContent>
                 </AppCard>
 
-                {/* ================= TOP RESTAURANTS ================= */}
+                {/* ================= TOP STRUCTURES ================= */}
                 <AppCard>
                     <CardHeader>
-                        <CardTitle>Top 5 Restaurants</CardTitle>
-                        <CardDescription>Classés par nombre de commandes</CardDescription>
+                        <CardTitle>Top 5 Structures</CardTitle>
+                        <CardDescription>Classées par nombre de commandes</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>Restaurant</TableHead>
+                                    <TableHead>Structure</TableHead>
+                                    <TableHead>Type</TableHead>
                                     <TableHead>Slug</TableHead>
                                     <TableHead>Statut</TableHead>
                                     <TableHead className="text-right">Commandes</TableHead>
@@ -234,7 +236,10 @@ export default async function SuperAdminDashboard() {
                             </TableHeader>
 
                             <TableBody>
-                                {topRestaurants.map((restaurant) => (
+                                {topRestaurants.map((restaurant) => {
+                                    const labels = getLabels(restaurant.activityType)
+
+                                    return (
                                     <TableRow key={restaurant.id}>
                                         <TableCell className="font-medium">
                                             <Link
@@ -243,6 +248,11 @@ export default async function SuperAdminDashboard() {
                                             >
                                                 {restaurant.name}
                                             </Link>
+                                        </TableCell>
+
+                                        <TableCell className="text-muted-foreground">
+                                            <span className="mr-1">{labels.emoji}</span>
+                                            {labels.structureNameCapital}
                                         </TableCell>
 
                                         <TableCell className="text-muted-foreground">
@@ -261,7 +271,7 @@ export default async function SuperAdminDashboard() {
                                             {formatNumber(restaurant._count.orders)}
                                         </TableCell>
                                     </TableRow>
-                                ))}
+                                )})}
                             </TableBody>
                         </Table>
                     </CardContent>

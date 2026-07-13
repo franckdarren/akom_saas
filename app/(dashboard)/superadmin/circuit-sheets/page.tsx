@@ -67,14 +67,14 @@ export default async function CircuitSheetsPage() {
             <div className="layout-page">
                 <PageHeader
                     title="Fiches circuit à valider"
-                    description="Vérifiez et validez les fiches circuit soumises par les restaurants Business"
+                    description="Vérifiez et validez les fiches circuit soumises par les structures sous offre Business"
                 />
 
                 {/* Alert d'information */}
                 <Alert>
                     <InfoIcon className="h-4 w-4" />
                     <AlertDescription>
-                        Les fiches circuit sont obligatoires pour les restaurants sous offre Business ou Premium.
+                        Les fiches circuit sont obligatoires pour les structures sous offre Business ou Premium.
                         Elles doivent être soumises dans les 3 mois suivant l'activation de l'abonnement.
                         Vérifiez que le document contient bien l'organigramme, le circuit des commandes,
                         la gestion des stocks et les horaires du personnel.
@@ -146,8 +146,8 @@ export default async function CircuitSheetsPage() {
                         <Alert variant="destructive">
                             <AlertTriangle className="h-4 w-4" />
                             <AlertDescription>
-                                Ces restaurants ont dépassé la deadline de 3 mois. Ils ont normalement été
-                                suspendus automatiquement. Validez leurs fiches rapidement pour les réactiver.
+                                Ces structures ont dépassé la deadline de 3 mois. Elles ont normalement été
+                                suspendues automatiquement. Validez leurs fiches rapidement pour les réactiver.
                             </AlertDescription>
                         </Alert>
 
@@ -171,7 +171,7 @@ export default async function CircuitSheetsPage() {
                         </div>
 
                         <p className="text-sm text-muted-foreground">
-                            Ces restaurants ont moins de 7 jours pour soumettre leur fiche circuit.
+                            Ces structures ont moins de 7 jours pour soumettre leur fiche circuit.
                             Validez-les rapidement une fois soumises pour éviter la suspension automatique.
                         </p>
 
