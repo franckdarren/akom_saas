@@ -260,6 +260,14 @@ export async function getRestaurantDetails(
                     walletId: true,
                 },
             },
+            subscription: {
+                include: {
+                    payments: {
+                        orderBy: {createdAt: 'desc'},
+                        take: 5,
+                    },
+                },
+            },
             _count: {
                 select: {
                     orders: true,

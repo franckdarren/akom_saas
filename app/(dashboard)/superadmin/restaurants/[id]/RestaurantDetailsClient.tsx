@@ -5,6 +5,8 @@ import { formatDate, formatNumber, formatPrice } from '@/lib/utils/format'
 import { getRoleBadge } from '@/lib/utils/permissions'
 import { getLabels } from '@/lib/config/activity-labels'
 import { SystemRole } from '@/types/auth'
+import { calculateMonthlyPrice, getPlanConfig } from '@/lib/config/subscription'
+import { PLAN_LABELS, STATUS_LABELS } from '@/types/subscription'
 import {
     AppCard,
     CardContent,
@@ -24,7 +26,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/ui/empty-state'
 import { ToggleRestaurantStatus } from '@/components/superadmin/ToggleRestaurantStatus'
-import { ArrowLeft, Building2, ShoppingCart, Smartphone, TrendingUp } from 'lucide-react'
+import { ArrowLeft, Building2, CreditCard, ShoppingCart, Smartphone, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
 
 // ----------------------------
@@ -88,6 +90,123 @@ export default function RestaurantDetailsClient({ restaurant }: Props) {
                     <Info label="Créé le">
                         {formatDate(new Date(restaurant.createdAt))}
                     </Info>
+                </CardContent>
+            </AppCard>
+
+            {/* Abonnement */}
+            <AppCard>
+                <CardHeader>
+                    <div className="flex items-center justify-between">
+                        <div className="layout-inline">
+                            <CreditCard className="h-5 w-5 text-muted-foreground" />
+                            <CardTitle className="type-card-title">Abonnement</CardTitle>
+                        </div>
+                        {restaurant.subscription && (
+                            <Badge variant={getSubscriptionBadgeVariant(restaurant.subscription.status)}>
+                                {STATUS_LABELS[restaurant.subscription.status as keyof typeof STATUS_LABELS]}
+                            </Badge>
+                        )}
+                    </div>
+                    <CardDescription>
+                        Détails de l&apos;abonnement de {restaurant.name}
+                    </CardDescription>
+                </CardHeader>
+
+                <CardContent className="layout-card-body">
+                    {!restaurant.subscription ? (
+                        <EmptyState title="Aucun abonnement" description="Cette structure n'a pas encore d'abonnement." />
+                    ) : (
+                        <>
+                            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                                <Info label="Plan">
+                                    {PLAN_LABELS[restaurant.subscription.plan as keyof typeof PLAN_LABELS]}
+                                </Info>
+                                <Info label="Coût mensuel">
+                                    {formatPrice(
+                                        calculateMonthlyPrice(
+                                            restaurant.subscription.plan as Parameters<typeof calculateMonthlyPrice>[0],
+                                            restaurant.subscription.activeUsersCount
+                                        )
+                                    )}
+                                </Info>
+                                <Info label="Cycle de facturation">
+                                    {restaurant.subscription.billingCycle} mois
+                                </Info>
+                                <Info label="Utilisateurs actifs">
+                                    {formatNumber(restaurant.subscription.activeUsersCount)}
+                                </Info>
+
+                                {restaurant.subscription.status === 'trial' ? (
+                                    <>
+                                        <Info label="Début essai">
+                                            {formatDate(new Date(restaurant.subscription.trialStartsAt))}
+                                        </Info>
+                                        <Info label="Fin essai">
+                                            {formatDate(new Date(restaurant.subscription.trialEndsAt))}
+                                        </Info>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Info label="Début période">
+                                            {restaurant.subscription.currentPeriodStart
+                                                ? formatDate(new Date(restaurant.subscription.currentPeriodStart))
+                                                : 'Non renseigné'}
+                                        </Info>
+                                        <Info label="Fin période">
+                                            {restaurant.subscription.currentPeriodEnd
+                                                ? formatDate(new Date(restaurant.subscription.currentPeriodEnd))
+                                                : 'Non renseigné'}
+                                        </Info>
+                                    </>
+                                )}
+
+                                <Info label="Jours restants">
+                                    {(() => {
+                                        const days = getSubscriptionDaysRemaining(restaurant.subscription)
+                                        return days === null ? 'Non renseigné' : `${days} jour${days > 1 ? 's' : ''}`
+                                    })()}
+                                </Info>
+                            </div>
+
+                            <div>
+                                <p className="type-label mb-2">Derniers paiements</p>
+                                {restaurant.subscription.payments.length === 0 ? (
+                                    <EmptyState title="Aucun paiement" description="Aucun paiement enregistré pour cet abonnement." />
+                                ) : (
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Montant</TableHead>
+                                                <TableHead>Méthode</TableHead>
+                                                <TableHead>Statut</TableHead>
+                                                <TableHead>Date</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {restaurant.subscription.payments.map((payment) => (
+                                                <TableRow key={payment.id}>
+                                                    <TableCell className="font-medium">
+                                                        {formatPrice(payment.amount)}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {SUBSCRIPTION_PAYMENT_METHOD_LABELS[payment.method] ?? payment.method}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Badge variant={getPaymentStatusBadgeVariant(payment.status)}>
+                                                            {SUBSCRIPTION_PAYMENT_STATUS_LABELS[payment.status] ?? payment.status}
+                                                        </Badge>
+                                                    </TableCell>
+                                                    <TableCell className="text-muted-foreground">
+                                                        {formatDate(new Date(payment.createdAt))}
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                )}
+                            </div>
+                        </>
+                    )}
                 </CardContent>
             </AppCard>
 
@@ -215,6 +334,70 @@ export default function RestaurantDetailsClient({ restaurant }: Props) {
 // ----------------------------
 // UI Helpers
 // ----------------------------
+
+const SUBSCRIPTION_PAYMENT_METHOD_LABELS: Record<string, string> = {
+    manual: 'Virement manuel',
+    airtel_money: 'Airtel Money',
+    moov_money: 'Moov Money',
+    mobile_money: 'Mobile Money',
+    card: 'Carte bancaire',
+}
+
+const SUBSCRIPTION_PAYMENT_STATUS_LABELS: Record<string, string> = {
+    pending: 'En attente',
+    confirmed: 'Confirmé',
+    failed: 'Échoué',
+    refunded: 'Remboursé',
+}
+
+function getSubscriptionBadgeVariant(
+    status: string
+): 'default' | 'secondary' | 'destructive' | 'outline' {
+    switch (status) {
+        case 'active':
+            return 'default'
+        case 'trial':
+            return 'secondary'
+        case 'suspended':
+        case 'expired':
+            return 'destructive'
+        default:
+            return 'outline'
+    }
+}
+
+function getPaymentStatusBadgeVariant(
+    status: string
+): 'default' | 'secondary' | 'destructive' | 'outline' {
+    switch (status) {
+        case 'confirmed':
+            return 'default'
+        case 'pending':
+            return 'secondary'
+        case 'failed':
+            return 'destructive'
+        default:
+            return 'outline'
+    }
+}
+
+function getSubscriptionDaysRemaining(subscription: {
+    status: string
+    trialEndsAt: string
+    currentPeriodEnd: string | null
+}): number | null {
+    const endDate =
+        subscription.status === 'trial'
+            ? new Date(subscription.trialEndsAt)
+            : subscription.currentPeriodEnd
+                ? new Date(subscription.currentPeriodEnd)
+                : null
+
+    if (!endDate) return null
+
+    const diffTime = endDate.getTime() - Date.now()
+    return Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)))
+}
 
 function capitalize(text: string): string {
     return text.charAt(0).toUpperCase() + text.slice(1)

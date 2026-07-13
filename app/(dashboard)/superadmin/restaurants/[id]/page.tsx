@@ -36,6 +36,27 @@ export type RestaurantDetailsType = {
         isConfigured: boolean
         walletId: string | null
     } | null
+    subscription: {
+        id: string
+        plan: string
+        status: string
+        trialStartsAt: string
+        trialEndsAt: string
+        currentPeriodStart: string | null
+        currentPeriodEnd: string | null
+        activeUsersCount: number
+        basePlanPrice: number
+        billingCycle: number
+        createdAt: string
+        payments: {
+            id: string
+            amount: number
+            method: string
+            status: string
+            billingCycle: number
+            createdAt: string
+        }[]
+    } | null
     _count: {
         products: number
         tables: number
@@ -47,6 +68,10 @@ export type RestaurantDetailsType = {
         ordersThisMonth: number
     }
     users: RestaurantUserType[]
+}
+
+function toIsoString(date: Date | string): string {
+    return date instanceof Date ? date.toISOString() : date
 }
 
 // ----------------------------
@@ -70,6 +95,24 @@ export default async function RestaurantDetailsPage({ params }: PageProps) {
                 ? restaurantRaw.createdAt.toISOString()
                 : restaurantRaw.createdAt,
         singpayConfig: restaurantRaw.singpayConfig ?? null,
+        subscription: restaurantRaw.subscription
+            ? {
+                ...restaurantRaw.subscription,
+                trialStartsAt: toIsoString(restaurantRaw.subscription.trialStartsAt),
+                trialEndsAt: toIsoString(restaurantRaw.subscription.trialEndsAt),
+                currentPeriodStart: restaurantRaw.subscription.currentPeriodStart
+                    ? toIsoString(restaurantRaw.subscription.currentPeriodStart)
+                    : null,
+                currentPeriodEnd: restaurantRaw.subscription.currentPeriodEnd
+                    ? toIsoString(restaurantRaw.subscription.currentPeriodEnd)
+                    : null,
+                createdAt: toIsoString(restaurantRaw.subscription.createdAt),
+                payments: restaurantRaw.subscription.payments.map((payment) => ({
+                    ...payment,
+                    createdAt: toIsoString(payment.createdAt),
+                })),
+            }
+            : null,
         users: restaurantRaw.users.map((user: RestaurantUser) => ({
             ...user,
             role: user.role ?? null,
