@@ -22,6 +22,7 @@ import {hasFeature} from '@/lib/services/subscription-checker'
 import {formatDate, formatNumber, formatPrice} from '@/lib/utils/format'
 import prisma from '@/lib/prisma'
 import {NewInventorySessionDialog} from './new-inventory-session-dialog'
+import {OpenSessionButton} from './open-session-button'
 import type {InventoryScope} from '@prisma/client'
 
 export const metadata: Metadata = {
@@ -164,16 +165,19 @@ export default async function InventoryPage({
                                                     {session.status === 'completed' ? formatNumber(session.totalGapQty) : '—'}
                                                 </TableCell>
                                                 <TableCell className="text-right">
-                                                    {session.status === 'completed' && session.scope === 'warehouse'
+                                                    {/* Depuis le suivi du CUMP, les sessions « stock »
+                                                        sont valorisées elles aussi : on n'affiche donc
+                                                        plus « — » selon le périmètre mais selon la
+                                                        présence effective d'une valorisation. */}
+                                                    {session.status === 'completed' && session.totalGapValue !== 0
                                                         ? formatPrice(session.totalGapValue)
                                                         : '—'}
                                                 </TableCell>
                                                 <TableCell>
-                                                    <Button variant="outline" size="sm" asChild>
-                                                        <Link href={`/dashboard/inventory/${session.id}`}>
-                                                            {session.status === 'completed' ? 'Voir' : 'Continuer'}
-                                                        </Link>
-                                                    </Button>
+                                                    <OpenSessionButton
+                                                        sessionId={session.id}
+                                                        label={session.status === 'completed' ? 'Voir' : 'Continuer'}
+                                                    />
                                                 </TableCell>
                                             </TableRow>
                                         )

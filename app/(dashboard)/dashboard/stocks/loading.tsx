@@ -25,6 +25,21 @@ export default function StocksLoading() {
                 {/* Barre de recherche */}
                 <Skeleton className="h-10 w-full max-w-sm rounded-lg" />
 
+                {/* KPI de valorisation */}
+                <div className="layout-kpi-grid">
+                    {Array.from({ length: 4 }).map((_, i) => (
+                        <AppCard key={i} variant="stat">
+                            <CardContent className="layout-card-body">
+                                <Skeleton className="h-3 w-24" />
+                                <Skeleton className="h-8 w-28" />
+                            </CardContent>
+                        </AppCard>
+                    ))}
+                </div>
+
+                {/* Bascule Quantités / Valeur */}
+                <Skeleton className="h-9 w-56 rounded-lg" />
+
                 {/* Grille de cards produit */}
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                     {Array.from({ length: 6 }).map((_, i) => (

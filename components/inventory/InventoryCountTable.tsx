@@ -18,12 +18,14 @@ import {Button} from '@/components/ui/button'
 import {LoadingButton} from '@/components/ui/loading-button'
 import {Input} from '@/components/ui/input'
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table'
+import {Loader2} from 'lucide-react'
 import {formatNumber, formatPrice} from '@/lib/utils/format'
 import {
     saveInventoryCounts,
     completeInventorySession,
     cancelInventorySession,
 } from '@/lib/actions/inventory'
+import {useNavigationLoading} from '@/lib/hooks/use-navigation-loading'
 import type {InventoryScope, InventoryStatus} from '@prisma/client'
 
 export interface InventoryLineForClient {
@@ -44,6 +46,7 @@ interface InventoryCountTableProps {
 
 export function InventoryCountTable({sessionId, status, lines}: InventoryCountTableProps) {
     const router = useRouter()
+    const {startLoading} = useNavigationLoading()
     const [counts, setCounts] = useState<Record<string, string>>(() =>
         Object.fromEntries(lines.map((l) => [l.id, l.countedQty !== null ? String(l.countedQty) : '']))
     )
@@ -109,6 +112,9 @@ export function InventoryCountTable({sessionId, status, lines}: InventoryCountTa
             setError(result.error)
             setIsCompleting(false)
         } else {
+            // `isCompleting` reste à true jusqu'au démontage : le bouton continue
+            // d'indiquer une action en cours pendant le rendu du rapport.
+            startLoading()
             router.push(`/dashboard/inventory/${sessionId}/report`)
         }
     }
@@ -164,6 +170,9 @@ export function InventoryCountTable({sessionId, status, lines}: InventoryCountTa
                                                 setCounts((prev) => ({...prev, [line.id]: e.target.value}))
                                             }
                                             placeholder="—"
+                                            // Une saisie pendant l'enregistrement serait perdue :
+                                            // le payload est figé au moment du clic.
+                                            disabled={isSaving || isCompleting || isCancelling}
                                         />
                                     ) : (
                                         formatNumber(line.countedQty ?? 0)
@@ -263,8 +272,23 @@ export function InventoryCountTable({sessionId, status, lines}: InventoryCountTa
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
                                     <AlertDialogCancel disabled={isCancelling}>Retour</AlertDialogCancel>
-                                    <AlertDialogAction onClick={handleCancel} disabled={isCancelling}>
-                                        Confirmer l&apos;annulation
+                                    {/* preventDefault : sans ça Radix referme le dialog au clic et
+                                        l'indicateur d'attente disparaît avant la fin de l'action. */}
+                                    <AlertDialogAction
+                                        onClick={(e) => {
+                                            e.preventDefault()
+                                            handleCancel()
+                                        }}
+                                        disabled={isCancelling}
+                                    >
+                                        {isCancelling ? (
+                                            <>
+                                                <Loader2 className="h-4 w-4 animate-spin"/>
+                                                Annulation…
+                                            </>
+                                        ) : (
+                                            "Confirmer l'annulation"
+                                        )}
                                     </AlertDialogAction>
                                 </AlertDialogFooter>
                             </AlertDialogContent>
@@ -297,8 +321,21 @@ export function InventoryCountTable({sessionId, status, lines}: InventoryCountTa
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
                                     <AlertDialogCancel disabled={isCompleting}>Retour</AlertDialogCancel>
-                                    <AlertDialogAction onClick={handleComplete} disabled={isCompleting}>
-                                        {isCompleting ? 'Validation...' : 'Confirmer la validation'}
+                                    <AlertDialogAction
+                                        onClick={(e) => {
+                                            e.preventDefault()
+                                            handleComplete()
+                                        }}
+                                        disabled={isCompleting}
+                                    >
+                                        {isCompleting ? (
+                                            <>
+                                                <Loader2 className="h-4 w-4 animate-spin"/>
+                                                Validation…
+                                            </>
+                                        ) : (
+                                            'Confirmer la validation'
+                                        )}
                                     </AlertDialogAction>
                                 </AlertDialogFooter>
                             </AlertDialogContent>

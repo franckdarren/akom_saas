@@ -23,6 +23,7 @@ import {
     SelectValue,
 } from '@/components/ui/select'
 import {createInventorySession} from '@/lib/actions/inventory'
+import {useNavigationLoading} from '@/lib/hooks/use-navigation-loading'
 import type {InventoryScope} from '@prisma/client'
 
 interface NewInventorySessionDialogProps {
@@ -39,14 +40,25 @@ export function NewInventorySessionDialog({
     children,
 }: NewInventorySessionDialogProps) {
     const router = useRouter()
+    const {startLoading} = useNavigationLoading()
     const [open, setOpen] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
+    // Le snapshot du stock peut porter sur des centaines de lignes : une fois la
+    // session créée, l'ouverture de l'écran de comptage n'est pas instantanée.
+    // On garde donc le dialog ouvert et le bouton en attente jusqu'à la
+    // navigation, plutôt que de refermer sur une liste inchangée.
+    const [isNavigating, setIsNavigating] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [scope, setScope] = useState<InventoryScope>('operational')
     const [categoryFilter, setCategoryFilter] = useState<string>('all')
     const [label, setLabel] = useState('')
 
     function handleOpenChange(newOpen: boolean) {
+        // Ni Échap ni clic extérieur ne doivent fermer le dialog pendant la
+        // création : la session est déjà en base, la fermer laisserait l'écran
+        // sans aucun retour visuel.
+        if (!newOpen && (isLoading || isNavigating)) return
+
         setOpen(newOpen)
         if (!newOpen) {
             setIsLoading(false)
@@ -72,7 +84,8 @@ export function NewInventorySessionDialog({
             setError(result.error)
             setIsLoading(false)
         } else {
-            setOpen(false)
+            setIsNavigating(true)
+            startLoading()
             router.push(`/dashboard/inventory/${result.sessionId}`)
         }
     }
@@ -101,7 +114,7 @@ export function NewInventorySessionDialog({
                                 setScope(v as InventoryScope)
                                 setCategoryFilter('all')
                             }}
-                            disabled={isLoading}
+                            disabled={isLoading || isNavigating}
                         >
                             <SelectTrigger>
                                 <SelectValue/>
@@ -118,7 +131,11 @@ export function NewInventorySessionDialog({
                     {scopeCategories.length > 0 && (
                         <div className="layout-field">
                             <Label>Catégorie (optionnel)</Label>
-                            <Select value={categoryFilter} onValueChange={setCategoryFilter} disabled={isLoading}>
+                            <Select
+                                value={categoryFilter}
+                                onValueChange={setCategoryFilter}
+                                disabled={isLoading || isNavigating}
+                            >
                                 <SelectTrigger>
                                     <SelectValue/>
                                 </SelectTrigger>
@@ -139,7 +156,7 @@ export function NewInventorySessionDialog({
                             value={label}
                             onChange={(e) => setLabel(e.target.value)}
                             placeholder="Ex: Inventaire mensuel juillet"
-                            disabled={isLoading}
+                            disabled={isLoading || isNavigating}
                         />
                     </div>
 
@@ -154,11 +171,15 @@ export function NewInventorySessionDialog({
                             type="button"
                             variant="outline"
                             onClick={() => setOpen(false)}
-                            disabled={isLoading}
+                            disabled={isLoading || isNavigating}
                         >
                             Annuler
                         </Button>
-                        <LoadingButton type="submit" isLoading={isLoading} loadingText="Création...">
+                        <LoadingButton
+                            type="submit"
+                            isLoading={isLoading || isNavigating}
+                            loadingText={isNavigating ? 'Ouverture du comptage…' : 'Création…'}
+                        >
                             Lancer l&apos;inventaire
                         </LoadingButton>
                     </div>
