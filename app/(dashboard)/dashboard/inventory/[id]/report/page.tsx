@@ -47,8 +47,6 @@ export default async function InventoryReportPage({
         redirect(`/dashboard/inventory/${id}`)
     }
 
-    const isWarehouse = session.scope === 'warehouse'
-
     const gapLines = session.lines
         .filter((line) => line.countedQty !== null)
         .map((line) => {
@@ -71,6 +69,12 @@ export default async function InventoryReportPage({
     const positiveGaps = gapLines.filter((l) => l.gap > 0).length
     const negativeGaps = gapLines.filter((l) => l.gap < 0).length
     const totalGapValue = gapLines.reduce((sum, l) => sum + (l.gapValue ?? 0), 0)
+
+    // La valorisation s'affiche dès qu'un coût de revient est connu, quel que soit
+    // le périmètre : le stock opérationnel est valorisé au CUMP depuis le suivi
+    // des prix d'achat.
+    const hasValuation = session.lines.some((l) => l.unitCost !== null)
+    const unvaluedGapLines = gapLines.filter((l) => l.gapValue === null).length
 
     const csvRows: string[][] = [
         ['Produit', 'Unité', 'Qté théorique', 'Qté comptée', 'Écart', 'Valorisation écart (FCFA)'],
@@ -120,7 +124,7 @@ export default async function InventoryReportPage({
                                 sessionLabel={session.label || formatDate(session.createdAt)}
                                 scopeLabel={SCOPE_LABELS[session.scope]}
                                 lines={gapLines}
-                                isWarehouse={isWarehouse}
+                                showValuation={hasValuation}
                             />
                         </div>
                     }
@@ -145,13 +149,21 @@ export default async function InventoryReportPage({
                             <p className="text-2xl font-bold text-destructive">{negativeGaps}</p>
                         </CardContent>
                     </AppCard>
-                    {isWarehouse && (
+                    {hasValuation && (
                         <AppCard variant="stat">
                             <CardContent className="layout-card-body">
-                                <span className="type-caption text-muted-foreground">Valorisation écart</span>
+                                <span className="type-caption text-muted-foreground">
+                                    {totalGapValue < 0 ? 'Démarque constatée' : 'Valorisation écart'}
+                                </span>
                                 <p className={'text-2xl font-bold ' + (totalGapValue < 0 ? 'text-destructive' : 'text-success')}>
-                                    {formatPrice(totalGapValue)}
+                                    {totalGapValue > 0 ? '+' : ''}{formatPrice(totalGapValue)}
                                 </p>
+                                {unvaluedGapLines > 0 && (
+                                    <span className="type-caption text-muted-foreground">
+                                        {unvaluedGapLines} écart{unvaluedGapLines > 1 ? 's' : ''} non valorisé
+                                        {unvaluedGapLines > 1 ? 's' : ''}
+                                    </span>
+                                )}
                             </CardContent>
                         </AppCard>
                     )}
@@ -173,7 +185,7 @@ export default async function InventoryReportPage({
                                         <TableHead className="text-right">Qté théorique</TableHead>
                                         <TableHead className="text-right">Qté comptée</TableHead>
                                         <TableHead className="text-right">Écart</TableHead>
-                                        {isWarehouse && (
+                                        {hasValuation && (
                                             <TableHead className="text-right">Valorisation</TableHead>
                                         )}
                                     </TableRow>
@@ -199,16 +211,20 @@ export default async function InventoryReportPage({
                                             >
                                                 {(line.gap > 0 ? '+' : '') + formatNumber(line.gap)}
                                             </TableCell>
-                                            {isWarehouse && (
+                                            {hasValuation && (
                                                 <TableCell
                                                     className={
                                                         'text-right ' +
-                                                        (line.gapValue !== null && line.gapValue < 0
-                                                            ? 'text-destructive'
-                                                            : 'text-success')
+                                                        (line.gapValue === null
+                                                            ? 'text-muted-foreground'
+                                                            : line.gapValue < 0
+                                                                ? 'text-destructive'
+                                                                : 'text-success')
                                                     }
                                                 >
-                                                    {line.gapValue !== null ? formatPrice(line.gapValue) : '—'}
+                                                    {line.gapValue !== null
+                                                        ? (line.gapValue > 0 ? '+' : '') + formatPrice(line.gapValue)
+                                                        : '—'}
                                                 </TableCell>
                                             )}
                                         </TableRow>

@@ -451,8 +451,13 @@ model Product {
 
   // Type et tarification
   productType  ProductType @default(good) @map("product_type")
-  price        Int? // Prix en FCFA - NULL si "sur devis"
+  price        Int? // Prix de vente en FCFA - NULL si "sur devis"
   includePrice Boolean     @default(true) @map("include_price")
+
+  // Prix d'achat par defaut en FCFA. Sert uniquement a pre-remplir la saisie
+  // lors d'une entree de stock : le cout de revient reel est le CUMP
+  // (cf. Stock.avgCost), recalcule a chaque reapprovisionnement.
+  purchasePrice Int? @map("purchase_price")
 
   // Gestion de stock
   hasStock Boolean @default(true) @map("has_stock")
@@ -496,6 +501,13 @@ model Stock {
   productId      String   @unique @map("product_id") @db.Uuid
   quantity       Int      @default(0)
   alertThreshold Int      @default(5) @map("alert_threshold")
+
+  // Cout de revient unitaire moyen pondere (CUMP) en FCFA, recalcule a chaque
+  // entree de stock valorisee. NULL tant qu'aucune entree n'a ete valorisee.
+  avgCost Int? @map("avg_cost")
+  // Dernier prix d'achat unitaire saisi (frais annexes inclus), en FCFA.
+  lastPurchasePrice Int? @map("last_purchase_price")
+
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @updatedAt @map("updated_at")
 
@@ -670,6 +682,13 @@ model StockMovement {
   newQty       Int               @map("new_qty")
   reason       String?
   orderId      String?           @map("order_id") @db.Uuid
+
+  // Valorisation (entrees uniquement) — tout en FCFA
+  purchasePrice Int? @map("purchase_price") // prix d'achat unitaire brut saisi
+  extraCosts    Int? @map("extra_costs") // frais annexes du lot (transport, douane...)
+  unitCost      Int? @map("unit_cost") // cout de revient unitaire = purchasePrice + extraCosts / quantite
+  avgCostAfter  Int? @map("avg_cost_after") // CUMP du produit apres ce mouvement (tracabilite)
+
   createdAt    DateTime          @default(now()) @map("created_at")
 
   // Relations

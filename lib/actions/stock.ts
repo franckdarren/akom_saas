@@ -4,6 +4,7 @@
 import { revalidatePath } from 'next/cache'
 import prisma from '@/lib/prisma'
 import { requirePermission } from '@/lib/permissions/check'
+import { computeEntryUnitCost, computeNewAvgCost } from '@/lib/stock/costing'
 
 
 // ============================================================
@@ -14,7 +15,10 @@ export async function adjustStock(
     productId: string,
     quantity: number,
     type: 'manual_in' | 'manual_out' | 'adjustment',
-    reason?: string
+    reason?: string,
+    // Valorisation, uniquement pour les entrées. Si `purchasePrice` est absent,
+    // le mouvement n'est pas valorisé et le CUMP existant reste inchangé.
+    costing?: { purchasePrice?: number | null; extraCosts?: number | null }
 ) {
     try {
         const { userId, restaurantId } = await requirePermission('stocks', 'update')
@@ -54,6 +58,44 @@ export async function adjustStock(
             newQty = quantity
         }
 
+        // ------------------------------------------------------------
+        // Valorisation (CUMP)
+        // ------------------------------------------------------------
+        // Une seule situation fait bouger le coût de revient : une entrée
+        // réelle de marchandise valorisée. Les sorties consomment le stock au
+        // CUMP courant sans le modifier. Un `adjustment` à la hausse est traité
+        // comme une entrée s'il est valorisé (cas du réapprovisionnement saisi
+        // via un recomptage), sinon il ne touche pas au coût.
+        const purchasePrice =
+            costing?.purchasePrice !== undefined && costing.purchasePrice !== null
+                ? Math.round(costing.purchasePrice)
+                : null
+        const extraCosts =
+            costing?.extraCosts !== undefined && costing.extraCosts !== null
+                ? Math.round(costing.extraCosts)
+                : null
+
+        if (purchasePrice !== null && purchasePrice < 0) {
+            return { error: 'Le prix d\'achat ne peut pas être négatif' }
+        }
+        if (extraCosts !== null && extraCosts < 0) {
+            return { error: 'Les frais annexes ne peuvent pas être négatifs' }
+        }
+
+        const entryQty = type === 'manual_in' ? quantity : newQty - previousQty
+        const isValuedEntry = purchasePrice !== null && entryQty > 0
+
+        const entryUnitCost = isValuedEntry
+            ? computeEntryUnitCost(purchasePrice, extraCosts, entryQty)
+            : null
+
+        const newAvgCost = computeNewAvgCost(
+            previousQty,
+            currentStock.avgCost,
+            entryQty,
+            entryUnitCost
+        )
+
         // Mettre à jour le stock et créer le mouvement dans une transaction
         await prisma.$transaction(async (tx) => {
             // Mettre à jour le stock
@@ -64,7 +106,12 @@ export async function adjustStock(
                         productId,
                     },
                 },
-                data: { quantity: newQty },
+                data: {
+                    quantity: newQty,
+                    ...(entryUnitCost !== null
+                        ? { avgCost: newAvgCost, lastPurchasePrice: entryUnitCost }
+                        : {}),
+                },
             })
 
             // Créer le mouvement
@@ -78,6 +125,10 @@ export async function adjustStock(
                     previousQty,
                     newQty,
                     reason: reason || null,
+                    purchasePrice: isValuedEntry ? purchasePrice : null,
+                    extraCosts: isValuedEntry ? extraCosts : null,
+                    unitCost: entryUnitCost,
+                    avgCostAfter: newAvgCost,
                 },
             })
 

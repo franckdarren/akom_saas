@@ -5,6 +5,7 @@ import prisma from '@/lib/prisma'
 import {requireCashAccess} from '@/lib/auth/session'
 import {revalidatePath} from 'next/cache'
 import {PaymentMethod, ExpenseCategory} from '@prisma/client'
+import {computeNewAvgCost, computeUnitCostFromTotal} from '@/lib/stock/costing'
 
 interface AddExpenseInput {
     sessionId: string
@@ -55,9 +56,26 @@ export async function addExpense(input: AddExpenseInput) {
 
             const newQty = currentStock.quantity + input.quantityAdded
 
+            // La dépense porte déjà le montant total payé et la quantité reçue :
+            // le coût unitaire s'en déduit sans saisie supplémentaire. C'est la
+            // source la plus fiable pour le CUMP puisqu'elle vient d'un décaissement
+            // réel, pas d'un prix de référence saisi à la main.
+            const entryUnitCost = computeUnitCostFromTotal(input.amount, input.quantityAdded)
+            const newAvgCost = computeNewAvgCost(
+                currentStock.quantity,
+                currentStock.avgCost,
+                input.quantityAdded,
+                entryUnitCost
+            )
+
             await tx.stock.update({
                 where: {id: currentStock.id},
-                data: {quantity: newQty},
+                data: {
+                    quantity: newQty,
+                    ...(entryUnitCost !== null
+                        ? {avgCost: newAvgCost, lastPurchasePrice: entryUnitCost}
+                        : {}),
+                },
             })
 
             const movement = await tx.stockMovement.create({
@@ -70,6 +88,9 @@ export async function addExpense(input: AddExpenseInput) {
                     previousQty: currentStock.quantity,
                     newQty,
                     reason: `Achat fournisseur : ${input.description}`,
+                    purchasePrice: entryUnitCost,
+                    unitCost: entryUnitCost,
+                    avgCostAfter: newAvgCost,
                 },
             })
 

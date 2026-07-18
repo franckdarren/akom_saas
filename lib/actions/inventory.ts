@@ -34,7 +34,7 @@ export async function createInventorySession(input: {
                         restaurantId,
                         ...(input.categoryFilter ? {product: {categoryId: input.categoryFilter}} : {}),
                     },
-                    select: {productId: true, quantity: true},
+                    select: {productId: true, quantity: true, avgCost: true},
                 })
 
                 if (stocks.length === 0) {
@@ -47,6 +47,10 @@ export async function createInventorySession(input: {
                         restaurantId,
                         productId: s.productId,
                         expectedQty: s.quantity,
+                        // Snapshot du coût de revient au lancement : le rapport doit
+                        // refléter la valeur des marchandises au moment du comptage,
+                        // même si le CUMP bouge ensuite avec un réapprovisionnement.
+                        unitCost: s.avgCost,
                     })),
                 })
             } else {

@@ -19,6 +19,9 @@ interface ProductData {
     productType: ProductType
     price?: number | null
     includePrice: boolean
+    // Prix d'achat de reference en FCFA. Ne concerne que les biens : il pre-remplit
+    // la saisie lors des entrees de stock, le cout de revient reel etant le CUMP.
+    purchasePrice?: number | null
 
     // Image
     imageUrl?: string
@@ -113,6 +116,9 @@ export async function createProduct(data: ProductData) {
             productType: data.productType,
             price: data.includePrice ? (data.price ? Math.floor(data.price) : null) : null,
             includePrice: data.includePrice,
+            // Seuls les biens ont un prix d'achat : un service n'en a pas.
+            purchasePrice:
+                hasStock && data.purchasePrice != null ? Math.floor(data.purchasePrice) : null,
             hasStock,
             imageUrl: data.imageUrl || null,
             isAvailable,
@@ -287,6 +293,9 @@ export async function updateProduct(id: string, data: ProductData) {
             productType: data.productType,
             price: data.includePrice ? (data.price ? Math.floor(data.price) : null) : null,
             includePrice: data.includePrice,
+            // Seuls les biens ont un prix d'achat : un service n'en a pas.
+            purchasePrice:
+                hasStock && data.purchasePrice != null ? Math.floor(data.purchasePrice) : null,
             hasStock,
             imageUrl: data.imageUrl || null,
         }

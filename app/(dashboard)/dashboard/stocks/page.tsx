@@ -16,6 +16,7 @@ import {getUserRole} from "@/lib/actions/auth"
 import {getLabels} from "@/lib/config/activity-labels" // ← NOUVEAU
 import {PageHeader} from "@/components/ui/page-header"
 import {PaginationControls} from "@/components/ui/pagination-controls"
+import {computeStockValuation} from "@/lib/stock/costing"
 
 const PAGE_SIZE = 50
 
@@ -51,7 +52,7 @@ export default async function StocksPage({
         ...(q ? {product: {name: {contains: q, mode: 'insensitive' as const}}} : {}),
     }
 
-    const [stocks, totalStocks] = await Promise.all([
+    const [stocks, totalStocks, valuationRows] = await Promise.all([
         prisma.stock.findMany({
             where: stocksWhere,
             include: {
@@ -60,6 +61,8 @@ export default async function StocksPage({
                         id: true,
                         name: true,
                         isAvailable: true,
+                        price: true,
+                        purchasePrice: true,
                         category: {
                             select: {name: true},
                         },
@@ -73,9 +76,27 @@ export default async function StocksPage({
             take: PAGE_SIZE,
         }),
         prisma.stock.count({where: stocksWhere}),
+        // Les KPI portent sur la totalite du stock, pas sur la page affichee :
+        // une valeur immobilisee calculee sur 50 lignes n'aurait aucun sens.
+        prisma.stock.findMany({
+            where: stocksWhere,
+            select: {
+                quantity: true,
+                avgCost: true,
+                product: {select: {price: true}},
+            },
+        }),
     ])
 
     const totalPages = Math.max(1, Math.ceil(totalStocks / PAGE_SIZE))
+
+    const valuation = computeStockValuation(
+        valuationRows.map((row) => ({
+            quantity: row.quantity,
+            avgCost: row.avgCost,
+            sellingPrice: row.product.price,
+        }))
+    )
 
     return (
         <>
@@ -100,7 +121,7 @@ export default async function StocksPage({
                     description={`Ajustez les quantités en stock. Les ${labels.productNamePlural} avec stock > 0 sont automatiquement disponibles.`}
                 />
 
-                <StocksList stocks={stocks}/>
+                <StocksList stocks={stocks} valuation={valuation}/>
 
                 <PaginationControls
                     page={page}

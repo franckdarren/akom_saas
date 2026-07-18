@@ -20,6 +20,7 @@ import {
 import {Info, Package, Wrench} from 'lucide-react'
 import {createProduct, updateProduct} from '@/lib/actions/product'
 import {ImageUploader} from '@/components/image-uploader'
+import {MarginPreview} from '@/components/stocks/MarginPreview'
 import {toast} from "sonner"
 import type {ProductType} from '@/types/product'
 import type {ActivityLabels} from '@/lib/config/activity-labels' // ← NOUVEAU
@@ -48,6 +49,7 @@ type Product = {
     productType: ProductType
     includePrice: boolean
     hasStock: boolean
+    purchasePrice: number | null
 }
 
 interface ProductFormProps {
@@ -75,6 +77,18 @@ export function ProductForm({categories, families, product, labels}: ProductForm
     const [selectedFamily, setSelectedFamily] = useState<string>(
         product?.familyId || ''
     )
+
+    // Prix contrôlés : la marge se recalcule à chaque frappe, l'utilisateur voit
+    // immédiatement s'il est en train de définir une vente à perte.
+    const [price, setPrice] = useState<string>(
+        product?.price != null ? String(product.price) : ''
+    )
+    const [purchasePrice, setPurchasePrice] = useState<string>(
+        product?.purchasePrice != null ? String(product.purchasePrice) : ''
+    )
+
+    const parsedPrice = price.trim() === '' ? null : Number(price)
+    const parsedPurchasePrice = purchasePrice.trim() === '' ? null : Number(purchasePrice)
 
     // ← Nom générique du produit selon le type d'activité (fallback sur "produit")
     const productLabel = labels?.productName ?? 'produit'
@@ -106,6 +120,16 @@ export function ProductForm({categories, families, product, labels}: ProductForm
         const priceValue = formData.get('price') as string
         const price = priceValue ? parseInt(priceValue) : null
 
+        const purchasePriceValue = formData.get('purchasePrice') as string
+        const parsedPurchase = purchasePriceValue ? parseInt(purchasePriceValue) : null
+
+        if (parsedPurchase !== null && (Number.isNaN(parsedPurchase) || parsedPurchase < 0)) {
+            setError("Le prix d'achat doit être un nombre positif")
+            setIsLoading(false)
+            toast.error("Le prix d'achat doit être un nombre positif")
+            return
+        }
+
         if (productType === 'good' && !price) {
             setError(`Le prix est obligatoire pour les ${productLabel}s`)
             setIsLoading(false)
@@ -132,6 +156,8 @@ export function ProductForm({categories, families, product, labels}: ProductForm
             productType,
             includePrice,
             hasStock: productType === 'good',
+            // Les services n'ont pas de coût d'achat : on ne persiste rien pour eux.
+            purchasePrice: productType === 'good' ? parsedPurchase : null,
         }
 
         const result = product
@@ -339,28 +365,64 @@ export function ProductForm({categories, families, product, labels}: ProductForm
                         )}
 
                         {(productType === 'good' || includePrice) && (
-                            <div className="space-y-2">
-                                <Label htmlFor="price">
-                                    Prix (FCFA) <span className="text-destructive">*</span>
-                                </Label>
-                                <Input
-                                    id="price"
-                                    name="price"
-                                    type="text"
-                                    inputMode="numeric"
-                                    pattern="[0-9]*"
-                                    min="0"
-                                    step="25"
-                                    placeholder="3500"
-                                    defaultValue={product?.price || undefined}
-                                    required={productType === 'good' || includePrice}
-                                    disabled={isLoading}
-                                />
-                                <p className="text-xs text-muted-foreground">
-                                    {productType === 'good'
-                                        ? 'Prix en FCFA (nombre entier uniquement)'
-                                        : 'Prix de départ en FCFA (nombre entier uniquement)'}
-                                </p>
+                            <div className="space-y-4">
+                                <div
+                                    className={productType === 'good' ? 'grid gap-4 sm:grid-cols-2' : 'space-y-2'}>
+                                    {productType === 'good' && (
+                                        <div className="layout-field">
+                                            <Label htmlFor="purchasePrice">Prix d&apos;achat (FCFA)</Label>
+                                            <Input
+                                                id="purchasePrice"
+                                                name="purchasePrice"
+                                                type="text"
+                                                inputMode="numeric"
+                                                pattern="[0-9]*"
+                                                min="0"
+                                                placeholder="2000"
+                                                value={purchasePrice}
+                                                onChange={(e) => setPurchasePrice(e.target.value)}
+                                                disabled={isLoading}
+                                            />
+                                            <p className="text-xs text-muted-foreground">
+                                                Optionnel — sert à pré-remplir vos entrées de stock.
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    <div className={productType === 'good' ? 'layout-field' : 'space-y-2'}>
+                                        <Label htmlFor="price">
+                                            {productType === 'good' ? 'Prix de vente (FCFA)' : 'Prix (FCFA)'}{' '}
+                                            <span className="text-destructive">*</span>
+                                        </Label>
+                                        <Input
+                                            id="price"
+                                            name="price"
+                                            type="text"
+                                            inputMode="numeric"
+                                            pattern="[0-9]*"
+                                            min="0"
+                                            step="25"
+                                            placeholder="3500"
+                                            value={price}
+                                            onChange={(e) => setPrice(e.target.value)}
+                                            required={productType === 'good' || includePrice}
+                                            disabled={isLoading}
+                                        />
+                                        <p className="text-xs text-muted-foreground">
+                                            {productType === 'good'
+                                                ? 'Prix en FCFA (nombre entier uniquement)'
+                                                : 'Prix de départ en FCFA (nombre entier uniquement)'}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* Marge calculée en direct — visible dès que les deux prix sont saisis */}
+                                {productType === 'good' && (
+                                    <MarginPreview
+                                        sellingPrice={parsedPrice}
+                                        purchasePrice={parsedPurchasePrice}
+                                    />
+                                )}
                             </div>
                         )}
 

@@ -18,7 +18,7 @@ import {Button} from '@/components/ui/button'
 import {LoadingButton} from '@/components/ui/loading-button'
 import {Input} from '@/components/ui/input'
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table'
-import {formatNumber} from '@/lib/utils/format'
+import {formatNumber, formatPrice} from '@/lib/utils/format'
 import {
     saveInventoryCounts,
     completeInventorySession,
@@ -61,6 +61,23 @@ export function InventoryCountTable({sessionId, status, lines}: InventoryCountTa
         const value = Number(raw)
         if (Number.isNaN(value)) return null
         return value - expected
+    }
+
+    // Démarque totale : somme des écarts valorisés au coût de revient. Les lignes
+    // sans coût connu sont exclues et signalées à part — mieux vaut un total
+    // partiel annoncé qu'un total complet mais faux.
+    const hasAnyUnitCost = lines.some((l) => l.unitCost !== null)
+    let totalGapValue = 0
+    let unvaluedCountedLines = 0
+
+    for (const line of lines) {
+        const gap = getGap(line.id, line.expectedQty)
+        if (gap === null) continue
+        if (line.unitCost === null) {
+            if (gap !== 0) unvaluedCountedLines++
+            continue
+        }
+        totalGapValue += gap * line.unitCost
     }
 
     async function handleSave() {
@@ -119,6 +136,7 @@ export function InventoryCountTable({sessionId, status, lines}: InventoryCountTa
                         <TableHead className="text-right">Qté théorique</TableHead>
                         <TableHead className="text-right">Qté comptée</TableHead>
                         <TableHead className="text-right">Écart</TableHead>
+                        {hasAnyUnitCost && <TableHead className="text-right">Valeur écart</TableHead>}
                     </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -165,11 +183,59 @@ export function InventoryCountTable({sessionId, status, lines}: InventoryCountTa
                                 >
                                     {gap === null ? '—' : (gap > 0 ? '+' : '') + formatNumber(gap)}
                                 </TableCell>
+                                {hasAnyUnitCost && (
+                                    <TableCell
+                                        className={
+                                            'text-right ' +
+                                            (gap === null || line.unitCost === null || gap === 0
+                                                ? 'text-muted-foreground'
+                                                : gap > 0
+                                                    ? 'text-success font-medium'
+                                                    : 'text-destructive font-medium')
+                                        }
+                                    >
+                                        {gap === null || line.unitCost === null
+                                            ? '—'
+                                            : (gap > 0 ? '+' : '') + formatPrice(gap * line.unitCost)}
+                                    </TableCell>
+                                )}
                             </TableRow>
                         )
                     })}
                 </TableBody>
             </Table>
+
+            {/* Impact financier du comptage — la conclusion que le gérant attend */}
+            {hasAnyUnitCost && (
+                <div className="rounded-lg border bg-muted/50 p-4 space-y-1">
+                    <div className="flex items-center justify-between gap-4">
+                        <span className="text-sm text-muted-foreground">
+                            {totalGapValue < 0 ? 'Démarque constatée' : 'Écart de valorisation'}
+                        </span>
+                        <span
+                            className={
+                                'text-xl font-bold ' +
+                                (totalGapValue < 0
+                                    ? 'text-destructive'
+                                    : totalGapValue > 0
+                                        ? 'text-success'
+                                        : '')
+                            }
+                        >
+                            {totalGapValue > 0 ? '+' : ''}
+                            {formatPrice(totalGapValue)}
+                        </span>
+                    </div>
+                    {unvaluedCountedLines > 0 && (
+                        <p className="type-caption text-muted-foreground">
+                            {formatNumber(unvaluedCountedLines)} produit
+                            {unvaluedCountedLines > 1 ? 's' : ''} en écart sans coût de revient
+                            {unvaluedCountedLines > 1 ? ' ne sont' : " n'est"} pas compté
+                            {unvaluedCountedLines > 1 ? 's' : ''} dans ce total.
+                        </p>
+                    )}
+                </div>
+            )}
 
             {error && (
                 <div className="bg-destructive-subtle text-destructive p-3 rounded-lg text-sm">{error}</div>

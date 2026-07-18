@@ -63,6 +63,7 @@ export default async function EditProductPage({
                 productType: true,
                 includePrice: true,
                 hasStock: true,
+                purchasePrice: true,
             },
         }),
         prisma.category.findMany({
