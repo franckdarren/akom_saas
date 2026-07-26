@@ -187,7 +187,7 @@ export default async function WarehousePage({
                 <div className="grid gap-4 md:grid-cols-2">
                     <AppCard variant="stat">
                         <Link href="/dashboard/warehouse/movements" className="block">
-                            <div className="flex items-start gap-4">
+                            <div className="flex items-start gap-4 ml-4">
                                 <div className="p-3 rounded-lg bg-info-subtle">
                                     <TrendingDown className="h-6 w-6 text-info"/>
                                 </div>
@@ -203,7 +203,7 @@ export default async function WarehousePage({
 
                     <AppCard variant="stat">
                         <Link href="/dashboard/warehouse/transfers" className="block">
-                            <div className="flex items-start gap-4">
+                            <div className="flex items-start gap-4 ml-4">
                                 <div className="p-3 rounded-lg bg-success-subtle">
                                     <Package className="h-6 w-6 text-success"/>
                                 </div>
