@@ -84,6 +84,30 @@ export function mapSingpayToPaymentStatus(
   return 'pending'
 }
 
+/**
+ * Construit un message d'erreur exploitable à partir du bloc `status` SingPay.
+ *
+ * SingPay renvoie fréquemment un message générique ("Something went wrong") :
+ * seuls `code` et `result_code` permettent d'identifier la cause réelle du
+ * refus. Sans eux, un échec est indiagnosticable a posteriori.
+ */
+export function formatSingpayError(status: {
+  code?: string
+  message?: string
+  result_code?: string
+}): string {
+  const message = status.message?.trim() || 'Refus SingPay sans message'
+
+  const details = [
+    status.code ? `code=${status.code}` : null,
+    status.result_code ? `result_code=${status.result_code}` : null,
+  ]
+    .filter((part): part is string => part !== null)
+    .join(' ')
+
+  return details ? `${message} (${details})` : message
+}
+
 /** Indique si la transaction SingPay est dans un état final (plus de changement possible) */
 export function isTransactionFinal(singpayStatus: string): boolean {
   return singpayStatus === 'Terminate' || singpayStatus === 'Refund'

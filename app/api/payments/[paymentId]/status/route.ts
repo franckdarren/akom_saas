@@ -2,8 +2,8 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
-import { singpayClient } from '@/lib/singpay/client'
 import { mapSingpayToPaymentStatus } from '@/lib/singpay/utils'
+import { resolveSingpayTransaction } from '@/lib/singpay/resolve-transaction'
 import type { SingpayTransactionStatus, SingpayTransactionResult } from '@prisma/client'
 
 /**
@@ -45,9 +45,10 @@ export async function GET(
       })
     }
 
-    // Interroger SingPay pour le statut actuel
+    // Interroger SingPay pour le statut actuel — par ID si connu, sinon par
+    // référence (paiements initiés via le lien externe /ext).
     const walletId = payment.restaurant.singpayConfig?.walletId
-    if (!payment.singpayTransactionId || !walletId) {
+    if (!walletId || (!payment.singpayTransactionId && !payment.singpayReference)) {
       return NextResponse.json({
         status: 'pending',
         isPaid: false,
@@ -55,30 +56,45 @@ export async function GET(
       })
     }
 
-    const result = await singpayClient.getTransactionStatus(
-      payment.singpayTransactionId,
+    const resolved = await resolveSingpayTransaction({
+      transactionId: payment.singpayTransactionId,
+      reference: payment.singpayReference,
       walletId,
-    )
+    })
+
+    // SingPay ne connaît pas encore la transaction : paiement non finalisé.
+    if (!resolved) {
+      return NextResponse.json({
+        status: 'pending',
+        isPaid: false,
+        isFailed: false,
+      })
+    }
 
     const newStatus = mapSingpayToPaymentStatus(
-      result.transaction.status,
-      result.transaction.result,
+      resolved.transaction.status,
+      resolved.transaction.result,
     )
 
-    // Mettre à jour le Payment
+    // Mettre à jour le Payment — on mémorise l'ID SingPay découvert par
+    // référence pour que les vérifications suivantes passent par l'ID.
     await prisma.payment.update({
       where: { id: paymentId },
       data: {
-        singpayStatus: result.transaction.status.toLowerCase() as SingpayTransactionStatus,
-        singpayResult: (result.transaction.result?.toLowerCase() ?? 'pending') as SingpayTransactionResult,
+        singpayStatus: resolved.transaction.status.toLowerCase() as SingpayTransactionStatus,
+        singpayResult: (resolved.transaction.result?.toLowerCase() ?? 'pending') as SingpayTransactionResult,
         status: newStatus,
+        ...(resolved.resolvedByReference && resolved.transaction.id
+          ? { singpayTransactionId: resolved.transaction.id }
+          : {}),
         ...(newStatus === 'paid' && {
           paidAt: new Date(),
-          transactionId: result.transaction.airtel_money_id ?? result.transaction.id,
-          singpayAirtelId: result.transaction.airtel_money_id,
+          transactionId:
+            resolved.transaction.airtel_money_id ?? resolved.transaction.id,
+          singpayAirtelId: resolved.transaction.airtel_money_id,
         }),
         ...(newStatus === 'failed' && {
-          errorMessage: result.transaction.result ?? 'Paiement échoué',
+          errorMessage: resolved.transaction.result ?? 'Paiement échoué',
         }),
       },
     })
@@ -96,7 +112,7 @@ export async function GET(
       isPaid: newStatus === 'paid',
       isFailed: newStatus === 'failed',
       ...(newStatus === 'failed' && {
-        errorMessage: result.transaction.result,
+        errorMessage: resolved.transaction.result,
       }),
     })
   } catch (error) {

@@ -3,7 +3,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { mapSingpayToPaymentStatus } from '@/lib/singpay/utils'
-import { singpayClient } from '@/lib/singpay/client'
+import { resolveSingpayTransaction } from '@/lib/singpay/resolve-transaction'
 import type { SingpayCallbackData } from '@/lib/singpay/types'
 import type { SingpayTransactionStatus, SingpayTransactionResult } from '@prisma/client'
 import { deductOrderStock } from '@/lib/stock/deduct-order-stock'
@@ -69,31 +69,36 @@ export async function POST(
     // Sans cette étape, n'importe qui peut forger un callback HTTP avec status=Terminate
     // et result=Success pour valider une commande sans paiement réel.
     const walletId = payment.restaurant.singpayConfig?.walletId
-    if (!walletId || !payment.singpayTransactionId) {
-      console.error('❌ Impossible de vérifier auprès de SingPay : config manquante', {
-        walletId: !!walletId,
-        transactionId: !!payment.singpayTransactionId,
+    if (!walletId) {
+      console.error('❌ Impossible de vérifier auprès de SingPay : wallet non configuré', {
+        restaurantId,
       })
       return NextResponse.json({ error: 'Cannot verify' }, { status: 503 })
     }
 
-    let verified
+    // Les paiements initiés via le lien externe (/ext) n'ont pas de
+    // transactionId : on résout alors la transaction par notre référence.
+    let resolved
     try {
-      verified = await singpayClient.getTransactionStatus(payment.singpayTransactionId, walletId)
+      resolved = await resolveSingpayTransaction({
+        transactionId: payment.singpayTransactionId,
+        reference: payment.singpayReference,
+        walletId,
+      })
     } catch (verifyError) {
       console.error('❌ Vérification SingPay échouée:', verifyError)
       // Fail-closed : on ne traite pas le callback si on ne peut pas confirmer.
       return NextResponse.json({ error: 'Verification failed' }, { status: 503 })
     }
 
-    if (!verified.status.success) {
-      console.error('❌ SingPay refuse la vérification:', verified.status.message)
+    if (!resolved) {
+      console.error('❌ SingPay ne reconnaît pas la transaction:', payment.singpayReference)
       return NextResponse.json({ error: 'Verification rejected' }, { status: 400 })
     }
 
     // À partir d'ici on n'utilise QUE les données retournées par SingPay,
     // jamais celles du body du webhook.
-    const verifiedTx = verified.transaction
+    const verifiedTx = resolved.transaction
 
     // Cohérence : la référence retournée par SingPay doit correspondre à celle stockée.
     if (verifiedTx.reference !== payment.singpayReference) {
@@ -126,6 +131,9 @@ export async function POST(
         callbackReceived: true,
         callbackData: JSON.parse(JSON.stringify(callbackData)),
         callbackAt: new Date(),
+        ...(resolved.resolvedByReference && verifiedTx.id
+          ? { singpayTransactionId: verifiedTx.id }
+          : {}),
         ...(newStatus === 'paid' && {
           paidAt: new Date(),
           transactionId: verifiedTx.airtel_money_id ?? verifiedTx.id,

@@ -7,7 +7,9 @@ import {
   generateSingpayReference,
   formatPhoneForSingpay,
   mapSingpayToPaymentStatus,
+  formatSingpayError,
 } from '@/lib/singpay/utils'
+import { resolveSingpayTransaction } from '@/lib/singpay/resolve-transaction'
 import type { SingpayTransactionStatus, SingpayTransactionResult } from '@prisma/client'
 
 interface InitiateOrderPaymentParams {
@@ -124,6 +126,7 @@ export async function initiateOrderPayment(
           ? await singpayClient.initiateAirtelPayment(paymentData)
           : await singpayClient.initiateMoovPayment(paymentData)
     } catch (error) {
+      console.error('❌ [SINGPAY-ORDER] Exception appel API:', error)
       // Marquer le paiement comme échoué
       await prisma.payment.update({
         where: { id: payment.id },
@@ -142,14 +145,23 @@ export async function initiateOrderPayment(
 
     // 7. Vérifier la réponse SingPay
     if (!result.status.success) {
+      const detailedError = formatSingpayError(result.status)
+      console.error('❌ [SINGPAY-ORDER] Paiement refusé:', {
+        reference,
+        endpoint: params.operator === 'airtel' ? '/74/paiement' : '/62/paiement',
+        msisdn: formattedPhone,
+        wallet: config.walletId,
+        disbursementFourni: Boolean(config.defaultDisbursementId),
+        status: result.status,
+      })
       await prisma.payment.update({
         where: { id: payment.id },
         data: {
           status: 'failed',
-          errorMessage: result.status.message,
+          errorMessage: detailedError,
         },
       })
-      return { error: `Échec de l'initiation du paiement : ${result.status.message}` }
+      return { error: `Échec de l'initiation du paiement : ${detailedError}` }
     }
 
     // 8. Mettre à jour le Payment avec les infos SingPay
@@ -206,36 +218,53 @@ export async function checkOrderPaymentStatus(
       }
     }
 
-    // Sinon interroger SingPay
+    // Sinon interroger SingPay — par ID si connu, sinon par référence
+    // (paiements initiés via le lien externe /ext, qui n'ont pas d'ID).
     const walletId = payment.restaurant.singpayConfig?.walletId
-    if (!payment.singpayTransactionId || !walletId) {
+    if (!walletId || (!payment.singpayTransactionId && !payment.singpayReference)) {
       return { error: 'Informations de transaction manquantes' }
     }
 
-    const result = await singpayClient.getTransactionStatus(
-      payment.singpayTransactionId,
+    const resolved = await resolveSingpayTransaction({
+      transactionId: payment.singpayTransactionId,
+      reference: payment.singpayReference,
       walletId,
-    )
+    })
+
+    // SingPay ne connaît pas encore la transaction : paiement non finalisé.
+    if (!resolved) {
+      return {
+        success: true,
+        isPaid: false,
+        isFailed: false,
+        message: 'En attente de validation...',
+      }
+    }
 
     const newStatus = mapSingpayToPaymentStatus(
-      result.transaction.status,
-      result.transaction.result,
+      resolved.transaction.status,
+      resolved.transaction.result,
     )
 
-    // Mettre à jour le Payment
+    // Mettre à jour le Payment — on mémorise l'ID SingPay découvert par
+    // référence pour que les vérifications suivantes passent par l'ID.
     await prisma.payment.update({
       where: { id: paymentId },
       data: {
-        singpayStatus: result.transaction.status.toLowerCase() as SingpayTransactionStatus,
-        singpayResult: (result.transaction.result?.toLowerCase() ?? 'pending') as SingpayTransactionResult,
+        singpayStatus: resolved.transaction.status.toLowerCase() as SingpayTransactionStatus,
+        singpayResult: (resolved.transaction.result?.toLowerCase() ?? 'pending') as SingpayTransactionResult,
         status: newStatus,
+        ...(resolved.resolvedByReference && resolved.transaction.id
+          ? { singpayTransactionId: resolved.transaction.id }
+          : {}),
         ...(newStatus === 'paid' && {
           paidAt: new Date(),
-          transactionId: result.transaction.airtel_money_id ?? result.transaction.id,
-          singpayAirtelId: result.transaction.airtel_money_id,
+          transactionId:
+            resolved.transaction.airtel_money_id ?? resolved.transaction.id,
+          singpayAirtelId: resolved.transaction.airtel_money_id,
         }),
         ...(newStatus === 'failed' && {
-          errorMessage: result.transaction.result ?? 'Paiement échoué',
+          errorMessage: resolved.transaction.result ?? 'Paiement échoué',
         }),
       },
     })
@@ -256,7 +285,7 @@ export async function checkOrderPaymentStatus(
         newStatus === 'paid'
           ? 'Paiement confirmé'
           : newStatus === 'failed'
-            ? (result.transaction.result ?? 'Paiement échoué')
+            ? (resolved.transaction.result ?? 'Paiement échoué')
             : 'En attente de validation...',
     }
   } catch (error) {

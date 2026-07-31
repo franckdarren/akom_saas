@@ -193,6 +193,7 @@ function MobileMoneyForm({
 
   // État fallback lien externe
   const [extPaymentLink, setExtPaymentLink] = useState<string | null>(null)
+  const [extPaymentId, setExtPaymentId] = useState<string | null>(null)
 
   const monthlyPrice = calculateMonthlyPrice(plan, userCount)
 
@@ -240,7 +241,16 @@ function MobileMoneyForm({
 
           <div className="flex flex-col gap-2">
             <Button asChild className="w-full" size="lg">
-              <a href={extPaymentLink} target="_blank" rel="noopener noreferrer">
+              <a
+                href={extPaymentLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => {
+                  // La page de paiement s'ouvre dans un nouvel onglet : on
+                  // bascule celui-ci en suivi pour confirmer automatiquement.
+                  if (extPaymentId) setTrackingPaymentId(extPaymentId)
+                }}
+              >
                 <ExternalLink className="mr-2 h-4 w-4" />
                 Payer {formatPrice(amount)}
               </a>
@@ -302,6 +312,9 @@ function MobileMoneyForm({
           const extResult = await getSubscriptionExternalPaymentLink(paymentParams)
           if (extResult.link) {
             setExtPaymentLink(extResult.link)
+            // Mémorisé pour suivre la confirmation dès que l'utilisateur
+            // ouvre la page de paiement SingPay dans un nouvel onglet.
+            setExtPaymentId(extResult.paymentId ?? null)
             return
           }
           setError(extResult.error ?? result.error)

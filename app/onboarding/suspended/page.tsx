@@ -63,12 +63,12 @@ export default async function SuspendedPage() {
     }
 
     return (
-        <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
             <div
-                className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-red-950/20 via-zinc-950 to-zinc-950"/>
+                className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-red-950/20 via-slate-950 to-slate-950"/>
 
             <div className="relative w-full max-w-lg">
-                <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-2xl">
+                <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
 
                     <div className="bg-red-950/60 border-b border-red-900/50 px-6 py-4 flex items-center gap-3">
                         <div className="p-2 bg-red-900/50 rounded-lg">
@@ -88,17 +88,17 @@ export default async function SuspendedPage() {
 
                     <div className="px-4 sm:px-8 py-6 sm:py-8">
                         {/* ← Label dynamique */}
-                        <p className="text-zinc-500 text-sm font-medium mb-1">{labels.structureNameCapital}</p>
+                        <p className="text-slate-500 text-sm font-medium mb-1">{labels.structureNameCapital}</p>
                         <h1 className="text-white text-2xl font-bold mb-6">{restaurant.name}</h1>
 
-                        <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-xl p-5 mb-6">
+                        <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5 mb-6">
                             <h2 className="text-white font-semibold mb-2 text-sm">
                                 {/* ← Label dynamique */}
                                 Pourquoi votre {labels.structureName} est-elle suspendue ?
                             </h2>
-                            <p className="text-zinc-400 text-sm leading-relaxed">
+                            <p className="text-slate-400 text-sm leading-relaxed">
                                 Votre {labels.structureName} a été suspendue automatiquement car la{' '}
-                                <span className="text-zinc-200 font-medium">fiche circuit</span>{' '}
+                                <span className="text-slate-200 font-medium">fiche circuit</span>{' '}
                                 requise pour les offres Business n&apos;a pas été soumise dans le délai imparti
                                 de 3 mois après l&apos;activation de votre abonnement.
                             </p>
@@ -116,8 +116,8 @@ export default async function SuspendedPage() {
                                     <span className="text-amber-400 text-xs font-bold">1</span>
                                 </div>
                                 <div>
-                                    <p className="text-zinc-300 text-sm font-medium">Contactez le support Akôm</p>
-                                    <p className="text-zinc-500 text-xs mt-0.5">
+                                    <p className="text-slate-300 text-sm font-medium">Contactez le support Akôm</p>
+                                    <p className="text-slate-500 text-xs mt-0.5">
                                         Expliquez votre situation et demandez la procédure de réactivation
                                     </p>
                                 </div>
@@ -129,8 +129,8 @@ export default async function SuspendedPage() {
                                     <span className="text-amber-400 text-xs font-bold">2</span>
                                 </div>
                                 <div>
-                                    <p className="text-zinc-300 text-sm font-medium">Soumettez votre fiche circuit</p>
-                                    <p className="text-zinc-500 text-xs mt-0.5">
+                                    <p className="text-slate-300 text-sm font-medium">Soumettez votre fiche circuit</p>
+                                    <p className="text-slate-500 text-xs mt-0.5">
                                         Préparez et envoyez le document officiel de fiche circuit
                                     </p>
                                 </div>
@@ -142,8 +142,8 @@ export default async function SuspendedPage() {
                                     <span className="text-amber-400 text-xs font-bold">3</span>
                                 </div>
                                 <div>
-                                    <p className="text-zinc-300 text-sm font-medium">Réactivation sous 24–48h</p>
-                                    <p className="text-zinc-500 text-xs mt-0.5">
+                                    <p className="text-slate-300 text-sm font-medium">Réactivation sous 24–48h</p>
+                                    <p className="text-slate-500 text-xs mt-0.5">
                                         Après validation par notre équipe, votre accès sera rétabli
                                     </p>
                                 </div>
@@ -152,7 +152,7 @@ export default async function SuspendedPage() {
 
                         <a
                             href={`mailto:support@akom.app?subject=Demande de réactivation - ${labels.structureNameCapital} suspendue`}
-                            className="flex items-center justify-center gap-2 w-full bg-amber-500 hover:bg-amber-400 text-zinc-900 font-semibold py-3 px-4 rounded-xl transition-colors duration-200 text-sm mb-3"
+                            className="flex items-center justify-center gap-2 w-full bg-amber-500 hover:bg-amber-400 text-slate-900 font-semibold py-3 px-4 rounded-xl transition-colors duration-200 text-sm mb-3"
                         >
                             <Mail className="w-4 h-4"/>
                             Contacter le support
@@ -161,7 +161,7 @@ export default async function SuspendedPage() {
                         <form action={handleSignOut}>
                             <button
                                 type="submit"
-                                className="flex items-center justify-center gap-2 w-full bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200 font-medium py-3 px-4 rounded-xl transition-colors duration-200 text-sm"
+                                className="flex items-center justify-center gap-2 w-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 font-medium py-3 px-4 rounded-xl transition-colors duration-200 text-sm"
                             >
                                 <LogOut className="w-4 h-4"/>
                                 Se déconnecter
@@ -170,7 +170,7 @@ export default async function SuspendedPage() {
                     </div>
                 </div>
 
-                <p className="text-center text-zinc-600 text-xs mt-4">
+                <p className="text-center text-slate-600 text-xs mt-4">
                     Akôm SaaS · Si vous pensez qu&apos;il s&apos;agit d&apos;une erreur, contactez-nous
                 </p>
             </div>

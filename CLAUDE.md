@@ -28,7 +28,7 @@ Apres toute modification du schema, executer `npx prisma generate` (s'execute au
 - **Next.js 16** App Router + **React 19** + **TypeScript**
 - **Prisma 7** ORM sur **PostgreSQL** heberge sur Supabase
 - Supabase Auth pour l'authentification
-- **Tailwind CSS v4** (via PostCSS, sans fichier de config) + **shadcn/ui** (style new-york, base zinc)
+- **Tailwind CSS v4** (via PostCSS, sans fichier de config) + **shadcn/ui** (style new-york, base slate)
 - **Zod 4** pour la validation, **Resend** + **Nodemailer** pour les emails
 
 ### Groupes de routes
@@ -151,6 +151,16 @@ Les classes sémantiques sont définies dans `app/globals.css` (`@layer componen
 - `flex flex-1 flex-col gap-6 p-6` à la main — utiliser `layout-page`
 
 ## Design system — couleurs
+
+Le logo Akom ne comporte que trois couleurs, et toute la palette en decoule :
+
+| Element du logo | Hex | Role dans le theme |
+|---|---|---|
+| Fond | `#0F172A` (slate-900) | `--foreground` en clair ; `--card` / `--popover` / `--sidebar` en sombre |
+| Lettres AK·M | `#FFFFFF` | `--background` en clair |
+| Accent O circonflexe | `#3B82F6` (blue-500) | `--primary` |
+
+Les neutres sont en **slate** (hue ~258, famille chromatique du navy du logo) — jamais en zinc, gray ou neutral, qui jurent avec le `#0F172A`.
 
 Les variables de couleur sont definies dans `app/globals.css` (tokens Tailwind v4 via `@theme inline`). Toujours utiliser les classes semantiques Tailwind plutot que des valeurs hex ou des couleurs arbitraires :
 

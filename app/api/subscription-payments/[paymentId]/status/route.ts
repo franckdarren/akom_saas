@@ -2,9 +2,9 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
-import { singpayClient } from '@/lib/singpay/client'
 import { SINGPAY_CONFIG } from '@/lib/singpay/constants'
 import { mapSingpayToPaymentStatus } from '@/lib/singpay/utils'
+import { resolveSingpayTransaction } from '@/lib/singpay/resolve-transaction'
 import { activateSubscriptionAfterPayment } from '@/lib/actions/singpay-subscription'
 import type { SubscriptionPaymentStatus } from '@prisma/client'
 
@@ -44,8 +44,8 @@ export async function GET(
       })
     }
 
-    // Pas de transactionId SINGPAY → paiement manuel, pas de polling
-    if (!payment.singpayTransactionId) {
+    // Ni ID ni référence SINGPAY → paiement manuel, rien à interroger
+    if (!payment.singpayTransactionId && !payment.singpayReference) {
       return NextResponse.json({
         status: 'pending',
         isPaid: false,
@@ -53,15 +53,26 @@ export async function GET(
       })
     }
 
-    // Interroger SINGPAY
-    const result = await singpayClient.getTransactionStatus(
-      payment.singpayTransactionId,
-      SINGPAY_CONFIG.platformWalletId,
-    )
+    // Interroger SINGPAY — par ID si connu, sinon par référence (paiements
+    // initiés via le lien externe /ext, qui ne fournit pas d'ID).
+    const resolved = await resolveSingpayTransaction({
+      transactionId: payment.singpayTransactionId,
+      reference: payment.singpayReference,
+      walletId: SINGPAY_CONFIG.platformWalletId,
+    })
+
+    // SingPay ne connaît pas encore la transaction : paiement non finalisé.
+    if (!resolved) {
+      return NextResponse.json({
+        status: 'pending',
+        isPaid: false,
+        isFailed: false,
+      })
+    }
 
     const orderStatus = mapSingpayToPaymentStatus(
-      result.transaction.status,
-      result.transaction.result,
+      resolved.transaction.status,
+      resolved.transaction.result,
     )
 
     const newStatus: SubscriptionPaymentStatus =
@@ -69,17 +80,22 @@ export async function GET(
         : orderStatus === 'failed' ? 'failed'
           : 'pending'
 
-    // Mettre à jour le paiement
+    // Mettre à jour le paiement — on mémorise l'ID SingPay découvert par
+    // référence pour que les vérifications suivantes passent par l'ID.
     await prisma.subscriptionPayment.update({
       where: { id: paymentId },
       data: {
         status: newStatus,
+        ...(resolved.resolvedByReference && resolved.transaction.id
+          ? { singpayTransactionId: resolved.transaction.id }
+          : {}),
         ...(newStatus === 'confirmed' && {
           paidAt: new Date(),
-          transactionId: result.transaction.airtel_money_id ?? result.transaction.id,
+          transactionId:
+            resolved.transaction.airtel_money_id ?? resolved.transaction.id,
         }),
         ...(newStatus === 'failed' && {
-          errorMessage: result.transaction.result ?? 'Paiement échoué',
+          errorMessage: resolved.transaction.result ?? 'Paiement échoué',
         }),
       },
     })
@@ -94,7 +110,7 @@ export async function GET(
       isPaid: newStatus === 'confirmed',
       isFailed: newStatus === 'failed',
       ...(newStatus === 'failed' && {
-        errorMessage: result.transaction.result,
+        errorMessage: resolved.transaction.result,
       }),
     })
   } catch (error) {

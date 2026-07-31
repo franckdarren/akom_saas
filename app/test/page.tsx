@@ -53,7 +53,7 @@ export function CartButton({ count }: CarteButtonProps) {
                         animate={{ scale: 1, opacity: 1 }}
                         exit={{ scale: 0, opacity: 0 }}
                         transition={{ type: "spring", stiffness: 300 }}
-                        className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-medium"
+                        className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs w-5 h-5 rounded-full flex items-center justify-center font-medium"
                     >
                         {count}
                     </motion.span>
@@ -185,7 +185,7 @@ export default function TestPage() {
     const decrementCart = () => setCartCount((c) => (c > 0 ? c - 1 : 0))
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-10">
+        <div className="min-h-screen bg-muted/50 pb-10">
             <RestaurantHeader count={cartCount} />
 
             <div className="relative z-10 -mt-16 max-w-4xl mx-auto">

@@ -6,7 +6,6 @@ import type {
   SingpayPaymentResponse,
   SingpayExtRequest,
   SingpayExtResponse,
-  SingpayTransaction,
 } from './types'
 
 /**
@@ -104,12 +103,18 @@ class SingpayClient {
     )
   }
 
-  /** Recherche une transaction par référence — GET /transaction/api/search/by-reference/{ref} */
+  /**
+   * Recherche une transaction par référence — GET /transaction/api/search/by-reference/{ref}
+   *
+   * La forme de la réponse n'est pas garantie par la documentation (transaction
+   * brute, enveloppée ou liste). Le retour est volontairement `unknown` :
+   * utiliser `resolveSingpayTransaction()` qui normalise les trois cas.
+   */
   async getTransactionByReference(
     reference: string,
     walletId: string,
-  ): Promise<SingpayTransaction> {
-    return this.request<SingpayTransaction>(
+  ): Promise<unknown> {
+    return this.request<unknown>(
       SINGPAY_ENDPOINTS.transactionByReference(reference),
       { method: 'GET' },
       walletId,

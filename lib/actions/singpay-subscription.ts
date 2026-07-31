@@ -10,7 +10,9 @@ import {
   generateSubscriptionReference,
   formatPhoneForSingpay,
   mapSingpayToPaymentStatus,
+  formatSingpayError,
 } from '@/lib/singpay/utils'
+import { resolveSingpayTransaction } from '@/lib/singpay/resolve-transaction'
 import {
   SUBSCRIPTION_CONFIG,
   calculateTotalPrice,
@@ -176,15 +178,23 @@ export async function initiateSubscriptionPayment(
 
     // 9. Vérifier la réponse SINGPAY
     if (!result.status.success) {
-      console.error('❌ [SINGPAY-SUB] Paiement refusé:', result.status.message)
+      const detailedError = formatSingpayError(result.status)
+      console.error('❌ [SINGPAY-SUB] Paiement refusé:', {
+        reference,
+        endpoint: params.operator === 'airtel' ? '/74/paiement' : '/62/paiement',
+        msisdn: formattedPhone,
+        wallet: SINGPAY_CONFIG.platformWalletId,
+        disbursementFourni: Boolean(SINGPAY_CONFIG.platformDisbursementId),
+        status: result.status,
+      })
       await prisma.subscriptionPayment.update({
         where: { id: payment.id },
         data: {
           status: 'failed',
-          errorMessage: result.status.message,
+          errorMessage: detailedError,
         },
       })
-      return { error: `Échec de l'initiation du paiement : ${result.status.message}` }
+      return { error: `Échec de l'initiation du paiement : ${detailedError}` }
     }
 
     // 10. Mettre à jour avec les infos SINGPAY
@@ -241,19 +251,28 @@ export async function checkSubscriptionPaymentStatus(
       }
     }
 
-    // Interroger SINGPAY
-    if (!payment.singpayTransactionId) {
-      return { error: 'Informations de transaction manquantes' }
+    // Interroger SINGPAY — par ID si connu, sinon par référence (cas des
+    // paiements initiés via le lien externe /ext, qui n'ont pas d'ID).
+    const resolved = await resolveSingpayTransaction({
+      transactionId: payment.singpayTransactionId,
+      reference: payment.singpayReference,
+      walletId: SINGPAY_CONFIG.platformWalletId,
+    })
+
+    if (!resolved) {
+      // SingPay ne connaît pas encore la transaction : le client n'a pas
+      // finalisé le paiement sur la page externe. On reste en attente.
+      return {
+        success: true,
+        isPaid: false,
+        isFailed: false,
+        message: 'En attente de validation sur votre téléphone...',
+      }
     }
 
-    const result = await singpayClient.getTransactionStatus(
-      payment.singpayTransactionId,
-      SINGPAY_CONFIG.platformWalletId,
-    )
-
     const orderStatus = mapSingpayToPaymentStatus(
-      result.transaction.status,
-      result.transaction.result,
+      resolved.transaction.status,
+      resolved.transaction.result,
     )
 
     // Mapper PaymentStatus (paid/failed/pending) vers SubscriptionPaymentStatus
@@ -262,17 +281,22 @@ export async function checkSubscriptionPaymentStatus(
         : orderStatus === 'failed' ? 'failed'
           : 'pending'
 
-    // Mettre à jour le paiement
+    // Mettre à jour le paiement — on mémorise l'ID SingPay découvert par
+    // référence pour que les vérifications suivantes passent par l'ID.
     await prisma.subscriptionPayment.update({
       where: { id: paymentId },
       data: {
         status: newStatus,
+        ...(resolved.resolvedByReference && resolved.transaction.id
+          ? { singpayTransactionId: resolved.transaction.id }
+          : {}),
         ...(newStatus === 'confirmed' && {
           paidAt: new Date(),
-          transactionId: result.transaction.airtel_money_id ?? result.transaction.id,
+          transactionId:
+            resolved.transaction.airtel_money_id ?? resolved.transaction.id,
         }),
         ...(newStatus === 'failed' && {
-          errorMessage: result.transaction.result ?? 'Paiement échoué',
+          errorMessage: resolved.transaction.result ?? 'Paiement échoué',
         }),
       },
     })
@@ -290,7 +314,7 @@ export async function checkSubscriptionPaymentStatus(
         newStatus === 'confirmed'
           ? 'Paiement confirmé ! Votre abonnement est actif.'
           : newStatus === 'failed'
-            ? (result.transaction.result ?? 'Paiement échoué')
+            ? (resolved.transaction.result ?? 'Paiement échoué')
             : 'En attente de validation sur votre téléphone...',
     }
   } catch (error) {
