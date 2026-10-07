@@ -102,6 +102,7 @@ DECLARE
 v_restaurant RECORD;
     v_admin_role_id uuid;
     v_kitchen_role_id uuid;
+    v_cashier_role_id uuid;
     v_permission RECORD;
     v_admin_perms_count integer := 0;
     v_kitchen_perms_count integer := 0;
@@ -171,7 +172,9 @@ END LOOP;
         -- Rôle Caissière : créer et voir commandes + paiements
 INSERT INTO roles (restaurant_id, name, description, is_system, is_active)
 VALUES (v_restaurant.id, 'Caissière', 'Prise de commande et encaissement au comptoir', true, true)
-    RETURNING id INTO v_cashier_role_id;
+    ON CONFLICT (restaurant_id, name)
+        DO UPDATE SET description = EXCLUDED.description
+                   RETURNING id INTO v_cashier_role_id;
 
 -- Permissions caissière
 INSERT INTO role_permissions (role_id, permission_id)

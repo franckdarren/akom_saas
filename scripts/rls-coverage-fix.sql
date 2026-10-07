@@ -229,9 +229,9 @@ CREATE POLICY "warehouse_products_select_member" ON warehouse_products
     FOR SELECT TO authenticated
     USING (is_restaurant_member(restaurant_id));
 
-ALTER TABLE warehouse_stocks ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "warehouse_stocks_select_member" ON warehouse_stocks;
-CREATE POLICY "warehouse_stocks_select_member" ON warehouse_stocks
+ALTER TABLE warehouse_stock ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "warehouse_stocks_select_member" ON warehouse_stock;
+CREATE POLICY "warehouse_stocks_select_member" ON warehouse_stock
     FOR SELECT TO authenticated
     USING (is_restaurant_member(restaurant_id));
 
