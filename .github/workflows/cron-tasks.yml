@@ -3,15 +3,15 @@ name: Scheduled CRON Tasks
 on:
   schedule:
     # Toutes les heures — Vérification des abonnements + suspension
-    - cron: '0 * * * *'
+    # - cron: '0 * * * *'
     # Toutes les 30 minutes — Surveillance des commandes
-    - cron: '*/30 * * * *'
+    # - cron: '*/30 * * * *'
     # Tous les jours à 2h (UTC) — Nettoyage + archivage + stocks
-    - cron: '0 2 * * *'
+ #   - cron: '0 2 * * *'
     # Tous les jours à 7h (UTC) — Rappels abonnements + rapports quotidiens
-    - cron: '0 7 * * *'
+  #  - cron: '0 7 * * *'
     # Tous les jours à 12h (UTC) — Keep-alive DB Supabase (anti-pause)
-    - cron: '0 12 * * *'
+   # - cron: '0 12 * * *'
 
   # Déclenchement manuel depuis l'onglet Actions de GitHub
   workflow_dispatch:
