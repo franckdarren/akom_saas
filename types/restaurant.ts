@@ -29,11 +29,6 @@ export type RestaurantSubscriptionDetails = {
 
 export type RestaurantDetails = Restaurant & {
     users: RestaurantUser[]
-    singpayConfig: {
-        enabled: boolean
-        isConfigured: boolean
-        walletId: string | null
-    } | null
     subscription: RestaurantSubscriptionDetails | null
     _count: {
         orders: number

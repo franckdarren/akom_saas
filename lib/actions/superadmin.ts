@@ -253,13 +253,6 @@ export async function getRestaurantDetails(
                     createdAt: true,
                 },
             },
-            singpayConfig: {
-                select: {
-                    enabled: true,
-                    isConfigured: true,
-                    walletId: true,
-                },
-            },
             subscription: {
                 include: {
                     payments: {

@@ -31,11 +31,6 @@ export type RestaurantDetailsType = {
     isActive: boolean
     activityType: string
     createdAt: string
-    singpayConfig: {
-        enabled: boolean
-        isConfigured: boolean
-        walletId: string | null
-    } | null
     subscription: {
         id: string
         plan: string
@@ -94,7 +89,6 @@ export default async function RestaurantDetailsPage({ params }: PageProps) {
             restaurantRaw.createdAt instanceof Date
                 ? restaurantRaw.createdAt.toISOString()
                 : restaurantRaw.createdAt,
-        singpayConfig: restaurantRaw.singpayConfig ?? null,
         subscription: restaurantRaw.subscription
             ? {
                 ...restaurantRaw.subscription,
