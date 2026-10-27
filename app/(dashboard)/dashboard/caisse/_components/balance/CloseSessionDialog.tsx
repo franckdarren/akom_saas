@@ -1,9 +1,9 @@
 // app/dashboard/caisse/_components/balance/CloseSessionDialog.tsx
 'use client'
 
-import {useState, useTransition} from 'react'
+import {useEffect, useState, useTransition} from 'react'
 import {toast} from 'sonner'
-import {AlertTriangle, CheckCircle2, XCircle, Lock} from 'lucide-react'
+import {AlertTriangle, CheckCircle2, XCircle, Lock, Coins} from 'lucide-react'
 import {
     Dialog,
     DialogContent,
@@ -18,6 +18,7 @@ import {Textarea} from '@/components/ui/textarea'
 import {Separator} from '@/components/ui/separator'
 import {cn} from '@/lib/utils'
 import {closeCashSession} from '@/lib/actions/cash/close-session'
+import {getChangeDueTotals} from '@/lib/actions/change-due'
 import type {SessionWithRelations} from '../../_types'
 
 interface CloseSessionDialogProps {
@@ -43,6 +44,26 @@ export function CloseSessionDialog({
     const [closingBalance, setClosingBalance] = useState('')
     const [notes, setNotes] = useState('')
     const [isPending, startTransition] = useTransition()
+
+    // Monnaie conservée pour les clients ce jour-là. Récupérée à l'ouverture
+    // du dialog : la session passée en props ne porte pas cette information.
+    const [changeDueHeld, setChangeDueHeld] = useState<number | null>(null)
+
+    useEffect(() => {
+        if (!open) return
+
+        let cancelled = false
+        const sessionDate = new Date(session.sessionDate).toISOString().split('T')[0]
+
+        getChangeDueTotals(sessionDate).then(result => {
+            if (cancelled) return
+            setChangeDueHeld(result.success ? result.data.created - result.data.settled : null)
+        })
+
+        return () => {
+            cancelled = true
+        }
+    }, [open, session.sessionDate])
 
     const totalRevenues = session.manualRevenues.reduce((s: number, r: { totalAmount: number }) => s + r.totalAmount, 0)
     const totalExpenses = session.expenses.reduce((s: number, e: { amount: number }) => s + e.amount, 0)
@@ -158,6 +179,18 @@ export function CloseSessionDialog({
                 {/* STEP 2 */}
                 {step === 'counting' && (
                     <div className="space-y-4">
+                        {changeDueHeld !== null && changeDueHeld > 0 && (
+                            <div className="flex items-start gap-2 rounded-lg bg-warning-subtle p-3">
+                                <Coins className="mt-0.5 h-4 w-4 shrink-0 text-warning"/>
+                                <p className="text-sm">
+                                    Le tiroir contient{' '}
+                                    <strong>{formatAmount(changeDueHeld)}</strong> de monnaie due
+                                    aux clients — cet argent ne vous appartient pas, comptez-le
+                                    quand même.
+                                </p>
+                            </div>
+                        )}
+
                         <div className="space-y-1.5">
                             <Label htmlFor="closing-balance">
                                 Montant compté dans le tiroir

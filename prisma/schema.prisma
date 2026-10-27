@@ -257,6 +257,21 @@ enum ActivityType {
   @@map("activity_type")
 }
 
+enum ChangeDueStatus {
+  outstanding // Monnaie encore due au client
+  settled // Monnaie rendue ou déduite d'un achat
+  cancelled // Dette abandonnée (client jamais revenu) — admin uniquement
+
+  @@map("change_due_status")
+}
+
+enum ChangeDueSettlementMethod {
+  cash // Monnaie rendue en espèces lors d'un passage ultérieur
+  order_deduction // Déduite du montant à payer d'un achat ultérieur
+
+  @@map("change_due_settlement_method")
+}
+
 enum SingpayTransactionStatus {
   start        // Transaction initiée
   partenaire   // En cours chez l'opérateur
@@ -335,6 +350,7 @@ model Restaurant {
   modules                 RestaurantModule[]
   inventorySessions       InventorySession[]
   inventoryLines          InventoryLine[]
+  changeDues              ChangeDue[]
 
   @@index([slug])
   @@index([isActive])
@@ -606,6 +622,11 @@ model Order {
   payments       Payment[]
   stockMovements StockMovement[]
 
+  // Monnaie due générée par cette vente, et monnaie due soldée en déduction
+  // du montant à payer de cette vente.
+  changeDuesOrigin  ChangeDue[] @relation("ChangeDueOrigin")
+  changeDuesSettled ChangeDue[] @relation("ChangeDueSettlement")
+
   @@unique([restaurantId, orderNumber])
   @@index([restaurantId, status])
   @@index([restaurantId, createdAt(sort: Desc)])
@@ -646,6 +667,13 @@ model Payment {
   phoneNumber   String?       @map("phone_number")
   errorMessage  String?       @map("error_message")
 
+  // Espèces uniquement : montant physiquement remis par le client et monnaie
+  // effectivement rendue. La monnaie que le commerçant n'a pas pu rendre n'est
+  // pas stockée ici : elle est matérialisée par un enregistrement ChangeDue,
+  // qui porte le code de retrait et le suivi du règlement.
+  amountTendered Int? @map("amount_tendered")
+  changeReturned Int? @map("change_returned")
+
   // Champs SingPay
   singpayReference     String?                    @unique @map("singpay_reference")
   singpayTransactionId String?                    @map("singpay_transaction_id")
@@ -661,8 +689,9 @@ model Payment {
   updatedAt     DateTime      @updatedAt @map("updated_at")
 
   // Relations
-  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
-  order      Order      @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  restaurant Restaurant  @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  order      Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  changeDues ChangeDue[]
 
   @@index([orderId])
   @@index([restaurantId, status])
@@ -1329,6 +1358,63 @@ model Expense {
   @@index([restaurantId, category])
   @@index([restaurantId, expenseDate])
   @@map("expenses")
+}
+
+// Monnaie que le commerce n'a pas pu rendre à un client, faute de petite
+// monnaie. Ce n'est ni une recette ni une dépense : c'est de l'argent détenu
+// dans le tiroir qui appartient au client.
+//
+// Volontairement sans FK vers CashSession : une vente au comptoir peut avoir
+// lieu sans qu'aucune session de caisse ne soit ouverte. L'agrégation caisse
+// se fait par date (dueDate / settledDate), comme pour les paiements Akôm.
+model ChangeDue {
+  id           String @id @default(uuid()) @db.Uuid
+  restaurantId String @map("restaurant_id") @db.Uuid
+
+  // Code de retrait remis au client sur son ticket. Unique par structure.
+  code   String
+  amount Int // Montant en FCFA (entier, > 0)
+
+  status ChangeDueStatus @default(outstanding)
+
+  // Identité du client en texte libre — il n'existe pas de modèle Client dans
+  // Akôm. Le téléphone est l'identifiant pratique au Gabon.
+  customerName  String? @map("customer_name")
+  customerPhone String? @map("customer_phone")
+
+  // Vente à l'origine de la dette.
+  orderId   String? @map("order_id") @db.Uuid
+  paymentId String? @map("payment_id") @db.Uuid
+
+  // Date métier de création — base de l'agrégation caisse du jour.
+  dueDate DateTime @map("due_date") @db.Date
+
+  // Règlement
+  settlementMethod ChangeDueSettlementMethod? @map("settlement_method")
+  settledOrderId   String?                    @map("settled_order_id") @db.Uuid
+  settledDate      DateTime?                  @map("settled_date") @db.Date
+  settledAt        DateTime?                  @map("settled_at")
+  settledBy        String?                    @map("settled_by") @db.Uuid
+
+  // Motif obligatoire si status = cancelled.
+  cancelReason String? @map("cancel_reason")
+
+  notes     String?
+  createdBy String   @map("created_by") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  order        Order?     @relation("ChangeDueOrigin", fields: [orderId], references: [id], onDelete: SetNull)
+  payment      Payment?   @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+  settledOrder Order?     @relation("ChangeDueSettlement", fields: [settledOrderId], references: [id], onDelete: SetNull)
+
+  @@unique([restaurantId, code])
+  @@index([restaurantId, status])
+  @@index([restaurantId, dueDate])
+  @@index([restaurantId, settledDate])
+  @@index([customerPhone])
+  @@map("change_dues")
 }
 
 model RestaurantSingpayConfig {

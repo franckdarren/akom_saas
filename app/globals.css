@@ -1352,3 +1352,30 @@
   display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
   font-size: 12px; color: var(--muted-foreground);
 }
+
+/* ============================================================
+   IMPRESSION — ticket de monnaie due
+   ============================================================
+   window.print() imprime toute la page : on masque tout sauf le ticket.
+   `visibility` plutôt que `display` pour ne pas casser la mise en page des
+   ancêtres du ticket (le dialog et ses conteneurs restent dans le flux). */
+@media print {
+  body:has(#change-due-receipt) * {
+    visibility: hidden;
+  }
+
+  body:has(#change-due-receipt) #change-due-receipt,
+  body:has(#change-due-receipt) #change-due-receipt * {
+    visibility: visible;
+  }
+
+  body:has(#change-due-receipt) #change-due-receipt {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 24px;
+    color: #000;
+    background: #fff;
+  }
+}

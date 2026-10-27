@@ -49,6 +49,7 @@ import {
     Lock,
     TrendingUp,
     ClipboardList,
+    Coins,
     ClipboardCheck,
     LayoutGrid,
 } from "lucide-react"
@@ -214,6 +215,7 @@ export function AppSidebar({
                 items: [
                     {title: `${labels.orderGender === 'f' ? 'Nouvelle' : 'Nouveau'} ${labels.orderName}`, href: "/dashboard/pos", icon: ShoppingCart, module: 'pos' as ModuleKey},
                     {title: `${labels.orderNamePluralCapital} du jour`, href: "/dashboard/pos/orders", icon: ClipboardList, module: 'pos' as ModuleKey},
+                    {title: "Monnaie due", href: "/dashboard/pos/monnaie-due", icon: Coins, module: 'pos' as ModuleKey},
                 ],
             },
             {
@@ -303,6 +305,7 @@ export function AppSidebar({
                 items: [
                     {title: `${labels.orderGender === 'f' ? 'Nouvelle' : 'Nouveau'} ${labels.orderName}`, href: "/dashboard/pos", icon: ShoppingCart},
                     {title: `${labels.orderNamePluralCapital} du jour`, href: "/dashboard/pos/orders", icon: ClipboardList},
+                    {title: "Monnaie due", href: "/dashboard/pos/monnaie-due", icon: Coins},
                     {title: "Support", href: "/dashboard/support", icon: MessageSquare},
                 ],
             },

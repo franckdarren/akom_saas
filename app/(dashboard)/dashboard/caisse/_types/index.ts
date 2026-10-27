@@ -40,6 +40,13 @@ export type BalanceData = {
         byMethod: { paymentMethod: string; _sum: { amount: number | null } }[]
         byCategory: { category: string; _sum: { amount: number | null } }[]
     }
+    // Monnaie due aux clients : argent détenu dans le tiroir, hors recettes.
+    changeDue: {
+        created: number
+        settled: number
+        held: number
+        outstandingTotal: number
+    }
     balance: {
         opening: number
         theoretical: number

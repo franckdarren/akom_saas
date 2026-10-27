@@ -10,11 +10,15 @@ import {
     ShoppingBag, TrendingUp, RefreshCw, Receipt,
     AlertCircle, Banknote, Smartphone,
     ChevronLeft, ChevronRight, ChevronDown,
+    Coins, X,
 } from 'lucide-react'
 import {AppCard, CardContent} from '@/components/ui/app-card'
 import {Badge} from '@/components/ui/badge'
 import {Button} from '@/components/ui/button'
 import {Separator} from '@/components/ui/separator'
+import {Input} from '@/components/ui/input'
+import {Label} from '@/components/ui/label'
+import {Checkbox} from '@/components/ui/checkbox'
 import {
     Dialog, DialogContent, DialogHeader,
     DialogTitle, DialogDescription,
@@ -26,6 +30,8 @@ import {
 } from '@/components/ui/dropdown-menu'
 import {updateOrderStatus} from '@/lib/actions/order'
 import {markOrderPaid} from '../_actions/mark-order-paid'
+import {findChangeDueByCode} from '@/lib/actions/change-due'
+import {ChangeDueReceipt} from './ChangeDueReceipt'
 import {PaymentMethod} from '@prisma/client'
 import {cn} from '@/lib/utils'
 import {useActivityLabels} from '@/lib/hooks/use-activity-labels'
@@ -38,10 +44,23 @@ import {
     getOrderFlow,
 } from '@/lib/config/order-status'
 import type {OrderStatusKey} from '@/lib/config/activity-labels'
+import type {POSChangeDueResult} from '../_types'
 
 // ============================================================
 // TYPES
 // ============================================================
+
+// Options d'encaissement en espèces : montant reçu, monnaie non rendue, et
+// éventuelle monnaie due d'un passage précédent déduite de la note.
+interface PayOptions {
+    amountTendered?: number
+    changeDue?: {
+        amount: number
+        customerName?: string
+        customerPhone?: string
+    }
+    appliedChangeDueCode?: string
+}
 
 type OrderStatus = 'awaiting_payment' | 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled'
 type PaymentSt = 'pending' | 'paid' | 'failed' | 'refunded'
@@ -155,6 +174,7 @@ export function POSOrdersShell({orders: initialOrders, stats, selectedDate}: POS
     const [filter, setFilter] = useState<StatusFilter>('all')
     const [loadingId, setLoadingId] = useState<string | null>(null)
     const [payDialog, setPayDialog] = useState<Order | null>(null)
+    const [changeDueReceipt, setChangeDueReceipt] = useState<POSChangeDueResult | null>(null)
     const [isPending, startTransition] = useTransition()
 
     const filtered = useMemo(() => {
@@ -188,15 +208,16 @@ export function POSOrdersShell({orders: initialOrders, stats, selectedDate}: POS
         }
     }
 
-    async function handleMarkPaid(order: Order, method: PaymentMethod) {
+    async function handleMarkPaid(order: Order, method: PaymentMethod, options: PayOptions) {
         setLoadingId(order.id)
         setPayDialog(null)
         try {
-            const result = await markOrderPaid(order.id, method)
+            const result = await markOrderPaid(order.id, method, options)
             if ('error' in result) {
                 toast.error(result.error);
                 return
             }
+            if (result.changeDue) setChangeDueReceipt(result.changeDue)
             setOrders(prev => prev.map(o => {
                 if (o.id !== order.id) return o
                 const existingPending = o.payments.find(p => p.status === 'pending')
@@ -386,6 +407,12 @@ export function POSOrdersShell({orders: initialOrders, stats, selectedDate}: POS
                 orderLabel={labels.orderName}
                 onClose={() => setPayDialog(null)}
                 onConfirm={handleMarkPaid}
+            />
+
+            <ChangeDueReceipt
+                changeDue={changeDueReceipt}
+                restaurantName={currentRestaurant?.name ?? ''}
+                onClose={() => setChangeDueReceipt(null)}
             />
         </div>
     )
@@ -609,11 +636,96 @@ function PaymentDialog({
     order: Order | null
     orderLabel: string
     onClose: () => void
-    onConfirm: (order: Order, method: PaymentMethod) => void
+    onConfirm: (order: Order, method: PaymentMethod, options: PayOptions) => void
 }) {
+    // Le mode espèces ouvre un second temps : montant reçu, monnaie, et
+    // éventuelle monnaie due. Les paiements mobiles encaissent en un clic,
+    // comme avant.
+    const [cashStep, setCashStep] = useState(false)
+    const [amountGiven, setAmountGiven] = useState('')
+    const [keepChange, setKeepChange] = useState(false)
+    const [changeDueInput, setChangeDueInput] = useState('')
+    const [customerName, setCustomerName] = useState('')
+    const [customerPhone, setCustomerPhone] = useState('')
+    const [codeInput, setCodeInput] = useState('')
+    const [appliedCode, setAppliedCode] = useState<{code: string; amount: number} | null>(null)
+    const [isLookingUp, startLookup] = useTransition()
+
+    const total = order?.totalAmount ?? 0
+    const cashToCollect = total - (appliedCode?.amount ?? 0)
+    const given = parseInt(amountGiven, 10) || 0
+    const change = given - cashToCollect
+
+    const changeDueAmount = keepChange
+        ? Math.min(parseInt(changeDueInput, 10) || 0, Math.max(change, 0))
+        : 0
+    const changeToReturn = Math.max(change, 0) - changeDueAmount
+
+    const cashIncomplete = amountGiven !== '' && given < cashToCollect
+    const changeDueIncomplete = keepChange && (amountGiven === '' || changeDueAmount <= 0)
+
+    function handleClose() {
+        setCashStep(false)
+        setAmountGiven('')
+        setKeepChange(false)
+        setChangeDueInput('')
+        setCustomerName('')
+        setCustomerPhone('')
+        setCodeInput('')
+        setAppliedCode(null)
+        onClose()
+    }
+
+    function handleApplyCode() {
+        const code = codeInput.trim()
+        if (!code) return
+
+        startLookup(async () => {
+            const result = await findChangeDueByCode(code)
+            if (!result.success) {
+                toast.error(result.error)
+                return
+            }
+            if (result.data.amount > total) {
+                toast.error(
+                    `La monnaie due (${result.data.amount.toLocaleString('fr-FR')} FCFA) dépasse le total — rendez-la en espèces depuis la page Monnaie due`,
+                )
+                return
+            }
+            setAppliedCode({code: result.data.code, amount: result.data.amount})
+            setCodeInput('')
+            toast.success(`${result.data.amount.toLocaleString('fr-FR')} FCFA déduits`)
+        })
+    }
+
+    function handleCashConfirm() {
+        if (!order) return
+        if (cashIncomplete) {
+            toast.error('Montant reçu insuffisant')
+            return
+        }
+        if (changeDueIncomplete) {
+            toast.error('Saisissez le montant reçu et la monnaie à enregistrer')
+            return
+        }
+
+        onConfirm(order, PaymentMethod.cash, {
+            amountTendered: amountGiven !== '' ? given : undefined,
+            changeDue: changeDueAmount > 0
+                ? {
+                    amount: changeDueAmount,
+                    customerName: customerName.trim() || undefined,
+                    customerPhone: customerPhone.trim() || undefined,
+                }
+                : undefined,
+            appliedChangeDueCode: appliedCode?.code,
+        })
+        handleClose()
+    }
+
     return (
-        <Dialog open={!!order} onOpenChange={open => !open && onClose()}>
-            <DialogContent className="sm:max-w-sm">
+        <Dialog open={!!order} onOpenChange={open => !open && handleClose()}>
+            <DialogContent className="sm:max-w-sm max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>Encaisser la {orderLabel}</DialogTitle>
                     <DialogDescription>
@@ -625,20 +737,207 @@ function PaymentDialog({
                         )}
                     </DialogDescription>
                 </DialogHeader>
-                <div className="flex flex-col gap-3 pt-2">
-                    <p className="text-sm text-muted-foreground">Choisir le mode de paiement :</p>
-                    {PAYMENT_METHODS.map(({value, label, icon: Icon}) => (
-                        <Button
-                            key={value}
-                            variant="outline"
-                            className="w-full justify-start gap-3 h-12"
-                            onClick={() => order && onConfirm(order, value)}
-                        >
-                            <Icon className="h-4 w-4 text-muted-foreground"/>
-                            {label}
-                        </Button>
-                    ))}
-                </div>
+
+                {!cashStep ? (
+                    <div className="flex flex-col gap-3 pt-2">
+                        <p className="text-sm text-muted-foreground">Choisir le mode de paiement :</p>
+                        {PAYMENT_METHODS.map(({value, label, icon: Icon}) => (
+                            <Button
+                                key={value}
+                                variant="outline"
+                                className="w-full justify-start gap-3 h-12"
+                                onClick={() => {
+                                    if (value === PaymentMethod.cash) {
+                                        setCashStep(true)
+                                        return
+                                    }
+                                    if (order) onConfirm(order, value, {})
+                                    handleClose()
+                                }}
+                            >
+                                <Icon className="h-4 w-4 text-muted-foreground"/>
+                                {label}
+                            </Button>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="layout-form pt-2">
+                        {/* Monnaie due d'un passage précédent */}
+                        {appliedCode ? (
+                            <div className="flex items-center justify-between gap-2 rounded-lg bg-info-subtle p-2.5">
+                                <div className="layout-inline">
+                                    <Coins className="h-4 w-4 shrink-0 text-info"/>
+                                    <div>
+                                        <p className="text-sm font-medium">Monnaie due déduite</p>
+                                        <p className="type-caption">Code {appliedCode.code}</p>
+                                    </div>
+                                </div>
+                                <div className="layout-inline">
+                                    <span className="text-sm font-bold text-info tabular-nums">
+                                        −{appliedCode.amount.toLocaleString('fr-FR')}
+                                    </span>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-7 w-7"
+                                        onClick={() => setAppliedCode(null)}
+                                        aria-label="Retirer la déduction"
+                                    >
+                                        <X className="h-3.5 w-3.5"/>
+                                    </Button>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="layout-field">
+                                <Label htmlFor="pay-change-due-code" className="type-label">
+                                    Code de monnaie due (optionnel)
+                                </Label>
+                                <div className="layout-inline">
+                                    <Input
+                                        id="pay-change-due-code"
+                                        value={codeInput}
+                                        onChange={e => setCodeInput(e.target.value.toUpperCase())}
+                                        placeholder="Ex : K7M2PQ"
+                                        className="font-mono uppercase"
+                                    />
+                                    <Button
+                                        variant="outline"
+                                        onClick={handleApplyCode}
+                                        disabled={!codeInput.trim() || isLookingUp}
+                                    >
+                                        {isLookingUp ? '…' : 'Appliquer'}
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Montant reçu */}
+                        <div className="layout-field">
+                            <Label htmlFor="pay-amount-given" className="type-label">
+                                Montant reçu (optionnel)
+                            </Label>
+                            <Input
+                                id="pay-amount-given"
+                                type="text"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
+                                placeholder={`Min. ${cashToCollect.toLocaleString('fr-FR')}`}
+                                value={amountGiven}
+                                onChange={e => setAmountGiven(e.target.value.replace(/\D/g, ''))}
+                                className="text-lg"
+                                autoFocus
+                            />
+                            {appliedCode && (
+                                <p className="type-caption">
+                                    À encaisser après déduction :{' '}
+                                    <strong>{cashToCollect.toLocaleString('fr-FR')} FCFA</strong>
+                                </p>
+                            )}
+                            {cashIncomplete && (
+                                <p className="type-caption text-destructive">
+                                    Montant insuffisant — minimum {cashToCollect.toLocaleString('fr-FR')} FCFA
+                                </p>
+                            )}
+                        </div>
+
+                        {/* Monnaie à rendre + pénurie de petite monnaie */}
+                        {change > 0 && (
+                            <div className="layout-form">
+                                <div
+                                    className="flex items-center justify-between rounded-lg bg-success-subtle p-2 text-sm">
+                                    <span className="text-muted-foreground">Monnaie à rendre</span>
+                                    <span className="font-bold text-success tabular-nums">
+                                        {change.toLocaleString('fr-FR')} FCFA
+                                    </span>
+                                </div>
+
+                                <div className="layout-inline">
+                                    <Checkbox
+                                        id="pay-keep-change"
+                                        checked={keepChange}
+                                        onCheckedChange={checked => {
+                                            const next = checked === true
+                                            setKeepChange(next)
+                                            setChangeDueInput(next ? String(change) : '')
+                                        }}
+                                    />
+                                    <Label htmlFor="pay-keep-change" className="type-label cursor-pointer">
+                                        Je ne peux pas rendre toute la monnaie
+                                    </Label>
+                                </div>
+
+                                {keepChange && (
+                                    <div className="layout-form rounded-lg bg-warning-subtle p-3">
+                                        <div className="layout-field">
+                                            <Label htmlFor="pay-change-due-amount" className="type-label">
+                                                Monnaie enregistrée (non rendue)
+                                            </Label>
+                                            <Input
+                                                id="pay-change-due-amount"
+                                                type="text"
+                                                inputMode="numeric"
+                                                pattern="[0-9]*"
+                                                value={changeDueInput}
+                                                onChange={e => setChangeDueInput(e.target.value.replace(/\D/g, ''))}
+                                            />
+                                            <p className="type-caption">
+                                                Reste à rendre maintenant :{' '}
+                                                <strong>{changeToReturn.toLocaleString('fr-FR')} FCFA</strong>
+                                            </p>
+                                        </div>
+
+                                        <div className="layout-field">
+                                            <Label htmlFor="pay-customer-name" className="type-label">
+                                                Nom du client (optionnel)
+                                            </Label>
+                                            <Input
+                                                id="pay-customer-name"
+                                                value={customerName}
+                                                onChange={e => setCustomerName(e.target.value)}
+                                                placeholder="Ex : Mme Ndong"
+                                            />
+                                        </div>
+
+                                        <div className="layout-field">
+                                            <Label htmlFor="pay-customer-phone" className="type-label">
+                                                Téléphone (optionnel)
+                                            </Label>
+                                            <Input
+                                                id="pay-customer-phone"
+                                                type="tel"
+                                                inputMode="tel"
+                                                value={customerPhone}
+                                                onChange={e => setCustomerPhone(e.target.value)}
+                                                placeholder="Ex : 077 00 00 00"
+                                            />
+                                        </div>
+
+                                        <p className="type-caption">
+                                            Un code de retrait sera remis au client sur son ticket.
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        <div className="layout-inline">
+                            <Button
+                                variant="outline"
+                                className="flex-1"
+                                onClick={() => setCashStep(false)}
+                            >
+                                ← Retour
+                            </Button>
+                            <Button
+                                className="flex-1"
+                                disabled={cashIncomplete || changeDueIncomplete}
+                                onClick={handleCashConfirm}
+                            >
+                                Encaisser {cashToCollect.toLocaleString('fr-FR')} FCFA
+                            </Button>
+                        </div>
+                    </div>
+                )}
             </DialogContent>
         </Dialog>
     )

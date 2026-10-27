@@ -2,9 +2,10 @@
 'use server'
 
 import prisma from '@/lib/prisma'
+import {getChangeDueTotals} from '@/lib/change-due/totals'
 
 // Cette fonction est le cœur du module caisse.
-// Elle agrège les trois sources financières et retourne
+// Elle agrège les sources financières et retourne
 // une balance complète, décomposée par mode de paiement.
 export async function getSessionBalance(
     sessionId: string,
@@ -53,6 +54,16 @@ export async function getSessionBalance(
         _sum: {amount: true},
     })
 
+    // SOURCE 4 : Monnaie due aux clients.
+    // Ni recette ni dépense : c'est de l'argent détenu dans le tiroir qui
+    // appartient au client. Agrégée par date de session, comme la SOURCE 2,
+    // car une vente au comptoir peut avoir lieu sans session ouverte.
+    const changeDue = await getChangeDueTotals(restaurantId, session.sessionDate)
+
+    // Impact net sur l'argent détenu : ce qui a été conservé ce jour-là,
+    // moins ce qui a été rendu ou déduit d'un achat le même jour.
+    const changeDueHeld = changeDue.created - changeDue.settled
+
     // CALCUL DES TOTAUX
     const totalManual = manualRevsByMethod.reduce(
         (s, r) => s + (r._sum.totalAmount ?? 0), 0
@@ -82,8 +93,14 @@ export async function getSessionBalance(
         .filter(e => cashMethods.includes(e.paymentMethod))
         .reduce((s, e) => s + (e._sum.amount ?? 0), 0)
 
-    const theoreticalBalance = session.openingBalance + totalRevenue - totalExpenses
-    const theoreticalCashBalance = session.openingBalance + cashIn - cashOut
+    // La monnaie due s'ajoute aux deux balances : elle est physiquement dans
+    // le tiroir et doit donc se retrouver dans le montant compté à la clôture.
+    // Elle n'entre en revanche jamais dans `revenues` — la vente a été
+    // encaissée à son montant, pas davantage.
+    const theoreticalBalance =
+        session.openingBalance + totalRevenue - totalExpenses + changeDueHeld
+    const theoreticalCashBalance =
+        session.openingBalance + cashIn - cashOut + changeDueHeld
 
     return {
         session,
@@ -97,6 +114,12 @@ export async function getSessionBalance(
             total: totalExpenses,
             byMethod: expensesByMethod,
             byCategory: expensesByCategory,
+        },
+        changeDue: {
+            created: changeDue.created,
+            settled: changeDue.settled,
+            held: changeDueHeld,
+            outstandingTotal: changeDue.outstandingTotal,
         },
         balance: {
             opening: session.openingBalance,

@@ -22,6 +22,12 @@ export default async function POSPage() {
         redirect('/dashboard')
     }
 
+    // Nom de la structure : figure sur le ticket de monnaie due remis au client
+    const restaurant = await prisma.restaurant.findUnique({
+        where: {id: restaurantId},
+        select: {name: true},
+    })
+
     // ✅ FIX 3 : `isActive` n'existe pas sur Product — le bon champ est `isAvailable`
     //            On utilise `select` pour ne retourner que les champs dont POSShell a besoin,
     //            ce qui garantit la compatibilité avec POSCategory / POSProduct
@@ -52,6 +58,7 @@ export default async function POSPage() {
         <POSShell
             categories={categories}
             restaurantId={restaurantId}
+            restaurantName={restaurant?.name ?? ''}
         />
     )
 }

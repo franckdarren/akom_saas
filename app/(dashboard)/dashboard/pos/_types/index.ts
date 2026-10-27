@@ -53,4 +53,28 @@ export interface POSOrderPayload {
     tableLabel?: string
 
     note?: string
+
+    // ── Encaissement en espèces ──────────────────────────────────────
+    // Montant physiquement remis par le client. Espèces uniquement.
+    amountTendered?: number
+
+    // Monnaie que le commerçant ne peut pas rendre, faute de petite monnaie.
+    // Enregistrée comme une dette envers le client, avec un code de retrait.
+    changeDue?: {
+        amount: number
+        customerName?: string
+        customerPhone?: string
+    }
+
+    // Code de retrait d'une monnaie due déduite du montant à payer de cette
+    // vente. La recette reste enregistrée au montant plein : c'est le tiroir
+    // qui encaisse moins.
+    appliedChangeDueCode?: string
+}
+
+// Résultat d'un encaissement ayant généré une monnaie due — alimente le
+// ticket de preuve remis au client.
+export interface POSChangeDueResult {
+    code: string
+    amount: number
 }

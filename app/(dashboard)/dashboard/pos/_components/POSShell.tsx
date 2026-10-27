@@ -17,17 +17,24 @@ import {
     BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
 import {cn} from '@/lib/utils'
-import type {CartItem, POSProduct, POSCategory} from '../_types/index'
+import {ChangeDueReceipt} from '../_components/ChangeDueReceipt'
+import type {CartItem, POSProduct, POSCategory, POSChangeDueResult} from '../_types/index'
 
 interface POSShellProps {
     categories: POSCategory[]
     restaurantId: string
+    restaurantName: string
 }
 
-export function POSShell({categories, restaurantId}: POSShellProps) {
+export function POSShell({categories, restaurantId, restaurantName}: POSShellProps) {
     const [cart, setCart] = useState<CartItem[]>([])
     const [activeCategory, setActiveCategory] = useState(categories[0]?.id ?? '')
     const [cartOpen, setCartOpen] = useState(false)
+
+    // Ticket de monnaie due. Porté ici et non dans Cart : la fin de vente vide
+    // le panier et ferme le sheet mobile, ce qui démonterait le composant Cart
+    // avant que le client ait sa preuve.
+    const [changeDueReceipt, setChangeDueReceipt] = useState<POSChangeDueResult | null>(null)
 
     const total = useMemo(
         () => cart.reduce((sum, i) => sum + i.price * i.quantity, 0),
@@ -195,6 +202,7 @@ export function POSShell({categories, restaurantId}: POSShellProps) {
                             onUpdateQty={updateQty}
                             onClear={clearCart}
                             onOrderComplete={clearCart}
+                            onChangeDue={setChangeDueReceipt}
                         />
                     </div>
                 </aside>
@@ -268,11 +276,18 @@ export function POSShell({categories, restaurantId}: POSShellProps) {
                                     clearCart()
                                     setCartOpen(false)
                                 }}
+                                onChangeDue={setChangeDueReceipt}
                             />
                         </div>
                     </SheetContent>
                 </Sheet>
             </div>
+
+            <ChangeDueReceipt
+                changeDue={changeDueReceipt}
+                restaurantName={restaurantName}
+                onClose={() => setChangeDueReceipt(null)}
+            />
 
         </div>
     )

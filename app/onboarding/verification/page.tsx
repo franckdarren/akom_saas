@@ -153,8 +153,7 @@ export default async function VerificationPage() {
                     <AlertTriangle className="h-4 w-4"/>
                     <div>
                         {/* ← Label dynamique */}
-                        Votre {labels.catalogName} ne sera pas visible publiquement tant que la vérification
-                        n&apos;est pas validée.
+                        {`Votre ${labels.catalogName} ne sera pas visible publiquement tant que la vérification n'est pas validée.`}
                     </div>
                 </div>
 
