@@ -11,7 +11,7 @@ export async function PATCH(
     req: NextRequest,
     { params }: { params: Promise<{ productId: string }> }
 ) {
-    const { ctx, error } = await validateMobileRequest(req)
+    const { ctx, error } = await validateMobileRequest(req, { resource: 'stocks', action: 'update' })
     if (error) return error
 
     const { productId } = await params

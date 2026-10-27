@@ -11,7 +11,7 @@ import prisma from '@/lib/prisma'
 // Body : { label?: string, entries: [{ productId: string, countedQty: number, note?: string }] }
 // ============================================================
 export async function POST(req: NextRequest) {
-    const { ctx, error } = await validateMobileRequest(req)
+    const { ctx, error } = await validateMobileRequest(req, { resource: 'stocks', action: 'update' })
     if (error) return error
 
     try {

@@ -10,7 +10,7 @@ export async function POST(req: Request) {
   // Vérification du secret interne — cet endpoint n'est appelé que
   // depuis les Server Actions d'invitation (serveur → serveur)
   const authHeader = req.headers.get('Authorization')
-  if (!authHeader || authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!process.env.CRON_SECRET || !authHeader || authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ success: false, error: 'Non autorisé' }, { status: 401 })
   }
 

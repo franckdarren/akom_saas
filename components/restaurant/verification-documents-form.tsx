@@ -1,7 +1,7 @@
 // components/restaurant/verification-documents-form.tsx
 'use client'
 
-import {useState} from 'react'
+import {useEffect, useState} from 'react'
 import {useRouter} from 'next/navigation'
 import Image from 'next/image'
 import {AppCard, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/app-card'
@@ -18,6 +18,11 @@ import {
 import {Alert, AlertDescription} from '@/components/ui/alert'
 import {Badge} from '@/components/ui/badge'
 import {createClient} from '@/lib/supabase/client'
+import {
+    VERIFICATION_BUCKET,
+    VERIFICATION_SIGNED_URL_TTL,
+    verificationPathFromUrl,
+} from '@/lib/storage/verification-documents'
 import {
     CheckCircle2,
     XCircle,
@@ -67,6 +72,26 @@ export function VerificationDocumentsForm({
     const [identityDocumentType, setIdentityDocumentType] = useState<IdentityDocumentType | null>(
         (verificationDocument?.identityDocumentType as IdentityDocumentType) || null
     )
+    // Bucket privé : profilePhotoUrl n'est pas affichable directement.
+    // Aperçu = URL signée pour la photo déjà envoyée, URL locale après un nouvel upload.
+    const [profilePhotoPreview, setProfilePhotoPreview] = useState<string | null>(null)
+
+    const storedProfilePhotoUrl = verificationDocument?.profilePhotoUrl ?? null
+    useEffect(() => {
+        const path = storedProfilePhotoUrl ? verificationPathFromUrl(storedProfilePhotoUrl) : null
+        if (!path) return
+
+        let cancelled = false
+        createClient()
+            .storage.from(VERIFICATION_BUCKET)
+            .createSignedUrl(path, VERIFICATION_SIGNED_URL_TTL)
+            .then(({data}) => {
+                if (!cancelled && data) setProfilePhotoPreview(data.signedUrl)
+            })
+        return () => {
+            cancelled = true
+        }
+    }, [storedProfilePhotoUrl])
 
     const status = verificationDocument?.verificationStatus || 'pending_documents'
     const isRejected = status === 'documents_rejected'
@@ -107,6 +132,7 @@ export function VerificationDocumentsForm({
                 .getPublicUrl(fileName)
 
             setProfilePhotoUrl(data.publicUrl)
+            setProfilePhotoPreview(URL.createObjectURL(file))
             toast.success('Photo de profil uploadée')
         } catch (error) {
             console.error('Erreur upload:', error)
@@ -264,12 +290,13 @@ export function VerificationDocumentsForm({
                             </p>
 
                             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                                {profilePhotoUrl && (
+                                {profilePhotoPreview && (
                                     <div className="relative h-20 w-20 sm:h-24 sm:w-24 rounded-lg overflow-hidden border shrink-0">
                                         <Image
-                                            src={profilePhotoUrl}
+                                            src={profilePhotoPreview}
                                             alt="Aperçu"
                                             fill
+                                            unoptimized
                                             className="object-contain"
                                         />
                                     </div>

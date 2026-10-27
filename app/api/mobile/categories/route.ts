@@ -3,7 +3,7 @@ import { validateMobileRequest } from '@/lib/mobile-auth'
 import prisma from '@/lib/prisma'
 
 export async function GET(req: NextRequest) {
-    const { ctx, error } = await validateMobileRequest(req)
+    const { ctx, error } = await validateMobileRequest(req, { resource: 'categories', action: 'read' })
     if (error) return error
 
     try {

@@ -21,6 +21,53 @@ interface UpdateRoleData {
 }
 
 // ============================================================
+// Garde anti-escalade
+// ============================================================
+
+// Un non-admin disposant de roles.create/update ne peut accorder que des
+// permissions qu'il possède lui-même — sinon il pourrait s'octroyer tous les droits
+// en modifiant son propre rôle. Retourne un message d'erreur, ou null si autorisé.
+async function checkGrantablePermissions(
+    userId: string,
+    restaurantId: string,
+    permissionIds: string[]
+): Promise<string | null> {
+    const caller = await prisma.restaurantUser.findUnique({
+        where: {userId_restaurantId: {userId, restaurantId}},
+        select: {
+            customRole: {
+                select: {
+                    slug: true,
+                    permissions: {select: {permission: {select: {resource: true, action: true}}}},
+                },
+            },
+        },
+    })
+
+    // Non-membre : seul le bypass superadmin de requirePermissionForRestaurant mène ici.
+    if (!caller) return null
+    if (caller.customRole?.slug === 'admin') return null
+
+    const owned = caller.customRole?.permissions.map((rp) => rp.permission) ?? []
+    const requested = await prisma.permission.findMany({
+        where: {id: {in: permissionIds}},
+        select: {resource: true, action: true},
+    })
+
+    if (requested.length !== new Set(permissionIds).size) {
+        return 'Permission inconnue'
+    }
+
+    const allOwned = requested.every((req) =>
+        owned.some((own) =>
+            own.resource === req.resource && (own.action === req.action || own.action === 'manage')
+        )
+    )
+
+    return allOwned ? null : "Vous ne pouvez pas accorder une permission que vous ne possédez pas"
+}
+
+// ============================================================
 // Récupérer toutes les permissions disponibles
 // ============================================================
 
@@ -117,7 +164,7 @@ export async function createCustomRole(
     data: CreateRoleData
 ) {
     try {
-        await requirePermissionForRestaurant(restaurantId, 'roles', 'create')
+        const {userId} = await requirePermissionForRestaurant(restaurantId, 'roles', 'create')
 
         if (!data.name || data.name.trim().length === 0) {
             return {error: 'Le nom du rôle est obligatoire'}
@@ -126,6 +173,9 @@ export async function createCustomRole(
         if (data.permissionIds.length === 0) {
             return {error: 'Vous devez sélectionner au moins une permission'}
         }
+
+        const grantError = await checkGrantablePermissions(userId, restaurantId, data.permissionIds)
+        if (grantError) return {error: grantError}
 
         const existingRole = await prisma.role.findUnique({
             where: {
@@ -184,7 +234,7 @@ export async function updateCustomRole(
     data: UpdateRoleData
 ) {
     try {
-        await requirePermissionForRestaurant(restaurantId, 'roles', 'update')
+        const {userId} = await requirePermissionForRestaurant(restaurantId, 'roles', 'update')
 
         const existingRole = await prisma.role.findUnique({
             where: {id: roleId, restaurantId},
@@ -192,6 +242,11 @@ export async function updateCustomRole(
 
         if (!existingRole) {
             return {error: 'Rôle introuvable'}
+        }
+
+        if (data.permissionIds) {
+            const grantError = await checkGrantablePermissions(userId, restaurantId, data.permissionIds)
+            if (grantError) return {error: grantError}
         }
 
         if (existingRole.isProtected) {

@@ -7,7 +7,7 @@ import prisma from '@/lib/prisma'
 // Retourne uniquement les produits avec hasStock: true
 // ============================================================
 export async function GET(req: NextRequest) {
-    const { ctx, error } = await validateMobileRequest(req)
+    const { ctx, error } = await validateMobileRequest(req, { resource: 'stocks', action: 'read' })
     if (error) return error
 
     try {

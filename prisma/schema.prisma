@@ -939,6 +939,8 @@ model SubscriptionPayment {
   method       SubscriptionPaymentMethod
   status       SubscriptionPaymentStatus @default(pending)
   billingCycle Int                       @map("billing_cycle") // Nombre de mois payés
+  // Plan demandé — appliqué à l'abonnement uniquement à la validation du paiement
+  plan         SubscriptionPlan?
 
   // Informations paiement manuel
   proofUrl    String?   @map("proof_url") // URL de la preuve de paiement (capture)

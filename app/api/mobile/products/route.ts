@@ -9,7 +9,7 @@ const PAGE_SIZE = 50
 // Query params : cursor? (product id), categoryId?
 // ============================================================
 export async function GET(req: NextRequest) {
-    const { ctx, error } = await validateMobileRequest(req)
+    const { ctx, error } = await validateMobileRequest(req, { resource: 'products', action: 'read' })
     if (error) return error
 
     const { searchParams } = req.nextUrl
@@ -56,7 +56,7 @@ export async function GET(req: NextRequest) {
 // Body : { name, price, categoryId?, barcode?, imageUrl?, description?, productType? }
 // ============================================================
 export async function POST(req: NextRequest) {
-    const { ctx, error } = await validateMobileRequest(req)
+    const { ctx, error } = await validateMobileRequest(req, { resource: 'products', action: 'create' })
     if (error) return error
 
     try {

@@ -2,21 +2,19 @@ import { NextRequest, NextResponse } from 'next/server'
 import { validateMobileRequest } from '@/lib/mobile-auth'
 import prisma from '@/lib/prisma'
 import { PaymentMethod, PaymentStatus, PaymentTiming } from '@prisma/client'
+import { z } from 'zod'
 
-interface CartItem {
-    productId: string
-    quantity: number
-    unitPrice: number
-}
+// unitPrice et totalAmount envoyés par l'app sont ignorés : les prix font foi côté serveur.
+const CreateMobileOrderSchema = z.object({
+    items: z.array(z.object({
+        productId: z.string().uuid(),
+        quantity: z.number().int().min(1).max(9999),
+    })).min(1).max(200),
+    paymentMethod: z.enum(['cash', 'airtel_money', 'moov_money']),
+    customerName: z.string().max(100).optional(),
+})
 
-interface CreateMobileOrderBody {
-    items: CartItem[]
-    totalAmount: number
-    paymentMethod: 'cash' | 'airtel_money' | 'moov_money'
-    customerName?: string
-}
-
-const PAYMENT_METHOD_MAP: Record<CreateMobileOrderBody['paymentMethod'], PaymentMethod> = {
+const PAYMENT_METHOD_MAP: Record<z.infer<typeof CreateMobileOrderSchema>['paymentMethod'], PaymentMethod> = {
     cash: PaymentMethod.cash,
     airtel_money: PaymentMethod.airtel_money,
     moov_money: PaymentMethod.moov_money,
@@ -27,22 +25,15 @@ const PAYMENT_METHOD_MAP: Record<CreateMobileOrderBody['paymentMethod'], Payment
 // Déduction de stock immédiate (vente au comptoir, source: mobile_pos)
 // ============================================================
 export async function POST(req: NextRequest) {
-    const { ctx, error } = await validateMobileRequest(req)
+    const { ctx, error } = await validateMobileRequest(req, 'cash')
     if (error) return error
 
     try {
-        const body: CreateMobileOrderBody = await req.json()
-        const { items, totalAmount, paymentMethod, customerName } = body
-
-        if (!items || items.length === 0) {
-            return NextResponse.json({ error: 'Le panier est vide' }, { status: 400 })
+        const parsed = CreateMobileOrderSchema.safeParse(await req.json())
+        if (!parsed.success) {
+            return NextResponse.json({ error: 'Données de commande invalides' }, { status: 400 })
         }
-        if (typeof totalAmount !== 'number' || totalAmount <= 0) {
-            return NextResponse.json({ error: 'totalAmount invalide' }, { status: 400 })
-        }
-        if (!paymentMethod || !(paymentMethod in PAYMENT_METHOD_MAP)) {
-            return NextResponse.json({ error: 'paymentMethod invalide' }, { status: 400 })
-        }
+        const { items, paymentMethod, customerName } = parsed.data
 
         // Vérifier que tous les produits existent et appartiennent au restaurant
         const productIds = items.map((i) => i.productId)
@@ -54,6 +45,14 @@ export async function POST(req: NextRequest) {
         if (products.length !== productIds.length) {
             return NextResponse.json({ error: 'Certains produits sont introuvables' }, { status: 400 })
         }
+
+        const missingPrice = products.find((p) => p.price === null)
+        if (missingPrice) {
+            return NextResponse.json({ error: `Le produit "${missingPrice.name}" n'a pas de prix` }, { status: 400 })
+        }
+
+        const priceOf = (productId: string): number => products.find((p) => p.id === productId)!.price!
+        const totalAmount = items.reduce((sum, item) => sum + priceOf(item.productId) * item.quantity, 0)
 
         // Vérifier le stock disponible
         for (const item of items) {
@@ -84,7 +83,7 @@ export async function POST(req: NextRequest) {
                     customerName: customerName ?? null,
                     status: 'delivered', // vente comptoir = immédiatement livrée
                     source: 'mobile_pos',
-                    totalAmount: Math.floor(totalAmount),
+                    totalAmount,
                     stockDeducted: true,
                     notes: `Paiement : ${paymentMethod}`,
                     orderItems: {
@@ -94,7 +93,7 @@ export async function POST(req: NextRequest) {
                                 productId: item.productId,
                                 productName: product.name,
                                 quantity: item.quantity,
-                                unitPrice: Math.floor(item.unitPrice),
+                                unitPrice: priceOf(item.productId),
                             }
                         }),
                     },
@@ -107,7 +106,7 @@ export async function POST(req: NextRequest) {
                 data: {
                     orderId: newOrder.id,
                     restaurantId: ctx.restaurantId,
-                    amount: Math.floor(totalAmount),
+                    amount: totalAmount,
                     method: PAYMENT_METHOD_MAP[paymentMethod],
                     status: PaymentStatus.paid,
                     timing: PaymentTiming.after_meal,

@@ -1,5 +1,6 @@
 // app/api/orders/route.ts
 import {NextRequest, NextResponse} from 'next/server'
+import {z} from 'zod'
 import {logOrderFailed} from '@/lib/actions/logs'
 import prisma from '@/lib/prisma'
 
@@ -7,20 +8,17 @@ import prisma from '@/lib/prisma'
 // TYPES
 // ============================================================
 
-// Chaque item envoyé par le client
-interface OrderItem {
-    productId: string
-    quantity: number
-}
-
-// Corps de la requête POST pour créer une commande
-interface CreateOrderRequest {
-    restaurantId: string
-    tableId: string
-    items: OrderItem[]
-    customerName?: string
-    notes?: string
-}
+// Corps de la requête POST (endpoint public, non authentifié)
+const CreateOrderSchema = z.object({
+    restaurantId: z.string().uuid(),
+    tableId: z.string().uuid(),
+    items: z.array(z.object({
+        productId: z.string().uuid(),
+        quantity: z.number().int().min(1).max(999),
+    })).min(1).max(100),
+    customerName: z.string().max(100).optional(),
+    notes: z.string().max(500).optional(),
+})
 
 // Typage pour les produits récupérés depuis Prisma, avec le stock inclus
 type ProductWithStock = {
@@ -36,16 +34,15 @@ type ProductWithStock = {
 
 export async function POST(request: NextRequest) {
     try {
-        const body: CreateOrderRequest = await request.json()
-
-        // Validation basique des données
-        if (!body.restaurantId || !body.tableId || !body.items || body.items.length === 0) {
-            return NextResponse.json({error: 'Données manquantes'}, {status: 400})
+        const parsed = CreateOrderSchema.safeParse(await request.json())
+        if (!parsed.success) {
+            return NextResponse.json({error: 'Données invalides'}, {status: 400})
         }
+        const body = parsed.data
 
         // Vérifier que le restaurant existe et est actif
         const restaurant = await prisma.restaurant.findUnique({
-            where: {id: body.restaurantId},
+            where: {id: body.restaurantId, isActive: true},
             select: {id: true, name: true, slug: true},
         })
 

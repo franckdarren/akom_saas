@@ -6,6 +6,12 @@ import prisma from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import { sendVerificationApprovedEmail } from '@/lib/email/send-verification-email'
 import { notifyRestaurantAdmins } from '@/lib/notifications'
+import { supabaseAdmin } from '@/lib/supabase/admin'
+import {
+    VERIFICATION_BUCKET,
+    VERIFICATION_SIGNED_URL_TTL,
+    verificationPathFromUrl,
+} from '@/lib/storage/verification-documents'
 
 // ============================================================
 // TYPES
@@ -36,6 +42,26 @@ async function verifySuperadmin() {
     )
 
     return { authorized: isSuperAdmin, userId: user.id }
+}
+
+// Le bucket verification-documents est privé : l'URL stockée est remplacée
+// par une URL signée temporaire. Une URL hors bucket n'est pas affichée.
+async function signVerificationUrl(url: string | null): Promise<string | null> {
+    if (!url) return null
+
+    const path = verificationPathFromUrl(url)
+    if (!path) return null
+
+    const { data, error } = await supabaseAdmin.storage
+        .from(VERIFICATION_BUCKET)
+        .createSignedUrl(path, VERIFICATION_SIGNED_URL_TTL)
+
+    if (error) {
+        console.error('Erreur signature document de vérification:', error.message)
+        return null
+    }
+
+    return data.signedUrl
 }
 
 // ============================================================
@@ -70,7 +96,7 @@ export async function getRestaurantsPendingVerification() {
         })
 
         // 🔥 Transformation propre pour correspondre au type frontend
-        const formattedRestaurants = restaurants.map((restaurant) => ({
+        const formattedRestaurants = await Promise.all(restaurants.map(async (restaurant) => ({
             id: restaurant.id,
             name: restaurant.name,
             slug: restaurant.slug,
@@ -80,11 +106,11 @@ export async function getRestaurantsPendingVerification() {
             verificationDocuments: restaurant.verificationDocuments
                 ? {
                     profilePhotoUrl:
-                        restaurant.verificationDocuments.profilePhotoUrl,
+                        await signVerificationUrl(restaurant.verificationDocuments.profilePhotoUrl),
                     profilePhotoUploadedAt:
                         restaurant.verificationDocuments.profilePhotoUploadedAt,
                     identityDocumentUrl:
-                        restaurant.verificationDocuments.identityDocumentUrl,
+                        await signVerificationUrl(restaurant.verificationDocuments.identityDocumentUrl),
                     identityDocumentType:
                         restaurant.verificationDocuments.identityDocumentType,
                     identityDocumentUploadedAt:
@@ -96,7 +122,7 @@ export async function getRestaurantsPendingVerification() {
                 userId: user.userId,
                 role: user.customRole?.slug ?? 'admin',
             })),
-        }))
+        })))
 
         return {
             success: true,

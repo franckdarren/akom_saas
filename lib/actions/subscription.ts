@@ -139,6 +139,7 @@ export async function createManualPayment(input: CreateManualPaymentInput) {
                 method: 'manual', // Paiement manuel (Mobile Money ou virement)
                 status: 'pending', // En attente de validation par l'équipe
                 billingCycle,
+                plan,             // Appliqué à l'abonnement seulement à la validation
                 userCount,        // NOUVEAU : enregistrer le nombre d'utilisateurs
                 proofUrl,
                 manualNotes: notes,
@@ -147,25 +148,7 @@ export async function createManualPayment(input: CreateManualPaymentInput) {
         })
 
         // ============================================================
-        // ÉTAPE 5 : Mettre à jour l'abonnement si nécessaire
-        // ============================================================
-
-        // Si le plan change ou si le nombre d'utilisateurs change,
-        // on met à jour l'abonnement (mais il reste en attente jusqu'à validation)
-        if (subscription.plan !== plan) {
-            await prisma.subscription.update({
-                where: {id: subscription.id},
-                data: {
-                    plan,
-                    basePlanPrice: planConfig.baseMonthlyPrice,
-                    // Note : active_users_count sera mis à jour automatiquement
-                    // par le trigger quand des utilisateurs seront ajoutés/supprimés
-                },
-            })
-        }
-
-        // ============================================================
-        // ÉTAPE 6 : Revalider le cache et retourner le succès
+        // ÉTAPE 5 : Revalider le cache et retourner le succès
         // ============================================================
 
         revalidatePath('/dashboard/subscription')
@@ -468,10 +451,16 @@ export async function validateManualPayment(paymentId: string) {
         // ÉTAPE 3 : Mettre à jour l'abonnement
         // ============================================================
 
+        // Le plan demandé n'est appliqué qu'ici, une fois le paiement confirmé.
+        // payment.plan est NULL pour les paiements antérieurs à la colonne : on garde le plan actuel.
         await prisma.subscription.update({
             where: {id: payment.subscriptionId},
             data: {
                 status: 'active',
+                ...(payment.plan ? {
+                    plan: payment.plan,
+                    basePlanPrice: SUBSCRIPTION_CONFIG[payment.plan].baseMonthlyPrice,
+                } : {}),
                 billingCycle: payment.billingCycle,
                 currentPeriodStart: new Date(),
                 currentPeriodEnd: payment.expiresAt,

@@ -10,7 +10,7 @@ export async function GET(
     req: NextRequest,
     { params }: { params: Promise<{ code: string }> }
 ) {
-    const { ctx, error } = await validateMobileRequest(req)
+    const { ctx, error } = await validateMobileRequest(req, { resource: 'products', action: 'read' })
     if (error) return error
 
     const { code } = await params

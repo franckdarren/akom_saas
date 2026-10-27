@@ -1,5 +1,6 @@
 // lib/actions/cash/get-session-balance.ts
-'use server'
+// Pas de 'use server' : fonction interne sans contrôle d'accès, appelée
+// uniquement par closeCashSession après requireCashAccess().
 
 import prisma from '@/lib/prisma'
 import {getChangeDueTotals} from '@/lib/change-due/totals'

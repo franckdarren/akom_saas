@@ -2,6 +2,7 @@
 'use server'
 
 import prisma from '@/lib/prisma'
+import {requireMembershipForRestaurant} from '@/lib/permissions/check'
 import {PLAN_FEATURES, type FeatureKey} from '@/lib/config/subscription'
 import {toSubscriptionPlan, type SubscriptionPlan} from '@/lib/utils/subscription-helpers'
 
@@ -43,6 +44,10 @@ export interface QuotaStatus {
 export async function getRestaurantPlan(
     restaurantId: string
 ): Promise<SubscriptionPlan> {
+    // Fichier 'use server' : chaque export est appelable depuis le client avec
+    // n'importe quel restaurantId. Toutes les fonctions passent par ici.
+    await requireMembershipForRestaurant(restaurantId)
+
     const subscription = await prisma.subscription.findFirst({
         where: {
             restaurantId,
