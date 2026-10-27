@@ -2,7 +2,7 @@
 'use server'
 
 import prisma from '@/lib/prisma'
-import {getCurrentUserAndRestaurant} from '@/lib/auth/session'
+import {requireCashAccess} from '@/lib/auth/session'
 import {revalidatePath} from 'next/cache'
 import {PaymentStatus, PaymentMethod} from '@prisma/client'
 import {createChangeDue} from '@/lib/change-due/create'
@@ -28,8 +28,14 @@ export async function markOrderPaid(
     method: PaymentMethod,
     options: MarkOrderPaidOptions = {},
 ): Promise<{error: string} | {success: true; changeDue: POSChangeDueResult | null}> {
-    const {userId, restaurantId} = await getCurrentUserAndRestaurant()
-    if (!userId || !restaurantId) return {error: 'Non autorisé'}
+    // Encaissement : admin ou cashier uniquement (même règle que la caisse)
+    let userId: string
+    let restaurantId: string
+    try {
+        ({userId, restaurantId} = await requireCashAccess())
+    } catch {
+        return {error: 'Non autorisé'}
+    }
 
     // Vérifier que la commande appartient bien à ce restaurant
     const order = await prisma.order.findUnique({

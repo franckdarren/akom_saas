@@ -1,13 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" rx="6" fill="#0f172a"/>
-  <text
-    x="16"
-    y="22"
-    text-anchor="middle"
-    font-family="system-ui, -apple-system, 'Segoe UI', sans-serif"
-    font-weight="900"
-    font-size="9.5"
-    letter-spacing="1"
-    fill="#ffffff"
-  >AK<tspan fill="#3b82f6">Ô</tspan>M</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Monogramme Akôm : Ô bleu sur carré navy (favicon, icône app, avatar) -->
+  <rect width="64" height="64" rx="14" fill="#0f172a"/>
+  <path fill="#3b82f6" fill-rule="evenodd" d="M32 20.5A17 17.5 0 1 0 32 55.5A17 17.5 0 1 0 32 20.5ZM32 28A7 10.5 0 1 1 32 49A7 10.5 0 1 1 32 28ZM22 17L28 8H36L42 17H35.5L32 12.5L28.5 17Z"/>
 </svg>

@@ -1,6 +1,7 @@
 // lib/actions/logs.ts
-
-'use server'
+// Pas de 'use server' : les fonctions d'écriture n'ont pas de contrôle d'accès
+// et ne doivent pas être appelables depuis le client. Tous les appelants sont
+// côté serveur (routes API/CRON, server actions, Server Components).
 
 import { createClient } from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'

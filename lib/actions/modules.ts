@@ -1,8 +1,8 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { createClient } from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
+import { requireMembershipForRestaurant, requirePermissionForRestaurant } from '@/lib/permissions/check'
 import {
     MODULE_CATALOG,
     getDefaultModulesForActivity,
@@ -10,10 +10,23 @@ import {
 } from '@/lib/config/modules'
 import type { ActivityType } from '@/lib/config/activity-labels'
 
+// Configurer les modules = modifier la structure (admin par défaut).
+// Retourne l'utilisateur de la session, ou null si accès refusé.
+async function authorizeModulesUpdate(restaurantId: string): Promise<string | null> {
+    try {
+        const { userId } = await requirePermissionForRestaurant(restaurantId, 'restaurants', 'update')
+        return userId
+    } catch {
+        return null
+    }
+}
+
 // ─── Récupérer les modules actifs d'une structure ──────────────────────────────
 // Retourne null si aucun module n'est encore hydraté (première fois).
 
 export async function getActiveModules(restaurantId: string): Promise<ModuleKey[] | null> {
+    await requireMembershipForRestaurant(restaurantId)
+
     const rows = await prisma.restaurantModule.findMany({
         where: { restaurantId },
         select: { moduleKey: true, isEnabled: true },
@@ -32,8 +45,9 @@ export async function getActiveModules(restaurantId: string): Promise<ModuleKey[
 export async function hydrateDefaultModules(
     restaurantId: string,
     activityType: ActivityType,
-    userId: string,
 ): Promise<ModuleKey[]> {
+    const { userId } = await requireMembershipForRestaurant(restaurantId)
+
     const enabled = getDefaultModulesForActivity(activityType)
     const allKeys = Object.keys(MODULE_CATALOG) as ModuleKey[]
 
@@ -57,9 +71,8 @@ export async function toggleModule(
     moduleKey: ModuleKey,
     enabled: boolean,
 ): Promise<{ success: boolean; error?: string }> {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { success: false, error: 'Non authentifié' }
+    const userId = await authorizeModulesUpdate(restaurantId)
+    if (!userId) return { success: false, error: 'Accès refusé' }
 
     const def = MODULE_CATALOG[moduleKey]
     if (!def) return { success: false, error: 'Module inconnu' }
@@ -67,8 +80,8 @@ export async function toggleModule(
 
     await prisma.restaurantModule.upsert({
         where: { restaurantId_moduleKey: { restaurantId, moduleKey } },
-        create: { restaurantId, moduleKey, isEnabled: enabled, enabledBy: user.id },
-        update: { isEnabled: enabled, enabledBy: user.id },
+        create: { restaurantId, moduleKey, isEnabled: enabled, enabledBy: userId },
+        update: { isEnabled: enabled, enabledBy: userId },
     })
 
     revalidatePath('/dashboard', 'layout')
@@ -81,8 +94,10 @@ export async function toggleModule(
 export async function initModulesFromSelection(
     restaurantId: string,
     selectedKeys: ModuleKey[],
-    userId: string,
 ): Promise<{ success: boolean; error?: string }> {
+    const userId = await authorizeModulesUpdate(restaurantId)
+    if (!userId) return { success: false, error: 'Accès refusé' }
+
     const allKeys = Object.keys(MODULE_CATALOG) as ModuleKey[]
 
     await prisma.restaurantModule.createMany({
@@ -105,9 +120,8 @@ export async function resetModulesToDefaults(
     restaurantId: string,
     activityType: ActivityType,
 ): Promise<{ success: boolean; error?: string }> {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { success: false, error: 'Non authentifié' }
+    const userId = await authorizeModulesUpdate(restaurantId)
+    if (!userId) return { success: false, error: 'Accès refusé' }
 
     const defaults = getDefaultModulesForActivity(activityType)
     const allKeys = Object.keys(MODULE_CATALOG) as ModuleKey[]
@@ -118,8 +132,8 @@ export async function resetModulesToDefaults(
             .map(key =>
                 prisma.restaurantModule.upsert({
                     where: { restaurantId_moduleKey: { restaurantId, moduleKey: key } },
-                    create: { restaurantId, moduleKey: key, isEnabled: defaults.includes(key), enabledBy: user.id },
-                    update: { isEnabled: defaults.includes(key), enabledBy: user.id },
+                    create: { restaurantId, moduleKey: key, isEnabled: defaults.includes(key), enabledBy: userId },
+                    update: { isEnabled: defaults.includes(key), enabledBy: userId },
                 })
             )
     )

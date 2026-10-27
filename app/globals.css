@@ -41,6 +41,11 @@
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
   --color-primary-subtle: var(--primary-subtle);
+  /* Accent chaud de marque (mises en avant, jamais un statut) */
+  --color-accent-warm: var(--accent-warm);
+  --color-accent-warm-foreground: var(--accent-warm-foreground);
+  --color-accent-warm-strong: var(--accent-warm-strong);
+  --color-accent-warm-subtle: var(--accent-warm-subtle);
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
@@ -113,6 +118,16 @@
   --primary-foreground: oklch(0.99 0 0);
   --primary-subtle: oklch(0.97 0.014 254.604); /* blue-50 #eff6ff */
   --ring: oklch(0.623 0.214 259.815);
+
+  /* --- Accent chaud Akôm (orange soleil) ---
+     Contrepoint chaud du bleu Ô, réservé aux moments de marque : mises en
+     avant marketing, nouveautés, promotions, chiffre héros. Jamais pour un
+     statut ou une alerte (rôle de --warning / --destructive).
+     Texte sur fond orange : navy (6,4:1). Texte orange sur blanc : -strong (5,2:1). */
+  --accent-warm: oklch(0.705 0.213 47.604); /* orange-500 #f97316 */
+  --accent-warm-foreground: oklch(0.208 0.042 265.755); /* navy du logo */
+  --accent-warm-strong: oklch(0.553 0.195 38.402); /* orange-700 #c2410c */
+  --accent-warm-subtle: oklch(0.98 0.016 73.684); /* orange-50 #fff7ed */
 
   /* --- Succès --- */
   --success: oklch(0.72 0.18 145);
@@ -193,6 +208,12 @@
   --primary-foreground: oklch(0.129 0.042 264.695); /* slate-950 */
   --primary-subtle: oklch(0.282 0.091 267.935); /* ≈ blue-950 #172554 */
   --ring: oklch(0.707 0.165 254.624);
+
+  /* --- Accent chaud dark (éclairci pour le fond sombre) --- */
+  --accent-warm: oklch(0.75 0.183 55.934); /* orange-400 #fb923c */
+  --accent-warm-foreground: oklch(0.129 0.042 264.695); /* slate-950 */
+  --accent-warm-strong: oklch(0.837 0.128 66.29); /* orange-300 #fdba74 */
+  --accent-warm-subtle: oklch(0.266 0.079 36.259); /* orange-950 #431407 */
 
   /* --- Succès dark --- */
   --success: oklch(0.66 0.16 145);
@@ -614,7 +635,7 @@
   border-radius: 999px;
   width: fit-content;
 }
-.lp-eyebrow .lp-dot { width: 6px; height: 6px; border-radius: 999px; background: var(--primary); }
+.lp-eyebrow .lp-dot { width: 6px; height: 6px; border-radius: 999px; background: var(--accent-warm); }
 .lp-label-meta {
   font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
   color: var(--muted-foreground);
@@ -688,7 +709,12 @@
   letter-spacing: -0.02em;
   line-height: 1.1;
 }
-.lp-hero h1 em { font-style: normal; color: var(--primary); }
+/* Mot-clé du hero : bleu Ô surligné de l'accent chaud (trait de marqueur) */
+.lp-hero h1 em {
+  font-style: normal; color: var(--primary);
+  background: linear-gradient(transparent 64%, color-mix(in srgb, var(--accent-warm) 35%, transparent) 64%);
+  -webkit-box-decoration-break: clone; box-decoration-break: clone;
+}
 .lp-hero p.lp-lead {
   font-size: 17px; color: var(--muted-foreground); max-width: 520px;
   margin-top: 18px; line-height: 1.55;

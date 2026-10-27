@@ -162,6 +162,10 @@ Le logo Akom ne comporte que trois couleurs, et toute la palette en decoule :
 
 Les neutres sont en **slate** (hue ~258, famille chromatique du navy du logo) — jamais en zinc, gray ou neutral, qui jurent avec le `#0F172A`.
 
+**Accent chaud** (hors logo) : `accent-warm` (orange-500 `#F97316`), avec `accent-warm-foreground` (navy, pour le texte posé dessus), `accent-warm-strong` (orange-700, pour du texte orange sur fond clair) et `accent-warm-subtle` (fond teinté). Réservé aux moments de marque : mises en avant marketing, nouveautés, promotions, chiffre héros. **Jamais** pour un statut ou une alerte (rôle de `warning` / `destructive`), jamais pour un bouton d'action (rôle de `primary`). Ne pas confondre avec `accent`, le neutre de survol de shadcn. Équivalents mobile : `AkomColors.accentWarm*`.
+
+**Logo** : `components/ui/logo.tsx` (wordmark AKÔM vectorisé, variantes `color` / `white` / `dark`) et le monogramme Ô (`public/favicon.svg` : Ô bleu sur carré navy) pour favicon, icônes et avatars. Ne jamais recomposer le logo en `<text>` ni avec une police, ni le placer sur un fond `primary`.
+
 Les variables de couleur sont definies dans `app/globals.css` (tokens Tailwind v4 via `@theme inline`). Toujours utiliser les classes semantiques Tailwind plutot que des valeurs hex ou des couleurs arbitraires :
 
 - **UI** : `primary`, `secondary`, `muted`, `accent`, `destructive`, `border`, `background`, `foreground`, `card`, `popover`

@@ -27,7 +27,6 @@ interface OnboardingModulesStepProps {
     restaurantId: string
     restaurantName: string
     activityType: ActivityType
-    userId: string
     defaultModules: ModuleKey[]
 }
 
@@ -35,7 +34,6 @@ export function OnboardingModulesStep({
     restaurantId,
     restaurantName,
     activityType,
-    userId,
     defaultModules,
 }: OnboardingModulesStepProps) {
     const router = useRouter()
@@ -55,7 +53,7 @@ export function OnboardingModulesStep({
 
     function handleContinue() {
         startTransition(async () => {
-            await initModulesFromSelection(restaurantId, Array.from(selected), userId)
+            await initModulesFromSelection(restaurantId, Array.from(selected))
             startLoading()
             router.push('/onboarding/verification')
         })
@@ -137,7 +135,7 @@ export function OnboardingModulesStep({
                     disabled={isPending}
                     onClick={() => {
                         startTransition(async () => {
-                            await initModulesFromSelection(restaurantId, Array.from(selected), userId)
+                            await initModulesFromSelection(restaurantId, Array.from(selected))
                             startLoading()
                             router.push('/onboarding/verification')
                         })

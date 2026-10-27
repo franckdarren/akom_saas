@@ -77,7 +77,27 @@ export default async function DashboardPage({ searchParams }: PageProps) {
     const effectivePeriod: TimePeriod =
         period === TIME_PERIODS.CUSTOM && !customPeriod ? TIME_PERIODS.WEEK : period
 
-    const stats = await getDashboardStats(effectivePeriod, customPeriod)
+    let stats: Awaited<ReturnType<typeof getDashboardStats>>
+    try {
+        stats = await getDashboardStats(effectivePeriod, customPeriod)
+    } catch (error) {
+        // Rôle sans permission stats.read (ex : caissier) — pas de statistiques
+        if (error instanceof Error && error.message === 'Permission refusée') {
+            return (
+                <>
+                    <AppInsetHeader>
+                        <h1 className="text-sm font-medium my-auto">Tableau de bord</h1>
+                    </AppInsetHeader>
+                    <div className="layout-page">
+                        <p className="text-muted-foreground">
+                            Votre rôle ne donne pas accès aux statistiques. Utilisez la caisse ou l&apos;écran des {labels.orderNamePlural}.
+                        </p>
+                    </div>
+                </>
+            )
+        }
+        throw error
+    }
 
     return (
         <>

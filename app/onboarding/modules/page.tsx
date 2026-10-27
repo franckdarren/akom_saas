@@ -51,7 +51,6 @@ export default async function OnboardingModulesPage() {
                     restaurantId={restaurant.id}
                     restaurantName={restaurant.name}
                     activityType={restaurant.activityType as ActivityType}
-                    userId={user.id}
                     defaultModules={defaults}
                 />
             </div>

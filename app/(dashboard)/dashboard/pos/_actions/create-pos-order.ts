@@ -1,8 +1,9 @@
 // app/(dashboard)/dashboard/pos/_actions/create-pos-order.ts
 'use server'
 
+import {z} from 'zod'
 import prisma from '@/lib/prisma'
-import {getCurrentUserAndRestaurant} from '@/lib/auth/session'
+import {requireCashAccess} from '@/lib/auth/session'
 import {revalidatePath} from 'next/cache'
 import {OrderSource, OrderStatus, PaymentStatus, PaymentTiming, PaymentMethod} from '@prisma/client'
 import {createChangeDue} from '@/lib/change-due/create'
@@ -16,9 +17,25 @@ const PAYMENT_METHOD_MAP: Record<POSPaymentMethod, PaymentMethod> = {
     moov_money: PaymentMethod.moov_money,
 }
 
+// Une quantité négative produirait un total négatif et réinjecterait du stock.
+const POSItemsSchema = z.array(z.object({
+    productId: z.string().uuid(),
+    quantity: z.number().int().min(1).max(9999),
+})).min(1).max(200)
+
 export async function createPOSOrder(payload: POSOrderPayload) {
-    const {userId, restaurantId} = await getCurrentUserAndRestaurant()
-    if (!userId || !restaurantId) throw new Error('Non autorisé')
+    // Encaissement : admin ou cashier uniquement (même règle que la caisse)
+    let userId: string
+    let restaurantId: string
+    try {
+        ({userId, restaurantId} = await requireCashAccess())
+    } catch {
+        return {success: false, error: 'Votre rôle ne permet pas d\'encaisser'}
+    }
+
+    if (!POSItemsSchema.safeParse(payload.items).success) {
+        return {success: false, error: 'Panier invalide'}
+    }
 
     if (payload.mode === 'pay_now' && !payload.paymentMethod) {
         return {success: false, error: 'Méthode de paiement requise'}

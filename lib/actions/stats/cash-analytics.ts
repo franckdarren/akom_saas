@@ -1,7 +1,7 @@
 // lib/actions/stats/cash-analytics.ts
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { requirePermission } from '@/lib/permissions/check'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import prisma from '@/lib/prisma'
 import { getPeriodRange } from '@/lib/utils/period'
@@ -11,18 +11,10 @@ import type { TimePeriod, CustomPeriod, CashAnalytics, CashSessionStat, CashOper
 // Auth interne — même pattern que les autres actions stats
 // ============================================================
 
+// Structure active + permission stats.read (admin par défaut)
 async function getCurrentRestaurantId(): Promise<string> {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) throw new Error('Non authentifié')
-
-    const restaurantUser = await prisma.restaurantUser.findFirst({
-        where: { userId: user.id },
-        select: { restaurantId: true },
-    })
-    if (!restaurantUser) throw new Error('Aucun restaurant trouvé')
-
-    return restaurantUser.restaurantId
+    const { restaurantId } = await requirePermission('stats', 'read')
+    return restaurantId
 }
 
 // ============================================================

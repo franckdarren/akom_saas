@@ -143,7 +143,6 @@ export default async function DashboardLayout({
                         return await hydrateDefaultModules(
                             restaurant.id,
                             restaurant.activityType as ActivityType,
-                            user.id,
                         )
                     }
                     return modules

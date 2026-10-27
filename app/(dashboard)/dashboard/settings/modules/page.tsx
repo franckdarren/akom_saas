@@ -53,7 +53,6 @@ export default async function ModulesPage() {
         activeModules = await hydrateDefaultModules(
             restaurant.id,
             restaurant.activityType as ActivityType,
-            user.id,
         )
     }
 
