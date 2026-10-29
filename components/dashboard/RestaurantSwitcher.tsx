@@ -133,8 +133,8 @@ export function RestaurantSwitcher({canAddMore = false, variant = 'sidebar'}: Re
     if (loading) {
         return (
             <div className="flex items-center gap-2 px-2 py-1.5 rounded-md animate-pulse">
-                <div className="h-7 w-7 rounded-md bg-muted shrink-0"/>
-                <div className="h-3 w-28 rounded bg-muted"/>
+                <div className="h-7 w-7 rounded-md bg-sidebar-accent shrink-0"/>
+                <div className="h-3 w-28 rounded bg-sidebar-accent"/>
             </div>
         )
     }
@@ -149,7 +149,7 @@ export function RestaurantSwitcher({canAddMore = false, variant = 'sidebar'}: Re
                 <DropdownMenuTrigger asChild>
                     <button className={cn(
                         'flex items-center gap-2 w-full px-2 py-1.5 rounded-md text-left text-sm',
-                        'hover:bg-accent hover:text-accent-foreground transition-colors duration-150',
+                        'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors duration-150',
                         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                         switching && 'opacity-60 pointer-events-none'
                     )}>
@@ -169,14 +169,14 @@ export function RestaurantSwitcher({canAddMore = false, variant = 'sidebar'}: Re
                                         {currentRestaurant.name}
                                     </span>
                                     {hasMultipleRestaurants && (
-                                        <span className="type-caption leading-tight">
+                                        <span className="type-caption leading-tight text-sidebar-foreground/70">
                                             {restaurants.length} structures
                                         </span>
                                     )}
                                 </div>
 
                                 {showChevron && (
-                                    <div className="ml-auto shrink-0 text-muted-foreground">
+                                    <div className="ml-auto shrink-0 text-sidebar-foreground/70">
                                         {open
                                             ? <ChevronUp className="h-3.5 w-3.5"/>
                                             : <ChevronDown className="h-3.5 w-3.5"/>

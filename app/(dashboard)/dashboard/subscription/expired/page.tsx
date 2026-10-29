@@ -14,6 +14,7 @@ import {
     CardTitle,
 } from '@/components/ui/app-card'
 import {Alert, AlertDescription, AlertTitle} from '@/components/ui/alert'
+import {AppInsetHeader} from '@/components/layout/AppInsetHeader'
 
 // Cette page est un Server Component
 export default async function SubscriptionExpiredPage() {
@@ -77,6 +78,8 @@ export default async function SubscriptionExpiredPage() {
     const pendingPayments = subscription.payments?.filter((p) => p.status === 'pending') || []
 
     return (
+        <>
+        <AppInsetHeader/>
         <div className="flex flex-col flex-1 items-center justify-center px-4 py-8">
             <div className="max-w-2xl w-full space-y-6">
 
@@ -173,5 +176,6 @@ export default async function SubscriptionExpiredPage() {
 
             </div>
         </div>
+        </>
     )
 }

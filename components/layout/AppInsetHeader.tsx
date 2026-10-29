@@ -3,6 +3,7 @@ import { SidebarTrigger } from '@/components/ui/sidebar'
 import { Separator } from '@/components/ui/separator'
 import { NotificationBell } from '@/components/notifications/NotificationBell'
 import { ModeToggle } from '@/components/ui/mode-toggle'
+import { UserMenu } from '@/components/layout/UserMenu'
 import { useCurrentUserId } from '@/lib/hooks/use-current-user-id'
 import { cn } from '@/lib/utils'
 
@@ -21,8 +22,15 @@ export function AppInsetHeader({ children, className }: AppInsetHeaderProps) {
                 {children}
             </div>
             <div className="flex items-center gap-1">
-                {userId && <NotificationBell userId={userId} />}
-                <ModeToggle />
+                {userId && (
+                    <div data-tour="notifications" className="flex">
+                        <NotificationBell userId={userId} />
+                    </div>
+                )}
+                <div data-tour="theme" className="flex">
+                    <ModeToggle />
+                </div>
+                <UserMenu />
             </div>
         </header>
     )

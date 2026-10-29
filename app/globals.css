@@ -171,15 +171,17 @@
   --chart-4: oklch(0.685 0.169 237.323); /* info sky */
   --chart-5: oklch(0.585 0.233 277.117); /* violet */
 
-  /* --- Sidebar --- */
-  --sidebar: oklch(0.984 0.003 247.858); /* slate-50 */
-  --sidebar-foreground: oklch(0.208 0.042 265.755); /* slate-900 */
-  --sidebar-primary: oklch(0.623 0.214 259.815);
-  --sidebar-primary-foreground: oklch(0.99 0 0);
-  --sidebar-accent: oklch(0.968 0.007 247.896); /* slate-100 */
-  --sidebar-accent-foreground: oklch(0.279 0.041 260.031); /* slate-800 */
-  --sidebar-border: oklch(0.929 0.013 255.508); /* slate-200 */
-  --sidebar-ring: oklch(0.623 0.214 259.815);
+  /* --- Sidebar ---
+     Navy du logo aussi en clair : la marque est portée par la sidebar,
+     posée contre le contenu blanc. Mêmes valeurs qu'en sombre. */
+  --sidebar: oklch(0.208 0.042 265.755); /* slate-900 #0f172a — navy du logo */
+  --sidebar-foreground: oklch(0.984 0.003 247.858); /* slate-50 */
+  --sidebar-primary: oklch(0.707 0.165 254.624);
+  --sidebar-primary-foreground: oklch(0.129 0.042 264.695);
+  --sidebar-accent: oklch(0.279 0.041 260.031); /* slate-800 */
+  --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.707 0.165 254.624);
 }
 
 .dark {

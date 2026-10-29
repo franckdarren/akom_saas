@@ -15,6 +15,7 @@ import {IdleTimeoutProvider} from "@/providers/IdleTimeoutProvider"
 import type {SubscriptionPlan} from "@/lib/config/subscription"
 import type {ActivityType} from "@/lib/config/activity-labels"
 import {VerificationBanner} from "@/components/dashboard/VerificationBanner"
+import {DashboardProvider} from "@/components/providers/dashboard-provider"
 
 const VERIFICATION_EXEMPT_ROUTES = [
     '/dashboard/settings',
@@ -183,10 +184,10 @@ export default async function DashboardLayout({
 
     return (
         <IdleTimeoutProvider userRole={userRole ?? undefined}>
+            <DashboardProvider value={{user: {id: user.id, email: user.email || ""}, role: userRole}}>
             <RestaurantProvider>
                 <SidebarProvider>
                     <AppSidebar
-                        user={{email: user.email || "", id: user.id}}
                         role={userRole}
                         restaurantName={restaurantName}
                         activityType={restaurantActivityType}
@@ -210,6 +211,7 @@ export default async function DashboardLayout({
                     </SidebarInset>
                 </SidebarProvider>
             </RestaurantProvider>
+            </DashboardProvider>
         </IdleTimeoutProvider>
     )
 }

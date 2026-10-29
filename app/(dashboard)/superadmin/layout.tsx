@@ -7,6 +7,7 @@ import {signOut, getUserRole} from "@/lib/actions/auth"
 import {AppSidebar} from "../components/app-sidebar"
 import {SidebarProvider, SidebarInset} from "@/components/ui/sidebar"
 import {RestaurantProvider} from "@/lib/hooks/use-restaurant"
+import {DashboardProvider} from "@/components/providers/dashboard-provider"
 
 export default async function SuperAdminLayout({
                                                    children,
@@ -51,21 +52,19 @@ export default async function SuperAdminLayout({
     // ============================================================
 
     return (
-        <RestaurantProvider>
-            <SidebarProvider>
-                <AppSidebar
-                    user={{
-                        email: user.email || "",
-                        id: user.id,
-                    }}
-                    role={userRole}
-                    restaurantName="Akôm"
-                    restaurantId={undefined}
-                    restaurantLogoUrl=""
-                    onSignOut={handleSignOut}
-                />
-                <SidebarInset>{children}</SidebarInset>
-            </SidebarProvider>
-        </RestaurantProvider>
+        <DashboardProvider value={{user: {id: user.id, email: user.email || ""}, role: userRole}}>
+            <RestaurantProvider>
+                <SidebarProvider>
+                    <AppSidebar
+                        role={userRole}
+                        restaurantName="Akôm"
+                        restaurantId={undefined}
+                        restaurantLogoUrl=""
+                        onSignOut={handleSignOut}
+                    />
+                    <SidebarInset>{children}</SidebarInset>
+                </SidebarProvider>
+            </RestaurantProvider>
+        </DashboardProvider>
     )
 }

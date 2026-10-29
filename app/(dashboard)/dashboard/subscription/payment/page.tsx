@@ -7,6 +7,7 @@ import {ArrowLeft, AlertCircle, Users} from 'lucide-react'
 import Link from 'next/link'
 import {Button} from '@/components/ui/button'
 import {PageHeader} from '@/components/ui/page-header'
+import {AppInsetHeader} from '@/components/layout/AppInsetHeader'
 import {Alert, AlertDescription, AlertTitle} from '@/components/ui/alert'
 import {
     SUBSCRIPTION_CONFIG,
@@ -128,6 +129,8 @@ export default async function PaymentPage({
         await getRestaurantSubscription(restaurantId)
 
     return (
+        <>
+        <AppInsetHeader/>
         <div className="container mx-auto py-8 px-4 space-y-8">
 
             {/* HEADER */}
@@ -319,5 +322,6 @@ export default async function PaymentPage({
 
             </div>
         </div>
+        </>
     )
 }

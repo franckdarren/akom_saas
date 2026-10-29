@@ -10,6 +10,7 @@ import {cookies} from 'next/headers'
 import {Button} from '@/components/ui/button'
 import {AppCard, CardContent, CardHeader, CardTitle} from '@/components/ui/app-card'
 import {Alert, AlertDescription} from '@/components/ui/alert'
+import {AppInsetHeader} from '@/components/layout/AppInsetHeader'
 
 /**
  * Page de sélection du plan d'abonnement avec support de la tarification par utilisateur
@@ -118,6 +119,8 @@ export default async function ChoosePlanPage() {
     // ============================================================
 
     return (
+        <>
+        <AppInsetHeader/>
         <div className="min-h-screen bg-background py-6 sm:py-12 px-4">
             <div className="max-w-7xl mx-auto space-y-8">
 
@@ -355,5 +358,6 @@ export default async function ChoosePlanPage() {
 
             </div>
         </div>
+        </>
     )
 }
